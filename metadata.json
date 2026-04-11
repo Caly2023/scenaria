@@ -1,0 +1,8 @@
+{
+  "name": "ScénarIA",
+  "description": "Professional AI Screenwriting Studio with real-time collaboration, script analysis, and character generation.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

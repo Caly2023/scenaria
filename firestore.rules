@@ -1,0 +1,170 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: projects
+    // Fields:
+    //   - metadata: map (required)
+    //     - title: string (required, 1-100 chars)
+    //     - format: string (required, enum)
+    //     - genre: string (required)
+    //     - tone: string (required)
+    //     - languages: list of strings (required)
+    //     - targetDuration: string (required)
+    //   - brainstorming_analysis: string (optional)
+    //   - brainstorming_story: string (optional)
+    //   - collaborators: list of strings (uids, required)
+    //   - activeStage: string (required)
+    //   - validatedStages: list of strings (required)
+    //   - ownerId: string (required, immutable)
+    //   - createdAt: number (required, immutable)
+    //   - updatedAt: number (required)
+    //
+    // Collection: projects/{projectId}/sequences
+    // Fields:
+    //   - title: string (required)
+    //   - content: string (required)
+    //   - order: number (required)
+    //   - projectId: string (required, immutable)
+    //
+    // Collection: projects/{projectId}/characters
+    // Fields:
+    //   - name: string (required)
+    //   - description: string (required)
+    //   - projectId: string (required, immutable)
+    //   - views: map (optional)
+    //
+    // Collection: projects/{projectId}/locations
+    // Fields:
+    //   - name: string (required)
+    //   - description: string (required)
+    //   - projectId: string (required, immutable)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "sarrabdoulaye1203@gmail.com" && request.auth.token.email_verified == true) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+    
+    function isProjectMember(projectId) {
+      let project = get(/databases/$(database)/documents/projects/$(projectId)).data;
+      return isAuthenticated() && (
+        request.auth.uid == project.ownerId || 
+        request.auth.uid in project.collaborators ||
+        isAdmin()
+      );
+    }
+
+    function isOwner(data) {
+      return isAuthenticated() && request.auth.uid == data.ownerId;
+    }
+
+    function isValidProject(data) {
+      return data.metadata is map &&
+             data.metadata.title is string && data.metadata.title.size() > 0 && data.metadata.title.size() <= 100 &&
+             data.metadata.format is string &&
+             data.metadata.genre is string &&
+             data.metadata.tone is string &&
+             data.metadata.languages is list &&
+             data.metadata.targetDuration is string &&
+             data.collaborators is list &&
+             request.auth.uid in data.collaborators &&
+             data.ownerId == request.auth.uid &&
+             data.activeStage is string &&
+             data.validatedStages is list &&
+             data.createdAt is number &&
+             data.updatedAt is number;
+    }
+
+    function isValidSequence(data) {
+      return data.title is string && data.title.size() <= 200 &&
+             data.content is string && data.content.size() <= 50000 &&
+             data.order is number &&
+             data.projectId is string;
+    }
+
+    function isValidCharacter(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.projectId is string;
+    }
+
+    function isValidLocation(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.description is string && data.description.size() <= 5000 &&
+             data.projectId is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /projects/{projectId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId || 
+        request.auth.uid in resource.data.collaborators ||
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated() && isValidProject(request.resource.data);
+      
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId || 
+        request.auth.uid in resource.data.collaborators ||
+        isAdmin()
+      ) && (
+        isAdmin() || (
+          request.resource.data.ownerId == resource.data.ownerId &&
+          request.resource.data.createdAt == resource.data.createdAt
+        )
+      );
+      
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId || isAdmin());
+
+      match /sequences/{sequenceId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidSequence(request.resource.data);
+        allow update: if isProjectMember(projectId) && isValidSequence(request.resource.data);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /characters/{characterId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidCharacter(request.resource.data);
+        allow update: if isProjectMember(projectId) && isValidCharacter(request.resource.data);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /locations/{locationId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidLocation(request.resource.data);
+        allow update: if isProjectMember(projectId) && isValidLocation(request.resource.data);
+        allow delete: if isProjectMember(projectId);
+      }
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == userId && request.resource.data.role == 'user';
+      allow update: if isAuthenticated() && (
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role) || 
+        isAdmin()
+      );
+    }
+  }
+}

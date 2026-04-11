@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A screenwriting project",
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "format": { "type": "string" },
+            "genre": { "type": "string" },
+            "tone": { "type": "string" },
+            "languages": { "type": "array", "items": { "type": "string" } },
+            "targetDuration": { "type": "string" },
+            "logline": { "type": "string" }
+          }
+        },
+        "brainstorming_analysis": { "type": "string" },
+        "brainstorming_story": { "type": "string" },
+        "storyDump": { "type": "string" },
+        "loglineDraft": { "type": "string" },
+        "isLoglineValidated": { "type": "boolean" },
+        "collaborators": { "type": "array", "items": { "type": "string" } },
+        "activeStage": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["ownerId"]
+    },
+    "Sequence": {
+      "title": "Sequence",
+      "description": "A scene or sequence within a project",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "order": { "type": "number" },
+        "projectId": { "type": "string" }
+      },
+      "required": ["projectId", "order"]
+    },
+    "Character": {
+      "title": "Character",
+      "description": "A character in the story bible",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "projectId": { "type": "string" },
+        "views": {
+          "type": "object",
+          "properties": {
+            "front": { "type": "string" },
+            "profile": { "type": "string" },
+            "back": { "type": "string" },
+            "full": { "type": "string" }
+          }
+        }
+      },
+      "required": ["projectId", "name"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Main project document"
+    },
+    "/projects/{projectId}/sequences/{sequenceId}": {
+      "schema": "Sequence",
+      "description": "Sequences for a project"
+    },
+    "/projects/{projectId}/characters/{characterId}": {
+      "schema": "Character",
+      "description": "Characters for a project"
+    }
+  }
+}

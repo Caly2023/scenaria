@@ -1,0 +1,379 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+const resources = {
+  en: {
+    translation: {
+      common: {
+        project: 'Project',
+        search: 'Search...',
+        synced: 'Synced',
+        syncing: 'Syncing...',
+        error: 'Error',
+        locked: 'Locked',
+        comingSoon: 'Coming Soon',
+        validate: 'Validate',
+        refine: 'Refine',
+        generate: 'Generate',
+        aiWorking: 'AI is working...',
+        aiWorkingDesc: 'Generating the next stage of your masterpiece.',
+        askAi: 'Ask AI to refine the {{stage}}...',
+        askDoctor: 'Ask the Doctor about {{stage}}...',
+        characterAdded: 'Character added',
+        characterDeleted: 'Character deleted',
+        locationAdded: 'Location added',
+        locationDeleted: 'Location deleted',
+        renaming: 'Renaming {{oldName}} to {{newName}} across the project...',
+        extracting: 'Extracting world entities...',
+        extracted: 'Characters & Locations extracted',
+        generatingSequences: 'Generating sequences...',
+        stepOutlineReady: 'Step Outline ready',
+        generatingScript: 'Generating script sequences...',
+        scriptGenerated: 'Script generated',
+        aiMagicFailed: 'AI Magic failed',
+        selectStage: 'Select a stage to begin',
+        completeProject: 'Complete Project',
+        importText: 'Import Text',
+        attach: 'Attach',
+        viewAll: 'View All',
+        recentMasterpieces: 'Recent Masterpieces',
+        professionalStudio: 'Professional AI Screenwriting Studio',
+        projectNameOptional: 'Project name (optional)',
+        whatsTheStory: 'What\'s the story?',
+        signIn: 'Sign in to start your professional screenwriting journey.',
+        signInWithGoogle: 'Sign in with Google',
+        step: 'Step',
+        locations: 'Locations',
+        newLocation: 'New Location',
+        locationName: 'Location Name (e.g., The Neon Diner)...',
+        describeAtmosphere: 'Describe the atmosphere...',
+        cancel: 'Cancel',
+        create: 'Create',
+        addNewLocation: 'Add New Location',
+        generateVisuals: 'Generate Visuals?',
+        generateVisualsDesc: 'This will use AI to generate a visual representation. This action cannot be undone.',
+        untitled: 'Untitled',
+        sequence: 'Sequence',
+        addNewSequence: 'Add New Sequence',
+        scriptDoctor: 'Script Doctor',
+        analyzing: 'Analyzing {{stage}}',
+        analyzingScript: 'I\'m analyzing your script.',
+        askForAdvice: 'Ask me for feedback or advice.',
+        you: 'You',
+        doctor: 'Doctor',
+        thinking: 'Thinking...',
+        askTheDoctor: 'Ask the Doctor...',
+        stopListening: 'Stop Listening',
+        listenToLogline: 'Listen to Logline',
+        aiDrafting: 'AI Drafting...',
+        focusModeActive: 'Focus Mode Active',
+        deepNightWriting: 'Deep night writing...',
+        close: 'Close',
+        visualDescriptionReady: 'Visual Description Ready',
+        speaker: 'Speaker',
+        aiRefine: 'AI Refine',
+        generateImage: 'Generate Image',
+        focus: 'Focus',
+        characters: 'Characters',
+        newCharacter: 'New Character',
+        characterName: 'Character Name (e.g., John Doe)...',
+        describeCharacter: 'Describe the character\'s appearance, personality, and role...',
+        addNewCharacter: 'Add New Character',
+        failedToGenerate: 'Failed to generate content. Please try again.',
+        blockRefined: '{{stage}} block refined',
+        refinedSuccessfully: '{{stage}} refined successfully',
+        failedToRefine: 'Failed to refine {{stage}}',
+        deepDeveloped: '{{name}} deep developed!',
+        locationDeveloped: 'Location developed!',
+        primitiveUpdated: 'Project updated by Script Doctor',
+        failedToDeepDevelop: 'Failed to deep develop',
+        deepDevelop: 'Deep Develop',
+        tier1: 'Tier 1: Main Cast',
+        tier2: 'Tier 2: Secondary',
+        tier3: 'Tier 3: Background',
+        newSequenceLabel: 'NEW SEQUENCE',
+        aiInsight: 'AI Insight',
+        readyToProceed: 'Ready to proceed',
+        notReadyYet: 'Not ready yet',
+        continue: 'Continue',
+        fixRequired: 'Fix required',
+        analysisInProgress: 'Analysis in progress...',
+        notReadyYetFeedback: 'I\'ve analyzed this stage and it\'s not quite ready yet.',
+        insightUpdated: 'AI Insight updated',
+        fixRequiredToast: 'Please address the AI insights before proceeding.'
+      },
+      stages: {
+        Brainstorming: {
+          label: 'Brainstorming',
+          title: 'Organize Your Chaos',
+          subtitle: 'AI acts as a sounding board. Dump your ideas, themes, and fragments here.',
+          placeholder: 'Start typing your ideas...',
+          validateLabel: 'Validate Brainstorming'
+        },
+        Logline: {
+          label: 'Logline',
+          title: 'Refining the Vision',
+          subtitle: 'The AI has synthesized your brainstorming into a logline. Tweak it until it\'s perfect.',
+          placeholder: 'Your logline draft will appear here...',
+          validationText: 'Is this vision correct for your studio? Please validate to proceed or tell me what to tweak.',
+          refinePlaceholder: 'What should I tweak? (e.g., \'Make it darker\', \'Focus on the heist\')',
+          validateLabel: 'Validate & Move to Structure',
+          refineLabel: 'Refine Logline'
+        },
+        '3-Act Structure': {
+          label: '3-Act Structure',
+          title: 'Building the Skeleton',
+          subtitle: 'Act I, II and III. This is where the story takes shape.',
+          validateLabel: 'Validate Structure'
+        },
+        Synopsis: {
+          label: 'Synopsis',
+          title: 'The Full Narrative',
+          subtitle: 'A detailed summary of your story\'s arc, characters, and themes.',
+          validateLabel: 'Validate Synopsis'
+        },
+        'Character Bible': {
+          label: 'Character Bible',
+          title: 'Character Bible',
+          subtitle: 'Define your characters, their roles, and their visual identity.',
+          placeholder: 'Describe the character\'s appearance, personality, and role...',
+          validationText: 'Ready to move from characters to locations?',
+          validateLabel: 'Validate Characters & Move to Locations'
+        },
+        'Location Bible': {
+          label: 'Location Bible',
+          title: 'Location Bible',
+          subtitle: 'Define your locations, their atmosphere, and their visual identity.',
+          placeholder: 'Describe the location\'s atmosphere, key features, and visual style...',
+          validationText: 'Ready to move from locations to the narrative treatment?',
+          validateLabel: 'Validate Locations & Move to Treatment'
+        },
+        Treatment: {
+          label: 'Treatment',
+          title: 'The Story in Prose',
+          subtitle: 'A detailed narrative version of your screenplay.',
+          validateLabel: 'Validate Treatment'
+        },
+        'Step Outline': {
+          label: 'Step Outline',
+          title: 'The Séquencier',
+          subtitle: 'Scene-by-scene breakdown of your story.',
+          placeholder: 'Describe the scene...',
+          validationText: 'Ready to turn this outline into a full script?',
+          validateLabel: 'Validate Outline & Move to Script'
+        },
+        Script: {
+          label: 'Script',
+          title: 'Final Screenplay',
+          subtitle: 'Professional formatting and dialogue.',
+          validateLabel: 'Validate Script'
+        },
+        Storyboard: {
+          label: 'Storyboard',
+          title: 'Storyboard',
+          subtitle: 'Visualize your scenes. This stage allows you to generate and organize manual scene images for your screenplay.',
+          comingSoon: 'Coming Soon: Interactive Storyboard Canvas'
+        }
+      },
+      formats: {
+        'Short Film': 'short film',
+        'Feature': 'feature',
+        'Series': 'series'
+      }
+    }
+  },
+  fr: {
+    translation: {
+      common: {
+        project: 'Projet',
+        search: 'Rechercher...',
+        synced: 'Synchronisé',
+        syncing: 'Synchronisation...',
+        error: 'Erreur',
+        locked: 'Verrouillé',
+        comingSoon: 'Bientôt disponible',
+        validate: 'Valider',
+        refine: 'Affiner',
+        generate: 'Générer',
+        aiWorking: 'L\'IA travaille...',
+        aiWorkingDesc: 'Génération de la prochaine étape de votre chef-d\'œuvre.',
+        askAi: 'Demander à l\'IA d\'affiner {{stage}}...',
+        askDoctor: 'Demander au Docteur à propos de {{stage}}...',
+        characterAdded: 'Personnage ajouté',
+        characterDeleted: 'Personnage supprimé',
+        locationAdded: 'Lieu ajouté',
+        locationDeleted: 'Lieu supprimé',
+        renaming: 'Renommage de {{oldName}} en {{newName}} dans tout le projet...',
+        extracting: 'Extraction des entités du monde...',
+        extracted: 'Personnages et Lieux extraits',
+        generatingSequences: 'Génération des séquences...',
+        stepOutlineReady: 'Séquencier prêt',
+        generatingScript: 'Génération des séquences du scénario...',
+        scriptGenerated: 'Scénario généré',
+        aiMagicFailed: 'La magie de l\'IA a échoué',
+        selectStage: 'Sélectionnez une étape pour commencer',
+        completeProject: 'Terminer le projet',
+        importText: 'Importer du texte',
+        attach: 'Joindre',
+        viewAll: 'Tout voir',
+        recentMasterpieces: 'Chefs-d\'œuvre récents',
+        professionalStudio: 'Studio d\'écriture de scénario professionnel par IA',
+        projectNameOptional: 'Nom du projet (optionnel)',
+        whatsTheStory: 'Quelle est l\'histoire ?',
+        signIn: 'Connectez-vous pour commencer votre voyage d\'écriture professionnel.',
+        signInWithGoogle: 'Se connecter avec Google',
+        step: 'Étape',
+        locations: 'Lieux',
+        newLocation: 'Nouveau Lieu',
+        locationName: 'Nom du lieu (ex: Le Diner Néon)...',
+        describeAtmosphere: 'Décrivez l\'atmosphère...',
+        cancel: 'Annuler',
+        create: 'Créer',
+        addNewLocation: 'Ajouter un nouveau lieu',
+        generateVisuals: 'Générer des visuels ?',
+        generateVisualsDesc: 'Cela utilisera l\'IA pour générer une représentation visuelle. Cette action est irréversible.',
+        untitled: 'Sans titre',
+        sequence: 'Séquence',
+        addNewSequence: 'Ajouter une nouvelle séquence',
+        scriptDoctor: 'Docteur Scénario',
+        analyzing: 'Analyse de {{stage}}',
+        analyzingScript: 'J\'analyse votre scénario.',
+        askForAdvice: 'Demandez-moi des commentaires ou des conseils.',
+        you: 'Vous',
+        doctor: 'Docteur',
+        thinking: 'Réflexion...',
+        askTheDoctor: 'Demander au Docteur...',
+        stopListening: 'Arrêter l\'écoute',
+        listenToLogline: 'Écouter la Logline',
+        aiDrafting: 'Rédaction par l\'IA...',
+        focusModeActive: 'Mode Focus Actif',
+        deepNightWriting: 'Écriture nocturne profonde...',
+        close: 'Fermer',
+        visualDescriptionReady: 'Description visuelle prête',
+        speaker: 'Haut-parleur',
+        aiRefine: 'Affiner par l\'IA',
+        generateImage: 'Générer une image',
+        focus: 'Focus',
+        characters: 'Personnages',
+        newCharacter: 'Nouveau Personnage',
+        characterName: 'Nom du personnage (ex: Jean Dupont)...',
+        describeCharacter: 'Décrivez l\'apparence, la personnalité et le rôle du personnage...',
+        addNewCharacter: 'Ajouter un nouveau personnage',
+        failedToGenerate: 'Échec de la génération du contenu. Veuillez réessayer.',
+        blockRefined: 'Bloc {{stage}} affiné',
+        refinedSuccessfully: '{{stage}} affiné avec succès',
+        failedToRefine: 'Échec de l\'affinage de {{stage}}',
+        deepDeveloped: '{{name}} développé en profondeur !',
+        locationDeveloped: 'Lieu développé en profondeur !',
+        primitiveUpdated: 'Projet mis à jour par le Docteur Scénario',
+        failedToDeepDevelop: 'Échec du développement en profondeur',
+        deepDevelop: 'Développer en profondeur',
+        tier1: 'Tier 1 : Casting Principal',
+        tier2: 'Tier 2 : Secondaire',
+        tier3: 'Tier 3 : Arrière-plan',
+        newSequenceLabel: 'NOUVELLE SÉQUENCE',
+        aiInsight: 'Analyse de l\'IA',
+        readyToProceed: 'Prêt à continuer',
+        notReadyYet: 'Pas encore prêt',
+        continue: 'Continuer',
+        fixRequired: 'Correction requise',
+        analysisInProgress: 'Analyse en cours...',
+        notReadyYetFeedback: 'J\'ai analysé cette étape et elle n\'est pas encore tout à fait prête.',
+        insightUpdated: 'Analyse de l\'IA mise à jour',
+        fixRequiredToast: 'Veuillez traiter les analyses de l\'IA avant de continuer.'
+      },
+      stages: {
+        Brainstorming: {
+          label: 'Brainstorming',
+          title: 'Organisez votre chaos',
+          subtitle: 'L\'IA agit comme une caisse de résonance. Déposez vos idées, thèmes et fragments ici.',
+          placeholder: 'Commencez à taper vos idées...',
+          validateLabel: 'Valider le Brainstorming'
+        },
+        Logline: {
+          label: 'Logline',
+          title: 'Affiner la vision',
+          subtitle: 'L\'IA a synthétisé votre brainstorming en une logline. Ajustez-la jusqu\'à ce qu\'elle soit parfaite.',
+          placeholder: 'Votre brouillon de logline apparaîtra ici...',
+          validationText: 'Cette vision est-elle correcte pour votre studio ? Veuillez valider pour continuer ou dites-moi quoi ajuster.',
+          refinePlaceholder: 'Que dois-je ajuster ? (ex: \'Rendre plus sombre\', \'Se concentrer sur le casse\')',
+          validateLabel: 'Valider et passer à la structure',
+          refineLabel: 'Affiner la Logline'
+        },
+        '3-Act Structure': {
+          label: 'Structure en 3 actes',
+          title: 'Construire le squelette',
+          subtitle: 'Acte I, II et III. C\'est ici que l\'histoire prend forme.',
+          validateLabel: 'Valider la Structure'
+        },
+        Synopsis: {
+          label: 'Synopsis',
+          title: 'Le récit complet',
+          subtitle: 'Un résumé détaillé de l\'arc de votre histoire, de vos personnages et de vos thèmes.',
+          validateLabel: 'Valider le Synopsis'
+        },
+        'Character Bible': {
+          label: 'Bible des personnages',
+          title: 'Bible des personnages',
+          subtitle: 'Définissez vos personnages, leurs rôles et leur identité visuelle.',
+          placeholder: 'Décrivez l\'apparence, la personnalité et le rôle du personnage...',
+          validationText: 'Prêt à passer des personnages aux lieux ?',
+          validateLabel: 'Valider les personnages et passer aux lieux'
+        },
+        'Location Bible': {
+          label: 'Bible des lieux',
+          title: 'Bible des lieux',
+          subtitle: 'Définissez vos lieux, leur atmosphère et leur identité visuelle.',
+          placeholder: 'Décrivez l\'atmosphère du lieu, ses caractéristiques clés et son style visuel...',
+          validationText: 'Prêt à passer des lieux au traitement narratif ?',
+          validateLabel: 'Valider les lieux et passer au traitement'
+        },
+        Treatment: {
+          label: 'Traitement',
+          title: 'L\'histoire en prose',
+          subtitle: 'Une version narrative détaillée de votre scénario.',
+          validateLabel: 'Valider le Traitement'
+        },
+        'Step Outline': {
+          label: 'Séquencier',
+          title: 'Le Séquencier',
+          subtitle: 'Découpage scène par scène de votre histoire.',
+          placeholder: 'Décrivez la scène...',
+          validationText: 'Prêt à transformer ce séquencier en un scénario complet ?',
+          validateLabel: 'Valider le séquencier et passer au scénario'
+        },
+        Script: {
+          label: 'Scénario',
+          title: 'Scénario final',
+          subtitle: 'Formatage professionnel et dialogues.',
+          validateLabel: 'Valider le Scénario'
+        },
+        Storyboard: {
+          label: 'Storyboard',
+          title: 'Storyboard',
+          subtitle: 'Visualisez vos scènes. Cette étape vous permet de générer et d\'organiser des images de scènes manuelles pour votre scénario.',
+          comingSoon: 'Bientôt disponible : Canevas de Storyboard interactif'
+        }
+      },
+      formats: {
+        'Short Film': 'court métrage',
+        'Feature': 'long métrage',
+        'Series': 'série'
+      }
+    }
+  }
+};
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'en',
+    interpolation: {
+      escapeValue: false
+    }
+  });
+
+export default i18n;

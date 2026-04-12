@@ -1,4 +1,4 @@
-// Deployed and Synchronized with Vercel - Testing CD flow
+// Deployed and Synchronized with Vercel - GitHub Connection established
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';

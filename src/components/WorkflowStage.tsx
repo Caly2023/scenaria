@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { StepLayout } from './StepLayout';
 import { StageInsight } from '@/types';
+import { StageAnalysis } from '@/types/stageContract';
 interface Block {
   id: string;
   title: string;
@@ -32,7 +33,7 @@ interface WorkflowStageProps {
   placeholder?: string;
   validateLabel?: string;
   lastUpdatedPrimitiveId?: string | null;
-  insight?: StageInsight;
+  insight?: StageInsight | StageAnalysis;
 }
 
 export function WorkflowStage({ 

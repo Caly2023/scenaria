@@ -6,25 +6,21 @@ import { cn } from '@/lib/utils';
 import { StepLayout } from './StepLayout';
 import { Primitive } from './Primitive';
 import { StageInsight } from '@/types';
+import { StageAnalysis } from '@/types/stageContract';
 
 interface BrainstormingStageProps {
   analysis: string;
   story: string;
-  validation?: {
-    status: 'GOOD TO GO' | 'NEEDS WORK';
-    feedback: string;
-  };
   onStoryChange: (content: string) => void;
   onValidate: () => void;
   onDoctorToggle: () => void;
   isGenerating: boolean;
-  insight?: StageInsight;
+  insight?: StageInsight | StageAnalysis;
 }
 
 export function BrainstormingStage({ 
   analysis, 
   story, 
-  validation,
   onStoryChange, 
   onValidate,
   onDoctorToggle,

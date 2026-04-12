@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { db } from '../lib/firebase';
-import { doc, updateDoc, serverTimestamp, getDoc, addDoc, collection, deleteDoc } from 'firebase/firestore';
 import { Project, WorkflowStage, Sequence, Character, Location } from '../types';
-import { geminiService, isQuotaExhausted, resetQuotaState } from '../services/geminiService';
 import { contextAssembler } from '../services/contextAssembler';
 import { telemetryService } from '../services/telemetryService';
 
@@ -44,20 +41,18 @@ export function useScriptDoctor({
   const [isHeavyThinking, setIsHeavyThinking] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
+  const [isInDegradedMode, setIsInDegradedMode] = useState(false);
 
   const subcollectionMap: Record<string, string> = {
-    'Step Outline': 'sequences',
-    'Treatment': 'treatment_sequences',
-    'Script': 'script_scenes',
+    'Brainstorming': 'pitch_primitives',
+    'Logline': 'logline_primitives',
+    '3-Act Structure': 'structure_primitives',
+    'Synopsis': 'synopsis_primitives',
     'Character Bible': 'characters',
-    'Location Bible': 'locations'
-  };
-
-  const fieldMap: Record<string, string> = {
-    'Logline': 'loglineDraft',
-    'Brainstorming': 'brainstorming_story',
-    '3-Act Structure': 'structureDraft',
-    'Synopsis': 'synopsisDraft'
+    'Location Bible': 'locations',
+    'Treatment': 'treatment_sequences',
+    'Step Outline': 'sequences',
+    'Script': 'script_scenes'
   };
 
   const executeToolCall = async (call: any, retryAttempt: number = 0): Promise<any> => {
@@ -66,6 +61,9 @@ export function useScriptDoctor({
     setActiveTool(name);
     
     try {
+      const { db } = await import('../lib/firebase');
+      const { doc, updateDoc, serverTimestamp, getDoc, addDoc, collection, deleteDoc } = await import('firebase/firestore');
+
       switch (name) {
         case 'fetch_project_state': {
           telemetryService.setStatus('fetch_project_state', '🧠', 'Loading full project state + ID-Map...');
@@ -73,10 +71,10 @@ export function useScriptDoctor({
           const state = {
             metadata: currentProject.metadata,
             stages: {
-              'Logline': currentProject.loglineDraft ? 1 : 0,
-              'Brainstorming': currentProject.brainstorming_story ? 1 : 0,
-              '3-Act Structure': currentProject.structureDraft ? 1 : 0,
-              'Synopsis': currentProject.synopsisDraft ? 1 : 0,
+              'Logline': currentProject.stageStates?.['Logline'] !== 'empty' ? 1 : 0,
+              'Brainstorming': currentProject.stageStates?.['Brainstorming'] !== 'empty' ? 1 : 0,
+              '3-Act Structure': currentProject.stageStates?.['3-Act Structure'] !== 'empty' ? 1 : 0,
+              'Synopsis': currentProject.stageStates?.['Synopsis'] !== 'empty' ? 1 : 0,
               'Character Bible': characters.length,
               'Location Bible': locations.length,
               'Step Outline': sequences.length,
@@ -129,11 +127,11 @@ export function useScriptDoctor({
           if (stageName === 'Treatment') return { success: true, data: enrichWithIds(treatmentSequences) };
           if (stageName === 'Script') return { success: true, data: enrichWithIds(scriptScenes) };
           
-          const field = fieldMap[stageName];
-          if (field) {
-            return { success: true, data: { primitive_id: `${stageName}_root`, content: currentProject[field as keyof Project] } };
+          const structure = await contextAssembler.getStageStructure(currentProject.id, stageName);
+          if (structure && structure.length > 0) {
+            return { success: true, data: enrichWithIds(structure) };
           }
-          return { success: false, error: `Unknown stage: ${stageName}`, error_code: 404 };
+          return { success: false, error: `No content found for stage: ${stageName}`, error_code: 404 };
         }
 
         case 'fetch_character_details': {
@@ -152,7 +150,7 @@ export function useScriptDoctor({
             sequences: sequences.filter(s => s.title.toLowerCase().includes(q) || s.content.toLowerCase().includes(q)).map(s => ({ primitive_id: s.id, ...s })),
             treatment: treatmentSequences.filter(s => s.title.toLowerCase().includes(q) || s.content.toLowerCase().includes(q)).map(s => ({ primitive_id: s.id, ...s })),
             script: scriptScenes.filter(s => s.title.toLowerCase().includes(q) || s.content.toLowerCase().includes(q)).map(s => ({ primitive_id: s.id, ...s })),
-            metadata: currentProject.metadata?.title?.toLowerCase().includes(q) || currentProject.loglineDraft?.toLowerCase().includes(q)
+            metadata: currentProject.metadata?.title?.toLowerCase().includes(q)
           };
           return { success: true, data: results };
         }
@@ -192,28 +190,12 @@ export function useScriptDoctor({
             const updatedDoc = await getDoc(docRef);
             const snapshot = updatedDoc.exists() ? { id: updatedDoc.id, ...updatedDoc.data() } : null;
             
-            setLastUpdatedPrimitiveId(id);
-            setRefiningBlockId(null);
-            telemetryService.setStatus('Confirmed', '✅', `Confirmation received. ID ${id} synced.`, id);
-            setTimeout(() => setLastUpdatedPrimitiveId(null), 2000);
-            
-            telemetryService.invalidateStage(stage);
+            await handleStageAnalyze(stage as WorkflowStage);
             
             addToast(t('common.primitiveUpdated', { defaultValue: `Primitive ${id.substring(0,8)}... updated by Architect` }), 'success');
             return { success: true, primitive_id: id, updated_snapshot: snapshot };
           } else {
-            const field = fieldMap[stage];
-            if (field) {
-              await updateDoc(doc(db, 'projects', currentProject.id), {
-                [field]: updates.content || updates.description || updates.title,
-                updatedAt: serverTimestamp()
-              });
-              telemetryService.setStatus('Confirmed', '✅', `Confirmation received. ${stage} root updated.`);
-              addToast(t('common.primitiveUpdated', { defaultValue: 'Project updated by Architect' }), 'success');
-              return { success: true, primitive_id: `${stage}_root` };
-            } else {
-              return { success: false, error: `Invalid stage: ${stage}`, error_code: 404 };
-            }
+            return { success: false, error: `Invalid stage: ${stage}`, error_code: 404 };
           }
         }
 
@@ -235,14 +217,6 @@ export function useScriptDoctor({
                   updatedAt: serverTimestamp()
                 });
                 telemetryService.invalidateStage(stage);
-              } else {
-                const field = fieldMap[stage];
-                if (field) {
-                  await updateDoc(doc(db, 'projects', currentProject.id), {
-                    [field]: updates.content || updates.description || updates.title,
-                    updatedAt: serverTimestamp()
-                  });
-                }
               }
               results.push({ primitive_id: id, success: true });
             } catch (fixError) {
@@ -253,6 +227,11 @@ export function useScriptDoctor({
           
           const allSuccess = results.every(r => r.success);
           telemetryService.setStatus('Confirmed', '✅', `Multi-stage fix: ${results.filter(r => r.success).length}/${results.length} updated.`);
+          
+          // Enforce Agent Contract for all uniquely touched stages
+          const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
+          await Promise.all(uniqueStages.map(s => handleStageAnalyze(s)));
+
           addToast(t('common.multiStageFixApplied', { defaultValue: 'Multi-stage fix applied successfully' }), 'success');
           return { success: allSuccess, updated_ids: results };
         }
@@ -284,6 +263,10 @@ export function useScriptDoctor({
             });
             telemetryService.invalidateStage(stage);
             telemetryService.setStatus('Confirmed', '✅', `New primitive created (ID: ${newDocRef.id}).`);
+            
+            // Enforce Agent Contract
+            await handleStageAnalyze(stage as WorkflowStage);
+            
             addToast(t('common.primitiveAdded', { defaultValue: 'New element added to project' }), 'success');
             return { success: true, primitive_id: newDocRef.id };
           } else {
@@ -299,6 +282,10 @@ export function useScriptDoctor({
             await deleteDoc(doc(db, 'projects', currentProject.id, subcollection, id));
             telemetryService.invalidateStage(stage);
             telemetryService.setStatus('Confirmed', '✅', `Primitive ${id} removed.`, id);
+            
+            // Enforce Agent Contract
+            await handleStageAnalyze(stage as WorkflowStage);
+            
             addToast(t('common.primitiveDeleted', { defaultValue: 'Element removed from project' }), 'info');
             return { success: true, deleted_primitive_id: id };
           } else {
@@ -335,14 +322,14 @@ export function useScriptDoctor({
         case 'update_stage_insight': {
           const { stage, insight } = args;
           await updateDoc(doc(db, 'projects', currentProject.id), {
-            [`insights.${stage}`]: {
+            [`stageAnalyses.${stage}`]: {
               ...insight,
               updatedAt: Date.now()
             },
             updatedAt: serverTimestamp()
           });
-          telemetryService.setStatus('Confirmed', '✅', `Stage Insight for ${stage} updated.`);
-          addToast(t('common.insightUpdated', { defaultValue: 'AI Insight updated' }), 'success');
+          telemetryService.setStatus('Confirmed', '✅', `Stage Analysis for ${stage} updated.`);
+          addToast(t('common.insightUpdated', { defaultValue: 'AI Analysis updated' }), 'success');
           return { success: true };
         }
 
@@ -463,7 +450,7 @@ export function useScriptDoctor({
       complexity = 'simple';
     }
 
-    setIsHeavyThinking(complexity === 'complex' && !isQuotaExhausted);
+    setIsHeavyThinking(complexity === 'complex');
 
     try {
       telemetryService.setStatus('Context Assembly', '🧠', 'Mapping Primitive IDs...');
@@ -473,6 +460,9 @@ export function useScriptDoctor({
 
       const currentMessages = [...doctorMessages, userMsg];
       const history: Array<{role: string; parts: Array<{text: string}>}> = [];
+      
+      const { geminiService, isQuotaExhausted } = await import('../services/geminiService');
+      setIsInDegradedMode(isQuotaExhausted);
       
       for (const msg of currentMessages) {
         if (msg.role === 'user') {
@@ -760,8 +750,12 @@ export function useScriptDoctor({
     aiStatus,
     handleDoctorMessage,
     /** Whether the system is currently in degraded chat-only mode (Gemini 3 quota exhausted). */
-    isInDegradedMode: isQuotaExhausted,
+    isInDegradedMode,
     /** Resets degraded mode — call this when starting a new session so the user can retry Gemini 3. */
-    resetDegradedMode: resetQuotaState,
+    resetDegradedMode: async () => {
+      const { resetQuotaState } = await import('../services/geminiService');
+      resetQuotaState();
+      setIsInDegradedMode(false);
+    },
   };
 }

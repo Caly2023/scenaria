@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from './Primitive';
 import { Sequence, StageInsight } from '../types';
+import { StageAnalysis } from '../types/stageContract';
 import { StepLayout } from './StepLayout';
 import { CardSkeleton } from './Skeleton';
 
@@ -17,7 +18,7 @@ interface MainCanvasProps {
   onValidate: () => void;
   isGenerating?: boolean;
   refiningBlockId?: string | null;
-  insight?: StageInsight;
+  insight?: StageInsight | StageAnalysis;
 }
 
 // Memoized per-sequence row — only re-renders when its own data changes

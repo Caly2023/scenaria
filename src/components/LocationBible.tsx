@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from './Primitive';
 import { Location, StageInsight } from '@/types';
+import { StageAnalysis } from '@/types/stageContract';
 import { cn } from '@/lib/utils';
 import { StepLayout } from './StepLayout';
 
@@ -18,7 +19,7 @@ interface LocationBibleProps {
   isGenerating?: boolean;
   refiningBlockId?: string | null;
   lastUpdatedPrimitiveId?: string | null;
-  insight?: StageInsight;
+  insight?: StageInsight | StageAnalysis;
 }
 
 export function LocationBible({ 

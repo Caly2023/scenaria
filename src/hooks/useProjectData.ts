@@ -8,6 +8,9 @@ const STAGE_NEEDS_SEQUENCES = new Set<WorkflowStage>(['Step Outline']);
 const STAGE_NEEDS_TREATMENT_SEQ = new Set<WorkflowStage>(['Treatment']);
 const STAGE_NEEDS_SCRIPT_SCENES = new Set<WorkflowStage>(['Script']);
 const STAGE_NEEDS_PITCH = new Set<WorkflowStage>(['Brainstorming']);
+const STAGE_NEEDS_LOGLINE = new Set<WorkflowStage>(['Logline']);
+const STAGE_NEEDS_STRUCTURE = new Set<WorkflowStage>(['3-Act Structure']);
+const STAGE_NEEDS_SYNOPSIS = new Set<WorkflowStage>(['Synopsis']);
 // Characters + locations are reused across several stages; fetch whenever a project is open
 
 interface ProjectDataState {
@@ -20,6 +23,9 @@ interface ProjectDataState {
   treatmentSequences: Sequence[];
   scriptScenes: Sequence[];
   pitchPrimitives: Sequence[];
+  loglinePrimitives: Sequence[];
+  structurePrimitives: Sequence[];
+  synopsisPrimitives: Sequence[];
   characters: Character[];
   locations: Location[];
   handleProjectSelect: (id: string, projectObj?: Project) => void;
@@ -60,6 +66,13 @@ export function useProjectData(user: User | null): ProjectDataState {
     isError: isProjectNotFound 
   } = useGetProjectByIdQuery(currentProjectId || '', { skip: !user || !currentProjectId });
 
+  // Run migration if needed when the project loads
+  useEffect(() => {
+    if (currentProject) {
+      import('../services/migrationService').then(m => m.migrateProjectIfNeeded(currentProject));
+    }
+  }, [currentProject?.id]);
+
   // ── Stage-gated subcollection fetches ─────────────────────────────────────
   // Each large sequence collection is only subscribed when its stage is active.
   // Characters/locations are shared across multiple stages and always loaded.
@@ -82,6 +95,21 @@ export function useProjectData(user: User | null): ProjectDataState {
   const { data: pitchPrimitives = [] } = useGetSubcollectionQuery(
     { projectId: currentProjectId || '', collectionName: 'pitch_primitives', orderByField: 'order' },
     { skip: !currentProjectId || !STAGE_NEEDS_PITCH.has(activeStage) }
+  );
+
+  const { data: loglinePrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'logline_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_LOGLINE.has(activeStage) }
+  );
+
+  const { data: structurePrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'structure_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_STRUCTURE.has(activeStage) }
+  );
+
+  const { data: synopsisPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'synopsis_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_SYNOPSIS.has(activeStage) }
   );
 
   const { data: characters = [] } = useGetSubcollectionQuery(
@@ -125,6 +153,9 @@ export function useProjectData(user: User | null): ProjectDataState {
     treatmentSequences,
     scriptScenes,
     pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
     characters,
     locations,
     handleProjectSelect,

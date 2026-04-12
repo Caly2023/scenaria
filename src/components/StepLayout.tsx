@@ -6,13 +6,14 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { StageInsight } from '@/types';
+import { StageAnalysis } from '@/types/stageContract';
 
 interface StepLayoutProps {
   stepIndex: number;
   stageName: string;
   title: string;
   subtitle: string;
-  insight?: StageInsight;
+  insight?: StageInsight | StageAnalysis;
   isGenerating?: boolean;
   isHydrating?: boolean;
   hydrationLabel?: string | null;
@@ -38,7 +39,9 @@ export function StepLayout({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // If no insight is provided, default to not ready until data populates it
-  const isReady = insight?.isReady ?? false;
+  const isReady = insight 
+    ? ('isReady' in insight ? insight.isReady : ('issues' in insight ? insight.issues.length === 0 : false))
+    : false;
   const statusColor = isReady ? "green" : "amber";
 
   return (
@@ -72,7 +75,10 @@ export function StepLayout({
       {insight && (
         <Primitive
           title={t('common.aiInsight', { defaultValue: 'AI Insight' })}
-          content={insight.content}
+          content={'content' in insight 
+            ? insight.content 
+            : `${insight.evaluation}\n\n**Issues to Address:**\n${insight.issues.length ? insight.issues.map(i => `- ${i}`).join('\n') : '*None*'}\n\n**Recommendations:**\n${insight.recommendations.length ? insight.recommendations.map(r => `- ${r}`).join('\n') : '*None*'}`
+          }
           type="ai_insight"
           mode="stacked"
           isGenerating={isGenerating}

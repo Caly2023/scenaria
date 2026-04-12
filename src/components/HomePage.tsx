@@ -33,6 +33,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   const [selectedFormat, setSelectedFormat] = useState<ProjectFormat | 'Auto'>('Auto');
   const [isFocused, setIsFocused] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [creationStatus, setCreationStatus] = useState<'idle' | 'analyzing' | 'initializing'>('idle');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,11 +41,16 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
     e?.preventDefault();
     if (storyIdea.trim() && !isCreating) {
       setIsCreating(true);
+      setCreationStatus('analyzing');
       try {
         await onProjectCreate(storyIdea, selectedFormat === 'Auto' ? undefined : selectedFormat);
         setStoryIdea('');
+      } catch (error) {
+        console.error('Creation failed:', error);
+        // Error is handled by useProjectLifecycle toast, but we reset local state here
       } finally {
         setIsCreating(false);
+        setCreationStatus('idle');
       }
     }
   };
@@ -177,7 +183,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               )}
             >
               {isCreating ? (
-                <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                <div className="flex items-center gap-3 pr-4">
+                  <span className="text-[10px] uppercase tracking-widest text-white/40 font-bold animate-pulse">
+                    {creationStatus === 'analyzing' ? t('common.analyzingStory', { defaultValue: 'Analyzing Story...' }) : t('common.initializing', { defaultValue: 'Initializing...' })}
+                  </span>
+                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                </div>
               ) : (
                 <ArrowUp className="w-6 h-6" />
               )}
@@ -230,7 +241,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.title || t('common.untitled')}
                         </h3>
                         <p className="text-sm text-white/40 line-clamp-2 leading-relaxed min-h-[40px]">
-                          {project.metadata?.logline || project.loglineDraft || (
+                          {project.metadata?.logline || (
                             <span className="italic opacity-50">
                               {t('common.loglineDrafting', { defaultValue: 'Logline currently being drafted in Brainstorming...' })}
                             </span>

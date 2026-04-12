@@ -2,7 +2,7 @@ import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { 
   collection, query, where, doc, getDocs, onSnapshot, 
-  updateDoc, addDoc, deleteDoc, orderBy, serverTimestamp 
+  updateDoc, addDoc, deleteDoc, orderBy, serverTimestamp, writeBatch 
 } from 'firebase/firestore';
 import { Project, Sequence, Character, Location } from '../types';
 
@@ -254,7 +254,53 @@ export const firebaseApi = createApi({
           return { error: { message: error.message } };
         }
       }
-    })
+    }),
+
+    /** Bulk-delete all documents in a project subcollection. Used by handleRegenerate. */
+    clearSubcollection: builder.mutation<void, { projectId: string; collectionName: string }>({
+      async queryFn({ projectId, collectionName }) {
+        try {
+          const snap = await getDocs(collection(db, 'projects', projectId, collectionName));
+          await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+          return { data: undefined };
+        } catch (error: any) {
+          return { error: { message: error.message } };
+        }
+      }
+    }),
+
+    /** 
+     * Atomic project initialization: Project document + initial Pitch Primitives.
+     * Prevents "hollow" projects.
+     */
+    initializeProjectWithPrimitives: builder.mutation<string, { projectData: any; primitives: any[] }>({
+      async queryFn({ projectData, primitives }) {
+        try {
+          const batch = writeBatch(db);
+          const projectRef = doc(collection(db, 'projects'));
+          
+          batch.set(projectRef, {
+            ...projectData,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+
+          primitives.forEach((p, index) => {
+            const primRef = doc(collection(db, 'projects', projectRef.id, 'pitch_primitives'));
+            batch.set(primRef, {
+              ...p,
+              projectId: projectRef.id,
+              createdAt: serverTimestamp()
+            });
+          });
+
+          await batch.commit();
+          return { data: projectRef.id };
+        } catch (error: any) {
+          return { error: { message: error.message } };
+        }
+      }
+    }),
   })
 });
 
@@ -268,5 +314,8 @@ export const {
   useAddSubcollectionDocMutation,
   useDeleteSubcollectionDocMutation,
   useCreateProjectMutation,
-  useDeleteProjectMutation
+  useDeleteProjectMutation,
+  useClearSubcollectionMutation,
+  useInitializeProjectWithPrimitivesMutation
 } = firebaseApi;
+

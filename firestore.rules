@@ -63,15 +63,15 @@ service cloud.firestore {
     
     function isProjectMember(projectId) {
       let project = get(/databases/$(database)/documents/projects/$(projectId)).data;
-      return isAuthenticated() && (
-        request.auth.uid == project.ownerId || 
-        request.auth.uid in project.collaborators ||
+      return isAuthenticated() && project != null && (
+        request.auth.uid == project.get('ownerId', '') || 
+        request.auth.uid in project.get('collaborators', []) ||
         isAdmin()
       );
     }
 
     function isOwner(data) {
-      return isAuthenticated() && request.auth.uid == data.ownerId;
+      return isAuthenticated() && request.auth.uid == data.get('ownerId', '');
     }
 
     function isValidProject(data) {
@@ -82,13 +82,13 @@ service cloud.firestore {
              data.metadata.tone is string &&
              data.metadata.languages is list &&
              data.metadata.targetDuration is string &&
-             data.collaborators is list &&
-             request.auth.uid in data.collaborators &&
-             data.ownerId == request.auth.uid &&
+             data.get('collaborators', []) is list &&
+             request.auth.uid in data.get('collaborators', []) &&
+             data.get('ownerId', '') == request.auth.uid &&
              data.activeStage is string &&
              data.validatedStages is list &&
-             data.createdAt is number &&
-             data.updatedAt is number;
+             (data.createdAt is number || data.createdAt is timestamp) &&
+             (data.updatedAt is number || data.updatedAt is timestamp);
     }
 
     function isValidSequence(data) {
@@ -116,25 +116,25 @@ service cloud.firestore {
 
     match /projects/{projectId} {
       allow read: if isAuthenticated() && (
-        request.auth.uid == resource.data.ownerId || 
-        request.auth.uid in resource.data.collaborators ||
+        request.auth.uid == resource.data.get('ownerId', '') || 
+        request.auth.uid in resource.data.get('collaborators', []) ||
         isAdmin()
       );
       
       allow create: if isAuthenticated() && isValidProject(request.resource.data);
       
       allow update: if isAuthenticated() && (
-        request.auth.uid == resource.data.ownerId || 
-        request.auth.uid in resource.data.collaborators ||
+        request.auth.uid == resource.data.get('ownerId', '') || 
+        request.auth.uid in resource.data.get('collaborators', []) ||
         isAdmin()
       ) && (
         isAdmin() || (
-          request.resource.data.ownerId == resource.data.ownerId &&
-          request.resource.data.createdAt == resource.data.createdAt
+          request.resource.data.get('ownerId', '') == resource.data.get('ownerId', '') &&
+          request.resource.data.get('createdAt', 0) == resource.data.get('createdAt', 0)
         )
       );
       
-      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.ownerId || isAdmin());
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.get('ownerId', '') || isAdmin());
 
       match /sequences/{sequenceId} {
         allow read: if isProjectMember(projectId);
@@ -155,6 +155,28 @@ service cloud.firestore {
         allow create: if isProjectMember(projectId) && isValidLocation(request.resource.data);
         allow update: if isProjectMember(projectId) && isValidLocation(request.resource.data);
         allow delete: if isProjectMember(projectId);
+      }
+
+      match /pitch_primitives/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
+      }
+      match /logline_primitives/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
+      }
+      match /structure_primitives/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
+      }
+      match /synopsis_primitives/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
+      }
+      match /treatment_sequences/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
+      }
+      match /script_scenes/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
+      }
+      match /storyboard_frames/{primitiveId} {
+        allow read, write: if isProjectMember(projectId);
       }
     }
 

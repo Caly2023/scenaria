@@ -283,7 +283,18 @@ function ScriptDoctorContent({
                         return (
                           <button
                             key={idx}
-                            onClick={() => isApply ? handleApply(msg.id, action) : onSendMessage(action)}
+                            onClick={() => {
+                              if (isApply) {
+                                handleApply(msg.id, action);
+                              } else if (action === 'Retry') {
+                                const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+                                if (lastUserMsg) {
+                                  onSendMessage(lastUserMsg.content);
+                                }
+                              } else {
+                                onSendMessage(action);
+                              }
+                            }}
                             disabled={isApplyingThis}
                             className={cn(
                               "px-4 py-2 rounded-full text-[10px] font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50",

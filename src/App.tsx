@@ -5,7 +5,7 @@ import { DictationButton } from './components/DictationButton';
 import { HomePage } from './components/HomePage';
 import { ProjectDrawer } from './components/ProjectDrawer';
 import { FocusMode } from './components/FocusMode';
-import { ScriptDoctor } from './components/ScriptDoctor';
+
 import { useAutoHydration } from './hooks/useAutoHydration';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +46,7 @@ import { useProjectActions } from './hooks/useProjectActions';
 import { useScriptDoctor } from './hooks/useScriptDoctor';
 import { useProjectLifecycle } from './hooks/useProjectLifecycle';
 import { useStageAnalysis } from './hooks/useStageAnalysis';
+import { buildProjectContext } from './services/orchestratorService';
 import { useAddSubcollectionDocMutation, useUpdateSubcollectionDocMutation, useDeleteSubcollectionDocMutation, useUpdateProjectMetadataMutation } from './services/firebaseApi';
 
 // ── Lazy-loaded stage components ──────────────────────────────────────────────
@@ -56,6 +57,7 @@ const WorkflowStageComponent = React.lazy(() => import('./components/WorkflowSta
 const CharacterBible     = React.lazy(() => import('./components/CharacterBible').then(m => ({ default: m.CharacterBible })));
 const LocationBible      = React.lazy(() => import('./components/LocationBible').then(m => ({ default: m.LocationBible })));
 const MainCanvas         = React.lazy(() => import('./components/MainCanvas').then(m => ({ default: m.MainCanvas })));
+const ScriptDoctor       = React.lazy(() => import('./components/ScriptDoctor').then(m => ({ default: m.ScriptDoctor })));
 
 const StageSkeleton = () => <div className="w-full"><CardSkeleton count={3} /></div>;
 
@@ -204,6 +206,9 @@ export default function App() {
     treatmentSequences,
     scriptScenes,
     pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
     characters,
     locations,
     handleProjectSelect,
@@ -336,13 +341,22 @@ export default function App() {
     handleSubcollectionUpdate,
     characters,
     locations,
-    sequences
+    sequences,
+    treatmentSequences,
+    scriptScenes,
+    pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
   });
 
   const hydrationState = useAutoHydration({
     activeStage,
     currentProject,
     pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
     characters,
     locations,
     sequences,
@@ -351,6 +365,27 @@ export default function App() {
     addToast,
     onStageAnalyze: handleStageAnalyze,
   });
+
+  // ── Build ProjectContext from live data for proactive ghost generation ──────
+  const getProjectContext = useCallback(() => {
+    if (!currentProject) return null;
+    return buildProjectContext(
+      currentProject.id,
+      currentProject.metadata,
+      {
+        'Brainstorming': pitchPrimitives as any,
+        'Logline': loglinePrimitives as any,
+        '3-Act Structure': structurePrimitives as any,
+        'Synopsis': synopsisPrimitives as any,
+        'Character Bible': characters as any,
+        'Location Bible': locations as any,
+        'Treatment': treatmentSequences as any,
+        'Step Outline': sequences as any,
+        'Script': scriptScenes as any,
+      },
+      currentProject.stageAnalyses || {}
+    );
+  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
 
   const {
     handleRegenerate,
@@ -375,7 +410,8 @@ export default function App() {
     setIsDeleting,
     setProjectToDelete,
     setDeleteConfirmText: NOOP, // owned by DeleteProjectModal now
-    hydrationState
+    hydrationState,
+    getProjectContext
   });
 
   // ── Memoized callbacks ───────────────────────────────────────────────────────
@@ -424,16 +460,24 @@ export default function App() {
   }, [handleProjectSelect, projects]);
 
   const onLoglineChange = useCallback((c: string) => {
-    handleContentUpdate('loglineDraft', c);
-    handleMetadataUpdate({ ...(currentProject?.metadata || DEFAULT_METADATA), logline: c });
-  }, [handleContentUpdate, handleMetadataUpdate, currentProject]);
+    const id = loglinePrimitives[0]?.id;
+    if (id) {
+       handleSubcollectionUpdate('logline_primitives', id, c);
+    }
+  }, [loglinePrimitives, handleSubcollectionUpdate]);
 
   const onRefineLogline = useCallback((f: string) => handleStageRefine('Logline', f), [handleStageRefine]);
-  const onContentChange3Act = useCallback((c: string) => handleContentUpdate('structureDraft', c), [handleContentUpdate]);
+  const onContentChange3Act = useCallback((c: string) => {
+    const id = structurePrimitives[0]?.id;
+    if (id && structurePrimitives.length === 1) handleSubcollectionUpdate('structure_primitives', id, c);
+  }, [structurePrimitives, handleSubcollectionUpdate]);
   const onRefine3Act = useCallback((f: string, blockId?: string) => handleStageRefine('3-Act Structure', f, blockId), [handleStageRefine]);
   const onRegenerate3Act = useCallback(() => handleRegenerate('3-Act Structure'), [handleRegenerate]);
 
-  const onContentChangeSynopsis = useCallback((c: string) => handleContentUpdate('synopsisDraft', c), [handleContentUpdate]);
+  const onContentChangeSynopsis = useCallback((c: string) => {
+    const id = synopsisPrimitives[0]?.id;
+    if (id) handleSubcollectionUpdate('synopsis_primitives', id, c);
+  }, [synopsisPrimitives, handleSubcollectionUpdate]);
   const onRefineSynopsis = useCallback((f: string, blockId?: string) => handleStageRefine('Synopsis', f, blockId), [handleStageRefine]);
   const onRegenerateSynopsis = useCallback(() => handleRegenerate('Synopsis'), [handleRegenerate]);
 
@@ -630,47 +674,50 @@ export default function App() {
               <Suspense fallback={<StageSkeleton />}>
                 {activeStage === 'Brainstorming' ? (
                   <BrainstormingStage
-                    analysis={pitchPrimitives.find(p => p.order === 0)?.content || currentProject.pitch_critique || currentProject.brainstorming_analysis || ''}
-                    story={pitchPrimitives.find(p => p.order === 1)?.content || currentProject.pitch_result || currentProject.brainstorming_story || ''}
-                    validation={currentProject.pitch_validation}
+                    analysis={pitchPrimitives.find(p => p.order === 0)?.content || ''}
+                    story={pitchPrimitives.find(p => p.order === 1)?.content || ''}
                     onStoryChange={handleStoryChange}
                     onValidate={onValidateBrainstorming}
                     onDoctorToggle={handleToggleDoctor}
                     isGenerating={isTyping}
-                    insight={currentProject.insights?.['Brainstorming']}
+                    insight={currentProject.stageAnalyses?.['Brainstorming']}
                   />
                 ) : activeStage === 'Logline' ? (
                   <LoglineStage
-                    content={currentProject.loglineDraft || ''}
+                    content={loglinePrimitives[0]?.content || ''}
                     onContentChange={onLoglineChange}
                     onValidate={onValidateLogline}
                     onRefine={onRefineLogline}
                     isGenerating={isTyping}
-                    insight={currentProject.insights?.['Logline']}
+                    insight={currentProject.stageAnalyses?.['Logline']}
                   />
                 ) : activeStage === '3-Act Structure' ? (
                   <WorkflowStageComponent
                     stage="3-Act Structure" step={3} title={t('stages.3-Act Structure.title')} subtitle={t('stages.3-Act Structure.subtitle')}
-                    content={currentProject.structureDraft || ''} onContentChange={onContentChange3Act}
+                    content={structurePrimitives.length === 1 ? structurePrimitives[0].content : ''} 
+                    items={structurePrimitives.length > 1 ? structurePrimitives : undefined}
+                    onContentChange={onContentChange3Act} 
+                    onItemChange={(id, content) => handleSubcollectionUpdate('structure_primitives', id, content)}
                     onValidate={onValidate3Act} onRefine={onRefine3Act}
                     onRegenerate={onRegenerate3Act}
                     isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === '3-Act Structure')}
                     isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === '3-Act Structure'}
                     hydrationLabel={hydrationState.hydratingStage === '3-Act Structure' ? hydrationState.hydratingLabel : undefined}
                     refiningBlockId={refiningBlockId} validateLabel={t('stages.3-Act Structure.validateLabel')}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.insights?.['3-Act Structure']}
+                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.stageAnalyses?.['3-Act Structure']}
                   />
                 ) : activeStage === 'Synopsis' ? (
                   <WorkflowStageComponent
                     stage="Synopsis" step={4} title={t('stages.Synopsis.title')} subtitle={t('stages.Synopsis.subtitle')}
-                    content={currentProject.synopsisDraft || ''} onContentChange={onContentChangeSynopsis}
+                    content={synopsisPrimitives[0]?.content || ''} 
+                    onContentChange={onContentChangeSynopsis}
                     onValidate={onValidateSynopsis} onRefine={onRefineSynopsis}
                     onRegenerate={onRegenerateSynopsis}
                     isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === 'Synopsis')}
                     isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === 'Synopsis'}
                     hydrationLabel={hydrationState.hydratingStage === 'Synopsis' ? hydrationState.hydratingLabel : undefined}
                     refiningBlockId={refiningBlockId} validateLabel={t('stages.Synopsis.validateLabel')}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.insights?.['Synopsis']}
+                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.stageAnalyses?.['Synopsis']}
                   />
                 ) : activeStage === 'Character Bible' ? (
                   <CharacterBible 
@@ -679,7 +726,7 @@ export default function App() {
                     onCharacterUpdate={handleCharacterUpdate}
                     onCharacterDelete={handleCharacterDelete}
                     onGenerateViews={handleGenerateViews} onDeepDevelop={handleCharacterDeepDevelop} isGenerating={isTyping} refiningBlockId={refiningBlockId}
-                    onValidate={onValidateCharacterBible} lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.insights?.['Character Bible']}
+                    onValidate={onValidateCharacterBible} lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.stageAnalyses?.['Character Bible']}
                   />
                 ) : activeStage === 'Location Bible' ? (
                   <LocationBible 
@@ -688,12 +735,12 @@ export default function App() {
                     onLocationUpdate={handleLocationUpdate}
                     onLocationDelete={handleLocationDelete}
                     onGenerateViews={handleGenerateViews} onDeepDevelop={handleLocationDeepDevelop} isGenerating={isTyping} refiningBlockId={refiningBlockId}
-                    onValidate={onValidateLocationBible} lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.insights?.['Location Bible']}
+                    onValidate={onValidateLocationBible} lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.stageAnalyses?.['Location Bible']}
                   />
                 ) : activeStage === 'Treatment' ? (
                   <WorkflowStageComponent
                     stage="Treatment" step={7} title={t('stages.Treatment.title')} subtitle={t('stages.Treatment.subtitle')}
-                    content={currentProject.treatmentDraft || ''} items={treatmentSequences}
+                    content={treatmentSequences[0]?.content || ''} items={treatmentSequences}
                     onContentChange={onContentChangeTreatment} onItemChange={onItemChangeTreatment}
                     onValidate={onValidateTreatment} onRefine={onRefineTreatment}
                     onRegenerate={onRegenerateTreatment}
@@ -701,7 +748,7 @@ export default function App() {
                     isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === 'Treatment'}
                     hydrationLabel={hydrationState.hydratingStage === 'Treatment' ? hydrationState.hydratingLabel : undefined}
                     refiningBlockId={refiningBlockId} validateLabel={t('stages.Treatment.validateLabel')}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.insights?.['Treatment']}
+                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.stageAnalyses?.['Treatment']}
                   />
                 ) : activeStage === 'Step Outline' ? (
                   <CanvasErrorBoundary>
@@ -709,13 +756,13 @@ export default function App() {
                       sequences={sequences} onSequenceUpdate={handleSequenceUpdate} onSequenceAdd={handleSequenceAdd}
                       onFocusMode={handleFocusMode}
                       onAiMagic={handleAiMagic} onTts={NOOP} onValidate={onValidateStepOutline}
-                      isGenerating={isTyping} refiningBlockId={refiningBlockId} insight={currentProject.insights?.['Step Outline']}
+                      isGenerating={isTyping} refiningBlockId={refiningBlockId} insight={currentProject.stageAnalyses?.['Step Outline']}
                     />
                   </CanvasErrorBoundary>
                 ) : activeStage === 'Script' ? (
                   <WorkflowStageComponent
                     stage="Script" step={9} title={t('stages.Script.title')} subtitle={t('stages.Script.subtitle')}
-                    content={currentProject.scriptDraft || ''} items={scriptScenes}
+                    content={scriptScenes[0]?.content || ''} items={scriptScenes}
                     onContentChange={onContentChangeScript} onItemChange={onItemChangeScript}
                     onValidate={onValidateScript} onRefine={onRefineScript}
                     onRegenerate={onRegenerateScript}
@@ -723,7 +770,7 @@ export default function App() {
                     isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === 'Script'}
                     hydrationLabel={hydrationState.hydratingStage === 'Script' ? hydrationState.hydratingLabel : undefined}
                     refiningBlockId={refiningBlockId} validateLabel={t('stages.Script.validateLabel')}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.insights?.['Script']}
+                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId} insight={currentProject.stageAnalyses?.['Script']}
                   />
                 ) : activeStage === 'Storyboard' ? (
                   <div className="w-full space-y-12 py-24 flex flex-col items-center justify-center text-center">
@@ -764,22 +811,26 @@ export default function App() {
       {!isMobile && (
         <div className={cn("h-full border-l border-white/5 bg-[#212121] z-40 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden relative", isDoctorOpen ? "w-[30%] min-w-[350px] max-w-[450px]" : "w-0 min-w-0 border-none")}>
           <div className="absolute right-0 top-0 w-[30vw] min-w-[350px] max-w-[450px] h-full">
-            <ScriptDoctor 
-              isOpen={isDoctorOpen} onClose={handleCloseDoctor} messages={doctorMessages} onSendMessage={handleDoctorMessage}
-              isTyping={isDoctorTyping} isHeavyThinking={isHeavyThinking} aiStatus={aiStatus} activeStage={activeStage} activeTool={activeTool}
-              projectLanguages={currentProject.metadata?.languages} telemetryStatus={telemetryStatus}
-            />
+            <Suspense fallback={<div className="h-full flex items-center justify-center text-white/20">Loading Script Doctor...</div>}>
+              <ScriptDoctor 
+                isOpen={isDoctorOpen} onClose={handleCloseDoctor} messages={doctorMessages} onSendMessage={handleDoctorMessage}
+                isTyping={isDoctorTyping} isHeavyThinking={isHeavyThinking} aiStatus={aiStatus} activeStage={activeStage} activeTool={activeTool}
+                projectLanguages={currentProject.metadata?.languages} telemetryStatus={telemetryStatus}
+              />
+            </Suspense>
           </div>
         </div>
       )}
 
       {/* ── MOBILE: Script Doctor as bottom sheet ─────────────────────────── */}
       {isMobile && (
-        <ScriptDoctor 
-          isOpen={isDoctorOpen} onClose={handleCloseDoctor} messages={doctorMessages} onSendMessage={handleDoctorMessage}
-          isTyping={isDoctorTyping} isHeavyThinking={isHeavyThinking} aiStatus={aiStatus} activeStage={activeStage} activeTool={activeTool}
-          projectLanguages={currentProject.metadata?.languages} telemetryStatus={telemetryStatus}
-        />
+        <Suspense fallback={null}>
+          <ScriptDoctor 
+            isOpen={isDoctorOpen} onClose={handleCloseDoctor} messages={doctorMessages} onSendMessage={handleDoctorMessage}
+            isTyping={isDoctorTyping} isHeavyThinking={isHeavyThinking} aiStatus={aiStatus} activeStage={activeStage} activeTool={activeTool}
+            projectLanguages={currentProject.metadata?.languages} telemetryStatus={telemetryStatus}
+          />
+        </Suspense>
       )}
 
       {/* ── MOBILE: Bottom navigation bar ─────────────────────────────────── */}

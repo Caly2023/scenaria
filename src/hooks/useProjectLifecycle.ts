@@ -7,10 +7,15 @@ import {
   useCreateProjectMutation, 
   useDeleteProjectMutation,
   useAddSubcollectionDocMutation,
-  useDeleteSubcollectionDocMutation
+  useClearSubcollectionMutation,
+  useInitializeProjectWithPrimitivesMutation
 } from '../services/firebaseApi';
 import { db } from '../lib/firebase';
 import { collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { agentRegistry } from '../agents/agentRegistry';
+import { stageRegistry } from '../config/stageRegistry';
+import { persistAgentOutput, buildProjectContext } from '../services/orchestratorService';
+import { ProjectContext, ContentPrimitive } from '../types/stageContract';
 
 interface UseProjectLifecycleProps {
   user: any;
@@ -31,6 +36,8 @@ interface UseProjectLifecycleProps {
   setProjectToDelete: (val: string | null) => void;
   setDeleteConfirmText: (val: string) => void;
   hydrationState: any;
+  /** Callback to build a ProjectContext from the live subcollection data in App.tsx */
+  getProjectContext?: () => ProjectContext | null;
 }
 
 export function useProjectLifecycle({
@@ -51,7 +58,8 @@ export function useProjectLifecycle({
   setIsDeleting,
   setProjectToDelete,
   setDeleteConfirmText,
-  hydrationState
+  hydrationState,
+  getProjectContext
 }: UseProjectLifecycleProps) {
   const { t } = useTranslation();
   
@@ -59,6 +67,8 @@ export function useProjectLifecycle({
   const [createProject] = useCreateProjectMutation();
   const [deleteProject] = useDeleteProjectMutation();
   const [addSubcol] = useAddSubcollectionDocMutation();
+  const [clearSubcol] = useClearSubcollectionMutation();
+  const [initProjectWithPrims] = useInitializeProjectWithPrimitivesMutation();
 
 
 
@@ -70,40 +80,17 @@ export function useProjectLifecycle({
     setIsHeavyThinking(true);
     
     try {
-      const subcollectionMap: Record<string, string> = {
-        'Treatment': 'treatment_sequences',
-        'Script': 'script_scenes',
-        'Step Outline': 'sequences',
-        'Character Bible': 'characters',
-        'Location Bible': 'locations',
-        'Brainstorming': 'pitch_primitives',
-      };
-      
-      const subcollection = subcollectionMap[stage];
-      if (subcollection) {
-        // Keeping manual getDocs and deleteDoc here for subcollections as it's an internal flush process.
-        // Doing atomic bulk deletes isn't natively supported in RTK Query without a custom endpoint.
-        const existingSnap = await getDocs(collection(db, 'projects', currentProject.id, subcollection));
-        for (const docSnap of existingSnap.docs) {
-          await deleteDoc(docSnap.ref);
-        }
-      } else {
-        const fieldMap: Record<string, string> = {
-          'Logline': 'loglineDraft',
-          '3-Act Structure': 'structureDraft',
-          'Synopsis': 'synopsisDraft',
-        };
-        const field = fieldMap[stage];
-        if (field) {
-          await updateField({ id: currentProject.id, field, content: '' }).unwrap();
-        }
+      const collectionName = stageRegistry.getCollectionName(stage);
+      if (collectionName) {
+        await clearSubcol({ projectId: currentProject.id, collectionName }).unwrap();
       }
       
       addToast(`Regenerating ${stage}...`, 'info');
       hydrationState.resetHydration?.(stage);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Regenerate failed for ${stage}:`, error);
-      addToast(`Failed to regenerate ${stage}`, 'error');
+      const errMsg = classifyError(error);
+      addToast(`Failed to regenerate ${stage}: ${errMsg}`, 'error');
     } finally {
       setIsRegenerating(false);
       setIsTyping(false);
@@ -138,74 +125,93 @@ export function useProjectLifecycle({
     try {
       setIsTyping(true);
       
-      const metadata = await geminiService.extractMetadata(brainstormingDraft);
-      if (format) metadata.format = format;
+      // 1. CONSOLIDATED AI CALL: Extract metadata and brainstorm in one trip
+      const initResult = await geminiService.initializeProjectAgent(brainstormingDraft, format);
       
-      const dualResult = await geminiService.brainstormDual(brainstormingDraft, "", metadata);
-
       const projectData = {
         metadata: {
-          ...metadata,
-          logline: dualResult.metadataUpdates?.logline || ''
+          ...initResult.metadata,
+          logline: initResult.validation.status === 'GOOD TO GO' ? initResult.metadata.logline : ''
         },
-        pitch_critique: dualResult.critique,
-        pitch_result: dualResult.pitch,
-        pitch_validation: dualResult.validation,
-        insights: {
+        stageAnalyses: {
           'Brainstorming': {
-            content: dualResult.critique,
-            isReady: dualResult.validation.status === 'GOOD TO GO',
+            evaluation: initResult.critique,
+            issues: initResult.validation.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
+            recommendations: [],
             updatedAt: Date.now()
           }
         },
-        loglineDraft: dualResult.metadataUpdates?.logline || '',
+        stageStates: {
+          'Brainstorming': initResult.validation.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
+        },
         collaborators: [user.uid],
         ownerId: user.uid,
         activeStage: 'Brainstorming' as WorkflowStage,
         validatedStages: [] as WorkflowStage[],
       };
 
-      const docId = await createProject({ projectData }).unwrap();
+      // 2. ATOMIC INITIALIZATION: One batch for project + all initial primitives
+      const primitives = [
+        {
+          title: 'Initial Critique',
+          content: initResult.critique,
+          type: 'analysis_block',
+          order: 0,
+        },
+        {
+          title: 'Refined Pitch',
+          content: initResult.pitch,
+          type: 'pitch_result',
+          order: 1,
+        }
+      ];
+
+      const docId = await initProjectWithPrims({ projectData, primitives }).unwrap();
       
-      await addSubcol({ projectId: docId, collectionName: 'pitch_primitives', data: {
-        title: 'Primitive A: The Critique',
-        content: dualResult.critique,
-        type: 'analysis_block',
-        order: 0,
-      } }).unwrap();
-
-      await addSubcol({ projectId: docId, collectionName: 'pitch_primitives', data: {
-        title: 'Primitive B: The Final Pitch',
-        content: dualResult.pitch,
-        type: 'pitch_result',
-        order: 1,
-      } }).unwrap();
-
       const newProject = { id: docId, ...projectData, createdAt: Date.now(), updatedAt: Date.now() } as Project;
+      
+      // 3. EAGER TRANSITION: Move to project immediately
       handleProjectSelect(docId, newProject);
+      
       setIsTyping(false);
       setSyncStatus('synced');
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Project creation failed:', error);
+      const errMsg = classifyError(error);
+      addToast(`Failed to create project: ${errMsg}`, 'error');
       setSyncStatus('error');
       setIsTyping(false);
+      throw error;
     }
   };
 
+  /**
+   * PROACTIVE "GHOST" GENERATION
+   * 
+   * When a stage is validated, this function:
+   * 1. Updates validatedStages and activeStage in Firestore
+   * 2. Transitions the UI to the next stage
+   * 3. Fires off a background generation for the triggered stage
+   *    (as defined in stageRegistry.triggers)
+   * 
+   * The generation is NON-BLOCKING — the user sees the next stage
+   * immediately and content populates via the Firestore onSnapshot listener.
+   */
   const handleStageValidate = async (stage: WorkflowStage) => {
     if (!currentProject) return;
     
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
-      const insight = currentProject.insights?.[stage];
-      const isReady = insight?.isReady ?? false;
+      const insight = currentProject.stageAnalyses?.[stage];
+      const state = currentProject.stageStates?.[stage];
+      const isReady = state === 'good' || state === 'excellent';
 
       if (!isReady) {
         setDoctorMessages(prev => [...prev, {
           id: Date.now().toString(),
           role: 'assistant',
-          content: `${t('common.notReadyYetFeedback', { defaultValue: "I've analyzed this stage and it's not quite ready yet." })}\n\n${insight?.content || t('common.analysisInProgress', { defaultValue: "Let's review what's missing together." })}`,
+          content: `${t('common.notReadyYetFeedback', { defaultValue: "I've analyzed this stage and it's not quite ready yet." })}\n\n${insight?.evaluation || t('common.analysisInProgress', { defaultValue: "Let's review what's missing together." })}`,
           timestamp: Date.now()
         }]);
         setIsDoctorOpen(true);
@@ -227,16 +233,87 @@ export function useProjectLifecycle({
       if (nextStage) {
         await updateField({ id: currentProject.id, field: 'activeStage', content: nextStage }).unwrap();
         handleStageChange(nextStage);
-        addToast(`Moving to ${nextStage}...`, 'info');
+        addToast(`✅ ${stage} validated. Moving to ${nextStage}...`, 'success');
       }
 
       setSyncStatus('synced');
-    } catch (error) {
-      console.error(error);
-      addToast(t('common.failedToGenerate'), 'error');
-      setSyncStatus('error');
-    } finally {
       setIsTyping(false);
+
+      // ── PROACTIVE GHOST GENERATION ──────────────────────────────────────
+      // Fire-and-forget: trigger generation for the next stage in the cascade.
+      // This runs in the background and writes results via persistAgentOutput.
+      // The UI picks up the new content via Firestore onSnapshot listeners.
+      const triggeredStage = stageRegistry.getTriggeredStage(stage);
+      if (triggeredStage && currentProject) {
+        triggerProactiveGeneration(triggeredStage, currentProject, newValidatedStages);
+      }
+
+    } catch (error: any) {
+      console.error(error);
+      const errMsg = classifyError(error);
+      addToast(t('common.failedToGenerate') + ` (${errMsg})`, 'error');
+      setSyncStatus('error');
+      setIsTyping(false);
+    }
+  };
+
+  /**
+   * Proactive generation — runs as a background task after validation.
+   * Uses the agent registry to generate content for the triggered stage,
+   * then persists it via the orchestrator's Analysis→Content→State pipeline.
+   */
+  const triggerProactiveGeneration = async (
+    targetStage: WorkflowStage,
+    project: Project,
+    validatedStages: WorkflowStage[]
+  ) => {
+    try {
+      // Skip Storyboard (manual-only per system_logic.md §4)
+      if (targetStage === 'Storyboard') return;
+
+      const agent = await agentRegistry.get(targetStage);
+      if (!agent) {
+        console.warn(`[ProactiveGen] No agent registered for "${targetStage}". Skipping.`);
+        return;
+      }
+
+      // Build the ProjectContext from the callback (live data in App.tsx)
+      // or fallback to building from project metadata alone.
+      let context: ProjectContext | null = null;
+      if (getProjectContext) {
+        context = getProjectContext();
+      }
+      if (!context) {
+        // Fallback: build a minimal context from the project document.
+        // This won't have subcollection data but agents pull from Brainstorming source of truth.
+        context = buildProjectContext(
+          project.id,
+          project.metadata,
+          {},  // stage contents will be empty — agent will use what it can
+          project.stageAnalyses || {}
+        );
+      }
+
+      console.log(`[ProactiveGen] 🚀 Starting ghost generation for "${targetStage}"...`);
+      addToast(`🧠 Drafting ${targetStage}...`, 'info');
+
+      const output = await agent.generate(context);
+      
+      // Persist with replaceAll since this is a fresh generation
+      const result = await persistAgentOutput(project.id, targetStage, output, { replaceAll: true });
+
+      if (result.success) {
+        console.log(`[ProactiveGen] ✅ "${targetStage}" ghost generation complete (${result.primitiveIds.length} primitives)`);
+        addToast(`✅ ${targetStage} draft ready!`, 'success');
+      } else {
+        console.warn(`[ProactiveGen] ⚠️ Persist failed for "${targetStage}": ${result.error}`);
+        addToast(`⚠️ ${targetStage} draft partially saved`, 'info');
+      }
+    } catch (error: any) {
+      // Ghost generation failure is non-fatal — user can still manually generate
+      console.error(`[ProactiveGen] Failed for "${targetStage}":`, error);
+      const errMsg = classifyError(error);
+      addToast(`Could not auto-draft ${targetStage}: ${errMsg}`, 'info');
     }
   };
 
@@ -246,4 +323,23 @@ export function useProjectLifecycle({
     handleProjectCreate,
     handleStageValidate
   };
+}
+
+// ── Error classification helper ────────────────────────────────────────────────
+
+function classifyError(error: any): string {
+  const msg = (error?.message || error?.toString() || '').toLowerCase();
+  if (msg.includes('429') || msg.includes('quota') || msg.includes('rate limit')) {
+    return 'AI quota limit reached — try again later';
+  }
+  if (msg.includes('network') || msg.includes('fetch') || msg.includes('econnreset') || msg.includes('failed to fetch')) {
+    return 'Network error — check your connection';
+  }
+  if (msg.includes('timeout') || msg.includes('timed out')) {
+    return 'Request timed out — try again';
+  }
+  if (msg.includes('permission') || msg.includes('403')) {
+    return 'Permission denied';
+  }
+  return 'Unexpected error';
 }

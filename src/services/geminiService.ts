@@ -1002,6 +1002,67 @@ export const geminiService = {
     }, MODELS.FLASH);
   },
 
+  async initializeProjectAgent(storyDraft: string, format?: string) {
+    return resilientRequest(async (model) => {
+      const response = await ai.models.generateContent({
+        model: model,
+        contents: `You are a Master Screenwriting Consultant and Narrative Architect. 
+        Your task is to perform an initial deep-analysis of a new story idea and synthesize it into a professional project foundation.
+        
+        STORY DRAFT:
+        ${storyDraft}
+        
+        ${format ? `SELECTED FORMAT: ${format}` : ''}
+        
+        YOUR OBJECTIVES:
+        1. EXTRACT METADATA: Infer title, genre, tone, logline, languages, and target duration.
+        2. BRAINSTORM: Provide a professional Critique of the hook, stakes, and clarity.
+        3. REFINED PITCH: Synthesize a high-impact, refined Pitch (1-2 powerful paragraphs).
+        4. VALIDATE: Determine if the concept is "GOOD TO GO" for the next stage or "NEEDS WORK".
+        
+        OUTPUT SCHEMA:
+        Return a JSON object with:
+        - metadata: { title, format, genre, tone, logline, languages[], targetDuration }
+        - critique: string (An professional assessment of what works and what doesn't)
+        - pitch: string (The refined, high-impact version of the story)
+        - validation: { status: "GOOD TO GO" | "NEEDS WORK", feedback: string }`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              metadata: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  format: { type: Type.STRING },
+                  genre: { type: Type.STRING },
+                  tone: { type: Type.STRING },
+                  logline: { type: Type.STRING },
+                  languages: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  targetDuration: { type: Type.STRING }
+                },
+                required: ["title", "format", "genre", "tone", "logline", "languages", "targetDuration"]
+              },
+              critique: { type: Type.STRING },
+              pitch: { type: Type.STRING },
+              validation: {
+                type: Type.OBJECT,
+                properties: {
+                  status: { type: Type.STRING, enum: ["GOOD TO GO", "NEEDS WORK"] },
+                  feedback: { type: Type.STRING }
+                },
+                required: ["status", "feedback"]
+              }
+            },
+            required: ["metadata", "critique", "pitch", "validation"]
+          }
+        }
+      });
+      return JSON.parse(response.text);
+    }, MODELS.FLASH);
+  },
+
   async brainstormDual(userInput: string, currentStory: string, currentMetadata: any) {
     const rawInput = (userInput || '').trim();
     // Prompt Injection Defense Strip

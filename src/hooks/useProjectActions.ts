@@ -11,6 +11,8 @@ import {
 } from '../services/firebaseApi';
 import { db } from '../lib/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
+import { ContentPrimitive } from '../types/stageContract';
 
 interface UseProjectActionsProps {
   currentProject: Project | null;
@@ -22,6 +24,12 @@ interface UseProjectActionsProps {
   characters: Character[];
   locations: Location[];
   sequences: Sequence[];
+  treatmentSequences: Sequence[];
+  scriptScenes: Sequence[];
+  pitchPrimitives: Sequence[];
+  loglinePrimitives: Sequence[];
+  structurePrimitives: Sequence[];
+  synopsisPrimitives: Sequence[];
 }
 
 export function useProjectActions({
@@ -33,7 +41,13 @@ export function useProjectActions({
   handleSubcollectionUpdate,
   characters,
   locations,
-  sequences
+  sequences,
+  treatmentSequences,
+  scriptScenes,
+  pitchPrimitives,
+  loglinePrimitives,
+  structurePrimitives,
+  synopsisPrimitives,
 }: UseProjectActionsProps) {
   const { t } = useTranslation();
   
@@ -48,92 +62,54 @@ export function useProjectActions({
     if (blockId) setRefiningBlockId(blockId);
     
     try {
-      let refinedContent = '';
-      let field = '';
+      const decision = interpretIntent(feedback, stage, blockId);
+      
+      let currentContent: ContentPrimitive[] = [];
+      if (stage === 'Brainstorming') currentContent = pitchPrimitives as any;
+      else if (stage === 'Logline') currentContent = loglinePrimitives as any;
+      else if (stage === '3-Act Structure') currentContent = structurePrimitives as any;
+      else if (stage === 'Synopsis') currentContent = synopsisPrimitives as any;
+      else if (stage === 'Character Bible') currentContent = characters as any;
+      else if (stage === 'Location Bible') currentContent = locations as any;
+      else if (stage === 'Treatment') currentContent = treatmentSequences as any;
+      else if (stage === 'Step Outline') currentContent = sequences as any;
+      else if (stage === 'Script') currentContent = scriptScenes as any;
+      
+      const context = buildProjectContext(
+        currentProject.id,
+        currentProject.metadata,
+        {
+          'Brainstorming': pitchPrimitives as any,
+          'Logline': loglinePrimitives as any,
+          '3-Act Structure': structurePrimitives as any,
+          'Synopsis': synopsisPrimitives as any,
+          'Character Bible': characters as any,
+          'Location Bible': locations as any,
+          'Treatment': treatmentSequences as any,
+          'Step Outline': sequences as any,
+          'Script': scriptScenes as any,
+        },
+        currentProject.stageAnalyses || {}
+      );
 
-      if (['Treatment', 'Script', 'Step Outline'].includes(stage) && blockId) {
-        const payload = await contextAssembler.buildPromptPayload(currentProject.id, stage, blockId);
-        const prompt = contextAssembler.formatPrompt(payload, `Refine this block based on this feedback: "${feedback}". Return ONLY the refined text.`);
-        refinedContent = await geminiService.rewriteSequenceWithContext(prompt);
-        
-        const subcollection = stage === 'Treatment' ? 'treatment_sequences' : 
-                             stage === 'Script' ? 'script_scenes' : 'sequences';
-        
-        await updateSubcol({ projectId: currentProject.id, collectionName: subcollection, docId: blockId, data: { content: refinedContent }, orderByField: 'order' }).unwrap();
+      const agentOutput = await dispatchToAgent(decision, context, currentContent);
+      await persistAgentOutput(currentProject.id, stage, agentOutput);
+      
+      // Handle special metadata updates (like Logline/Brainstorming)
+      if (agentOutput.metadataUpdates) {
+        const newMeta = { ...currentProject.metadata, ...agentOutput.metadataUpdates };
+        await updateMetadata({ id: currentProject.id, metadata: newMeta });
+        if (agentOutput.metadataUpdates.logline) {
+          // Metadata logline updated in metadataUpdates block above
+        }
+      }
+
+      if (blockId) {
         setLastUpdatedPrimitiveId(blockId);
         setTimeout(() => setLastUpdatedPrimitiveId(null), 2000);
-        
-        addToast(t('common.blockRefined', { stage }), 'success');
-        setIsTyping(false);
-        setRefiningBlockId(null);
-        return;
       }
       
-      if (stage === 'Brainstorming') {
-        const dualResult = await geminiService.brainstormDual(
-          feedback, 
-          currentProject.pitch_result || "", 
-          currentProject.metadata || { title: '', format: 'Short Film', genre: '', tone: '', languages: [], targetDuration: '', logline: '' }
-        );
-        
-        // Parallelize the three root-level field writes
-        await Promise.all([
-          updateField({ id: currentProject.id, field: 'pitch_critique', content: dualResult.critique }),
-          updateField({ id: currentProject.id, field: 'pitch_result', content: dualResult.pitch }),
-          updateField({ id: currentProject.id, field: 'pitch_validation', content: dualResult.validation }),
-        ]);
-
-        const pitchSnap = await getDocs(query(collection(db, 'projects', currentProject.id, 'pitch_primitives'), orderBy('order')));
-        if (pitchSnap.docs.length >= 2) {
-          // Parallelize the two primitive updates
-          await Promise.all([
-            updateSubcol({ projectId: currentProject.id, collectionName: 'pitch_primitives', docId: pitchSnap.docs[0].id, data: { content: dualResult.critique }, orderByField: 'order' }),
-            updateSubcol({ projectId: currentProject.id, collectionName: 'pitch_primitives', docId: pitchSnap.docs[1].id, data: { content: dualResult.pitch }, orderByField: 'order' }),
-          ]);
-        } else {
-          // Parallelize the two primitive inserts
-          await Promise.all([
-            addSubcol({ projectId: currentProject.id, collectionName: 'pitch_primitives', data: { title: 'Primitive A: The Critique', content: dualResult.critique, type: 'analysis_block', order: 0 } }),
-            addSubcol({ projectId: currentProject.id, collectionName: 'pitch_primitives', data: { title: 'Primitive B: The Final Pitch', content: dualResult.pitch, type: 'pitch_result', order: 1 } }),
-          ]);
-        }
-        
-        if (dualResult.metadataUpdates) {
-          const newMeta = { ...currentProject.metadata, ...dualResult.metadataUpdates };
-          const metaWrites: Promise<any>[] = [updateMetadata({ id: currentProject.id, metadata: newMeta })];
-          if (dualResult.metadataUpdates.logline) {
-            metaWrites.push(updateField({ id: currentProject.id, field: 'loglineDraft', content: dualResult.metadataUpdates.logline }));
-          }
-          await Promise.all(metaWrites);
-        }
-        
-        setIsTyping(false);
-        setRefiningBlockId(null);
-        return;
-      } else if (stage === 'Logline') {
-        refinedContent = await geminiService.refineLoglineDraft(currentProject.loglineDraft || '', feedback);
-        field = 'loglineDraft';
-      } else if (stage === 'Synopsis') {
-        refinedContent = await geminiService.rewriteSequence(currentProject.synopsisDraft || '', feedback);
-        field = 'synopsisDraft';
-      } else if (stage === '3-Act Structure') {
-        refinedContent = await geminiService.refine3ActStructure(currentProject.structureDraft || '', feedback);
-        field = 'structureDraft';
-      } else if (stage === 'Treatment') {
-        refinedContent = await geminiService.rewriteSequence(currentProject.treatmentDraft || '', feedback);
-        field = 'treatmentDraft';
-      } else if (stage === 'Script') {
-        refinedContent = await geminiService.rewriteSequence(currentProject.scriptDraft || '', feedback);
-        field = 'scriptDraft';
-      }
-
-      if (field && refinedContent) {
-        await updateField({ id: currentProject.id, field, content: refinedContent });
-        if (field === 'loglineDraft') {
-          await updateMetadata({ id: currentProject.id, metadata: { ...currentProject.metadata, logline: refinedContent } });
-        }
-        addToast(t('common.refinedSuccessfully', { stage }), 'success');
-      }
+      addToast(t('common.refinedSuccessfully', { stage }), 'success');
     } catch (error) {
       const classified = classifyError(error);
       addToast(classified.userMessage, 'error');
@@ -222,9 +198,10 @@ export function useProjectActions({
     setIsTyping(true);
     setRefiningBlockId(id);
     try {
+      const bStory = pitchPrimitives.map(p => p.content).join('\n\n');
       const deepData = await geminiService.deepDevelopCharacter(
         char, 
-        currentProject.brainstorming_story || '', 
+        bStory, 
         characters.filter(c => c.id !== id)
       );
 
@@ -269,9 +246,10 @@ ${deepData.relationshipMap}
     setIsTyping(true);
     setRefiningBlockId(id);
     try {
+      const bStory = pitchPrimitives.map(p => p.content).join('\n\n');
       const developed = await geminiService.deepDevelopLocation(
         loc, 
-        currentProject.brainstorming_story || ''
+        bStory
       );
       await updateSubcol({
         projectId: currentProject.id,

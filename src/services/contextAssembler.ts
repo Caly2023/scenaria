@@ -2,6 +2,7 @@ import { store } from '../store';
 import { firebaseApi } from './firebaseApi';
 import { Project, Character, Location, Sequence, WorkflowStage } from '../types';
 import { telemetryService } from './telemetryService';
+import { stageRegistry } from '../config/stageRegistry';
 
 export interface PromptPayload {
   metadata: {
@@ -10,8 +11,6 @@ export interface PromptPayload {
     languages: string[];
     logline: string;
   };
-  logline: string;
-  structure: string;
   sectionalContext?: string;
   characters: Character[];
   locations: Location[];
@@ -30,15 +29,6 @@ export interface PromptPayload {
   idMapContext?: string;
 }
 
-const SUBCOLLECTION_MAP: Record<string, string> = {
-  'Step Outline': 'sequences',
-  'Treatment': 'treatment_sequences',
-  'Script': 'script_scenes',
-  'Character Bible': 'characters',
-  'Location Bible': 'locations',
-  'Brainstorming': 'pitch_primitives',
-};
-
 class ContextAssembler {
   async getStageStructure(
     projectId: string,
@@ -46,10 +36,16 @@ class ContextAssembler {
   ): Promise<Array<{ id: string; title: string; content: string; order: number; [key: string]: any }>> {
     telemetryService.setStatus('Fetching stage', '🧠', `Mapping Primitive IDs for ${stageName}...`);
 
-    const subcollection = SUBCOLLECTION_MAP[stageName];
+    let subcollection: string | undefined;
+    try {
+      subcollection = stageRegistry.getCollectionName(stageName);
+    } catch {
+      return [];
+    }
     
     if (subcollection) {
-      const snap = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: subcollection, orderByField: 'order' }));
+      const stageDef = stageRegistry.get(stageName);
+      const snap = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: subcollection, orderByField: stageDef.orderField }));
       const docs = snap.data || [];
       const primitives = docs.map((d: any) => ({
         ...d,
@@ -64,65 +60,23 @@ class ContextAssembler {
 
     const projectResult = await store.dispatch(firebaseApi.endpoints.getProjectById.initiate(projectId));
     const project = projectResult.data;
-    if (!project) return [];
-
-    const fieldMap: Record<string, string> = {
-      'Logline': 'loglineDraft',
-      '3-Act Structure': 'structureDraft',
-      'Synopsis': 'synopsisDraft',
-    };
-
-    const field = fieldMap[stageName];
-    if (field && project[field as keyof Project]) {
-      const content = project[field as keyof Project] as string;
-      const synthetic = [{ id: `${stageName}_root`, title: stageName, content, order: 0 }];
-      telemetryService.hydrateStage(stageName, 'project_root', synthetic as any);
-      return synthetic;
-    }
-
     return [];
   }
 
   async hydrateFullIdMap(projectId: string): Promise<void> {
     telemetryService.setStatus('Full Sync', '🧠', 'Mapping ALL Primitive IDs across stages...');
 
-    const allStages = [
-      'Brainstorming', 'Logline', '3-Act Structure', 'Synopsis',
-      'Character Bible', 'Location Bible', 'Treatment', 'Step Outline', 'Script'
-    ];
-
-    const subcollectionStages = allStages.filter(s => SUBCOLLECTION_MAP[s]);
-    const fieldStages = allStages.filter(s => !SUBCOLLECTION_MAP[s]);
+    const allStages = stageRegistry.getAllIds();
 
     await Promise.all(
-      subcollectionStages.map(async (stageName) => {
+      allStages.map(async (stageName) => {
         try {
           await this.getStageStructure(projectId, stageName);
         } catch (e) {}
       })
     );
 
-    try {
-      const projectResult = await store.dispatch(firebaseApi.endpoints.getProjectById.initiate(projectId));
-      const project = projectResult.data;
-      if (project) {
-        const fieldMap: Record<string, string> = {
-          'Logline': 'loglineDraft',
-          '3-Act Structure': 'structureDraft',
-          'Synopsis': 'synopsisDraft',
-        };
-        for (const stageName of fieldStages) {
-          const field = fieldMap[stageName];
-          if (field && project[field as keyof Project]) {
-            const content = project[field as keyof Project] as string;
-            telemetryService.hydrateStage(stageName, 'project_root', [
-              { id: `${stageName}_root`, title: stageName, content, order: 0 }
-            ] as any);
-          }
-        }
-      }
-    } catch (e) {}
-
+    // Legacy field sync logic removed since migration handles it.
     telemetryService.setStatus('Sync Complete', '✅', 'All Primitive IDs mapped.');
     setTimeout(() => telemetryService.clearStatus(), 2000);
   }
@@ -150,73 +104,65 @@ class ContextAssembler {
         title: project.metadata?.title || 'Untitled',
         genre: project.metadata?.genre || 'N/A',
         languages: project.metadata?.languages || [],
-        logline: project.metadata?.logline || project.loglineDraft || ''
+        logline: project.metadata?.logline || ''
       },
-      logline: project.loglineDraft || '',
-      structure: project.structureDraft || '',
       characters: [],
       locations: []
+    };
+
+    // Helper to get text representation of a stage
+    const getStageText = async (sName: string) => {
+      const primitives = await this.getStageStructure(projectId, sName);
+      return primitives.map(p => p.content).join('\n\n');
     };
 
     let cascadingContext = '';
     
     if (currentStage === 'Character Bible' || currentStage === 'Location Bible') {
-      cascadingContext += `[BRAINSTORMING MASTER STORY]\n${project.brainstorming_story || 'N/A'}\n\n`;
+      const bStory = await getStageText('Brainstorming');
+      cascadingContext += `[BRAINSTORMING MASTER STORY]\n${bStory || 'N/A'}\n\n`;
     } else if (currentStage === '3-Act Structure') {
-      cascadingContext += `[BRAINSTORMING MASTER STORY]\n${project.brainstorming_story || 'N/A'}\n\n`;
+      const bStory = await getStageText('Brainstorming');
+      cascadingContext += `[BRAINSTORMING MASTER STORY]\n${bStory || 'N/A'}\n\n`;
       cascadingContext += `[CHARACTER PROFILES]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role, description: c.description })), null, 2)}\n\n`;
     } else if (currentStage === 'Synopsis') {
       cascadingContext += `[CHARACTERS]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role })), null, 2)}\n\n`;
-      cascadingContext += `[3-ACT STRUCTURE]\n${project.structureDraft || 'N/A'}\n\n`;
+      const struct = await getStageText('3-Act Structure');
+      cascadingContext += `[3-ACT STRUCTURE]\n${struct || 'N/A'}\n\n`;
     } else if (currentStage === 'Treatment') {
       cascadingContext += `[CHARACTERS]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role })), null, 2)}\n\n`;
-      cascadingContext += `[3-ACT STRUCTURE]\n${project.structureDraft || 'N/A'}\n\n`;
-      cascadingContext += `[FULL SYNOPSIS]\n${project.synopsisDraft || 'N/A'}\n\n`;
+      const struct = await getStageText('3-Act Structure');
+      cascadingContext += `[3-ACT STRUCTURE]\n${struct || 'N/A'}\n\n`;
+      const synopsis = await getStageText('Synopsis');
+      cascadingContext += `[FULL SYNOPSIS]\n${synopsis || 'N/A'}\n\n`;
     } else if (currentStage === 'Step Outline' || currentStage === 'Script') {
-      cascadingContext += `[3-ACT STRUCTURE]\n${project.structureDraft || 'N/A'}\n\n`;
-      cascadingContext += `[FULL SYNOPSIS]\n${project.synopsisDraft || 'N/A'}\n\n`;
-      cascadingContext += `[TREATMENT]\n${project.treatmentDraft || 'N/A'}\n\n`;
+      const struct = await getStageText('3-Act Structure');
+      cascadingContext += `[3-ACT STRUCTURE]\n${struct || 'N/A'}\n\n`;
+      const synopsis = await getStageText('Synopsis');
+      cascadingContext += `[FULL SYNOPSIS]\n${synopsis || 'N/A'}\n\n`;
+      const treatment = await getStageText('Treatment');
+      cascadingContext += `[TREATMENT]\n${treatment || 'N/A'}\n\n`;
     }
 
     let sectionalContent = '';
-    if (currentStage === '3-Act Structure') {
-      sectionalContent = project.structureDraft || '';
-      if (sectionalContent) {
-        telemetryService.hydrateStage('3-Act Structure', 'project_root', [
-          { id: '3-Act Structure_root', title: '3-Act Structure', content: sectionalContent, order: 0 }
-        ] as any);
+    
+    try {
+      const stageDef = stageRegistry.get(currentStage);
+      const subcollection = stageDef.collectionName;
+      if (subcollection) {
+        const res = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: subcollection, orderByField: stageDef.orderField }));
+        const primitives = res.data || [];
+        telemetryService.hydrateStage(currentStage, subcollection, primitives as any);
+        sectionalContent = JSON.stringify(primitives, null, 2);
       }
-    } else if (currentStage === 'Synopsis') {
-      sectionalContent = project.synopsisDraft || '';
-      if (sectionalContent) {
-        telemetryService.hydrateStage('Synopsis', 'project_root', [
-          { id: 'Synopsis_root', title: 'Synopsis', content: sectionalContent, order: 0 }
-        ] as any);
-      }
-    } else if (currentStage === 'Treatment') {
-      sectionalContent = project.treatmentDraft || '';
-      const treatResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: 'treatment_sequences', orderByField: 'order' }));
-      const treatPrimitives = treatResult.data || [];
-      telemetryService.hydrateStage('Treatment', 'treatment_sequences', treatPrimitives as any);
-      sectionalContent = JSON.stringify(treatPrimitives, null, 2);
-    } else if (currentStage === 'Script') {
-      sectionalContent = project.scriptDraft || '';
-      const scriptResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: 'script_scenes', orderByField: 'order' }));
-      const scriptPrimitives = scriptResult.data || [];
-      telemetryService.hydrateStage('Script', 'script_scenes', scriptPrimitives as any);
-      sectionalContent = JSON.stringify(scriptPrimitives, null, 2);
-    } else if (currentStage === 'Step Outline') {
-      const seqResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: 'sequences', orderByField: 'order' }));
-      const seqPrimitives = seqResult.data || [];
-      telemetryService.hydrateStage('Step Outline', 'sequences', seqPrimitives as any);
-      sectionalContent = JSON.stringify(seqPrimitives, null, 2);
-    }
+    } catch {}
     
     payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT]\n${sectionalContent}`;
     payload.idMapContext = telemetryService.getIdMapContext();
 
     if (activePrimitiveId && (currentStage === 'Step Outline' || currentStage === 'Script' || currentStage === 'Treatment')) {
-      const seqsResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: SUBCOLLECTION_MAP[currentStage] || 'sequences', orderByField: 'order' }));
+      const collName = stageRegistry.getCollectionName(currentStage) || 'sequences';
+      const seqsResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: collName, orderByField: 'order' }));
       const allSeqs = (seqsResult.data || []) as Sequence[];
       const currentSeqIndex = allSeqs.findIndex(s => s.id === activePrimitiveId);
       

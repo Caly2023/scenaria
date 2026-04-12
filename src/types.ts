@@ -1,5 +1,8 @@
 export type ProjectFormat = 'Short Film' | 'Feature' | 'Series';
 
+// Re-export from stageContract for convenience
+export type { StageState, StageAnalysis, ContentPrimitive } from './types/stageContract';
+
 export type WorkflowStage = 
   | 'Brainstorming'
   | 'Logline' 
@@ -72,23 +75,15 @@ export interface ProjectMetadata {
 export interface Project {
   id: string;
   metadata: ProjectMetadata;
-  insights?: Record<string, StageInsight>;
-  brainstorming_analysis?: string; // Legacy
-  brainstorming_story?: string; // Legacy
-  pitch_critique?: string;
-  pitch_result?: string;
-  pitch_validation?: {
-    status: 'GOOD TO GO' | 'NEEDS WORK';
-    feedback: string;
-  };
-  loglineDraft?: string;
-  structureDraft?: string; // 8 beats JSON
-  synopsisDraft?: string;
-  treatmentDraft?: string; // JSON array of PrimitiveBlock
-  stepOutlineDraft?: string; // JSON array of PrimitiveBlock
-  scriptDraft?: string; // JSON array of PrimitiveBlock
+  // ── Legacy fields removed in Phase 4 ──
   validatedStages: WorkflowStage[];
-  collaborators: string[]; // User IDs
+  // ── NEW: Multi-agent architecture fields ──────────────────────────────────
+  /** Stage quality state enum, keyed by stage name */
+  stageStates?: Record<string, import('./types/stageContract').StageState>;
+  /** Structured AI analysis for each stage, keyed by stage name */
+  stageAnalyses?: Record<string, import('./types/stageContract').StageAnalysis>;
+  // ── End new fields ────────────────────────────────────────────────────────
+  collaborators: string[];
   activeStage: WorkflowStage;
   createdAt: number;
   updatedAt: number;

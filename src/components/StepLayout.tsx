@@ -121,21 +121,21 @@ export function StepLayout({
 
           <div className="flex items-center gap-4 w-full md:w-auto relative group/btn">
             <button
-              onClick={() => isReady ? setShowConfirmModal(true) : onValidate()}
-              aria-label={isReady ? "Complete stage and continue" : "Fix required before continuing"}
+              onClick={() => setShowConfirmModal(true)}
+              aria-label="Complete stage and continue"
               className={cn(
                 "flex-1 md:flex-none px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/50",
                 isReady 
                   ? "bg-white text-black hover:scale-105 active:scale-95" 
-                  : "bg-white/10 text-white hover:bg-white/20 active:scale-95"
+                  : "bg-[#2a2a2a] text-white/50 hover:bg-[#333333] active:scale-95"
               )}
             >
-              {isReady ? "✓ Complete Stage & Continue" : t('common.fixRequired', { defaultValue: 'Fix required' })}
+              {validateLabel}
               <ChevronRight className="w-4 h-4" />
             </button>
             {/* Tooltip */}
             <div className="absolute opacity-0 group-hover/btn:opacity-100 transition-opacity bottom-full mb-4 right-0 w-64 bg-[#111] text-xs text-white p-3 rounded-lg border border-white/10 pointer-events-none shadow-xl z-50">
-              {isReady ? "Validating will lock this stage and generate the content for the next stage based on your input." : "Please resolve the AI insights before moving forward."}
+              {isReady ? "Validating will lock this stage and generate the content for the next stage based on your input." : "Stage is not fully validated, but you can still proceed."}
             </div>
           </div>
         </div>
@@ -161,6 +161,9 @@ export function StepLayout({
               <div className="space-y-2 text-center">
                 <h3 className="text-xl font-bold tracking-tight text-white">Ready to continue?</h3>
                 <p className="text-white/40 text-sm">
+                  {!isReady ? (
+                    <span className="text-amber-500/80 block mb-2">Note: This stage still has pending AI insights.</span>
+                  ) : null}
                   This will lock the {t(`stages.${stageName}.label`, { defaultValue: stageName })} stage and start generating the next stage.
                 </p>
               </div>

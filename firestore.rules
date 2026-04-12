@@ -57,17 +57,18 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         (request.auth.token.email == "sarrabdoulaye1203@gmail.com" && request.auth.token.email_verified == true) ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin')
       );
     }
     
     function isProjectMember(projectId) {
-      let project = get(/databases/$(database)/documents/projects/$(projectId)).data;
-      return isAuthenticated() && project != null && (
-        request.auth.uid == project.get('ownerId', '') || 
-        request.auth.uid in project.get('collaborators', []) ||
-        isAdmin()
-      );
+      let projectPath = /databases/$(database)/documents/projects/$(projectId);
+      return isAuthenticated() && 
+             exists(projectPath) && 
+             (request.auth.uid == get(projectPath).data.get('ownerId', '') || 
+              request.auth.uid in get(projectPath).data.get('collaborators', []) ||
+              isAdmin());
     }
 
     function isOwner(data) {
@@ -76,19 +77,14 @@ service cloud.firestore {
 
     function isValidProject(data) {
       return data.metadata is map &&
-             data.metadata.title is string && data.metadata.title.size() > 0 && data.metadata.title.size() <= 100 &&
+             data.metadata.title is string && data.metadata.title.size() > 0 &&
              data.metadata.format is string &&
-             data.metadata.genre is string &&
-             data.metadata.tone is string &&
-             data.metadata.languages is list &&
-             data.metadata.targetDuration is string &&
              data.get('collaborators', []) is list &&
              request.auth.uid in data.get('collaborators', []) &&
              data.get('ownerId', '') == request.auth.uid &&
              data.activeStage is string &&
-             data.validatedStages is list &&
-             (data.createdAt is number || data.createdAt is timestamp) &&
-             (data.updatedAt is number || data.updatedAt is timestamp);
+             (data.createdAt != null) &&
+             (data.updatedAt != null);
     }
 
     function isValidSequence(data) {
@@ -158,25 +154,32 @@ service cloud.firestore {
       }
 
       match /pitch_primitives/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
       match /logline_primitives/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
       match /structure_primitives/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
       match /synopsis_primitives/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
       match /treatment_sequences/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
       match /script_scenes/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
       match /storyboard_frames/{primitiveId} {
-        allow read, write: if isProjectMember(projectId);
+        allow read: if isProjectMember(projectId);
+        allow write: if (isAuthenticated() && request.auth.uid == request.resource.data.get('ownerId', '')) || isProjectMember(projectId);
       }
     }
 

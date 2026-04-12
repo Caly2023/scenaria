@@ -680,7 +680,7 @@ export default function App() {
               <Suspense fallback={<StageSkeleton />}>
                 {activeStage === 'Brainstorming' ? (
                   <BrainstormingStage
-                    analysis={pitchPrimitives.find(p => p.order === 0)?.content || ''}
+                    analysis={pitchPrimitives.find(p => p.order === 2)?.content || ''}
                     story={pitchPrimitives.find(p => p.order === 1)?.content || ''}
                     onStoryChange={handleStoryChange}
                     onValidate={onValidateBrainstorming}

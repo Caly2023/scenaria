@@ -276,23 +276,26 @@ export const firebaseApi = createApi({
     initializeProjectWithPrimitives: builder.mutation<string, { projectId?: string; projectData: any; primitives: any[] }>({
       async queryFn({ projectId, projectData, primitives }) {
         try {
+          console.log('[FirebaseApi] Initializing project with primitives:', { projectId, projectData, primitivesCount: primitives.length });
           const projectRef = projectId ? doc(db, 'projects', projectId) : doc(collection(db, 'projects'));
+          const batch = writeBatch(db);
           
-          await setDoc(projectRef, {
+          batch.set(projectRef, {
             ...projectData,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
 
-          await Promise.all(primitives.map((p) => {
+          primitives.forEach((p) => {
             const primRef = doc(collection(db, 'projects', projectRef.id, 'pitch_primitives'));
-            return setDoc(primRef, {
+            batch.set(primRef, {
               ...p,
               projectId: projectRef.id,
               createdAt: serverTimestamp()
             });
-          }));
+          });
 
+          await batch.commit();
           return { data: projectRef.id };
         } catch (error: any) {
           return { error: { message: error.message } };

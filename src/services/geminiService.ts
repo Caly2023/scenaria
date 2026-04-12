@@ -162,6 +162,38 @@ async function resilientRequest(
   throw lastError || new Error("All models in cascade failed after retries.");
 }
 
+/**
+ * Clean and parse JSON from model output, handling markdown fences.
+ */
+function safeJsonParse(text: string): any {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    try {
+      return JSON.parse(cleaned);
+    } catch (e2) {
+      console.error('[GeminiService] JSON Parse failed:', text);
+      throw e2;
+    }
+  }
+}
+
+/**
+ * Safely extract text from a model response, handling potential SDK differences.
+ */
+async function extractText(response: any): Promise<string> {
+  if (typeof response?.text === 'function') {
+    return await response.text();
+  }
+  if (typeof response?.response?.text === 'function') {
+    return await response.response.text();
+  }
+  return response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+
 export const geminiService = {
   async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
     if (isQuotaExhausted) {
@@ -608,6 +640,21 @@ export const geminiService = {
     return responseObj;
   },
 
+  async extractMetadata(description: string, existingMetadata?: any): Promise<any> {
+    return resilientRequest(async (model) => {
+      const response = await ai.models.generateContent({
+        model: model,
+        contents: [{
+          role: "user",
+          parts: [{ text: `Task: extract and refine film metadata from this description: "${description}"\n` + 
+                    (existingMetadata ? `Existing context: ${JSON.stringify(existingMetadata)}` : '') }]
+        }]
+      });
+      const text = await extractText(response);
+      return safeJsonParse(text);
+    }, MODELS.LITE || MODELS.FLASH);
+  },
+
   async analyzeScript(content: string, stage: string) {
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({
@@ -618,7 +665,7 @@ export const geminiService = {
         ${content}`,
       });
       return response.text;
-    }, MODELS.PRO);
+    }, MODELS.PRO || MODELS.FLASH);
   },
 
   async rewriteSequence(content: string, instruction: string) {
@@ -669,13 +716,7 @@ export const geminiService = {
         },
       });
       
-      const text = response.text;
-      try {
-        return JSON.parse(text) as { title: string; content: string; characterIds: string[]; locationIds: string[] }[];
-      } catch (e) {
-        const cleaned = text.replace(/```json|```/g, '').trim();
-        return JSON.parse(cleaned) as { title: string; content: string; characterIds: string[]; locationIds: string[] }[];
-      }
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 
@@ -772,7 +813,7 @@ export const geminiService = {
         }
       });
       
-      return JSON.parse(response.text);
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 
@@ -815,7 +856,7 @@ export const geminiService = {
           responseMimeType: "application/json"
         }
       });
-      return response.text;
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 
@@ -838,7 +879,7 @@ export const geminiService = {
           responseMimeType: "application/json"
         }
       });
-      return response.text;
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 
@@ -880,8 +921,8 @@ export const geminiService = {
           responseMimeType: "application/json"
         }
       });
-      return response.text;
-    }, MODELS.PRO);
+      return safeJsonParse(await extractText(response));
+    }, MODELS.PRO || MODELS.FLASH);
   },
 
   async generateFullScript(structure: string, synopsis: string, treatment: string, characters: any[]) {
@@ -911,8 +952,8 @@ export const geminiService = {
           responseMimeType: "application/json"
         }
       });
-      return response.text;
-    }, MODELS.PRO);
+      return safeJsonParse(await extractText(response));
+    }, MODELS.PRO || MODELS.FLASH);
   },
 
   async generateStepOutline(treatment: string) {
@@ -934,7 +975,7 @@ export const geminiService = {
           responseMimeType: "application/json"
         }
       });
-      return response.text;
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 
@@ -955,7 +996,7 @@ export const geminiService = {
         contents: prompt,
       });
       return response.text;
-    }, MODELS.PRO);
+    }, MODELS.PRO || MODELS.FLASH);
   },
 
   async refineLoglineDraft(currentLogline: string, feedback: string) {
@@ -998,7 +1039,7 @@ export const geminiService = {
           }
         }
       });
-      return JSON.parse(response.text);
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 
@@ -1006,26 +1047,16 @@ export const geminiService = {
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({
         model: model,
-        contents: `You are a Master Screenwriting Consultant and Narrative Architect. 
-        Your task is to perform an initial deep-analysis of a new story idea and synthesize it into a professional project foundation.
-        
-        STORY DRAFT:
-        ${storyDraft}
-        
+        contents: [{
+          role: "user",
+          parts: [{
+            text: `INITIAL STORY IDEA: ${storyDraft}
         ${format ? `SELECTED FORMAT: ${format}` : ''}
         
-        YOUR OBJECTIVES:
-        1. EXTRACT METADATA: Infer title, genre, tone, logline, languages, and target duration.
-        2. BRAINSTORM: Provide a professional Critique of the hook, stakes, and clarity.
-        3. REFINED PITCH: Synthesize a high-impact, refined Pitch (1-2 powerful paragraphs).
-        4. VALIDATE: Determine if the concept is "GOOD TO GO" for the next stage or "NEEDS WORK".
-        
-        OUTPUT SCHEMA:
-        Return a JSON object with:
-        - metadata: { title, format, genre, tone, logline, languages[], targetDuration }
-        - critique: string (An professional assessment of what works and what doesn't)
-        - pitch: string (The refined, high-impact version of the story)
-        - validation: { status: "GOOD TO GO" | "NEEDS WORK", feedback: string }`,
+        Analyze this idea and generate the core project metadata and initial critique.
+        Be professional, cinematic, and helpful.`
+          }]
+        }],
         config: {
           responseMimeType: "application/json",
           responseSchema: {
@@ -1059,7 +1090,7 @@ export const geminiService = {
           }
         }
       });
-      return JSON.parse(response.text);
+      return safeJsonParse(await extractText(response));
     }, MODELS.FLASH);
   },
 

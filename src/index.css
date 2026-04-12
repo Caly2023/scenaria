@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -17,6 +17,7 @@
   --color-glass-border: rgba(255, 255, 255, 0.1);
   --color-glass-hover: rgba(255, 255, 255, 0.15);
   --accent-color: #ffffff;
+  --color-gold: #D4AF37;
 
   @keyframes mesh-gradient {
     0% { transform: translate(0, 0) scale(1); }

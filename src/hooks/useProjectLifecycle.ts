@@ -72,60 +72,7 @@ export function useProjectLifecycle({
   const [clearSubcol] = useClearSubcollectionMutation();
   const [initProjectWithPrims] = useInitializeProjectWithPrimitivesMutation();
 
-  const triggerInitialAnalysis = async (projectId: string, draft: string, format?: ProjectFormat, initPromise?: Promise<any>) => {
-    try {
-      // Background AI call
-      const initResult = await geminiService.initializeProjectAgent(draft, format);
-      
-      // Ensure the initial project creation has completed before proceeding with doc updates
-      if (initPromise) {
-        await initPromise.catch(e => console.warn("Init promise error:", e));
-      }
-      
-      const newMetadata = {
-        ...initResult.metadata,
-        logline: initResult.validation.status === 'GOOD TO GO' ? initResult.metadata.logline : ''
-      };
-      await updateField({ id: projectId, field: 'metadata', content: newMetadata }).unwrap();
-      
-      const stageAnalyses = {
-        'Brainstorming': {
-          evaluation: initResult.critique,
-          issues: initResult.validation.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
-          recommendations: [],
-          updatedAt: Date.now()
-        }
-      };
-      await updateField({ id: projectId, field: 'stageAnalyses', content: stageAnalyses }).unwrap();
-      
-      const stageStates = {
-        'Brainstorming': initResult.validation.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
-      };
-      await updateField({ id: projectId, field: 'stageStates', content: stageStates }).unwrap();
-
-      // Add the Critique primitive
-      await addSubcol({ 
-        projectId, 
-        collectionName: 'pitch_primitives', 
-        data: {
-          title: 'Initial Critique',
-          content: initResult.critique,
-          type: 'analysis_block',
-          order: 0,
-        }
-      }).unwrap();
-
-      // Find the pitch primitive and update its content
-      const q = query(collection(db, 'projects', projectId, 'pitch_primitives'), where('order', '==', 1));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-         const docId = snap.docs[0].id;
-         await updateSubcol({ projectId, collectionName: 'pitch_primitives', docId, data: { content: initResult.pitch } }).unwrap();
-      }
-    } catch (error) {
-      console.error("Background initial analysis failed:", error);
-    }
-  };  const handleRegenerate = async (stage: WorkflowStage) => {
+  const handleRegenerate = async (stage: WorkflowStage) => {
     if (!currentProject || isRegenerating) return;
     
     setIsRegenerating(true);
@@ -172,25 +119,56 @@ export function useProjectLifecycle({
   };
 
   const handleProjectCreate = async (brainstormingDraft: string, format?: ProjectFormat) => {
-    if (!user) return;
+    if (!user) {
+      console.warn('[useProjectLifecycle] No user found during creation');
+      return;
+    }
     
     setSyncStatus('syncing');
     try {
       setIsTyping(true);
+      addToast(t('common.generatingProject', { defaultValue: 'AI is analyzing your idea...' }), 'info');
+
+      // 1. Await AI Analysis BEFORE navigating
+      console.log('[useProjectLifecycle] Starting AI initialization...');
+      const initResult = await geminiService.initializeProjectAgent(brainstormingDraft, format);
       
-      // 1. INSTANT CREATION: Only metadata and raw user input
+      if (!initResult || !initResult.metadata) {
+        throw new Error('AI analysis failed to return valid metadata');
+      }
+
+      console.log('[useProjectLifecycle] AI initialization complete:', initResult);
+
+      const newMetadata = {
+        title: (initResult.metadata.title || 'Untitled Project').substring(0, 100),
+        format: String(initResult.metadata.format || format || 'Auto').substring(0, 50),
+        genre: String(initResult.metadata.genre || '').substring(0, 50),
+        tone: String(initResult.metadata.tone || '').substring(0, 50),
+        logline: String(initResult.metadata.logline || '').substring(0, 500),
+        languages: Array.isArray(initResult.metadata.languages) 
+          ? Array.from(new Set(initResult.metadata.languages.map(String).filter(Boolean)))
+          : [],
+        targetDuration: String(initResult.metadata.targetDuration || '').substring(0, 50)
+      };
+
+      // Prepare initial analysis and state
+      const stageAnalyses = {
+        'Brainstorming': {
+          evaluation: initResult.critique || 'Initial critique',
+          issues: initResult.validation?.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
+          recommendations: [],
+          updatedAt: Date.now()
+        }
+      };
+      
+      const stageStates = {
+        'Brainstorming': initResult.validation?.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
+      };
+
       const projectData = {
-        metadata: {
-          title: 'Untitled Project',
-          format: format || 'Auto',
-          genre: '',
-          tone: '',
-          logline: '',
-          languages: [],
-          targetDuration: ''
-        },
-        stageAnalyses: {},
-        stageStates: {},
+        metadata: newMetadata,
+        stageAnalyses,
+        stageStates,
         collaborators: [user.uid],
         ownerId: user.uid,
         activeStage: 'Brainstorming' as WorkflowStage,
@@ -199,32 +177,44 @@ export function useProjectLifecycle({
 
       const primitives = [
         {
-          title: 'Story Idea',
+          title: 'User Input',
           content: brainstormingDraft,
-          type: 'pitch_result',
+          primitiveType: 'pitch_result',
           order: 1,
+          ownerId: user.uid,
+        },
+        {
+          title: 'AI Analysis',
+          content: initResult.pitch || initResult.critique || 'Generation complete.',
+          primitiveType: 'analysis_block',
+          order: 2,
+          ownerId: user.uid,
         }
       ];
 
+      // 2. Commit to Database
+      console.log('[useProjectLifecycle] Committing to Firestore...');
+      // Generate ID locally so we can use it for optimistic navigation
       const projectilesRef = doc(collection(db, 'projects'));
       const docId = projectilesRef.id;
       
-      const newProject = { id: docId, ...projectData, createdAt: Date.now(), updatedAt: Date.now() } as Project;
+      const timestamp = Date.now();
+      const newProject = { 
+        id: docId, 
+        ...projectData, 
+        createdAt: timestamp, 
+        updatedAt: timestamp 
+      } as Project;
       
-      // 2. EAGER TRANSITION: Move to project immediately (non-blocking)
+      const resultId = await initProjectWithPrims({ projectId: docId, projectData, primitives }).unwrap();
+      console.log('[useProjectLifecycle] Firestore commit success:', resultId);
+      
+      // 3. EAGER TRANSITION: Move to project immediately after db write
       handleProjectSelect(docId, newProject);
       
       setIsTyping(false);
       setSyncStatus('synced');
-      
-      // 3. FIRE AND FORGET CREATION AND ANALYSIS
-      // Don't await the initial creation to avoid blocking the frontend, 
-      // but pass the promise to triggerInitialAnalysis so it can await it before updating docs.
-      const initPromise = initProjectWithPrims({ projectId: docId, projectData, primitives })
-        .unwrap()
-        .catch(e => console.error("Failed to commit project to database:", e));
-      
-      triggerInitialAnalysis(docId, brainstormingDraft, format, initPromise);
+      addToast(t('common.projectCreated', { defaultValue: 'Project ready!' }), 'success');
       
     } catch (error: any) {
       console.error('Project creation failed:', error);
@@ -232,7 +222,7 @@ export function useProjectLifecycle({
       addToast(`Failed to create project: ${errMsg}`, 'error');
       setSyncStatus('error');
       setIsTyping(false);
-      throw error;
+      throw error; // RE-THROW so the caller (HomePage) can catch it
     }
   };
 
@@ -257,18 +247,6 @@ export function useProjectLifecycle({
       const insight = currentProject.stageAnalyses?.[stage];
       const state = currentProject.stageStates?.[stage];
       const isReady = state === 'good' || state === 'excellent';
-
-      if (!isReady) {
-        setDoctorMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: `${t('common.notReadyYetFeedback', { defaultValue: "I've analyzed this stage and it's not quite ready yet." })}\n\n${insight?.evaluation || t('common.analysisInProgress', { defaultValue: "Let's review what's missing together." })}`,
-          timestamp: Date.now()
-        }]);
-        setIsDoctorOpen(true);
-        addToast(t('common.fixRequiredToast', { defaultValue: 'Please address the AI insights before proceeding.' }), 'info');
-        return;
-      }
 
       const nextStages: WorkflowStage[] = [
         'Brainstorming', 'Logline', '3-Act Structure', 'Synopsis', 'Character Bible',

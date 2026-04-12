@@ -34,6 +34,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   const [isFocused, setIsFocused] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [creationStatus, setCreationStatus] = useState<'idle' | 'analyzing' | 'initializing'>('idle');
+  const [creationError, setCreationError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,11 +43,18 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
     if (storyIdea.trim() && !isCreating) {
       setIsCreating(true);
       setCreationStatus('analyzing');
+      setCreationError(null);
       try {
         await onProjectCreate(storyIdea, selectedFormat === 'Auto' ? undefined : selectedFormat);
         setStoryIdea('');
-      } catch (error) {
+      } catch (error: any) {
         console.error('Creation failed:', error);
+        // Extract a clean message if it's a JSON string from our Firestore error handler
+        let msg = error?.message || String(error);
+        if (msg.startsWith('{')) {
+          try { msg = JSON.parse(msg).error; } catch {}
+        }
+        setCreationError(msg || 'An unexpected error occurred during project creation.');
       } finally {
         setIsCreating(false);
         setCreationStatus('idle');
@@ -88,22 +96,27 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-        className="mt-20 mb-12 flex flex-col items-center gap-6 z-10"
+        className="mt-24 mb-16 flex flex-col items-center gap-8 z-10 w-full"
       >
-        <div className="relative group">
-          <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-150 pointer-events-none" />
-          <img 
-            src="/logo.png" 
-            alt="ScénarIA" 
-            className="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] relative z-10" 
-          />
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-white/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-150 pointer-events-none" />
+            <img 
+              src="/logo.png" 
+              alt="ScénarIA" 
+              className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] relative z-10" 
+            />
+          </div>
+          <div className="flex flex-col items-center md:items-start">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-[0.02em] opacity-95 leading-none [font-family:'Poppins',sans-serif]">
+              Scenar<span className="text-[#D4AF37]">ia</span>
+            </h1>
+          </div>
         </div>
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tighter italic lowercase opacity-90 leading-none">
-            scénar<span className="opacity-40">ia</span>
-          </h1>
-          <p className="text-[10px] uppercase tracking-[0.4em] text-white/30 font-bold">
-            Professional Screenwriting Studio
+
+        <div className="text-center max-w-2xl px-4">
+          <p className="text-sm md:text-base text-white/50 leading-relaxed font-light tracking-wide italic">
+            {t('common.helperText')}
           </p>
         </div>
       </motion.div>
@@ -140,8 +153,8 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className={cn(
-            "w-full bg-[#111111]/80 backdrop-blur-3xl rounded-[40px] transition-all duration-700 overflow-hidden border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)]",
-            isFocused ? "ring-2 ring-white/20 border-white/20 -translate-y-2" : ""
+            "w-full bg-white/[0.03] backdrop-blur-2xl rounded-[32px] transition-all duration-500 overflow-hidden border border-white/[0.05]",
+            isFocused ? "border-white/10 bg-white/[0.04]" : ""
           )}
         >
           <div className="p-8 md:p-12 space-y-6">
@@ -212,6 +225,28 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           </div>
         </motion.div>
 
+        {/* Error Display */}
+        <AnimatePresence>
+          {creationError && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="px-6 py-4 bg-red-500/10 border border-red-500/20 backdrop-blur-xl rounded-2xl flex items-center gap-3 text-red-400 text-sm"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <p className="flex-1 font-medium">{creationError}</p>
+              <button 
+                onClick={() => setCreationError(null)}
+                className="text-red-400/50 hover:text-red-400 transition-colors"
+                title="Dismiss"
+              >
+                <Plus className="w-4 h-4 rotate-45" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Recent Projects Section */}
         <AnimatePresence>
           {projects.length > 0 && (
@@ -221,86 +256,143 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               transition={{ delay: 0.5 }}
               className="w-full pt-16"
             >
-              <div className="flex items-center justify-between mb-10 px-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-white opacity-40" />
-                  <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-black">{t('common.recentMasterpieces')}</h2>
+              <div className="flex items-center justify-between mb-8 px-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-1 rounded-full bg-white/20" />
+                  <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
                 </div>
-                <button className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-black hover:text-white transition-all">
-                  {t('common.viewAll')}
-                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.slice(0, 6).map((project, idx) => (
+              <div className="flex flex-col gap-3 w-full px-4 overflow-y-visible">
+                {projects.slice(0, 10).map((project, idx) => (
                   <motion.div
                     key={project.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.6 + (idx * 0.1) }}
-                    className="group relative bg-[#111] rounded-[32px] border border-white/5 hover:border-white/20 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.5)] flex flex-col h-full min-h-[220px]"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ y: -4 }}
+                    transition={{ 
+                      delay: 0.5 + (idx * 0.05),
+                      duration: 0.4,
+                      ease: [0.23, 1, 0.32, 1]
+                    }}
+                    className="group relative"
                   >
+                    {/* Background Glow Effect */}
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-white/0 via-white/[0.05] to-white/0 rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur" />
+                    
                     <button
                       onClick={() => onProjectSelect(project.id)}
-                      className="flex-1 p-8 text-left flex flex-col"
+                      className="relative w-full py-10 px-12 text-left flex items-center gap-12 glass rounded-[32px] border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden"
                     >
-                      <div className="flex items-center justify-between mb-8">
-                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
-                          <Clapperboard className="w-5 h-5" />
+                      {/* Decorative Background Element */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+                      {/* Left: Premium Icon Container */}
+                      <div className="flex-shrink-0 relative">
+                        <div className="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                        <div className="w-24 h-24 rounded-[28px] bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 flex items-center justify-center group-hover:from-white group-hover:to-white transition-all duration-700 shadow-2xl relative z-10">
+                          <Clapperboard className="w-10 h-10 group-hover:text-black transition-colors duration-500" />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/5 text-white/40 group-hover:text-white transition-colors">
-                          {project.metadata?.format || 'Auto'}
-                        </span>
                       </div>
 
-                      <div className="space-y-3 flex-1">
-                        <h3 className="text-xl font-bold tracking-tight text-white group-hover:tracking-normal transition-all duration-500">
-                          {project.metadata?.title || t('common.untitled')}
-                        </h3>
-                        <p className="text-xs text-white/30 line-clamp-2 leading-relaxed italic group-hover:text-white/60 transition-colors">
-                          {project.metadata?.logline || t('common.loglineDrafting')}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4 mt-8 pt-6 border-t border-white/5 opacity-40 group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3 h-3" />
-                          <span className="text-[8px] font-bold uppercase tracking-widest">
-                            {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'New'}
-                          </span>
-                        </div>
-                        {project.metadata?.genre && (
-                          <div className="flex items-center gap-1.5">
-                            <Tag className="w-3 h-3" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">{project.metadata.genre}</span>
+                      {/* Center: Main Information */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex items-center justify-between gap-8 mb-4">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-2xl md:text-3xl font-serif font-bold tracking-tight text-white/95 truncate group-hover:text-white transition-colors duration-300">
+                              {project.metadata?.title || t('common.untitled')}
+                            </h3>
+                            {project.metadata?.logline && (
+                              <p className="text-sm md:text-base text-white/40 line-clamp-2 italic font-light mt-2 group-hover:text-white/60 transition-colors duration-300 max-w-2xl leading-relaxed">
+                                {project.metadata.logline}
+                              </p>
+                            )}
                           </div>
-                        )}
+                          
+                          {/* Date display */}
+                          <div className="hidden md:flex flex-col items-end gap-1 flex-shrink-0 opacity-20 group-hover:opacity-50 transition-opacity duration-500">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('common.lastEdited', { defaultValue: 'Last Edited' })}</span>
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span className="text-xs font-medium">
+                                {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'NEW'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Metadata Tags Row */}
+                        <div className="flex flex-wrap items-center gap-4">
+                          <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                            <Film className="w-3.5 h-3.5 opacity-50" />
+                            <span>{project.metadata?.format || 'Auto'}</span>
+                          </div>
+                          
+                          {project.metadata?.genre && (
+                            <>
+                              <div className="w-1 h-1 rounded-full bg-white/10" />
+                              <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                                <Tag className="w-3.5 h-3.5 opacity-50" />
+                                <span>{project.metadata.genre}</span>
+                              </div>
+                            </>
+                          )}
+
+                          {project.metadata?.languages?.[0] && (
+                            <>
+                              <div className="w-1 h-1 rounded-full bg-white/10" />
+                              <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                                <Globe className="w-3.5 h-3.5 opacity-50" />
+                                <span>{project.metadata.languages[0]}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Interaction Indicator */}
+                      <div className="flex-shrink-0 ml-4">
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center border border-white/5 group-hover:border-white/20 group-hover:bg-white/5 transition-all duration-500">
+                          <ChevronRight className="w-6 h-6 text-white/10 group-hover:text-white/60 group-hover:translate-x-1 transition-all duration-500" />
+                        </div>
                       </div>
                     </button>
 
+                    {/* Quick Actions Overlay (Delete) */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onProjectDelete(project.id);
                       }}
-                      className="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center bg-red-500/0 hover:bg-red-500 text-white/0 hover:text-white transition-all duration-300"
+                      className="absolute top-8 right-8 w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-red-500/10 text-white/0 hover:text-red-500 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
                       title={t('common.delete')}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </motion.div>
                 ))}
 
-                {/* Create New Bento Card */}
-                {projects.length < 6 && (
-                  <button 
-                     onClick={() => textareaRef.current?.focus()}
-                     className="group relative bg-white/5 rounded-[32px] border border-dashed border-white/10 hover:border-white/30 transition-all duration-500 flex flex-col items-center justify-center min-h-[220px]"
-                  >
-                    <Plus className="w-8 h-8 text-white/20 group-hover:text-white group-hover:scale-125 transition-all duration-500" />
-                    <span className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 group-hover:text-white transition-all">Start New Story</span>
-                  </button>
-                )}
+                {/* 'New' Card Redesign */}
+                <motion.button 
+                  whileHover={{ y: -4 }}
+                  onClick={() => {
+                    textareaRef.current?.focus();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="group relative w-full py-10 px-12 rounded-[32px] border-2 border-dashed border-white/5 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all duration-700 flex items-center gap-12 text-left"
+                >
+                  <div className="flex-shrink-0 w-24 h-24 rounded-[28px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700">
+                    <Plus className="w-10 h-10 text-white/20 group-hover:text-black transition-colors" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/20 group-hover:text-white/80 transition-all duration-500">
+                      {t('common.startNewProject', { defaultValue: 'Start New Project' })}
+                    </h3>
+                    <p className="text-sm text-white/10 group-hover:text-white/30 transition-all duration-500 mt-2 font-light tracking-widest uppercase">
+                      Transform your vision into reality
+                    </p>
+                  </div>
+                </motion.button>
               </div>
             </motion.div>
           )}

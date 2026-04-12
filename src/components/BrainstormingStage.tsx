@@ -41,27 +41,27 @@ export function BrainstormingStage({
       validateLabel={t('stages.Brainstorming.validateLabel', { defaultValue: 'Passer à l\'étape suivante' })}
     >
       <div className="grid grid-cols-1 gap-8">
-        {/* Primitive A: The Critique (analysis_block) */}
+        {/* Primitive A: User Input (pitch_result) */}
         <Primitive
-          title="Primitive A: The Critique"
+          title="Primitive A: User Input"
+          content={story}
+          type="pitch_result"
+          onContentChange={onStoryChange}
+          onAiRefine={() => {}} // Refine is handled by global input
+          isGenerating={isGenerating}
+          placeholder="Your story idea..."
+          mode="stacked"
+        />
+
+        {/* Primitive B: AI Analysis (analysis_block) */}
+        <Primitive
+          title="Primitive B: AI Analysis"
           content={analysis || "AI is analyzing your story..."}
           type="analysis_block"
           onContentChange={() => {}} // Read-only
           onAiRefine={() => {}} // No refine for analysis
           isGenerating={isGenerating}
           placeholder="AI is analyzing your story..."
-          mode="stacked"
-        />
-
-        {/* Primitive B: The Final Pitch (pitch_result) */}
-        <Primitive
-          title="Primitive B: The Final Pitch"
-          content={story}
-          type="pitch_result"
-          onContentChange={onStoryChange}
-          onAiRefine={() => {}} // Refine is handled by global input in App.tsx
-          isGenerating={isGenerating}
-          placeholder="The high-impact pitch will appear here..."
           mode="stacked"
         />
       </div>

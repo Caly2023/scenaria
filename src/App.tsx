@@ -570,6 +570,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-8">
         <div className="glass p-12 rounded-[40px] text-center space-y-8 max-w-md w-full">
+          <img src="/logo.png" alt="ScénarIA" className="w-24 h-24 mx-auto mb-4" />
           <h1 className="text-4xl font-bold tracking-tighter italic">ScénarIA</h1>
           <p className="text-white/40 text-sm">{t('common.signIn')}</p>
           <button 
@@ -594,12 +595,17 @@ export default function App() {
             <div className="absolute inset-0 blur-xl bg-white/20 rounded-full animate-pulse" />
           </motion.div>
           <div className="space-y-2">
+            <img src="/logo.png" alt="ScénarIA" className="w-16 h-16 mx-auto mb-2 opacity-50" />
             <h2 className="text-2xl font-bold text-white tracking-tighter italic">ScénarIA</h2>
             <p className="text-secondary text-sm font-medium tracking-tight animate-pulse">Hydrating project snapshot...</p>
           </div>
         </div>
       </div>
     );
+  }
+
+  if (isProjectLoading) {
+    return <LoadingPage />;
   }
 
   if (!currentProject) {

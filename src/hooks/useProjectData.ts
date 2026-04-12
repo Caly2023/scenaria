@@ -38,6 +38,7 @@ interface ProjectDataState {
 export function useProjectData(user: User | null): ProjectDataState {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [activeStage, setActiveStage] = useState<WorkflowStage>('Brainstorming');
+  const [optimisticProject, setOptimisticProject] = useState<Project | null>(null);
 
   useEffect(() => {
     const syncFromHash = () => {
@@ -129,6 +130,12 @@ export function useProjectData(user: User | null): ProjectDataState {
 
   const handleProjectSelect = (id: string, projectObj?: Project) => {
     setCurrentProjectId(id);
+    if (projectObj) {
+      setOptimisticProject(projectObj);
+    } else {
+      setOptimisticProject(null);
+    }
+    
     const savedStage = localStorage.getItem(`scenaria_stage_${id}`) as WorkflowStage | null;
     const stage = savedStage || 'Brainstorming';
     setActiveStage(stage);
@@ -143,11 +150,14 @@ export function useProjectData(user: User | null): ProjectDataState {
     }
   };
 
+  const returnedProject = currentProject || (optimisticProject?.id === currentProjectId ? optimisticProject : null);
+  const loading = isProjectLoading && !!currentProjectId && !returnedProject;
+
   return {
     projects,
-    currentProject,
+    currentProject: returnedProject,
     currentProjectId,
-    isProjectLoading: isProjectLoading && !!currentProjectId,
+    isProjectLoading: loading,
     isProjectNotFound,
     sequences,
     treatmentSequences,

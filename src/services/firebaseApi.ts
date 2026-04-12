@@ -2,7 +2,7 @@ import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { 
   collection, query, where, doc, getDocs, onSnapshot, 
-  updateDoc, addDoc, deleteDoc, orderBy, serverTimestamp, writeBatch 
+  updateDoc, addDoc, setDoc, deleteDoc, orderBy, serverTimestamp, writeBatch 
 } from 'firebase/firestore';
 import { Project, Sequence, Character, Location } from '../types';
 
@@ -273,33 +273,32 @@ export const firebaseApi = createApi({
      * Atomic project initialization: Project document + initial Pitch Primitives.
      * Prevents "hollow" projects.
      */
-    initializeProjectWithPrimitives: builder.mutation<string, { projectData: any; primitives: any[] }>({
-      async queryFn({ projectData, primitives }) {
+    initializeProjectWithPrimitives: builder.mutation<string, { projectId?: string; projectData: any; primitives: any[] }>({
+      async queryFn({ projectId, projectData, primitives }) {
         try {
-          const batch = writeBatch(db);
-          const projectRef = doc(collection(db, 'projects'));
+          const projectRef = projectId ? doc(db, 'projects', projectId) : doc(collection(db, 'projects'));
           
-          batch.set(projectRef, {
+          await setDoc(projectRef, {
             ...projectData,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           });
 
-          primitives.forEach((p, index) => {
+          await Promise.all(primitives.map((p) => {
             const primRef = doc(collection(db, 'projects', projectRef.id, 'pitch_primitives'));
-            batch.set(primRef, {
+            return setDoc(primRef, {
               ...p,
               projectId: projectRef.id,
               createdAt: serverTimestamp()
             });
-          });
+          }));
 
-          await batch.commit();
           return { data: projectRef.id };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
-      }
+      },
+      invalidatesTags: ['Project']
     }),
   })
 });

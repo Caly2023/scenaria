@@ -7,11 +7,12 @@ import {
   useCreateProjectMutation, 
   useDeleteProjectMutation,
   useAddSubcollectionDocMutation,
+  useUpdateSubcollectionDocMutation,
   useClearSubcollectionMutation,
   useInitializeProjectWithPrimitivesMutation
 } from '../services/firebaseApi';
 import { db } from '../lib/firebase';
-import { collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, query, where, doc } from 'firebase/firestore';
 import { agentRegistry } from '../agents/agentRegistry';
 import { stageRegistry } from '../config/stageRegistry';
 import { persistAgentOutput, buildProjectContext } from '../services/orchestratorService';
@@ -67,12 +68,64 @@ export function useProjectLifecycle({
   const [createProject] = useCreateProjectMutation();
   const [deleteProject] = useDeleteProjectMutation();
   const [addSubcol] = useAddSubcollectionDocMutation();
+  const [updateSubcol] = useUpdateSubcollectionDocMutation();
   const [clearSubcol] = useClearSubcollectionMutation();
   const [initProjectWithPrims] = useInitializeProjectWithPrimitivesMutation();
 
+  const triggerInitialAnalysis = async (projectId: string, draft: string, format?: ProjectFormat, initPromise?: Promise<any>) => {
+    try {
+      // Background AI call
+      const initResult = await geminiService.initializeProjectAgent(draft, format);
+      
+      // Ensure the initial project creation has completed before proceeding with doc updates
+      if (initPromise) {
+        await initPromise.catch(e => console.warn("Init promise error:", e));
+      }
+      
+      const newMetadata = {
+        ...initResult.metadata,
+        logline: initResult.validation.status === 'GOOD TO GO' ? initResult.metadata.logline : ''
+      };
+      await updateField({ id: projectId, field: 'metadata', content: newMetadata }).unwrap();
+      
+      const stageAnalyses = {
+        'Brainstorming': {
+          evaluation: initResult.critique,
+          issues: initResult.validation.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
+          recommendations: [],
+          updatedAt: Date.now()
+        }
+      };
+      await updateField({ id: projectId, field: 'stageAnalyses', content: stageAnalyses }).unwrap();
+      
+      const stageStates = {
+        'Brainstorming': initResult.validation.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
+      };
+      await updateField({ id: projectId, field: 'stageStates', content: stageStates }).unwrap();
 
+      // Add the Critique primitive
+      await addSubcol({ 
+        projectId, 
+        collectionName: 'pitch_primitives', 
+        data: {
+          title: 'Initial Critique',
+          content: initResult.critique,
+          type: 'analysis_block',
+          order: 0,
+        }
+      }).unwrap();
 
-  const handleRegenerate = async (stage: WorkflowStage) => {
+      // Find the pitch primitive and update its content
+      const q = query(collection(db, 'projects', projectId, 'pitch_primitives'), where('order', '==', 1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+         const docId = snap.docs[0].id;
+         await updateSubcol({ projectId, collectionName: 'pitch_primitives', docId, data: { content: initResult.pitch } }).unwrap();
+      }
+    } catch (error) {
+      console.error("Background initial analysis failed:", error);
+    }
+  };  const handleRegenerate = async (stage: WorkflowStage) => {
     if (!currentProject || isRegenerating) return;
     
     setIsRegenerating(true);
@@ -125,56 +178,54 @@ export function useProjectLifecycle({
     try {
       setIsTyping(true);
       
-      // 1. CONSOLIDATED AI CALL: Extract metadata and brainstorm in one trip
-      const initResult = await geminiService.initializeProjectAgent(brainstormingDraft, format);
-      
+      // 1. INSTANT CREATION: Only metadata and raw user input
       const projectData = {
         metadata: {
-          ...initResult.metadata,
-          logline: initResult.validation.status === 'GOOD TO GO' ? initResult.metadata.logline : ''
+          title: 'Untitled Project',
+          format: format || 'Auto',
+          genre: '',
+          tone: '',
+          logline: '',
+          languages: [],
+          targetDuration: ''
         },
-        stageAnalyses: {
-          'Brainstorming': {
-            evaluation: initResult.critique,
-            issues: initResult.validation.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
-            recommendations: [],
-            updatedAt: Date.now()
-          }
-        },
-        stageStates: {
-          'Brainstorming': initResult.validation.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
-        },
+        stageAnalyses: {},
+        stageStates: {},
         collaborators: [user.uid],
         ownerId: user.uid,
         activeStage: 'Brainstorming' as WorkflowStage,
         validatedStages: [] as WorkflowStage[],
       };
 
-      // 2. ATOMIC INITIALIZATION: One batch for project + all initial primitives
       const primitives = [
         {
-          title: 'Initial Critique',
-          content: initResult.critique,
-          type: 'analysis_block',
-          order: 0,
-        },
-        {
-          title: 'Refined Pitch',
-          content: initResult.pitch,
+          title: 'Story Idea',
+          content: brainstormingDraft,
           type: 'pitch_result',
           order: 1,
         }
       ];
 
-      const docId = await initProjectWithPrims({ projectData, primitives }).unwrap();
+      const projectilesRef = doc(collection(db, 'projects'));
+      const docId = projectilesRef.id;
       
       const newProject = { id: docId, ...projectData, createdAt: Date.now(), updatedAt: Date.now() } as Project;
       
-      // 3. EAGER TRANSITION: Move to project immediately
+      // 2. EAGER TRANSITION: Move to project immediately (non-blocking)
       handleProjectSelect(docId, newProject);
       
       setIsTyping(false);
       setSyncStatus('synced');
+      
+      // 3. FIRE AND FORGET CREATION AND ANALYSIS
+      // Don't await the initial creation to avoid blocking the frontend, 
+      // but pass the promise to triggerInitialAnalysis so it can await it before updating docs.
+      const initPromise = initProjectWithPrims({ projectId: docId, projectData, primitives })
+        .unwrap()
+        .catch(e => console.error("Failed to commit project to database:", e));
+      
+      triggerInitialAnalysis(docId, brainstormingDraft, format, initPromise);
+      
     } catch (error: any) {
       console.error('Project creation failed:', error);
       const errMsg = classifyError(error);

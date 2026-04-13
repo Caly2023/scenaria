@@ -82,7 +82,8 @@ function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed inset-0 z-[70] flex flex-col bg-background overflow-hidden"
             style={{ 
-              height: '100dvh'
+              height: '100dvh',
+              paddingTop: 'env(safe-area-inset-top)'
             }}
           >
             {/* Grab Handle for Mobile */}
@@ -421,12 +422,14 @@ function ScriptDoctorContent({
           </div>
         )}
 
-        {/* Spacer */}
-        <div className="h-[30vh] w-full" />
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 bg-background flex-shrink-0 border-t border-white/5">
+      <form 
+        onSubmit={handleSubmit} 
+        className="p-4 bg-background flex-shrink-0 border-t border-white/5"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+      >
         <div className="relative">
           <input 
             type="text" 

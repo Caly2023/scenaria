@@ -25,6 +25,11 @@
     66% { transform: translate(-10%, -5%) scale(0.9); }
     100% { transform: translate(0, 0) scale(1); }
   }
+
+  @keyframes orbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 }
 
 @layer base {

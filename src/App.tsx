@@ -23,6 +23,7 @@ import { Check, Wand2, Send, Image as ImageIcon, ChevronRight, Bot } from 'lucid
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
 import { WorkflowStage } from './types';
+import { OrbitingLoader } from './components/OrbitingLoader';
 
 // ── Mobile detection hook ─────────────────────────────────────────────────────
 function useIsMobile() {
@@ -59,7 +60,11 @@ const LocationBible      = React.lazy(() => import('./components/LocationBible')
 const MainCanvas         = React.lazy(() => import('./components/MainCanvas').then(m => ({ default: m.MainCanvas })));
 const ScriptDoctor       = React.lazy(() => import('./components/ScriptDoctor').then(m => ({ default: m.ScriptDoctor })));
 
-const StageSkeleton = () => <div className="w-full"><CardSkeleton count={3} /></div>;
+const StageSkeleton = () => (
+  <div className="w-full h-[60vh] flex items-center justify-center">
+    <OrbitingLoader size="small" showText={false} />
+  </div>
+);
 
 interface Toast {
   id: string;
@@ -506,19 +511,12 @@ export default function App() {
   if (isProjectLoading || (currentProjectId && !currentProject)) {
     return (
       <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-white/[0.02] rounded-full blur-[120px]" />
-        <div className="relative flex flex-col items-center space-y-8 text-center max-w-sm">
-          <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} className="w-16 h-16 relative">
-            <div className="absolute inset-0 border-4 border-white/5 rounded-full" />
-            <div className="absolute inset-0 border-4 border-t-white rounded-full animate-spin" />
-            <div className="absolute inset-0 blur-xl bg-white/20 rounded-full animate-pulse" />
-          </motion.div>
-          <div className="space-y-2">
-            <img src="/logo.png" alt="ScénarIA" className="w-16 h-16 mx-auto mb-2 opacity-50" />
-            <h2 className="text-2xl font-bold text-white tracking-tighter italic">ScénarIA</h2>
-            <p className="text-secondary text-sm font-medium tracking-tight animate-pulse">Hydrating project snapshot...</p>
-          </div>
-        </div>
+        <div className="absolute top-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#D4AF37]/[0.02] rounded-full blur-[120px]" />
+        <OrbitingLoader 
+          size="large"
+          title="ScénarIA"
+          description={t('common.hydratingProject', { defaultValue: 'Hydrating project snapshot...' })}
+        />
       </div>
     );
   }
@@ -735,7 +733,12 @@ export default function App() {
       {!isMobile && (
         <div className={cn("h-full border-l border-white/5 bg-[#212121] z-40 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden relative", isDoctorOpen ? "w-[30%] min-w-[350px] max-w-[450px]" : "w-0 min-w-0 border-none")}>
           <div className="absolute right-0 top-0 w-[30vw] min-w-[350px] max-w-[450px] h-full">
-            <Suspense fallback={<div className="h-full flex items-center justify-center text-white/20">Loading Script Doctor...</div>}>
+            <Suspense fallback={
+              <div className="h-full flex flex-col items-center justify-center p-12 space-y-4">
+                <OrbitingLoader size="small" showText={false} />
+                <span className="text-white/20 text-xs font-bold uppercase tracking-widest">Initialisation du Docteur...</span>
+              </div>
+            }>
               <ScriptDoctor 
                 isOpen={isDoctorOpen} onClose={handleCloseDoctor} messages={doctorMessages} onSendMessage={handleDoctorMessage}
                 isTyping={isDoctorTyping} isHeavyThinking={isHeavyThinking} aiStatus={aiStatus} activeStage={activeStage} activeTool={activeTool}

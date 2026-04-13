@@ -82,7 +82,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-x-hidden overflow-y-auto pb-20 no-scrollbar">
+    <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-x-hidden overflow-y-auto pb-20 pb-safe-nav no-scrollbar">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden h-screen">
@@ -96,7 +96,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-        className="mt-24 mb-16 flex flex-col items-center gap-8 z-10 w-full"
+        className="mt-12 md:mt-24 mb-10 md:mb-16 flex flex-col items-center gap-8 z-10 w-full"
       >
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
           <div className="relative group">
@@ -104,11 +104,11 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
             <img 
               src="/logo.png" 
               alt="ScénarIA" 
-              className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] relative z-10" 
+              className="w-14 h-14 md:w-20 md:h-20 object-contain drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] relative z-10" 
             />
           </div>
           <div className="flex flex-col items-center md:items-start">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-[0.02em] opacity-95 leading-none [font-family:'Poppins',sans-serif]">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-[0.02em] opacity-95 leading-none [font-family:'Poppins',sans-serif]">
               Scenar<span className="text-[#D4AF37]">ia</span>
             </h1>
           </div>
@@ -157,7 +157,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
             isFocused ? "border-white/10 bg-white/[0.04]" : ""
           )}
         >
-          <div className="p-8 md:p-12 space-y-6">
+          <div className="p-6 md:p-12 space-y-6">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -170,12 +170,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               onBlur={() => setIsFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder={t('common.whatsTheStory')}
-              className="w-full bg-transparent border-none text-xl md:text-3xl font-light leading-relaxed focus:outline-none placeholder:text-white/10 px-2 min-h-[120px] md:min-h-[160px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
+              className="w-full bg-transparent border-none text-lg md:text-2xl md:text-3xl font-light leading-relaxed focus:outline-none placeholder:text-white/10 px-2 min-h-[100px] md:min-h-[160px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
             />
           </div>
 
           {/* Integrated Toolbar Footer */}
-          <div className="px-8 pb-8 pt-4 flex items-center justify-between">
+          <div className="px-6 md:px-12 pb-6 md:pb-12 pt-4 flex items-center justify-between">
             <div className="flex items-center gap-2 p-1 bg-white/5 rounded-full border border-white/5">
               <input 
                 type="file" 
@@ -282,7 +282,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     
                     <button
                       onClick={() => onProjectSelect(project.id)}
-                      className="relative w-full py-10 px-12 text-left flex items-center gap-12 glass rounded-[32px] border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden"
+                      className="relative w-full py-6 px-6 md:py-10 md:px-12 text-left flex items-center gap-6 md:gap-12 glass rounded-[32px] border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden"
                     >
                       {/* Decorative Background Element */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -290,8 +290,8 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                       {/* Left: Premium Icon Container */}
                       <div className="flex-shrink-0 relative">
                         <div className="absolute inset-0 bg-white/5 blur-2xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                        <div className="w-24 h-24 rounded-[28px] bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 flex items-center justify-center group-hover:from-white group-hover:to-white transition-all duration-700 shadow-2xl relative z-10">
-                          <Clapperboard className="w-10 h-10 group-hover:text-black transition-colors duration-500" />
+                        <div className="w-14 h-14 md:w-24 md:h-24 rounded-[20px] md:rounded-[28px] bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-white/10 flex items-center justify-center group-hover:from-white group-hover:to-white transition-all duration-700 shadow-2xl relative z-10">
+                          <Clapperboard className="w-6 h-6 md:w-10 md:h-10 group-hover:text-black transition-colors duration-500" />
                         </div>
                       </div>
 
@@ -299,7 +299,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="flex items-center justify-between gap-8 mb-4">
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-2xl md:text-3xl font-serif font-bold tracking-tight text-white/95 truncate group-hover:text-white transition-colors duration-300">
+                            <h3 className="text-xl md:text-2xl md:text-3xl font-serif font-bold tracking-tight text-white/95 truncate group-hover:text-white transition-colors duration-300">
                               {project.metadata?.title || t('common.untitled')}
                             </h3>
                             {project.metadata?.logline && (
@@ -323,7 +323,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
 
                         {/* Metadata Tags Row */}
                         <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                          <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
                             <Film className="w-3.5 h-3.5 opacity-50" />
                             <span>{project.metadata?.format || 'Auto'}</span>
                           </div>
@@ -331,7 +331,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.genre && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
                                 <Tag className="w-3.5 h-3.5 opacity-50" />
                                 <span>{project.metadata.genre}</span>
                               </div>
@@ -341,7 +341,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.languages?.[0] && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
                                 <Globe className="w-3.5 h-3.5 opacity-50" />
                                 <span>{project.metadata.languages[0]}</span>
                               </div>
@@ -364,7 +364,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                         e.stopPropagation();
                         onProjectDelete(project.id);
                       }}
-                      className="absolute top-8 right-8 w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-red-500/10 text-white/0 hover:text-red-500 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
+                      className="absolute top-4 right-4 md:top-8 md:right-8 w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-red-500/10 text-white/0 hover:text-red-500 transition-all duration-300 opacity-100 md:opacity-0 group-hover:opacity-100 z-20"
                       title={t('common.delete')}
                     >
                       <Trash2 className="w-5 h-5" />
@@ -379,10 +379,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     textareaRef.current?.focus();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="group relative w-full py-10 px-12 rounded-[32px] border-2 border-dashed border-white/5 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all duration-700 flex items-center gap-12 text-left"
+                  className="group relative w-full py-8 px-6 md:py-10 md:px-12 rounded-[32px] border-2 border-dashed border-white/5 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all duration-700 flex items-center gap-6 md:gap-12 text-left"
                 >
-                  <div className="flex-shrink-0 w-24 h-24 rounded-[28px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700">
-                    <Plus className="w-10 h-10 text-white/20 group-hover:text-black transition-colors" />
+                  <div className="flex-shrink-0 w-14 h-14 md:w-24 md:h-24 rounded-[20px] md:rounded-[28px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700">
+                    <Plus className="w-6 h-6 md:w-10 md:h-10 text-white/20 group-hover:text-black transition-colors" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/20 group-hover:text-white/80 transition-all duration-500">

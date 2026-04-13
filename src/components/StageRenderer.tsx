@@ -190,7 +190,7 @@ export function StageRenderer({
           content={loglinePrimitives[0]?.content || ""}
           onContentChange={onLoglineChange}
           onValidate={onValidateLogline}
-          onRefine={(f: string) => onRefineLogline(f)}
+          onRefine={onRefineLogline}
           isGenerating={isTyping}
           insight={currentProject.stageAnalyses?.["Logline"]}
         />

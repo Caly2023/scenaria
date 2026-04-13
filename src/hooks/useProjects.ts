@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { User } from 'firebase/auth';
-import { Project, WorkflowStage, ProjectFormat } from '../types';
+import { Project, WorkflowStage } from '../types';
 import { useProjectData } from './useProjectData';
 import { useProjectLifecycle } from './useProjectLifecycle';
 import { useProjectSync } from './useProjectSync';
@@ -155,6 +155,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     setIsTyping,
     isRegenerating,
     syncStatus,
+    setSyncStatus,
     handleProjectSelect,
     handleProjectExit,
     handleProjectCreate,

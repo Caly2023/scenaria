@@ -1,16 +1,9 @@
-import { useState, useCallback, useMemo, Suspense } from "react";
-import { useTranslation } from "react-i18next";
-import { useIdleTimer } from "react-idle-timer";
-import { db } from "./lib/firebase";
+import { useState, useCallback } from "react";
 import { useAppAuth as useAuth } from "./hooks/useAppAuth";
 import { useProjects } from "./hooks/useProjects";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { useProjectLifecycle } from "./hooks/useProjectLifecycle";
 import { useScriptDoctor } from "./hooks/useScriptDoctor";
 import { useAppCallbacks } from "./hooks/useAppCallbacks";
-import { contextAssembler } from "./services/contextAssembler";
-import { aiQuotaState } from "./services/serviceState";
-import { consumeQuotaNotice } from "./services/geminiService";
 import { useAutoHydration } from "./hooks/useAutoHydration";
 import { WorkflowStage } from "./types";
 import { FocusMode } from "./components/FocusMode";
@@ -33,10 +26,11 @@ export default function App() {
 
   const { user, isAuthReady, isOffline, connectionError } = useAuth();
   const { 
-    projects, currentProject, currentProjectId, isProjectLoading, isProjectNotFound, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
-    isTyping, setIsTyping, isRegenerating, syncStatus, setSyncStatus, handleRegenerate, handleStageValidate, activeStage, handleStageRefine, handleStageAnalyze,
+    projects, currentProject, isProjectLoading, isProjectNotFound, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
+    isTyping, syncStatus, handleRegenerate, handleStageValidate, activeStage, handleStageRefine, handleStageAnalyze,
     pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
-    isDeleting, setIsDeleting, projectToDelete, setProjectToDelete
+    isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
+    handleAiMagic
   } = useProjects(user, addToast);
 
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
@@ -45,17 +39,26 @@ export default function App() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(null);
   const [accessibilitySettings, setAccessibilitySettings] = useState({ fontSize: "medium", contrast: "normal", motion: "standard" });
-  const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
-  const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<string | null>(null);
 
-  const getProjectContext = useCallback(async () => {
-    if (!currentProject) return "";
-    return await contextAssembler.assembleProjectContext(currentProject, {
-      pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes
-    });
-  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
+  // Sync Status Effect (Log changes if needed)
+  // useMemo and other logic around setSyncStatus could go here if specialized handling is needed
+  
 
-  const hydrationState = useAutoHydration(currentProject, getProjectContext);
+  const hydrationState = useAutoHydration({
+    activeStage,
+    currentProject,
+    pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
+    characters,
+    locations,
+    sequences,
+    treatmentSequences,
+    scriptScenes,
+    addToast,
+    onStageAnalyze: handleStageAnalyze
+  });
 
 
   const {
@@ -85,26 +88,26 @@ export default function App() {
     currentProject, addToast, handleSubcollectionUpdate, handleContentUpdate, handleStageValidate, pitchPrimitives, loglinePrimitives
   });
 
-  const onRefineLogline = useCallback((f?: string) => handleStageRefine("Logline", f), [handleStageRefine]);
+  const onRefineLogline = useCallback((f?: string) => handleStageRefine("Logline", f || "Refine Logline"), [handleStageRefine]);
   const onContentChange3Act = useCallback((c: string) => {
     const id = structurePrimitives[0]?.id;
     if (id && structurePrimitives.length === 1) handleSubcollectionUpdate("structure_primitives", id, c);
   }, [structurePrimitives, handleSubcollectionUpdate]);
-  const onRefine3Act = useCallback((f?: string, id?: string) => handleStageRefine("3-Act Structure", f, id), [handleStageRefine]);
+  const onRefine3Act = useCallback((f?: string, id?: string) => handleStageRefine("3-Act Structure", f || "Refine Structure", id), [handleStageRefine]);
   const onRegenerate3Act = useCallback(() => handleRegenerate("3-Act Structure"), [handleRegenerate]);
   const onContentChangeSynopsis = useCallback((c: string) => {
     const id = synopsisPrimitives[0]?.id;
     if (id) handleSubcollectionUpdate("synopsis_primitives", id, c);
   }, [synopsisPrimitives, handleSubcollectionUpdate]);
-  const onRefineSynopsis = useCallback((f?: string, id?: string) => handleStageRefine("Synopsis", f, id), [handleStageRefine]);
+  const onRefineSynopsis = useCallback((f?: string, id?: string) => handleStageRefine("Synopsis", f || "Refine Synopsis", id), [handleStageRefine]);
   const onRegenerateSynopsis = useCallback(() => handleRegenerate("Synopsis"), [handleRegenerate]);
   const onContentChangeTreatment = useCallback((c: string) => handleContentUpdate("treatmentDraft", c), [handleContentUpdate]);
   const onItemChangeTreatment = useCallback((id: string, content: string) => handleSubcollectionUpdate("treatment_sequences", id, content), [handleSubcollectionUpdate]);
-  const onRefineTreatment = useCallback((f?: string, id?: string) => handleStageRefine("Treatment", f, id), [handleStageRefine]);
+  const onRefineTreatment = useCallback((f?: string, id?: string) => handleStageRefine("Treatment", f || "Refine Treatment", id), [handleStageRefine]);
   const onRegenerateTreatment = useCallback(() => handleRegenerate("Treatment"), [handleRegenerate]);
   const onContentChangeScript = useCallback((c: string) => handleContentUpdate("scriptDraft", c), [handleContentUpdate]);
   const onItemChangeScript = useCallback((id: string, content: string) => handleSubcollectionUpdate("script_scenes", id, content), [handleSubcollectionUpdate]);
-  const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f, id), [handleStageRefine]);
+  const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f || "Refine Script", id), [handleStageRefine]);
   const onRegenerateScript = useCallback(() => handleRegenerate("Script"), [handleRegenerate]);
 
   if (!isAuthReady) return <LoadingPage />;
@@ -129,7 +132,9 @@ export default function App() {
       activeStage={activeStage}
       currentProject={currentProject}
       isTyping={isTyping}
+      hydrationState={hydrationState}
       refiningBlockId={refiningBlockId}
+      lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
       pitchPrimitives={pitchPrimitives}
       loglinePrimitives={loglinePrimitives}
       structurePrimitives={structurePrimitives}
@@ -168,6 +173,9 @@ export default function App() {
       handleSequenceUpdate={NOOP}
       handleSequenceAdd={NOOP}
       handleFocusMode={handleFocusMode}
+      handleAiMagic={handleAiMagic}
+      handleToggleDoctor={handleToggleDoctor}
+      handleSubcollectionUpdate={handleSubcollectionUpdate}
       onValidateBrainstorming={onValidateBrainstorming}
       onValidateLogline={onValidateLogline}
       onValidate3Act={onValidate3Act}
@@ -178,6 +186,7 @@ export default function App() {
       onValidateStepOutline={onValidateStepOutline}
       onValidateScript={onValidateScript}
       onValidateStoryboard={onValidateStoryboard}
+      CanvasErrorBoundary={({ children }: any) => <>{children}</>}
     />
   );
 
@@ -231,10 +240,13 @@ export default function App() {
       
       {isFocusMode && focusedSequenceId && (
         <FocusMode
-          content={sequences.find(s => s.id === focusedSequenceId)?.content || ""}
+          isOpen={isFocusMode}
           onClose={handleCloseFocus}
-          onSave={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, c)}
+          onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, c)}
+          onAiMagic={() => handleAiMagic(focusedSequenceId)}
+          onTts={NOOP}
           title={sequences.find(s => s.id === focusedSequenceId)?.title || "Sequence"}
+          content={sequences.find(s => s.id === focusedSequenceId)?.content || ""}
         />
       )}
     </>

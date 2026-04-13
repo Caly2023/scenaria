@@ -55,55 +55,72 @@ export function Header({
   };
 
   return (
-    <header className={cn(
-      "bg-[#0f0f0f] flex items-center justify-between px-4 md:px-6 z-50 border-b border-white/5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex-shrink-0 w-full",
-      isCompact ? "h-12 md:h-14" : "h-12 md:h-16"
-    )}>
+    <header 
+      className={cn(
+        "bg-[#0f0f0f] z-50 border-b border-white/5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex-shrink-0 w-full overflow-hidden",
+        isCompact ? "h-auto" : "h-auto"
+      )}
+      style={{ 
+        paddingTop: 'max(60px, env(safe-area-inset-top))' 
+      }}
+    >
+      <div className={cn(
+        "flex items-center justify-between px-4 md:px-6 w-full relative",
+        isCompact ? "h-12 md:h-14" : "h-12 md:h-16"
+      )}>
+
       {/* Left — Home + Project name */}
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <button 
           onClick={onProjectSwitch}
-          aria-label="Switch project"
-          className="flex items-center gap-2 md:gap-3 group px-2 md:px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all min-w-0 border-none"
+          aria-label="Home"
+          className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-all flex-shrink-0 border-none group"
         >
-          <Home className="w-4 h-4 text-white/40 group-hover:text-white flex-shrink-0" />
+          <Home className="w-5 h-5 text-white/40 group-hover:text-white transition-colors" />
+        </button>
+
+        {/* Desktop-only project info & tools */}
+        <div className="hidden md:flex items-center gap-4 min-w-0">
           <div className="flex flex-col items-start leading-none min-w-0">
-            <span className="hidden md:block text-[9px] uppercase tracking-widest text-secondary font-bold mb-0.5">
+            <span className="text-[9px] uppercase tracking-widest text-secondary font-bold mb-0.5">
               {t('common.project')}
             </span>
             <div className="flex items-center gap-1 min-w-0">
-              <span className="text-sm font-medium tracking-tight text-white truncate max-w-[120px] md:max-w-[200px]">
+              <span className="text-sm font-medium tracking-tight text-white truncate max-w-[200px]">
                 {projectName}
               </span>
               <ChevronDown className="w-3 h-3 text-white/30 flex-shrink-0" />
             </div>
           </div>
-        </button>
 
-        {/* Info — always visible */}
-        <button
-          onClick={onInfoClick}
-          aria-label="Project information"
-          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-all flex-shrink-0 border-none"
-        >
-          <Info className="w-4 h-4" />
-        </button>
+          <div className="h-6 w-[1px] bg-white/10 mx-1" />
 
-        {/* Doctor toggle — visible on mobile too (compact version) */}
-        <button
-          onClick={onDoctorToggle}
-          aria-label="Toggle Script Doctor"
-          aria-pressed={isDoctorOpen}
-          className={cn(
-            "flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all border flex-shrink-0",
-            isDoctorOpen 
-              ? "bg-white text-black border-white" 
-              : "bg-white/5 text-white/40 border-white/10 hover:text-white hover:bg-white/10"
-          )}
-        >
-          <Bot className="w-4 h-4" />
-          <span className="hidden sm:block text-[10px] font-bold uppercase tracking-widest">Doctor</span>
-        </button>
+          {/* Info */}
+          <button
+            onClick={onInfoClick}
+            aria-label="Project information"
+            className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-all flex-shrink-0 border-none"
+          >
+            <Info className="w-4 h-4" />
+          </button>
+
+          {/* Doctor toggle */}
+          <button
+            onClick={onDoctorToggle}
+            aria-label="Toggle Script Doctor"
+            aria-pressed={isDoctorOpen}
+            className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all border flex-shrink-0",
+              isDoctorOpen 
+                ? "bg-white text-black border-white" 
+                : "bg-white/5 text-white/40 border-white/10 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <Bot className="w-4 h-4" />
+            <span className="hidden sm:block text-[10px] font-bold uppercase tracking-widest">Doctor</span>
+          </button>
+        </div>
+
 
         {/* Search — desktop only */}
         <div className={cn("hidden md:flex transition-all duration-300 items-center overflow-hidden", isCompact ? "w-0 opacity-0" : "w-auto opacity-100")}>
@@ -119,6 +136,14 @@ export function Header({
           </div>
         </div>
       </div>
+
+      {/* Mobile-only Centered Project Name */}
+      <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[50%]">
+        <span className="text-sm font-bold tracking-tight text-white truncate">
+          {projectName}
+        </span>
+      </div>
+
 
       {/* Right — Sync + Accessibility (+ collaborators on desktop) */}
       <div className="flex items-center gap-2 md:gap-6 flex-shrink-0">
@@ -151,6 +176,7 @@ export function Header({
           </button>
         </div>
 
+
         {/* Sync status */}
         <div className="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg bg-white/5">
           <RefreshCw className={cn(
@@ -163,8 +189,8 @@ export function Header({
           </span>
         </div>
 
-        {/* Accessibility Toggle */}
-        <div className="relative">
+        {/* Accessibility Toggle — desktop only */}
+        <div className="relative hidden md:block">
           <button 
             onClick={() => setIsAccessOpen(!isAccessOpen)}
             aria-label="Accessibility Settings"
@@ -175,6 +201,7 @@ export function Header({
           >
             <Accessibility className="w-4 h-4" />
           </button>
+
           
           <AnimatePresence>
             {isAccessOpen && (
@@ -228,6 +255,8 @@ export function Header({
           </AnimatePresence>
         </div>
       </div>
+      </div>
     </header>
+
   );
 }

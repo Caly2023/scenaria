@@ -600,14 +600,7 @@ export default function App() {
         <div className="flex-1 flex flex-col relative overflow-hidden items-center justify-center w-full">
           <div className={cn("w-full flex-1 overflow-y-auto no-scrollbar scroll-smooth relative", isMobile && "pb-safe-nav")}>
             <div className={cn("w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative", isMobile ? "px-4 py-6" : "px-6 py-12 md:px-12")}>
-              {/* Breadcrumb Navigation */}
-              <div className="flex items-center gap-2 mb-8 text-xs font-medium text-white/40 uppercase tracking-widest" aria-label="Breadcrumb">
-                <span className="hover:text-white cursor-pointer transition-colors focus:outline-none" tabIndex={0} onClick={handleProjectExit}>Home</span>
-                <ChevronRight className="w-3 h-3" />
-                <span className="truncate max-w-[150px]">{currentProject.metadata?.title || 'Untitled'}</span>
-                <ChevronRight className="w-3 h-3" />
-                <span className="text-white bg-white/10 px-2 py-1 rounded-md">{t(`stages.${activeStage}.label`, { defaultValue: activeStage })}</span>
-              </div>
+              {/* Breadcrumb Navigation removed for a cleaner experience */}
               
               <Suspense fallback={<StageSkeleton />}>
                 {activeStage === 'Brainstorming' ? (

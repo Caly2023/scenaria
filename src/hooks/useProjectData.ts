@@ -4,13 +4,14 @@ import { Project, Sequence, Character, Location, WorkflowStage } from '../types'
 import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery } from '../services/firebaseApi';
 
 // Subcollections required for each active stage — avoids loading all collections at once
-const STAGE_NEEDS_SEQUENCES = new Set<WorkflowStage>(['Step Outline']);
-const STAGE_NEEDS_TREATMENT_SEQ = new Set<WorkflowStage>(['Treatment']);
-const STAGE_NEEDS_SCRIPT_SCENES = new Set<WorkflowStage>(['Script']);
-const STAGE_NEEDS_PITCH = new Set<WorkflowStage>(['Brainstorming']);
-const STAGE_NEEDS_LOGLINE = new Set<WorkflowStage>(['Logline']);
-const STAGE_NEEDS_STRUCTURE = new Set<WorkflowStage>(['3-Act Structure']);
-const STAGE_NEEDS_SYNOPSIS = new Set<WorkflowStage>(['Synopsis']);
+// Foundational stages must be loaded continuously because downstream AI agents require them for context
+const STAGE_NEEDS_SEQUENCES = new Set<WorkflowStage>(['Step Outline', 'Script', 'Storyboard']);
+const STAGE_NEEDS_TREATMENT_SEQ = new Set<WorkflowStage>(['Treatment', 'Step Outline', 'Script']);
+const STAGE_NEEDS_SCRIPT_SCENES = new Set<WorkflowStage>(['Script', 'Storyboard']);
+const STAGE_NEEDS_PITCH = new Set<WorkflowStage>(['Brainstorming', 'Logline', '3-Act Structure', 'Synopsis', 'Character Bible', 'Location Bible', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
+const STAGE_NEEDS_LOGLINE = new Set<WorkflowStage>(['Logline', '3-Act Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
+const STAGE_NEEDS_STRUCTURE = new Set<WorkflowStage>(['3-Act Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
+const STAGE_NEEDS_SYNOPSIS = new Set<WorkflowStage>(['Synopsis', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
 // Characters + locations are reused across several stages; fetch whenever a project is open
 
 interface ProjectDataState {

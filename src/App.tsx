@@ -19,6 +19,8 @@ import { SpeechErrorBoundary } from './components/ErrorBoundary/SpeechErrorBound
 import { CardSkeleton } from './components/Skeleton';
 import { telemetryService, TelemetryStatus } from './services/telemetryService';
 import { contextAssembler } from './services/contextAssembler';
+import { aiQuotaState, aiQuotaNoticeConsumed } from './services/serviceState';
+import { consumeQuotaNotice } from './services/geminiService';
 import { Check, Wand2, Send, Image as ImageIcon, ChevronRight, Bot } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
@@ -214,6 +216,24 @@ export default function App() {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, timeoutDuration);
   }, []);
+
+  // ── AI Quota Global Monitor ───────────────────────────────────────────────
+  useEffect(() => {
+    const unsub = aiQuotaState.subscribe((isExhausted) => {
+      if (isExhausted) {
+        const shouldInform = consumeQuotaNotice();
+        if (shouldInform) {
+          addToast(
+            t('common.quotaExhaustedNotice', { 
+              defaultValue: 'Gemini 3 quota reached. Switching to high-speed Gemini 2.5 for uninterrupted creativity.' 
+            }), 
+            'info'
+          );
+        }
+      }
+    });
+    return unsub;
+  }, [addToast, t]);
 
   const { syncStatus, setSyncStatus, handleContentUpdate, handleSubcollectionUpdate } = useProjectSync(currentProject, addToast);
 

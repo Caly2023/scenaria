@@ -783,9 +783,9 @@ export function useScriptDoctor({
       const history: Array<{ role: string; parts: Array<{ text: string }> }> =
         [];
 
-      const { geminiService, isQuotaExhausted } =
-        await import("../services/geminiService");
-      setIsInDegradedMode(isQuotaExhausted);
+      const { geminiService } = await import("../services/geminiService");
+      const { aiQuotaState } = await import("../services/serviceState");
+      setIsInDegradedMode(aiQuotaState.get());
 
       for (const msg of currentMessages) {
         if (msg.role === "user") {
@@ -834,7 +834,8 @@ export function useScriptDoctor({
       }
 
       // ── DEGRADED MODE: Quota exhausted — skip agentic loop entirely ──────────
-      if (isQuotaExhausted) {
+      const { aiQuotaState: currentQuotaState } = await import("../services/serviceState");
+      if (currentQuotaState.get()) {
         telemetryService.setStatus(
           "Degraded Mode",
           "💬",

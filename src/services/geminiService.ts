@@ -1,21 +1,20 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { getOrCreateCache } from "./geminiCacheService";
+import { aiQuotaState, aiQuotaNoticeConsumed } from "./serviceState";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
-export let isQuotaExhausted = false;
-let hasInformedUserAboutQuota = false;
 
 /** Reset quota state at the start of a new session. */
 export function resetQuotaState() {
-  isQuotaExhausted = false;
-  hasInformedUserAboutQuota = false;
+  aiQuotaState.set(false);
+  aiQuotaNoticeConsumed.set(false);
 }
 
 /** Returns true only once — lets the UI show the notice exactly one time. */
 export function consumeQuotaNotice(): boolean {
-  if (isQuotaExhausted && !hasInformedUserAboutQuota) {
-    hasInformedUserAboutQuota = true;
+  if (aiQuotaState.get() && !aiQuotaNoticeConsumed.get()) {
+    aiQuotaNoticeConsumed.set(true);
     return true;
   }
   return false;
@@ -63,8 +62,8 @@ async function resilientRequest(
   for (const model of cascade) {
     // If quota was already exhausted in a prior model, skip all remaining cascade entries
     // immediately so we jump straight to the simplifyOperation (Gemini 2.5 degraded path).
-    if (isQuotaExhausted) {
-      console.warn(`[ScriptDoctor] isQuotaExhausted=true — skipping ${model} in main cascade.`);
+    if (aiQuotaState.get()) {
+      console.warn(`[ScriptDoctor] Quota exhausted — skipping ${model} in main cascade.`);
       break;
     }
     for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -93,7 +92,7 @@ async function resilientRequest(
           console.warn(`[ScriptDoctor] Rate Limit (429) detected on ${model}.`);
           // Only mark Gemini 3.x quota exhausted when the failing model is a Gemini 3 model.
           if (isGemini3Model(model)) {
-            isQuotaExhausted = true;
+            aiQuotaState.set(true);
             console.warn(`[ScriptDoctor] ⚠️ Gemini 3 quota EXHAUSTED. Switching to Gemini 2.5 degraded mode.`);
           }
           break; // Break inner retry loop — move to next model in cascade (or exit if quota)
@@ -107,7 +106,7 @@ async function resilientRequest(
       }
     }
     // Re-check after inner loop: if quota was just set, stop cascade immediately
-    if (isQuotaExhausted) {
+    if (aiQuotaState.get()) {
       break;
     }
   }
@@ -196,7 +195,7 @@ async function extractText(response: any): Promise<string> {
 
 export const geminiService = {
   async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
-    if (isQuotaExhausted) {
+    if (aiQuotaState.get()) {
       console.log(`[ScriptDoctor] Quota exhausted mode active. Using degraded cascade.`);
     }
 
@@ -208,7 +207,7 @@ export const geminiService = {
     // Fallback rules: Always start with Gemini 3 Flash
     // Escalate to 3.1 Pro only for complex reasoning or failures
     // Downgrade to Flash Light when speed or rate limits are constrained
-    if (isQuotaExhausted) {
+    if (aiQuotaState.get()) {
       customCascade = [MODELS.LITE, MODELS.FLASH, MODELS.FALLBACK];
       timeoutMs = 30000;
     } else {
@@ -343,13 +342,13 @@ export const geminiService = {
         ACTIVE STAGE: ${activeStage}`;
 
       const config: any = {
-        systemInstruction: isQuotaExhausted ? degradedSystemInstruction : systemInstruction,
+        systemInstruction: aiQuotaState.get() ? degradedSystemInstruction : systemInstruction,
       };
 
       // ALWAYS provide tools so the model can act on any request, including short commands.
       // The previous bug was that 'simple' complexity disabled tools entirely,
       // preventing the model from executing actions like "delete the first character".
-      if (isQuotaExhausted) {
+      if (aiQuotaState.get()) {
         config.responseMimeType = "application/json";
       } else {
         config.tools = [
@@ -1155,25 +1154,34 @@ export const geminiService = {
     }, MODELS.FLASH);
   },
 
-  async generateCharacterViews(description: string) {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview",
-      contents: {
-        parts: [
-          {
-            text: `Generate 4 consistent views of a character based on this description: "${description}". Front, Profile, Back, Full-shot.`,
-          },
-        ],
-      },
-    });
 
-    const images: string[] = [];
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        images.push(`data:image/png;base64,${part.inlineData.data}`);
+  async generateCharacterViews(description: string) {
+    return resilientRequest(async (model) => {
+      const response = await ai.models.generateContent({
+        model: model,
+        contents: {
+          parts: [
+            {
+              text: `Generate 4 consistent views of a character based on this description: "${description}". Front, Profile, Back, Full-shot.`,
+            },
+          ],
+        },
+      });
+
+      const images: string[] = [];
+      const parts = response.candidates?.[0]?.content?.parts || [];
+      for (const part of parts) {
+        if (part.inlineData) {
+          images.push(`data:image/png;base64,${part.inlineData.data}`);
+        }
       }
-    }
-    return images;
+      
+      if (images.length === 0) {
+        throw new Error("No images generated in response candidates.");
+      }
+      
+      return images;
+    }, MODELS.FLASH_3_1, 2, 60000, []);
   },
 
   async deepDevelopCharacter(character: any, masterStory: string, otherCharacters: any[]) {

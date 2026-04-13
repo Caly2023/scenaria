@@ -14,6 +14,7 @@ import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ttsService } from '@/services/ttsService';
+import { aiQuotaState } from '@/services/serviceState';
 
 interface Message {
   id: string;
@@ -82,10 +83,13 @@ function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean
             className="fixed inset-0 z-[70] flex flex-col bg-[#212121] overflow-hidden"
             style={{ 
               height: '100dvh',
-              paddingTop: 'env(safe-area-inset-top)',
               paddingBottom: 'env(safe-area-inset-bottom)'
             }}
           >
+            {/* Grab Handle for Mobile */}
+            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 md:hidden bg-[#0f0f0f]">
+              <div className="w-12 h-1.5 bg-white/10 rounded-full" />
+            </div>
             {children}
           </motion.div>
         </>
@@ -113,6 +117,11 @@ function ScriptDoctorContent({
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
+  const [isQuotaExhausted, setIsQuotaExhausted] = useState(aiQuotaState.get());
+
+  useEffect(() => {
+    return aiQuotaState.subscribe((val) => setIsQuotaExhausted(val));
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,6 +198,19 @@ function ScriptDoctorContent({
             </div>
           </div>
         </div>
+
+        {isQuotaExhausted && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border-b border-amber-500/20"
+          >
+            <Bot className="w-3.5 h-3.5 text-amber-500" />
+            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">
+              {t('common.degradedMode', { defaultValue: 'Gemini 3 Quota Exhausted — Gemini 2.5 Active' })}
+            </span>
+          </motion.div>
+        )}
 
         <div className="flex items-center gap-2">
           <button className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white border-none hidden md:block">

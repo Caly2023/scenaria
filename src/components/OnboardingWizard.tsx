@@ -109,14 +109,14 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             {currentStep > 0 && (
               <button
                 onClick={() => setCurrentStep(currentStep - 1)}
-                className="flex-1 py-4 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="flex-1 h-11 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all border-none"
               >
                 Back
               </button>
             )}
             <button
               onClick={handleNext}
-              className="flex-1 py-4 rounded-2xl bg-white text-black font-bold flex items-center justify-center gap-2 hover:bg-[#e5e5e5] transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="flex-1 h-11 rounded-2xl bg-white text-black font-bold flex items-center justify-center gap-2 hover:bg-[#e5e5e5] transition-all border-none"
             >
               {currentStep === steps.length - 1 ? "Start Creating" : "Next"}
               <ChevronRight className="w-4 h-4" />

@@ -156,11 +156,11 @@ export const Primitive = React.memo(function Primitive({
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent border-none text-lg font-bold tracking-tight focus:outline-none w-full text-white/80"
+              className="bg-transparent border-none text-base font-bold tracking-tight w-full text-white/80"
               placeholder={t('common.untitled')}
             />
           ) : (
-            <h3 className="text-lg font-bold tracking-tight text-white/80">{title}</h3>
+            <h3 className="text-base font-bold tracking-tight text-white/80">{title}</h3>
           )}
         </div>
 
@@ -169,7 +169,7 @@ export const Primitive = React.memo(function Primitive({
             onClick={handleTts}
             aria-label={isSpeaking ? "Stop speaking" : "Read aloud"}
             className={cn(
-              "w-10 h-10 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50",
+              "w-10 h-10 rounded-full flex items-center justify-center transition-all",
               isSpeaking ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
             )}
             title={t('common.speaker')}
@@ -182,7 +182,7 @@ export const Primitive = React.memo(function Primitive({
               onClick={onAiRefine}
               disabled={isGenerating}
               aria-label="Refine with AI"
-              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50"
               title={t('common.aiRefine')}
             >
               {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
@@ -194,7 +194,7 @@ export const Primitive = React.memo(function Primitive({
               onClick={onGenerateImage}
               disabled={isGenerating}
               aria-label="Generate Image"
-              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50"
               title={t('common.generateImage')}
             >
               <Maximize2 className="w-4 h-4" />
@@ -205,7 +205,7 @@ export const Primitive = React.memo(function Primitive({
             <button 
               onClick={onFocus}
               aria-label="Enter Focus Mode"
-              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all"
               title={t('common.focus')}
             >
               <Target className="w-4 h-4" />
@@ -216,7 +216,7 @@ export const Primitive = React.memo(function Primitive({
             <button 
               onClick={handleToggleExpand}
               aria-label={isExpanded ? "Collapse" : "Expand"}
-              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all"
             >
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
@@ -224,7 +224,7 @@ export const Primitive = React.memo(function Primitive({
 
           <div className="w-[1px] h-6 bg-white/10 mx-1" />
           
-          <button aria-label="More options" className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50">
+          <button aria-label="More options" className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all">
             <MoreVertical className="w-4 h-4" />
           </button>
           
@@ -232,7 +232,7 @@ export const Primitive = React.memo(function Primitive({
             <button 
               onClick={onDelete}
               aria-label="Delete block"
-              className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50"
+              className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 flex items-center justify-center transition-all"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -278,7 +278,7 @@ export const Primitive = React.memo(function Primitive({
                       onClick={onGenerateImage}
                       disabled={isGenerating}
                       aria-label="Add new view"
-                      className="h-32 aspect-square rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all shrink-0 text-white/20 hover:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
+                      className="h-32 aspect-square rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all shrink-0 text-white/20 hover:text-white/40"
                     >
                       <Plus className="w-6 h-6" />
                       <span className="text-[8px] font-bold uppercase tracking-widest">{t('common.add')}</span>
@@ -298,7 +298,7 @@ export const Primitive = React.memo(function Primitive({
                       value={content}
                       onChange={(e) => onContentChange(e.target.value)}
                       placeholder={placeholder}
-                      className="w-full bg-transparent border-none focus:ring-0 text-white font-sans text-xl leading-relaxed resize-none no-scrollbar placeholder:text-white/5 min-h-[100px]"
+                      className="w-full bg-transparent border-none text-white font-sans text-base leading-relaxed resize-none no-scrollbar placeholder:text-white/5 min-h-[100px]"
                     />
                   ) : (
                     <div className="prose prose-invert max-w-none font-sans text-xl leading-relaxed text-white/80">
@@ -307,7 +307,7 @@ export const Primitive = React.memo(function Primitive({
                   )}
                   
                   {onContentChange && content && (
-                    <div className="mt-8 pt-8 border-t border-white/5 prose prose-invert max-w-none">
+                    <div className="mt-8 pt-8 border-t border-white/5 prose prose-invert max-w-none text-base">
                       {renderedMarkdown}
                     </div>
                   )}
@@ -320,7 +320,7 @@ export const Primitive = React.memo(function Primitive({
                       onClick={onDeepDevelop}
                       disabled={isGenerating}
                       aria-label="Deep Develop"
-                      className="px-8 py-3 rounded-full bg-[#2a2a2a] text-white/60 border border-white/5 text-xs font-bold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                      className="px-8 py-3 rounded-full bg-[#2a2a2a] text-white/60 border border-white/5 text-[10px] uppercase font-bold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50"
                     >
                       {t('common.deepDevelop', { defaultValue: 'Deep Develop' })}
                     </button>

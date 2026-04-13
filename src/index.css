@@ -49,17 +49,53 @@
     overscroll-behavior: none;
   }
   
+  /* Global Focus Reset (Clean & Minimal) */
+  *:focus,
+  *:focus-visible,
+  *:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Form Elements - Global Standardization */
+  input, 
+  textarea, 
+  select,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, 
+  textarea, 
+  select {
+    @apply font-sans text-white/90 bg-transparent transition-all;
+    font-size: 0.9375rem; /* 15px - standard normal */
+    line-height: 1.5;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select {
+    height: 44px; /* Consistent medium height */
+    padding: 0 14px;
+  }
+
+  textarea {
+    padding: 12px 14px;
+    min-height: 100px;
+  }
+
+  /* Button Reset */
   button, [role="button"], .clickable {
     @apply cursor-pointer active:scale-95 transition-transform duration-100;
-    -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
 
-  /* Global Focus Rings */
-  *:focus-visible {
-    @apply outline-none ring-2 ring-white/50 ring-offset-2 ring-offset-[#0f0f0f];
-  }
-  
   /* Accessibility: High Contrast */
   .accessibility-high-contrast {
     --color-background: #000000;
@@ -133,11 +169,13 @@
   }
 
   .yt-btn-primary {
-    @apply bg-white text-black font-bold px-6 py-2.5 rounded-full hover:bg-[#e5e5e5] transition-all cursor-pointer active:scale-95;
+    @apply bg-white text-black font-bold px-6 py-2.5 rounded-full hover:bg-[#e5e5e5] transition-all cursor-pointer active:scale-95 border-none;
+    height: 44px;
   }
 
   .yt-btn-secondary {
-    @apply bg-white/10 text-white font-bold px-6 py-2.5 rounded-full hover:bg-white/20 transition-all cursor-pointer active:scale-95;
+    @apply bg-white/10 text-white font-bold px-6 py-2.5 rounded-full hover:bg-white/20 transition-all cursor-pointer active:scale-95 border-none;
+    height: 44px;
   }
 
   .yt-chip {
@@ -145,7 +183,8 @@
   }
 
   .yt-input {
-    @apply bg-[#121212] border border-[#333333] rounded-full px-6 py-3 focus:outline-none focus:border-[#444444] focus:ring-2 focus:ring-white/5 transition-all shadow-lg;
+    @apply bg-[#121212] border border-[#333333] rounded-full px-5 py-2.5 transition-all;
+    height: 44px;
   }
 
   /* Safe area padding utilities */

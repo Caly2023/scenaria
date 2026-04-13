@@ -100,8 +100,8 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                   value={localMeta.title}
                   disabled={isSaving}
                   onChange={(e) => handleChange('title', e.target.value)}
-                  className={`w-full bg-[#121212] border rounded-2xl px-5 py-4 text-lg font-bold focus:outline-none transition-all text-white disabled:opacity-50 ${
-                    getFieldError('title') ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-white/20'
+                  className={`w-full bg-[#121212] border rounded-full px-5 h-11 text-base font-bold transition-all text-white disabled:opacity-50 ${
+                    getFieldError('title') ? 'border-red-500/50' : 'border-white/5'
                   }`}
                 />
                 {getFieldError('title') && (
@@ -121,7 +121,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                   disabled={isSaving}
                   onChange={(e) => handleChange('logline', e.target.value)}
                   rows={3}
-                  className="w-full bg-[#121212] border border-white/5 rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:border-white/20 transition-all text-white resize-none no-scrollbar disabled:opacity-50"
+                  className="w-full bg-[#121212] border border-white/5 rounded-[20px] px-5 py-3 text-sm font-medium transition-all text-white resize-none no-scrollbar disabled:opacity-50"
                 />
               </div>
 
@@ -135,8 +135,8 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                   value={localMeta.format}
                   disabled={isSaving}
                   onChange={(e) => handleChange('format', e.target.value)}
-                  className={`w-full bg-[#121212] border rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none transition-all text-white disabled:opacity-50 ${
-                    getFieldError('format') ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-white/20'
+                  className={`w-full bg-[#121212] border rounded-full px-5 h-11 text-sm font-medium transition-all text-white disabled:opacity-50 ${
+                    getFieldError('format') ? 'border-red-500/50' : 'border-white/5'
                   }`}
                 />
                 {getFieldError('format') && (
@@ -157,8 +157,8 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                     value={localMeta.genre}
                     disabled={isSaving}
                     onChange={(e) => handleChange('genre', e.target.value)}
-                    className={`w-full bg-[#121212] border rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none transition-all text-white disabled:opacity-50 ${
-                      getFieldError('genre') ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-white/20'
+                    className={`w-full bg-[#121212] border rounded-full px-5 h-11 text-sm font-medium transition-all text-white disabled:opacity-50 ${
+                      getFieldError('genre') ? 'border-red-500/50' : 'border-white/5'
                     }`}
                   />
                   {getFieldError('genre') && (
@@ -176,8 +176,8 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                     value={localMeta.tone}
                     disabled={isSaving}
                     onChange={(e) => handleChange('tone', e.target.value)}
-                    className={`w-full bg-[#121212] border rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none transition-all text-white disabled:opacity-50 ${
-                      getFieldError('tone') ? 'border-red-500/50 focus:border-red-500' : 'border-white/5 focus:border-white/20'
+                    className={`w-full bg-[#121212] border rounded-full px-5 h-11 text-sm font-medium transition-all text-white disabled:opacity-50 ${
+                      getFieldError('tone') ? 'border-red-500/50' : 'border-white/5'
                     }`}
                   />
                   {getFieldError('tone') && (
@@ -220,7 +220,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                   value={localMeta.targetDuration}
                   disabled={isSaving}
                   onChange={(e) => handleChange('targetDuration', e.target.value)}
-                  className="w-full bg-[#121212] border border-white/5 rounded-2xl px-5 py-4 text-sm font-medium focus:outline-none focus:border-white/20 transition-all text-white disabled:opacity-50"
+                  className="w-full bg-[#121212] border border-white/5 rounded-full px-5 h-11 text-sm font-medium transition-all text-white disabled:opacity-50"
                 />
               </div>
             </div>

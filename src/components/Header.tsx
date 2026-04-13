@@ -64,7 +64,7 @@ export function Header({
         <button 
           onClick={onProjectSwitch}
           aria-label="Switch project"
-          className="flex items-center gap-2 md:gap-3 group px-2 md:px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all focus:outline-none focus:ring-2 focus:ring-white/50 min-w-0"
+          className="flex items-center gap-2 md:gap-3 group px-2 md:px-3 py-1.5 rounded-lg hover:bg-white/5 transition-all min-w-0 border-none"
         >
           <Home className="w-4 h-4 text-white/40 group-hover:text-white flex-shrink-0" />
           <div className="flex flex-col items-start leading-none min-w-0">
@@ -84,7 +84,7 @@ export function Header({
         <button
           onClick={onInfoClick}
           aria-label="Project information"
-          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-white/50 flex-shrink-0"
+          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-all flex-shrink-0 border-none"
         >
           <Info className="w-4 h-4" />
         </button>
@@ -95,7 +95,7 @@ export function Header({
           aria-label="Toggle Script Doctor"
           aria-pressed={isDoctorOpen}
           className={cn(
-            "flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all border focus:outline-none focus:ring-2 focus:ring-white/50 flex-shrink-0",
+            "flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all border flex-shrink-0",
             isDoctorOpen 
               ? "bg-white text-black border-white" 
               : "bg-white/5 text-white/40 border-white/10 hover:text-white hover:bg-white/10"
@@ -114,7 +114,7 @@ export function Header({
               type="text" 
               aria-label="Search across project"
               placeholder={t('common.search')} 
-              className="bg-white/5 border-none rounded-lg pl-9 pr-4 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-white/50 transition-all w-48 placeholder:text-white/20"
+              className="bg-white/5 border-none rounded-lg pl-9 pr-4 h-9 text-sm transition-all w-48 placeholder:text-white/20"
             />
           </div>
         </div>
@@ -137,7 +137,7 @@ export function Header({
                 <img src={user.photoURL} alt={user.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               </div>
             ))}
-            <button aria-label="Manage Collaborators" className="w-7 h-7 flex-shrink-0 rounded-full border-2 border-background bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/50">
+            <button aria-label="Manage Collaborators" className="w-7 h-7 flex-shrink-0 rounded-full border-2 border-background bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all border-none">
               <Users className="w-3.5 h-3.5 text-white/40" />
             </button>
           </div>
@@ -145,7 +145,7 @@ export function Header({
           <button 
             onClick={onCallStart}
             aria-label="Start Voice Call"
-            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-all group shrink-0 focus:outline-none focus:ring-2 focus:ring-white/50"
+            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-all group shrink-0 border-none"
           >
             <PhoneCall className="w-4 h-4 text-white/40 group-hover:text-white" />
           </button>
@@ -169,7 +169,7 @@ export function Header({
             onClick={() => setIsAccessOpen(!isAccessOpen)}
             aria-label="Accessibility Settings"
             className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-white/50",
+              "w-8 h-8 rounded-lg flex items-center justify-center transition-all border-none",
               isAccessOpen ? "bg-white text-black" : "bg-white/5 text-white/40 hover:text-white"
             )}
           >

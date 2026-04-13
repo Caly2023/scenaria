@@ -91,7 +91,7 @@ const DeleteProjectModal = React.memo(function DeleteProjectModal({
           <h3 className="text-xl font-bold tracking-tight text-white">{t('common.deleteProject', { defaultValue: 'Delete Project' })}</h3>
           <p className="text-white/40 text-sm">{t('common.deleteWarning', { defaultValue: 'This action is permanent. Type "DELETE" to confirm.' })}</p>
         </div>
-        <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" className="yt-input w-full text-center text-red-500 font-bold tracking-widest" />
+        <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" className="yt-input w-full text-center text-red-500 font-bold tracking-widest text-base" />
         <div className="flex gap-4">
           <button onClick={onCancel} className="flex-1 py-4 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all">{t('common.cancel')}</button>
           <button onClick={() => onConfirm(projectId)} disabled={confirmText !== 'DELETE' || isDeleting} className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-20 disabled:cursor-not-allowed">
@@ -141,7 +141,7 @@ const GlobalAiBar = React.memo(function GlobalAiBar({
             type="text" value={input} onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('common.askAi', { stage: t(`stages.${activeStage}.label`, { defaultValue: activeStage }) })}
-            className="yt-input w-full pr-24 h-11 text-sm"
+            className="yt-input w-full pr-24 h-11 text-sm border-none shadow-none"
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
             <SpeechErrorBoundary>
@@ -150,7 +150,7 @@ const GlobalAiBar = React.memo(function GlobalAiBar({
             <button 
               onClick={handleSubmit}
               disabled={isTyping || !input.trim()}
-              className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all disabled:opacity-50"
+              className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all disabled:opacity-50 border-none"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -167,7 +167,7 @@ const GlobalAiBar = React.memo(function GlobalAiBar({
           type="text" value={input} onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={t('common.askAi', { stage: t(`stages.${activeStage}.label`, { defaultValue: activeStage }) })}
-          className="yt-input w-full pr-28 h-12 text-sm bg-[#1a1a1a]/90 backdrop-blur-md rounded-[20px] border border-white/10 mx-auto block"
+          className="yt-input w-full pr-28 h-11 text-sm bg-[#1a1a1a]/90 backdrop-blur-md rounded-[20px] border border-white/10 mx-auto block"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
           <SpeechErrorBoundary>
@@ -176,7 +176,7 @@ const GlobalAiBar = React.memo(function GlobalAiBar({
           <button 
             onClick={handleSubmit}
             disabled={isTyping || !input.trim()}
-            className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all disabled:opacity-50"
+            className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all disabled:opacity-50 border-none"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -575,7 +575,7 @@ export default function App() {
           <p className="text-white/40 text-sm">{t('common.signIn')}</p>
           <button 
             onClick={signInWithGoogle}
-            className="w-full py-4 rounded-2xl bg-white text-black font-bold tracking-tight hover:scale-105 transition-all"
+            className="w-full h-11 rounded-2xl bg-white text-black font-bold tracking-tight hover:scale-105 transition-all border-none"
           >
             {t('common.signInWithGoogle')}
           </button>
@@ -631,7 +631,7 @@ export default function App() {
           </div>
           <div className={cn("pointer-events-auto absolute bottom-6 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]", isDoctorOpen ? "right-[-100px] opacity-0 scale-50" : "right-6 opacity-100 scale-100")}>
             {!isFocusMode && (
-              <button onClick={handleOpenDoctor} className="w-16 h-16 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group">
+              <button onClick={handleOpenDoctor} className="w-16 h-16 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none">
                 <span className="text-xl font-bold italic tracking-tighter group-hover:scale-110 transition-transform">Dr</span>
               </button>
             )}
@@ -670,7 +670,7 @@ export default function App() {
             <div className={cn("w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative", isMobile ? "px-4 py-6" : "px-6 py-12 md:px-12")}>
               {/* Breadcrumb Navigation */}
               <div className="flex items-center gap-2 mb-8 text-xs font-medium text-white/40 uppercase tracking-widest" aria-label="Breadcrumb">
-                <span className="hover:text-white cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-white/50 focus:outline-none" tabIndex={0} onClick={handleProjectExit}>Home</span>
+                <span className="hover:text-white cursor-pointer transition-colors focus:outline-none" tabIndex={0} onClick={handleProjectExit}>Home</span>
                 <ChevronRight className="w-3 h-3" />
                 <span className="truncate max-w-[150px]">{currentProject.metadata?.title || 'Untitled'}</span>
                 <ChevronRight className="w-3 h-3" />

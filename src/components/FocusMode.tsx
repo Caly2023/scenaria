@@ -89,7 +89,7 @@ export function FocusMode({
                 value={content}
                 onChange={(e) => onContentChange(e.target.value)}
                 placeholder={t('common.deepNightWriting')}
-                className="w-full h-full bg-transparent border-none focus:ring-0 text-white font-sans text-3xl leading-relaxed resize-none no-scrollbar placeholder:text-white/5"
+                className="w-full h-full bg-transparent border-none text-white font-sans text-2xl leading-relaxed resize-none no-scrollbar placeholder:text-white/5"
                 autoFocus
               />
             </div>

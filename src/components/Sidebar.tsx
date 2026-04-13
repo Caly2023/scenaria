@@ -69,7 +69,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
               aria-current={isActive ? 'step' : undefined}
               aria-disabled={isLocked}
               className={cn(
-                'flex-shrink-0 flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 min-w-[56px] focus:outline-none focus:ring-2 focus:ring-white/50',
+                'flex-shrink-0 flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 min-w-[56px]',
                 isActive
                   ? 'bg-white text-black'
                   : isLocked
@@ -120,7 +120,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
                 aria-current={isActive ? "step" : undefined}
                 aria-disabled={isLocked}
                 className={cn(
-                  "w-full h-12 rounded-2xl flex items-center gap-4 px-3 transition-all duration-300 relative focus:outline-none focus:ring-2 focus:ring-white/50",
+                  "w-full h-12 rounded-2xl flex items-center gap-4 px-3 transition-all duration-300 relative",
                   isActive 
                     ? "bg-white text-black shadow-lg" 
                     : isLocked
@@ -168,7 +168,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
       <div className="mt-auto px-4 w-full flex justify-center group-hover:justify-start transition-all">
         <button 
           aria-label="Magic Tools"
-          className="w-12 h-12 rounded-2xl text-white/20 flex items-center justify-center hover:text-white hover:bg-white/5 transition-all group/magic focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="w-12 h-12 rounded-2xl text-white/20 flex items-center justify-center hover:text-white hover:bg-white/5 transition-all group/magic border-none"
         >
           <Wand2 className="w-5 h-5 group-hover/magic:rotate-12 transition-transform" />
         </button>

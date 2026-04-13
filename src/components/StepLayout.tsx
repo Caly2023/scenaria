@@ -124,9 +124,9 @@ export function StepLayout({
               onClick={() => setShowConfirmModal(true)}
               aria-label="Complete stage and continue"
               className={cn(
-                "flex-1 md:flex-none px-8 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white/50",
+                "flex-1 md:flex-none px-8 h-11 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 border-none",
                 isReady 
-                  ? "bg-white text-black hover:scale-105 active:scale-95" 
+                  ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
                   : "bg-[#2a2a2a] text-white/50 hover:bg-[#333333] active:scale-95"
               )}
             >
@@ -170,7 +170,7 @@ export function StepLayout({
               <div className="flex gap-4">
                 <button 
                   onClick={() => setShowConfirmModal(false)} 
-                  className="flex-1 py-4 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                  className="flex-1 h-11 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all border-none"
                   aria-label="Cancel validation"
                 >
                   Cancel
@@ -180,7 +180,7 @@ export function StepLayout({
                     setShowConfirmModal(false);
                     onValidate();
                   }} 
-                  className="flex-1 py-4 rounded-2xl bg-white text-black font-bold hover:bg-[#e5e5e5] transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+                  className="flex-1 h-11 rounded-2xl bg-white text-black font-bold hover:bg-[#e5e5e5] transition-all border-none"
                   aria-label="Confirm validation"
                 >
                   Confirm

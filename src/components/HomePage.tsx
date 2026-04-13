@@ -136,7 +136,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               key={format}
               onClick={() => setSelectedFormat(format as any)}
               className={cn(
-                "px-5 py-2.5 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all border",
+                "px-5 py-2.5 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all border whitespace-nowrap",
                 selectedFormat === format 
                   ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-110" 
                   : "bg-white/5 text-white/40 border-white/5 hover:bg-white/10 hover:text-white"
@@ -170,12 +170,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               onBlur={() => setIsFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder={t('common.whatsTheStory')}
-              className="w-full bg-transparent border-none text-lg md:text-2xl md:text-3xl font-light leading-relaxed focus:outline-none placeholder:text-white/10 px-2 min-h-[100px] md:min-h-[160px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
+              className="w-full bg-transparent border-none text-base font-normal leading-relaxed placeholder:text-white/10 px-2 min-h-[120px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
             />
           </div>
 
           {/* Integrated Toolbar Footer */}
-          <div className="px-6 md:px-12 pb-6 md:pb-12 pt-4 flex items-center justify-between">
+          <div className="px-6 md:px-12 pb-8 md:pb-10 pt-2 flex items-center justify-between">
             <div className="flex items-center gap-2 p-1 bg-white/5 rounded-full border border-white/5">
               <input 
                 type="file" 
@@ -186,12 +186,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               />
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-all flex items-center justify-center group relative"
+                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-all flex items-center justify-center group relative border-none"
                 title={t('common.importText')}
               >
                 <Plus className="w-5 h-5" />
               </button>
-              <button className="w-10 h-10 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-all flex items-center justify-center group relative" title={t('common.attach')}>
+              <button className="w-10 h-10 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-all flex items-center justify-center group relative border-none" title={t('common.attach')}>
                 <Paperclip className="w-5 h-5" />
               </button>
               
@@ -207,13 +207,13 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               onClick={() => handleSubmit()}
               disabled={!storyIdea.trim() || isCreating}
               className={cn(
-                "h-12 px-8 rounded-full flex items-center gap-3 transition-all duration-500",
+                "h-11 px-8 rounded-full flex items-center gap-3 transition-all duration-500 border-none",
                 storyIdea.trim() && !isCreating
-                  ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]" 
+                  ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
                   : "bg-white/5 text-white/10 cursor-not-allowed border border-white/10"
               )}
             >
-              <span className="text-xs font-black uppercase tracking-widest">
+              <span className="text-[10px] font-black uppercase tracking-widest">
                 {isCreating ? creationStatus : 'Create'}
               </span>
               {isCreating ? (
@@ -319,7 +319,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
 
                         {/* Metadata Tags Row */}
                         <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                          <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
                             <Film className="w-3.5 h-3.5 opacity-50" />
                             <span>{project.metadata?.format || 'Auto'}</span>
                           </div>
@@ -327,7 +327,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.genre && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
                                 <Tag className="w-3.5 h-3.5 opacity-50" />
                                 <span>{project.metadata.genre}</span>
                               </div>
@@ -337,7 +337,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.languages?.[0] && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300">
+                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
                                 <Globe className="w-3.5 h-3.5 opacity-50" />
                                 <span>{project.metadata.languages[0]}</span>
                               </div>

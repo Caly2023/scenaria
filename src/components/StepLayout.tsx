@@ -47,11 +47,11 @@ export function StepLayout({
   return (
     <div className="w-full space-y-12 pb-32">
       <div className="text-center space-y-2">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-secondary font-bold">
+        <span className="text-[10px] uppercase tracking-[0.3em] text-secondary font-semibold">
           {t('common.step', { defaultValue: 'Step' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
         </span>
-        <h2 className="text-4xl font-bold tracking-tighter text-white">{title}</h2>
-        <p className="text-secondary text-lg max-w-2xl mx-auto">{subtitle}</p>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
+        <p className="text-secondary text-base md:text-lg max-w-2xl mx-auto px-4">{subtitle}</p>
       </div>
 
       {/* Hydration Status Banner */}
@@ -109,7 +109,7 @@ export function StepLayout({
             </div>
             <div className="space-y-1">
               <h4 className={cn(
-                "text-lg font-bold tracking-tight",
+                "text-lg font-semibold tracking-tight",
                 isReady ? "text-green-500" : "text-amber-500"
               )}>
                 {isReady 
@@ -124,7 +124,7 @@ export function StepLayout({
               onClick={() => setShowConfirmModal(true)}
               aria-label="Complete stage and continue"
               className={cn(
-                "flex-1 md:flex-none px-8 h-11 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 border-none",
+                "flex-1 md:flex-none px-8 h-11 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 border-none",
                 isReady 
                   ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
                   : "bg-[#2a2a2a] text-white/50 hover:bg-[#333333] active:scale-95"
@@ -159,7 +159,7 @@ export function StepLayout({
               className="relative w-full max-w-md bg-[#212121] rounded-[32px] p-8 shadow-2xl border border-white/10 space-y-6"
             >
               <div className="space-y-2 text-center">
-                <h3 className="text-xl font-bold tracking-tight text-white">Ready to continue?</h3>
+                <h3 className="text-xl font-semibold tracking-tight text-white">Ready to continue?</h3>
                 <p className="text-white/40 text-sm">
                   {!isReady ? (
                     <span className="text-amber-500/80 block mb-2">Note: This stage still has pending AI insights.</span>
@@ -170,7 +170,7 @@ export function StepLayout({
               <div className="flex gap-4">
                 <button 
                   onClick={() => setShowConfirmModal(false)} 
-                  className="flex-1 h-11 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all border-none"
+                  className="flex-1 h-11 rounded-2xl bg-white/5 text-white font-semibold hover:bg-white/10 transition-all border-none"
                   aria-label="Cancel validation"
                 >
                   Cancel
@@ -180,7 +180,7 @@ export function StepLayout({
                     setShowConfirmModal(false);
                     onValidate();
                   }} 
-                  className="flex-1 h-11 rounded-2xl bg-white text-black font-bold hover:bg-[#e5e5e5] transition-all border-none"
+                  className="flex-1 h-11 rounded-2xl bg-white text-black font-semibold hover:bg-[#e5e5e5] transition-all border-none"
                   aria-label="Confirm validation"
                 >
                   Confirm

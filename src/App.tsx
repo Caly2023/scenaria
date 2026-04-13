@@ -88,13 +88,13 @@ const DeleteProjectModal = React.memo(function DeleteProjectModal({
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onCancel} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
       <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-md bg-[#212121] rounded-[32px] p-8 shadow-2xl border border-white/10 space-y-6">
         <div className="space-y-2 text-center">
-          <h3 className="text-xl font-bold tracking-tight text-white">{t('common.deleteProject', { defaultValue: 'Delete Project' })}</h3>
+          <h3 className="text-xl font-semibold tracking-tight text-white">{t('common.deleteProject', { defaultValue: 'Delete Project' })}</h3>
           <p className="text-white/40 text-sm">{t('common.deleteWarning', { defaultValue: 'This action is permanent. Type "DELETE" to confirm.' })}</p>
         </div>
-        <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" className="yt-input w-full text-center text-red-500 font-bold tracking-widest text-base" />
+        <input type="text" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" className="yt-input w-full text-center text-red-500 font-semibold tracking-widest text-base" />
         <div className="flex gap-4">
-          <button onClick={onCancel} className="flex-1 py-4 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all">{t('common.cancel')}</button>
-          <button onClick={() => onConfirm(projectId)} disabled={confirmText !== 'DELETE' || isDeleting} className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+          <button onClick={onCancel} className="flex-1 py-4 rounded-2xl bg-white/5 text-white font-semibold hover:bg-white/10 transition-all">{t('common.cancel')}</button>
+          <button onClick={() => onConfirm(projectId)} disabled={confirmText !== 'DELETE' || isDeleting} className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-all disabled:opacity-20 disabled:cursor-not-allowed">
             {isDeleting ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" /> : t('common.delete', { defaultValue: 'Delete' })}
           </button>
         </div>
@@ -709,12 +709,12 @@ export default function App() {
                       <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-8">
                         <ImageIcon className="w-12 h-12 text-white/20" />
                       </div>
-                      <h2 className="text-4xl font-bold tracking-tighter text-white">{t('stages.Storyboard.title')}</h2>
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tighter text-white">{t('stages.Storyboard.title')}</h2>
                       <p className="text-secondary text-lg">{t('stages.Storyboard.subtitle')}</p>
                       <div className="bg-surface p-8 rounded-[32px] border border-white/5">
                         <p className="text-white/40 font-medium">{t('stages.Storyboard.comingSoon')}</p>
                       </div>
-                      <button onClick={onValidateStoryboard} className="px-12 py-5 rounded-2xl bg-[#2a2a2a] text-white border border-[#444444] font-bold tracking-tight hover:bg-[#333333] transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-2xl mx-auto">
+                      <button onClick={onValidateStoryboard} className="px-12 py-5 rounded-2xl bg-[#2a2a2a] text-white border border-[#444444] font-semibold tracking-tight hover:bg-[#333333] transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-2xl mx-auto">
                         <Check className="w-5 h-5" />
                         {t('common.completeProject')}
                       </button>
@@ -757,15 +757,14 @@ export default function App() {
         </Suspense>
       )}
 
-      {/* ── MOBILE: Bottom navigation bar ─────────────────────────────────── */}
       {isMobile && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col"
+          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col pt-2"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
 
           {/* Stage tabs */}
-          <div className="h-16">
+          <div className="h-20 flex items-center">
             <Sidebar
               activeStage={activeStage}
               onStageChange={handleStageChange}

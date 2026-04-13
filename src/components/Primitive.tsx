@@ -173,11 +173,11 @@ export const Primitive = React.memo(function Primitive({
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent border-none text-sm md:text-base font-bold tracking-tight w-full text-white/80 focus:outline-none truncate"
+              className="bg-transparent border-none text-sm md:text-base font-semibold tracking-tight w-full text-white/80 focus:outline-none truncate"
               placeholder={t('common.untitled')}
             />
           ) : (
-            <h3 className="text-sm md:text-base font-bold tracking-tight text-white/80 truncate">{title}</h3>
+            <h3 className="text-sm md:text-base font-semibold tracking-tight text-white/80 truncate">{title}</h3>
           )}
         </div>
 
@@ -381,7 +381,7 @@ export const Primitive = React.memo(function Primitive({
                       className="h-32 aspect-square rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all shrink-0 text-white/20 hover:text-white/40"
                     >
                       <Plus className="w-6 h-6" />
-                      <span className="text-[8px] font-bold uppercase tracking-widest">{t('common.add')}</span>
+                      <span className="text-[8px] font-semibold uppercase tracking-widest">{t('common.add')}</span>
                     </button>
                   )}
                 </div>
@@ -420,7 +420,7 @@ export const Primitive = React.memo(function Primitive({
                       onClick={onDeepDevelop}
                       disabled={isGenerating}
                       aria-label="Deep Develop"
-                      className="px-8 py-3 rounded-full bg-[#2a2a2a] text-white/60 border border-white/5 text-[10px] uppercase font-bold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50"
+                      className="px-8 py-3 rounded-full bg-[#2a2a2a] text-white/60 border border-white/5 text-[10px] uppercase font-semibold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50"
                     >
                       {t('common.deepDevelop', { defaultValue: 'Deep Develop' })}
                     </button>
@@ -437,7 +437,7 @@ export const Primitive = React.memo(function Primitive({
                   >
                     <Sparkles className="w-10 h-10" />
                     <div className="space-y-2">
-                      <span className="text-xs font-bold uppercase tracking-widest block">{t('common.visualDescriptionReady')}</span>
+                      <span className="text-xs font-semibold uppercase tracking-widest block">{t('common.visualDescriptionReady')}</span>
                       {visualPrompt && (
                         <p className="text-[10px] text-secondary italic max-w-xs mx-auto">"{visualPrompt}"</p>
                       )}

@@ -77,7 +77,7 @@ export function LocationBible({
         <div className="space-y-12">
           <div className="flex items-center gap-4 border-b border-white/5 pb-4">
             <MapPin className="w-6 h-6 text-white/40" />
-            <h3 className="text-2xl font-bold tracking-tight text-white/80">{t('common.locations')}</h3>
+            <h3 className="text-xl sm:text-2xl font-semibold tracking-tight text-white/80">{t('common.locations')}</h3>
           </div>
           
           <div className="space-y-12">
@@ -110,7 +110,7 @@ export function LocationBible({
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-[#212121] p-12 rounded-[32px] shadow-2xl border border-white/5"
               >
-                <h3 className="text-2xl font-bold tracking-tight mb-8">{t('common.newLocation')}</h3>
+                <h3 className="text-xl sm:text-2xl font-semibold tracking-tight mb-8">{t('common.newLocation')}</h3>
                 <form onSubmit={handleAdd} className="space-y-6">
                   <input 
                     type="text" 
@@ -153,7 +153,7 @@ export function LocationBible({
                 <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-all">
                   <Plus className="w-6 h-6 text-white/20 group-hover:text-white" />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-widest text-white/20 group-hover:text-white/40">{t('common.addNewLocation')}</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-white/20 group-hover:text-white/40">{t('common.addNewLocation')}</span>
               </button>
             )}
           </div>
@@ -178,7 +178,7 @@ export function LocationBible({
                 <Maximize2 className="w-10 h-10 text-white" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight">{t('common.generateVisuals')}</h3>
+                <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">{t('common.generateVisuals')}</h3>
                 <p className="text-secondary">{t('common.generateVisualsDesc')}</p>
               </div>
               <div className="flex gap-4">

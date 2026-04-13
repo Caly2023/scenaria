@@ -106,7 +106,7 @@ export const MainCanvas = React.memo(function MainCanvas({
       <div className="space-y-6">
         {isGenerating && !refiningBlockId && sequences.length === 0 && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4 flex justify-center">
-            <span className="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+            <span className="px-4 py-2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-semibold uppercase tracking-widest flex items-center gap-2">
               <div className="w-3 h-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
               Generating... (Step Outline)
             </span>
@@ -141,7 +141,7 @@ export const MainCanvas = React.memo(function MainCanvas({
           <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-all">
             <Plus className="w-6 h-6 text-white/20 group-hover:text-white" />
           </div>
-          <span className="text-xs font-bold uppercase tracking-widest text-white/20 group-hover:text-white/40">{t('common.addNewSequence')}</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-white/20 group-hover:text-white/40">{t('common.addNewSequence')}</span>
         </button>
       </div>
     </StepLayout>

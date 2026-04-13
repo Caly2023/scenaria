@@ -61,7 +61,7 @@ export function Header({
         isCompact ? "h-auto" : "h-auto"
       )}
       style={{ 
-        paddingTop: 'max(60px, env(safe-area-inset-top))' 
+        paddingTop: 'var(--header-top-padding)' 
       }}
     >
       <div className={cn(
@@ -82,7 +82,7 @@ export function Header({
         {/* Desktop-only project info & tools */}
         <div className="hidden md:flex items-center gap-4 min-w-0">
           <div className="flex flex-col items-start leading-none min-w-0">
-            <span className="text-[9px] uppercase tracking-widest text-secondary font-bold mb-0.5">
+            <span className="text-[9px] uppercase tracking-widest text-secondary font-semibold mb-0.5">
               {t('common.project')}
             </span>
             <div className="flex items-center gap-1 min-w-0">
@@ -117,7 +117,7 @@ export function Header({
             )}
           >
             <Bot className="w-4 h-4" />
-            <span className="hidden sm:block text-[10px] font-bold uppercase tracking-widest">Doctor</span>
+            <span className="hidden sm:block text-[10px] font-semibold uppercase tracking-widest">Doctor</span>
           </button>
         </div>
 
@@ -139,7 +139,7 @@ export function Header({
 
       {/* Mobile-only Centered Project Name */}
       <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[50%]">
-        <span className="text-sm font-bold tracking-tight text-white truncate">
+        <span className="text-sm font-semibold tracking-tight text-white truncate">
           {projectName}
         </span>
       </div>
@@ -184,7 +184,7 @@ export function Header({
             syncStatus === 'syncing' ? "animate-spin text-white" : "text-white/20",
             syncStatus === 'error' && "text-red-500"
           )} />
-          <span className="hidden sm:block text-[9px] uppercase tracking-widest font-bold text-secondary">
+          <span className="hidden sm:block text-[9px] uppercase tracking-widest font-semibold text-secondary">
             {syncStatus === 'synced' ? t('common.synced') : syncStatus === 'syncing' ? t('common.syncing') : t('common.error')}
           </span>
         </div>
@@ -211,7 +211,7 @@ export function Header({
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 className="absolute right-0 mt-3 w-64 bg-[#1a1a1a] rounded-2xl border border-white/10 shadow-2xl p-4 z-[100] space-y-3"
               >
-                <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-2">Accessibility</h3>
+                <h3 className="text-xs font-semibold uppercase tracking-widest text-white/40 mb-2">Accessibility</h3>
                 <button 
                   onClick={() => toggleAccess('highContrast')}
                   className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-colors"

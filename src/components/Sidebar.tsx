@@ -69,23 +69,38 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
               aria-current={isActive ? 'step' : undefined}
               aria-disabled={isLocked}
               className={cn(
-                'flex-shrink-0 flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-2xl transition-all duration-200 min-w-[56px]',
-                isActive
-                  ? 'bg-white text-black'
-                  : isLocked
-                  ? 'text-white/15 cursor-not-allowed'
-                  : 'text-white/40 hover:text-white hover:bg-white/5 active:scale-95'
+                'flex-shrink-0 flex flex-col items-center justify-center transition-all duration-300 group/nav',
+                isActive ? 'px-4' : 'px-2'
               )}
             >
-              <div className="relative">
-                <Icon className="w-5 h-5" />
-                {isLocked && (
-                  <div className="absolute -bottom-0.5 -right-0.5 bg-background rounded-full p-px">
-                    <Lock className="w-2 h-2 text-white/30" />
-                  </div>
-                )}
+              <div className={cn(
+                "w-11 h-11 rounded-full flex items-center justify-center transition-all duration-500",
+                isActive 
+                  ? "bg-white text-black shadow-lg shadow-white/10 scale-110" 
+                  : isLocked
+                    ? "bg-transparent text-white/10"
+                    : "bg-white/5 text-white/40 group-hover/nav:bg-white/10 group-hover/nav:text-white"
+              )}>
+                <div className="relative">
+                  <Icon className={cn(
+                    "w-5 h-5 transition-transform duration-300",
+                    isActive ? "scale-110" : "group-hover/nav:scale-110"
+                  )} />
+                  {isLocked && (
+                    <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 border border-white/5">
+                      <Lock className="w-2.5 h-2.5 text-white/30" />
+                    </div>
+                  )}
+                </div>
               </div>
-
+              
+              {isActive && (
+                <motion.div 
+                  layoutId="active-nav-dot"
+                  className="w-1 h-1 bg-white rounded-full mt-2"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
             </button>
           );
         })}
@@ -139,7 +154,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
                   "w-0 opacity-0 group-hover:w-auto group-hover:opacity-100"
                 )}>
                   <span className={cn(
-                    "text-[10px] uppercase tracking-widest font-bold",
+                    "text-[10px] uppercase tracking-widest font-semibold",
                     isActive ? "text-black/60" : "text-white/40"
                   )}>
                     Stage {stage.step} <span className="opacity-50 mx-1">•</span> {stage.estTime}

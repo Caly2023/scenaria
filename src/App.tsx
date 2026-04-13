@@ -103,88 +103,7 @@ const DeleteProjectModal = React.memo(function DeleteProjectModal({
   );
 });
 
-// ── Global AI Bar (extracted to avoid App re-render on input keystrokes) ──────
-const GlobalAiBar = React.memo(function GlobalAiBar({ 
-  activeStage, 
-  isTyping, 
-  onAiSubmit,
-  isMobile 
-}: { 
-  activeStage: string; 
-  isTyping: boolean; 
-  onAiSubmit: (text: string) => void;
-  isMobile?: boolean;
-}) {
-  const { t } = useTranslation();
-  const [input, setInput] = useState('');
 
-  const handleSubmit = useCallback(() => {
-    if (input.trim()) {
-      onAiSubmit(input);
-      setInput('');
-    }
-  }, [input, onAiSubmit]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleSubmit();
-  }, [handleSubmit]);
-
-  const handleDictationResult = useCallback((text: string) => {
-    setInput(prev => prev + (prev ? ' ' : '') + text);
-  }, []);
-
-  if (isMobile) {
-    return (
-      <div className="px-3 py-2 bg-[#0f0f0f] border-t border-white/5">
-        <div className="relative">
-          <input 
-            type="text" value={input} onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t('common.askAi', { stage: t(`stages.${activeStage}.label`, { defaultValue: activeStage }) })}
-            className="yt-input w-full pr-24 h-11 text-sm border-none shadow-none"
-          />
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-            <SpeechErrorBoundary>
-              <DictationButton onResult={handleDictationResult} size="sm" />
-            </SpeechErrorBoundary>
-            <button 
-              onClick={handleSubmit}
-              disabled={isTyping || !input.trim()}
-              className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all disabled:opacity-50 border-none"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full max-w-4xl mx-auto px-6 md:px-12 h-24 flex items-center justify-center flex-shrink-0 z-20 pb-4">
-      <div className="w-full relative shadow-[0_0_40px_rgba(0,0,0,0.5)] rounded-[20px]">
-        <input 
-          type="text" value={input} onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={t('common.askAi', { stage: t(`stages.${activeStage}.label`, { defaultValue: activeStage }) })}
-          className="yt-input w-full pr-28 h-11 text-sm bg-[#1a1a1a]/90 backdrop-blur-md rounded-[20px] border border-white/10 mx-auto block"
-        />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-          <SpeechErrorBoundary>
-            <DictationButton onResult={handleDictationResult} size="sm" />
-          </SpeechErrorBoundary>
-          <button 
-            onClick={handleSubmit}
-            disabled={isTyping || !input.trim()}
-            className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all disabled:opacity-50 border-none"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-});
 
 const DEFAULT_METADATA = { title: '', format: 'Short Film', genre: '', tone: '', languages: [], targetDuration: '', logline: '' };
 const EMPTY_ARRAY: any[] = [];
@@ -623,18 +542,31 @@ export default function App() {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col md:flex-row bg-background overflow-hidden relative font-sans">
-      {/* ── DESKTOP: floating sidebar + doctor FAB ─────────────────────────── */}
+      {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
       {!isMobile && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
           <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85vh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
             <Sidebar activeStage={activeStage} onStageChange={handleStageChange} validatedStages={currentProject.validatedStages || EMPTY_ARRAY} isVisible={true} />
           </div>
-          <div className={cn("pointer-events-auto absolute bottom-6 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]", isDoctorOpen ? "right-[-100px] opacity-0 scale-50" : "right-6 opacity-100 scale-100")}>
-            {!isFocusMode && (
-              <button onClick={handleOpenDoctor} className="w-16 h-16 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none">
-                <span className="text-xl font-bold italic tracking-tighter group-hover:scale-110 transition-transform">Dr</span>
-              </button>
+        </div>
+      )}
+
+      {/* ── Script Doctor Floating Action Button (Universal) ──────────────── */}
+      {!isFocusMode && (
+        <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
+          <div 
+            className={cn(
+              "pointer-events-auto absolute transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
+              isMobile ? "bottom-24 right-6" : "bottom-6 right-6",
+              isDoctorOpen ? "opacity-0 scale-50 pointer-events-none translate-x-12" : "opacity-100 scale-100"
             )}
+          >
+            <button 
+              onClick={handleOpenDoctor} 
+              className="w-16 h-16 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none"
+            >
+              <span className="text-xl font-bold italic tracking-tighter group-hover:scale-110 transition-transform">Dr</span>
+            </button>
           </div>
         </div>
       )}
@@ -802,14 +734,7 @@ export default function App() {
             </div>
           </div>
           
-          {/* On desktop: floating AI bar; on mobile: see bottom bar below */}
-          {!isMobile && (
-            <GlobalAiBar 
-              activeStage={activeStage} 
-              isTyping={isTyping} 
-              onAiSubmit={handleGlobalAiSubmit} 
-            />
-          )}
+
         </div>
       </div>
 
@@ -845,13 +770,7 @@ export default function App() {
           className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
-          {/* AI bar above bottom nav */}
-          <GlobalAiBar 
-            activeStage={activeStage} 
-            isTyping={isTyping} 
-            onAiSubmit={handleGlobalAiSubmit}
-            isMobile={true}
-          />
+
           {/* Stage tabs */}
           <div className="h-16">
             <Sidebar

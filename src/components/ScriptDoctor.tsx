@@ -220,12 +220,12 @@ function ScriptDoctorContent({
         </div>
 
         <div className="flex items-center gap-1">
-          <button className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white">
+          <button className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white border-none">
             <MoreHorizontal className="w-4 h-4" />
           </button>
           <button 
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white"
+            className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white border-none"
           >
             <X className="w-4 h-4" />
           </button>
@@ -297,7 +297,7 @@ function ScriptDoctorContent({
                             }}
                             disabled={isApplyingThis}
                             className={cn(
-                              "px-4 py-2 rounded-full text-[10px] font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50",
+                              "px-4 py-2 rounded-full text-[10px] font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 border-none",
                               isApply 
                                 ? "bg-white text-black" 
                                 : "border border-white/20 text-white/60 hover:bg-white/5"
@@ -325,7 +325,7 @@ function ScriptDoctorContent({
                     <button 
                       onClick={() => handleTts(displayContent, msg.id)}
                       className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-none",
                         isSpeaking === msg.id ? "bg-white text-black animate-pulse" : "bg-white/5 text-white/40 hover:text-white"
                       )}
                     >
@@ -446,7 +446,7 @@ function ScriptDoctorContent({
           <button 
             type="submit"
             disabled={!inputValue.trim() || isTyping}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-95 disabled:opacity-50 disabled:scale-100"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 border-none"
           >
             <Send className="w-4 h-4" />
           </button>

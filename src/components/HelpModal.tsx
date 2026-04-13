@@ -66,7 +66,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
             <button 
               onClick={onClose}
-              className="w-full mt-10 py-4 rounded-2xl bg-white text-black font-bold tracking-tight hover:bg-[#e5e5e5] transition-all"
+              className="w-full mt-10 h-11 rounded-2xl bg-white text-black font-bold tracking-tight hover:bg-[#e5e5e5] transition-all border-none"
             >
               {t('common.close', { defaultValue: 'Got it' })}
             </button>

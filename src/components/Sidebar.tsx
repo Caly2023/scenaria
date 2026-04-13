@@ -85,14 +85,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
                   </div>
                 )}
               </div>
-              <span
-                className={cn(
-                  'text-[9px] font-bold uppercase tracking-wide leading-none whitespace-nowrap',
-                  isActive ? 'text-black' : 'text-current'
-                )}
-              >
-                {stage.step}
-              </span>
+
             </button>
           );
         })}

@@ -753,7 +753,7 @@ export default function App() {
 
       {/* ── DESKTOP: Script Doctor side panel ─────────────────────────────── */}
       {!isMobile && (
-        <div className={cn("h-full border-l border-white/5 bg-[#212121] z-40 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden relative", isDoctorOpen ? "w-[30%] min-w-[350px] max-w-[450px]" : "w-0 min-w-0 border-none")}>
+        <div className={cn("h-full border-l border-white/5 bg-background z-40 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden relative", isDoctorOpen ? "w-[30%] min-w-[350px] max-w-[450px]" : "w-0 min-w-0 border-none")}>
           <div className="absolute right-0 top-0 w-[30vw] min-w-[350px] max-w-[450px] h-full">
             <Suspense fallback={
               <div className="h-full flex flex-col items-center justify-center p-12 space-y-4">

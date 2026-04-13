@@ -80,14 +80,13 @@ function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[70] flex flex-col bg-[#212121] overflow-hidden"
+            className="fixed inset-0 z-[70] flex flex-col bg-background overflow-hidden"
             style={{ 
-              height: '100dvh',
-              paddingBottom: 'env(safe-area-inset-bottom)'
+              height: '100dvh'
             }}
           >
             {/* Grab Handle for Mobile */}
-            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 md:hidden bg-[#0f0f0f]">
+            <div className="w-full flex justify-center pt-3 pb-1 shrink-0 md:hidden bg-background">
               <div className="w-12 h-1.5 bg-white/10 rounded-full" />
             </div>
             {children}
@@ -181,9 +180,9 @@ function ScriptDoctorContent({
   }, [messages.length]);
 
   return (
-    <div className="h-full w-full bg-[#212121] flex flex-col">
+    <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="h-16 md:h-14 bg-[#0f0f0f] flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0">
+      <div className="h-16 md:h-14 bg-background flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
             <Bot className="w-5 h-5" />
@@ -229,7 +228,7 @@ function ScriptDoctorContent({
       {/* Messages */}
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-5 space-y-6 scroll-smooth overscroll-contain"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-5 space-y-6 scroll-smooth overscroll-contain touch-action-pan-y"
       >
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-30">
@@ -257,7 +256,7 @@ function ScriptDoctorContent({
                 "p-4 rounded-xl text-sm leading-relaxed font-sans relative group",
                 msg.role === 'user' 
                   ? "bg-white text-black font-medium" 
-                  : "bg-[#0f0f0f] text-white/80"
+                  : "bg-surface text-white/80 border border-white/5 shadow-sm"
               )}>
                 <div className="prose prose-invert prose-sm">
                   <ReactMarkdown>{displayContent}</ReactMarkdown>
@@ -337,7 +336,7 @@ function ScriptDoctorContent({
 
         {isTyping && (
           <div className="flex flex-col gap-3 mr-auto items-start max-w-[90%]">
-            <div className="bg-[#0f0f0f] p-4 rounded-xl flex flex-col gap-3 min-w-[200px]">
+            <div className="bg-surface p-4 rounded-xl flex flex-col gap-3 min-w-[200px] border border-white/5 shadow-sm">
               {/* Live Status Indicator */}
               <div className="flex items-center gap-3 text-white/60">
                 <div className="flex gap-1">
@@ -428,14 +427,15 @@ function ScriptDoctorContent({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 bg-[#0f0f0f] flex-shrink-0">
+      <form onSubmit={handleSubmit} className="p-4 bg-background flex-shrink-0 border-t border-white/5">
         <div className="relative">
           <input 
             type="text" 
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder={t('common.askTheDoctor')} 
-            className="yt-input w-full pr-12"
+            className="yt-input w-full pr-12 bg-surface border-white/10 !text-base appearance-none"
+            style={{ fontSize: '16px' }}
           />
           <button 
             type="submit"

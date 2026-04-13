@@ -193,6 +193,14 @@ export async function persistAgentOutput(
           if (prim.visualPrompt) data.visualPrompt = prim.visualPrompt;
           if (prim.metadata) Object.assign(data, prim.metadata);
 
+          // IMPORTANT: Firestore throws synchronous errors if any field is undefined.
+          // Strip undefined values from data before passing to Firestore operations
+          Object.keys(data).forEach(key => {
+            if (data[key] === undefined) {
+              delete data[key];
+            }
+          });
+
           // If primitive has a real Firestore ID (not a temp one) → update
           if (prim.id && !prim.id.startsWith('beat_') && !prim.id.startsWith('treatment_')
               && !prim.id.startsWith('scene_') && !prim.id.startsWith('script_')

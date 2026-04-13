@@ -25,12 +25,12 @@ export function consumeQuotaNotice(): boolean {
 // Model names verified against Google AI API (April 2025).
 // gemini-2.5-flash-preview and gemini-2.5-pro-preview are the leading-edge models.
 const MODELS = {
-  LITE: "gemini-2.5-flash-lite-preview-06-17",
+  LITE: "gemini-2.5-flash-lite",
   FLASH: "gemini-2.5-flash",
   PRO: "gemini-2.5-pro",
   // Leading-edge preview models (used as primary in cascade)
-  PRO_3_1: "gemini-2.5-pro-preview-05-06",
-  FLASH_3_1: "gemini-2.5-flash-preview-05-20",
+  PRO_3_1: "gemini-3.1-pro-preview",
+  FLASH_3_1: "gemini-3-flash-preview",
   FALLBACK: "gemini-2.0-flash"
 };
 

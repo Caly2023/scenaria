@@ -57,7 +57,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[299]"
           />
 
           {/* Drawer */}
@@ -66,8 +66,9 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 w-[90vw] sm:w-[448px] max-w-full z-[201] bg-[#212121] shadow-2xl flex flex-col border-l border-white/5"
+            className="fixed top-0 right-0 bottom-0 w-full z-[300] bg-[#212121] shadow-2xl flex flex-col border-l border-white/5"
           >
+            <div className="flex-1 flex flex-col w-full max-w-4xl mx-auto relative">
             {/* Header */}
             <div className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#1a1a1a]">
               <h2 className="text-sm font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
@@ -251,6 +252,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                 {t('common.deleteProject', { defaultValue: 'Delete Project' })}
               </button>
             </div>
+          </div>
           </motion.div>
         </>
       )}

@@ -29,6 +29,8 @@ interface HeaderProps {
   isCompact?: boolean;
   accessibilitySettings: { highContrast: boolean; largeText: boolean; reducedMotion: boolean };
   onAccessibilityChange: (settings: any) => void;
+  onTitleClick: () => void;
+  isTitleOpen: boolean;
 }
 
 export function Header({ 
@@ -42,7 +44,9 @@ export function Header({
   collaborators,
   isCompact,
   accessibilitySettings,
-  onAccessibilityChange
+  onAccessibilityChange,
+  onTitleClick,
+  isTitleOpen
 }: HeaderProps) {
   const { t } = useTranslation();
   const [isAccessOpen, setIsAccessOpen] = React.useState(false);
@@ -81,17 +85,25 @@ export function Header({
 
         {/* Desktop-only project info & tools */}
         <div className="hidden md:flex items-center gap-4 min-w-0">
-          <div className="flex flex-col items-start leading-none min-w-0">
+          <button 
+            onClick={onTitleClick}
+            className="flex flex-col items-start leading-none min-w-0 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title"
+          >
             <span className="text-[9px] uppercase tracking-widest text-secondary font-semibold mb-0.5">
               {t('common.project')}
             </span>
-            <div className="flex items-center gap-1 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-sm font-medium tracking-tight text-white truncate max-w-[200px]">
                 {projectName}
               </span>
-              <ChevronDown className="w-3 h-3 text-white/30 flex-shrink-0" />
+              <ChevronDown 
+                className={cn(
+                  "w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300",
+                  isTitleOpen && "rotate-180 text-white"
+                )} 
+              />
             </div>
-          </div>
+          </button>
 
           <div className="h-6 w-[1px] bg-white/10 mx-1" />
 
@@ -139,9 +151,20 @@ export function Header({
 
       {/* Mobile-only Centered Project Name */}
       <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[50%]">
-        <span className="text-sm font-semibold tracking-tight text-white truncate">
-          {projectName}
-        </span>
+        <button 
+          onClick={onTitleClick}
+          className="flex items-center gap-1.5 min-w-0 border-none bg-transparent p-0"
+        >
+          <span className="text-sm font-semibold tracking-tight text-white truncate">
+            {projectName}
+          </span>
+          <ChevronDown 
+            className={cn(
+              "w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300",
+              isTitleOpen && "rotate-180 text-white"
+            )} 
+          />
+        </button>
       </div>
 
 

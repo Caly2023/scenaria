@@ -583,6 +583,8 @@ export default function App() {
           isCompact={isDoctorOpen}
           accessibilitySettings={accessibilitySettings}
           onAccessibilityChange={setAccessibilitySettings}
+          onTitleClick={handleOpenDrawer}
+          isTitleOpen={isProjectDrawerOpen}
         />
 
         <FormErrorBoundary>

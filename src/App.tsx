@@ -1,1377 +1,257 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  Suspense,
-  useMemo,
-} from "react";
-import { Sidebar } from "./components/Sidebar";
-import { Header } from "./components/Header";
-import { HomePage } from "./components/HomePage";
-import { ProjectDrawer } from "./components/ProjectDrawer";
-import { FocusMode } from "./components/FocusMode";
-
-import { useAutoHydration } from "./hooks/useAutoHydration";
-import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ConnectionErrorPage,
-  NotFoundPage,
-  OfflinePage,
-} from "./components/ErrorPages";
-import { LoadingPage } from "./components/LoadingPage";
-import { HelpModal } from "./components/HelpModal";
-import { OnboardingWizard } from "./components/OnboardingWizard";
-import { CanvasErrorBoundary } from "./components/ErrorBoundary/CanvasErrorBoundary";
-import { FormErrorBoundary } from "./components/ErrorBoundary/FormErrorBoundary";
-import { telemetryService, TelemetryStatus } from "./services/telemetryService";
+import { useIdleTimer } from "react-idle-timer";
+import { db } from "./lib/firebase";
+import { useAuth } from "./hooks/useAuth";
+import { useProjects } from "./hooks/useProjects";
+import { useSubcollections } from "./hooks/useSubcollections";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useProjectLifecycle } from "./hooks/useProjectLifecycle";
+import { useScriptDoctor } from "./hooks/useScriptDoctor";
+import { useAppCallbacks } from "./hooks/useAppCallbacks";
+import { handleStageAnalyze as handleStageAnalyzeInternal, handleStageRefine } from "./services/stageAgentApi";
 import { contextAssembler } from "./services/contextAssembler";
 import { aiQuotaState } from "./services/serviceState";
 import { consumeQuotaNotice } from "./services/geminiService";
-import { Check, Wand2, Image as ImageIcon, Bot } from "lucide-react";
-import { cn } from "./lib/utils";
-import { AnimatePresence, motion } from "motion/react";
+import { useAutoHydration } from "./hooks/useAutoHydration";
 import { WorkflowStage } from "./types";
-import { OrbitingLoader } from "./components/OrbitingLoader";
+import { FocusMode } from "./components/FocusMode";
+import { LoadingPage } from "./components/LoadingPage";
+import { OfflinePage, ConnectionErrorPage, NotFoundPage } from "./components/ErrorPages";
+import { HomePage } from "./components/HomePage";
+import { MainLayout } from "./components/MainLayout";
+import { StageRenderer } from "./components/StageRenderer";
+import { ScriptDoctor as ScriptDoctorComponent } from "./components/ScriptDoctor";
 
-// ── Mobile detection hook ─────────────────────────────────────────────────────
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 768 : false,
-  );
-  useEffect(() => {
-    const mql = window.matchMedia("(max-width: 767px)");
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener("change", handler);
-    setIsMobile(mql.matches);
-    return () => mql.removeEventListener("change", handler);
-  }, []);
-  return isMobile;
-}
-
-import { useAppAuth } from "./hooks/useAppAuth";
-import { useProjectData } from "./hooks/useProjectData";
-import { useProjectSync } from "./hooks/useProjectSync";
-import { useProjectActions } from "./hooks/useProjectActions";
-import { useScriptDoctor } from "./hooks/useScriptDoctor";
-import { useProjectLifecycle } from "./hooks/useProjectLifecycle";
-import { useStageAnalysis } from "./hooks/useStageAnalysis";
-import { buildProjectContext } from "./services/orchestratorService";
-import {
-  useAddSubcollectionDocMutation,
-  useUpdateSubcollectionDocMutation,
-  useDeleteSubcollectionDocMutation,
-  useUpdateProjectMetadataMutation,
-} from "./services/firebaseApi";
-
-// ── Lazy-loaded stage components ──────────────────────────────────────────────
-// Only the active stage is rendered at a time; load each bundle on first visit.
-const BrainstormingStage = React.lazy(() =>
-  import("./components/BrainstormingStage").then((m) => ({
-    default: m.BrainstormingStage,
-  })),
-);
-const LoglineStage = React.lazy(() =>
-  import("./components/LoglineStage").then((m) => ({
-    default: m.LoglineStage,
-  })),
-);
-const WorkflowStageComponent = React.lazy(() =>
-  import("./components/WorkflowStage").then((m) => ({
-    default: m.WorkflowStage,
-  })),
-);
-const CharacterBible = React.lazy(() =>
-  import("./components/CharacterBible").then((m) => ({
-    default: m.CharacterBible,
-  })),
-);
-const LocationBible = React.lazy(() =>
-  import("./components/LocationBible").then((m) => ({
-    default: m.LocationBible,
-  })),
-);
-const MainCanvas = React.lazy(() =>
-  import("./components/MainCanvas").then((m) => ({ default: m.MainCanvas })),
-);
-const ScriptDoctor = React.lazy(() =>
-  import("./components/ScriptDoctor").then((m) => ({
-    default: m.ScriptDoctor,
-  })),
-);
-
-const StageSkeleton = () => (
-  <div className="w-full h-[60vh] flex items-center justify-center">
-    <OrbitingLoader size="small" showText={false} />
-  </div>
-);
-
-interface Toast {
-  id: string;
-  message: string;
-  type: "success" | "error" | "info";
-  action?: { label: string; onClick: () => void };
-}
-
-// ── Delete-project modal (extracted to avoid App re-render on input change) ──
-interface DeleteModalProps {
-  onCancel: () => void;
-  onConfirm: (id: string) => void;
-  projectId: string;
-  isDeleting: boolean;
-}
-const DeleteProjectModal = React.memo(function DeleteProjectModal({
-  onCancel,
-  onConfirm,
-  projectId,
-  isDeleting,
-}: DeleteModalProps) {
-  const { t } = useTranslation();
-  const [confirmText, setConfirmText] = useState("");
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onCancel}
-        className="absolute inset-0 bg-black/80 backdrop-blur-md"
-      />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="relative w-full max-w-md bg-[#212121] rounded-[32px] p-8 shadow-2xl border border-white/10 space-y-6"
-      >
-        <div className="space-y-2 text-center">
-          <h3 className="text-xl font-semibold tracking-tight text-white">
-            {t("common.deleteProject", { defaultValue: "Delete Project" })}
-          </h3>
-          <p className="text-white/40 text-sm">
-            {t("common.deleteWarning", {
-              defaultValue:
-                'This action is permanent. Type "DELETE" to confirm.',
-            })}
-          </p>
-        </div>
-        <input
-          type="text"
-          value={confirmText}
-          onChange={(e) => setConfirmText(e.target.value)}
-          placeholder="DELETE"
-          className="yt-input w-full text-center text-red-500 font-semibold tracking-widest text-base"
-        />
-        <div className="flex gap-4">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-4 rounded-2xl bg-white/5 text-white font-semibold hover:bg-white/10 transition-all"
-          >
-            {t("common.cancel")}
-          </button>
-          <button
-            onClick={() => onConfirm(projectId)}
-            disabled={confirmText !== "DELETE" || isDeleting}
-            className="flex-1 py-4 rounded-2xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-          >
-            {isDeleting ? (
-              <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto" />
-            ) : (
-              t("common.delete", { defaultValue: "Delete" })
-            )}
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-});
-
-const DEFAULT_METADATA = {
-  title: "",
-  format: "Short Film",
-  genre: "",
-  tone: "",
-  languages: [],
-  targetDuration: "",
-  logline: "",
-};
-const EMPTY_ARRAY: any[] = [];
 const NOOP = () => {};
 
 export default function App() {
-  const { t } = useTranslation();
-  const isMobile = useIsMobile();
+  const { user, isAuthReady } = useAuth();
+  const { 
+    projects, currentProject, currentProjectId, isProjectLoading, isProjectNotFound, isOffline, connectionError, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate 
+  } = useProjects(user);
 
-  const { user, isAuthReady, isOffline, connectionError } = useAppAuth();
+  const { 
+    pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes 
+  } = useSubcollections(currentProjectId);
 
-  const {
-    projects,
-    currentProject,
-    currentProjectId,
-    isProjectLoading,
-    isProjectNotFound,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives,
-    characters,
-    locations,
-    handleProjectSelect,
-    handleProjectExit,
-    activeStage,
-    handleStageChange,
-  } = useProjectData(user);
-
-  const [addSubcollectionDoc] = useAddSubcollectionDocMutation();
-  const [updateSubcollectionDoc] = useUpdateSubcollectionDocMutation();
-  const [deleteSubcollectionDoc] = useDeleteSubcollectionDocMutation();
-  const [updateProjectMetadata] = useUpdateProjectMetadataMutation();
-
-  // UI State
-  const [isFocusMode, setIsFocusMode] = useState(false);
-  const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(
-    null,
-  );
+  const [toasts, setToasts] = useState<any[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
-  const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<
-    string | null
-  >(null);
-  const [telemetryStatus, setTelemetryStatus] =
-    useState<TelemetryStatus | null>(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [accessibilitySettings, setAccessibilitySettings] = useState({
-    highContrast: false,
-    largeText: false,
-    reducedMotion: false,
-  });
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
+  const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(
-    () => !localStorage.getItem("scenaria_onboarded"),
-  );
+  const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(null);
+  const [accessibilitySettings, setAccessibilitySettings] = useState({ fontSize: "medium", contrast: "normal", motion: "standard" });
+  const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
+  const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<string | null>(null);
 
-  // Memoized user collaborators
-  const collaborators = useMemo(
-    () =>
-      user
-        ? [
-            {
-              id: user.uid,
-              name: user.displayName || "You",
-              photoURL: user.photoURL || "",
-              isActive: true,
-            },
-          ]
-        : EMPTY_ARRAY,
-    [user],
-  );
-
-  useEffect(() => {
-    telemetryService.onStatusChange((status) => {
-      setTelemetryStatus(status);
-    });
+  const addToast = useCallback((message: string, type: 'error' | 'info' | 'success') => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000);
   }, []);
 
-  // Sync accessibility settings to body classes
-  useEffect(() => {
-    const { highContrast, largeText, reducedMotion } = accessibilitySettings;
-    document.body.classList.toggle("accessibility-high-contrast", highContrast);
-    document.body.classList.toggle("accessibility-large-text", largeText);
-    document.body.classList.toggle(
-      "accessibility-reduced-motion",
-      reducedMotion,
-    );
-  }, [accessibilitySettings]);
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    if (currentProjectId) {
-      contextAssembler.hydrateFullIdMap(currentProjectId).catch((err) => {
-        if (!abortController.signal.aborted) {
-          console.warn("Initial ID-Map hydration failed:", err);
-        }
-      });
-    } else {
-      telemetryService.invalidateAll();
-    }
-    return () => {
-      abortController.abort();
-    };
-  }, [currentProjectId]);
-
-  const MAX_TOASTS = 3;
-  const addToast = useCallback(
-    (message: string, type: Toast["type"] = "info", action?: any) => {
-      const id = Date.now().toString();
-      setToasts((prev) => {
-        const newToasts = [...prev, { id, message, type, action }];
-        if (newToasts.length > MAX_TOASTS) {
-          return newToasts.slice(newToasts.length - MAX_TOASTS);
-        }
-        return newToasts;
-      });
-
-      const timeoutDuration = type === "error" ? 15000 : 5000;
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, timeoutDuration);
-    },
-    [],
-  );
-
-  // ── AI Quota Global Monitor ───────────────────────────────────────────────
-  useEffect(() => {
-    const unsub = aiQuotaState.subscribe((isExhausted) => {
-      if (isExhausted) {
-        const shouldInform = consumeQuotaNotice();
-        if (shouldInform) {
-          addToast(
-            t("common.quotaExhaustedNotice", {
-              defaultValue:
-                "Gemini 3 quota reached. Switching to high-speed Gemini 2.5 for uninterrupted creativity.",
-            }),
-            "info",
-          );
-        }
-      }
+  const getProjectContext = useCallback(async () => {
+    if (!currentProject) return "";
+    return await contextAssembler.assembleProjectContext(currentProject, {
+      pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes
     });
-    return unsub;
-  }, [addToast, t]);
+  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
+
+  const hydrationState = useAutoHydration(currentProject, getProjectContext);
+
+  const activeStage = currentProject?.activeStage || "Brainstorming";
+
+  const handleStageAnalyze = useCallback((stage: any) => handleStageAnalyzeInternal(currentProject, stage, setIsTyping), [handleStageAnalyzeInternal, currentProject]);
 
   const {
-    syncStatus,
-    setSyncStatus,
-    handleContentUpdate,
-    handleSubcollectionUpdate,
-  } = useProjectSync(currentProject, addToast);
-
-  // Use separated analysis hook to avoid cyclic dependency
-  const { handleStageAnalyze: handleStageAnalyzeInternal } = useStageAnalysis();
-  const handleStageAnalyze = useCallback(
-    (stage: any) => {
-      return handleStageAnalyzeInternal(currentProject, stage, setIsTyping);
-    },
-    [handleStageAnalyzeInternal, currentProject, setIsTyping],
-  );
-
-  const {
-    isDoctorOpen,
-    setIsDoctorOpen,
-    doctorMessages,
-    setDoctorMessages,
-    isDoctorTyping,
-    isHeavyThinking,
-    activeTool,
-    aiStatus,
-    handleDoctorMessage,
+    isDoctorOpen, setIsDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage
   } = useScriptDoctor({
-    currentProject,
-    activeStage,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    characters,
-    locations,
-    addToast,
-    setRefiningBlockId,
-    setLastUpdatedPrimitiveId,
-    handleStageAnalyze,
+    currentProject, activeStage, sequences, treatmentSequences, scriptScenes, pitchPrimitives, characters, locations, addToast, setRefiningBlockId, setLastUpdatedPrimitiveId, handleStageAnalyze
   });
 
-  const {
-    handleStageRefine,
-    handleSequenceUpdate,
-    handleSequenceAdd,
-    handleAiMagic,
-    handleGenerateViews,
-    handleCharacterDeepDevelop,
-    handleLocationDeepDevelop,
-  } = useProjectActions({
-    currentProject,
-    setIsTyping,
-    setRefiningBlockId,
-    setLastUpdatedPrimitiveId,
-    addToast,
-    handleSubcollectionUpdate,
-    characters,
-    locations,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives,
+  const { handleRegenerate, handleProjectDelete: performProjectDelete, handleProjectCreate: performProjectCreate, handleStageValidate } = useProjectLifecycle({
+    user, currentProject, currentProjectId, setIsTyping, setSyncStatus, setIsHeavyThinking: NOOP, setIsRegenerating, isRegenerating, addToast, handleProjectSelect, handleProjectExit, handleStageChange, setIsDeleting, setProjectToDelete, hydrationState, getProjectContext, setDeleteConfirmText: NOOP
   });
 
-  const hydrationState = useAutoHydration({
-    activeStage,
-    currentProject,
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives,
-    characters,
-    locations,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    addToast,
-    onStageAnalyze: handleStageAnalyze,
-  });
-
-  // ── Build ProjectContext from live data for proactive ghost generation ──────
-  const getProjectContext = useCallback(() => {
-    if (!currentProject) return null;
-    return buildProjectContext(
-      currentProject.id,
-      currentProject.metadata,
-      {
-        Brainstorming: pitchPrimitives as any,
-        Logline: loglinePrimitives as any,
-        "3-Act Structure": structurePrimitives as any,
-        Synopsis: synopsisPrimitives as any,
-        "Character Bible": characters as any,
-        "Location Bible": locations as any,
-        Treatment: treatmentSequences as any,
-        "Step Outline": sequences as any,
-        Script: scriptScenes as any,
-      },
-      currentProject.stageAnalyses || {},
-    );
-  }, [
-    currentProject,
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives,
-    characters,
-    locations,
-    treatmentSequences,
-    sequences,
-    scriptScenes,
-  ]);
-
-  const {
-    handleRegenerate,
-    handleProjectDelete,
-    handleProjectCreate,
-    handleStageValidate,
-  } = useProjectLifecycle({
-    user,
-    currentProject,
-    currentProjectId,
-    setIsTyping,
-    setSyncStatus,
-    setIsHeavyThinking: NOOP,
-    setIsRegenerating,
-    isRegenerating,
-    addToast,
-    handleProjectSelect,
-    handleProjectExit,
-    handleStageChange,
-    setDoctorMessages,
-    setIsDoctorOpen,
-    setIsDeleting,
-    setProjectToDelete,
-    setDeleteConfirmText: NOOP, // owned by DeleteProjectModal now
-    hydrationState,
-    getProjectContext,
-  });
-
-  // ── Memoized callbacks ───────────────────────────────────────────────────────
-  const handleMetadataUpdate = useCallback(
-    async (metadata: any) => {
-      if (!currentProject) return;
-      setSyncStatus("syncing");
-      try {
-        await updateProjectMetadata({
-          id: currentProject.id,
-          metadata,
-        }).unwrap();
-        setSyncStatus("synced");
-      } catch (error) {
-        console.error(error);
-        setSyncStatus("error");
-      }
-    },
-    [currentProject, updateProjectMetadata, setSyncStatus],
-  );
-
-  const handleOpenDoctor = useCallback(
-    () => setIsDoctorOpen(true),
-    [setIsDoctorOpen],
-  );
-  const handleToggleDoctor = useCallback(
-    () => setIsDoctorOpen((p) => !p),
-    [setIsDoctorOpen],
-  );
-  const handleCloseDoctor = useCallback(
-    () => setIsDoctorOpen(false),
-    [setIsDoctorOpen],
-  );
+  const handleToggleDoctor = useCallback(() => setIsDoctorOpen(prev => !prev), [setIsDoctorOpen]);
+  const handleOpenDoctor = useCallback(() => setIsDoctorOpen(true), [setIsDoctorOpen]);
+  const handleCloseDoctor = useCallback(() => setIsDoctorOpen(false), [setIsDoctorOpen]);
   const handleOpenDrawer = useCallback(() => setIsProjectDrawerOpen(true), []);
-  const handleCloseDrawer = useCallback(
-    () => setIsProjectDrawerOpen(false),
-    [],
-  );
+  const handleCloseDrawer = useCallback(() => setIsProjectDrawerOpen(false), []);
   const handleCloseFocus = useCallback(() => setIsFocusMode(false), []);
-  const handleOpenDeleteModal = useCallback(
-    (id: string) => setProjectToDelete(id),
-    [],
-  );
   const handleCancelDelete = useCallback(() => setProjectToDelete(null), []);
 
-  // ── Keyboard Shortcuts ──────────────────────────────────────────────────────
   useKeyboardShortcuts({
-    onProjectSwitch: handleProjectExit,
-    onDoctorToggle: handleToggleDoctor,
-    onStageChange: handleStageChange,
-    activeStage,
-    stages: [
-      "Brainstorming",
-      "Logline",
-      "3-Act Structure",
-      "Synopsis",
-      "Character Bible",
-      "Location Bible",
-      "Treatment",
-      "Step Outline",
-      "Script",
-      "Storyboard",
-    ] as WorkflowStage[],
-    onShowHelp: () => setIsHelpOpen(true),
+    onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Brainstorming", "Logline", "3-Act Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Storyboard"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
   });
 
-  const handleFocusMode = useCallback((id: string) => {
-    setFocusedSequenceId(id);
-    setIsFocusMode(true);
-  }, []);
+  const handleFocusMode = useCallback((id: string) => { setFocusedSequenceId(id); setIsFocusMode(true); }, []);
+  const handleDeleteCurrentProject = useCallback(() => { if (currentProject) setProjectToDelete(currentProject.id); }, [currentProject]);
 
-  const handleDeleteCurrentProject = useCallback(() => {
-    if (currentProject) handleOpenDeleteModal(currentProject.id);
-  }, [currentProject, handleOpenDeleteModal]);
+  const {
+    handleStoryChange, onLoglineChange, handleCharacterAdd, handleCharacterUpdate, handleCharacterDelete, handleLocationAdd, handleLocationUpdate, handleLocationDelete, onValidateBrainstorming, onValidateLogline, onValidate3Act, onValidateSynopsis, onValidateCharacterBible, onValidateLocationBible, onValidateTreatment, onValidateStepOutline, onValidateScript, onValidateStoryboard
+  } = useAppCallbacks({
+    currentProject, addToast, handleSubcollectionUpdate, handleContentUpdate, handleStageValidate, pitchPrimitives, loglinePrimitives
+  });
 
-  const handleHomePageProjectSelect = useCallback(
-    (id: string) => {
-      handleProjectSelect(
-        id,
-        projects.find((p) => p.id === id),
-      );
-    },
-    [handleProjectSelect, projects],
-  );
+  const onRefineLogline = useCallback((f?: string) => handleStageRefine("Logline", f), [handleStageRefine]);
+  const onContentChange3Act = useCallback((c: string) => {
+    const id = structurePrimitives[0]?.id;
+    if (id && structurePrimitives.length === 1) handleSubcollectionUpdate("structure_primitives", id, c);
+  }, [structurePrimitives, handleSubcollectionUpdate]);
+  const onRefine3Act = useCallback((f?: string, id?: string) => handleStageRefine("3-Act Structure", f, id), [handleStageRefine]);
+  const onRegenerate3Act = useCallback(() => handleRegenerate("3-Act Structure"), [handleRegenerate]);
+  const onContentChangeSynopsis = useCallback((c: string) => {
+    const id = synopsisPrimitives[0]?.id;
+    if (id) handleSubcollectionUpdate("synopsis_primitives", id, c);
+  }, [synopsisPrimitives, handleSubcollectionUpdate]);
+  const onRefineSynopsis = useCallback((f?: string, id?: string) => handleStageRefine("Synopsis", f, id), [handleStageRefine]);
+  const onRegenerateSynopsis = useCallback(() => handleRegenerate("Synopsis"), [handleRegenerate]);
+  const onContentChangeTreatment = useCallback((c: string) => handleContentUpdate("treatmentDraft", c), [handleContentUpdate]);
+  const onItemChangeTreatment = useCallback((id: string, content: string) => handleSubcollectionUpdate("treatment_sequences", id, content), [handleSubcollectionUpdate]);
+  const onRefineTreatment = useCallback((f?: string, id?: string) => handleStageRefine("Treatment", f, id), [handleStageRefine]);
+  const onRegenerateTreatment = useCallback(() => handleRegenerate("Treatment"), [handleRegenerate]);
+  const onContentChangeScript = useCallback((c: string) => handleContentUpdate("scriptDraft", c), [handleContentUpdate]);
+  const onItemChangeScript = useCallback((id: string, content: string) => handleSubcollectionUpdate("script_scenes", id, content), [handleSubcollectionUpdate]);
+  const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f, id), [handleStageRefine]);
+  const onRegenerateScript = useCallback(() => handleRegenerate("Script"), [handleRegenerate]);
 
-  const onLoglineChange = useCallback(
-    (c: string) => {
-      const id = loglinePrimitives[0]?.id;
-      if (id) {
-        handleSubcollectionUpdate("logline_primitives", id, c);
-      }
-    },
-    [loglinePrimitives, handleSubcollectionUpdate],
-  );
-
-  const onRefineLogline = useCallback(
-    (f: string) => handleStageRefine("Logline", f),
-    [handleStageRefine],
-  );
-  const onContentChange3Act = useCallback(
-    (c: string) => {
-      const id = structurePrimitives[0]?.id;
-      if (id && structurePrimitives.length === 1)
-        handleSubcollectionUpdate("structure_primitives", id, c);
-    },
-    [structurePrimitives, handleSubcollectionUpdate],
-  );
-  const onRefine3Act = useCallback(
-    (f: string, blockId?: string) =>
-      handleStageRefine("3-Act Structure", f, blockId),
-    [handleStageRefine],
-  );
-  const onRegenerate3Act = useCallback(
-    () => handleRegenerate("3-Act Structure"),
-    [handleRegenerate],
-  );
-
-  const onContentChangeSynopsis = useCallback(
-    (c: string) => {
-      const id = synopsisPrimitives[0]?.id;
-      if (id) handleSubcollectionUpdate("synopsis_primitives", id, c);
-    },
-    [synopsisPrimitives, handleSubcollectionUpdate],
-  );
-  const onRefineSynopsis = useCallback(
-    (f: string, blockId?: string) => handleStageRefine("Synopsis", f, blockId),
-    [handleStageRefine],
-  );
-  const onRegenerateSynopsis = useCallback(
-    () => handleRegenerate("Synopsis"),
-    [handleRegenerate],
-  );
-
-  const onContentChangeTreatment = useCallback(
-    (c: string) => handleContentUpdate("treatmentDraft", c),
-    [handleContentUpdate],
-  );
-  const onItemChangeTreatment = useCallback(
-    (id: string, content: string) =>
-      handleSubcollectionUpdate("treatment_sequences", id, content),
-    [handleSubcollectionUpdate],
-  );
-  const onRefineTreatment = useCallback(
-    (f: string, blockId?: string) => handleStageRefine("Treatment", f, blockId),
-    [handleStageRefine],
-  );
-  const onRegenerateTreatment = useCallback(
-    () => handleRegenerate("Treatment"),
-    [handleRegenerate],
-  );
-
-  const onContentChangeScript = useCallback(
-    (c: string) => handleContentUpdate("scriptDraft", c),
-    [handleContentUpdate],
-  );
-  const onItemChangeScript = useCallback(
-    (id: string, content: string) =>
-      handleSubcollectionUpdate("script_scenes", id, content),
-    [handleSubcollectionUpdate],
-  );
-  const onRefineScript = useCallback(
-    (f: string, blockId?: string) => handleStageRefine("Script", f, blockId),
-    [handleStageRefine],
-  );
-  const onRegenerateScript = useCallback(
-    () => handleRegenerate("Script"),
-    [handleRegenerate],
-  );
-
-  const handleStoryChange = useCallback(
-    (c: string) => {
-      const pitchId = pitchPrimitives.find((p) => p.order === 1)?.id;
-      if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, c);
-      handleContentUpdate("pitch_result", c);
-    },
-    [pitchPrimitives, handleSubcollectionUpdate, handleContentUpdate],
-  );
-
-  const handleCharacterAdd = useCallback(
-    async (name: string, description: string, tier: any) => {
-      if (!currentProject) return;
-      try {
-        await addSubcollectionDoc({
-          projectId: currentProject.id,
-          collectionName: "characters",
-          data: { name, description, tier },
-        }).unwrap();
-        addToast(t("common.characterAdded"), "success");
-      } catch (e) {
-        addToast("Failed to add character", "error");
-      }
-    },
-    [currentProject, addSubcollectionDoc, addToast, t],
-  );
-
-  const handleCharacterUpdate = useCallback(
-    async (id: string, updates: any) => {
-      if (!currentProject) return;
-      await updateSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "characters",
-        docId: id,
-        data: updates,
-      }).unwrap();
-    },
-    [currentProject, updateSubcollectionDoc],
-  );
-
-  const handleCharacterDelete = useCallback(
-    async (id: string) => {
-      if (!currentProject) return;
-      await deleteSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "characters",
-        docId: id,
-      }).unwrap();
-      addToast(t("common.characterDeleted"), "info");
-    },
-    [currentProject, deleteSubcollectionDoc, addToast, t],
-  );
-
-  const handleLocationAdd = useCallback(
-    async (name: string, description: string) => {
-      if (!currentProject) return;
-      try {
-        await addSubcollectionDoc({
-          projectId: currentProject.id,
-          collectionName: "locations",
-          data: { name, description },
-        }).unwrap();
-        addToast(t("common.locationAdded"), "success");
-      } catch (e) {
-        addToast("Failed to add location", "error");
-      }
-    },
-    [currentProject, addSubcollectionDoc, addToast, t],
-  );
-
-  const handleLocationUpdate = useCallback(
-    async (id: string, updates: any) => {
-      if (!currentProject) return;
-      await updateSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "locations",
-        docId: id,
-        data: updates,
-      }).unwrap();
-    },
-    [currentProject, updateSubcollectionDoc],
-  );
-
-  const handleLocationDelete = useCallback(
-    async (id: string) => {
-      if (!currentProject) return;
-      await deleteSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "locations",
-        docId: id,
-      }).unwrap();
-      addToast(t("common.locationDeleted"), "info");
-    },
-    [currentProject, deleteSubcollectionDoc, addToast, t],
-  );
-
-  // ── Stage validate / refine stable refs ─────────────────────────────────────
-  const onValidateBrainstorming = useCallback(
-    () => handleStageValidate("Brainstorming"),
-    [handleStageValidate],
-  );
-  const onValidateLogline = useCallback(
-    () => handleStageValidate("Logline"),
-    [handleStageValidate],
-  );
-  const onValidate3Act = useCallback(
-    () => handleStageValidate("3-Act Structure"),
-    [handleStageValidate],
-  );
-  const onValidateSynopsis = useCallback(
-    () => handleStageValidate("Synopsis"),
-    [handleStageValidate],
-  );
-  const onValidateCharacterBible = useCallback(
-    () => handleStageValidate("Character Bible"),
-    [handleStageValidate],
-  );
-  const onValidateLocationBible = useCallback(
-    () => handleStageValidate("Location Bible"),
-    [handleStageValidate],
-  );
-  const onValidateTreatment = useCallback(
-    () => handleStageValidate("Treatment"),
-    [handleStageValidate],
-  );
-  const onValidateStepOutline = useCallback(
-    () => handleStageValidate("Step Outline"),
-    [handleStageValidate],
-  );
-  const onValidateScript = useCallback(
-    () => handleStageValidate("Script"),
-    [handleStageValidate],
-  );
-  const onValidateStoryboard = useCallback(
-    () => handleStageValidate("Storyboard"),
-    [handleStageValidate],
-  );
-
-  // ── Auth / loading gates ─────────────────────────────────────────────────────
   if (!isAuthReady) return <LoadingPage />;
-  if (isOffline)
-    return <OfflinePage onRetry={() => window.location.reload()} />;
-  if (connectionError)
-    return <ConnectionErrorPage onRetry={() => window.location.reload()} />;
+  if (isOffline) return <OfflinePage onRetry={() => window.location.reload()} />;
+  if (connectionError) return <ConnectionErrorPage onRetry={() => window.location.reload()} />;
+  if (isProjectLoading) return <LoadingPage />;
   if (isProjectNotFound) return <NotFoundPage onBackHome={handleProjectExit} />;
-
-  if (!user) {
-    const signInWithGoogle = async () => {
-      const { signInWithGoogle: signIn } = await import("./lib/firebase");
-      signIn();
-    };
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-8">
-        <div className="glass p-12 rounded-[40px] text-center space-y-8 max-w-md w-full">
-          <img
-            src="/logo.png"
-            alt="ScénarIA"
-            className="w-24 h-24 mx-auto mb-4"
-          />
-          <h1 className="text-4xl font-bold tracking-tighter italic">
-            ScénarIA
-          </h1>
-          <p className="text-white/40 text-sm">{t("common.signIn")}</p>
-          <button
-            onClick={signInWithGoogle}
-            className="w-full h-11 rounded-2xl bg-white text-black font-bold tracking-tight hover:scale-105 transition-all border-none"
-          >
-            {t("common.signInWithGoogle")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (isProjectLoading || (currentProjectId && !currentProject)) {
-    return (
-      <div className="min-h-screen bg-[#0f0f0f] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        <div className="absolute top-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#D4AF37]/[0.02] rounded-full blur-[120px]" />
-        <OrbitingLoader
-          size="large"
-          title="ScénarIA"
-          description={t("common.hydratingProject", {
-            defaultValue: "Hydrating project snapshot...",
-          })}
-        />
-      </div>
-    );
-  }
-
-  if (isProjectLoading) {
-    return <LoadingPage />;
-  }
 
   if (!currentProject) {
     return (
       <HomePage
         projects={projects}
+        onProjectSelect={handleProjectSelect}
         onProjectCreate={handleProjectCreate}
-        onProjectSelect={handleHomePageProjectSelect}
-        onProjectDelete={handleOpenDeleteModal}
+        onProjectDelete={(id) => setProjectToDelete(id)}
       />
     );
   }
 
-  const focusedSequence = sequences.find((s) => s.id === focusedSequenceId);
+  const renderStage = () => (
+    <StageRenderer
+      activeStage={activeStage}
+      currentProject={currentProject}
+      isTyping={isTyping}
+      refiningBlockId={refiningBlockId}
+      pitchPrimitives={pitchPrimitives}
+      loglinePrimitives={loglinePrimitives}
+      structurePrimitives={structurePrimitives}
+      synopsisPrimitives={synopsisPrimitives}
+      characters={characters}
+      locations={locations}
+      treatmentSequences={treatmentSequences}
+      sequences={sequences}
+      scriptScenes={scriptScenes}
+      handleStoryChange={handleStoryChange}
+      onLoglineChange={onLoglineChange}
+      onRefineLogline={onRefineLogline}
+      onContentChange3Act={onContentChange3Act}
+      onRefine3Act={onRefine3Act}
+      onRegenerate3Act={onRegenerate3Act}
+      onContentChangeSynopsis={onContentChangeSynopsis}
+      onRefineSynopsis={onRefineSynopsis}
+      onRegenerateSynopsis={onRegenerateSynopsis}
+      onContentChangeTreatment={onContentChangeTreatment}
+      onItemChangeTreatment={onItemChangeTreatment}
+      onRefineTreatment={onRefineTreatment}
+      onRegenerateTreatment={onRegenerateTreatment}
+      onContentChangeScript={onContentChangeScript}
+      onItemChangeScript={onItemChangeScript}
+      onRefineScript={onRefineScript}
+      onRegenerateScript={onRegenerateScript}
+      handleCharacterAdd={handleCharacterAdd}
+      handleCharacterUpdate={handleCharacterUpdate}
+      handleCharacterDelete={handleCharacterDelete}
+      handleLocationAdd={handleLocationAdd}
+      handleLocationUpdate={handleLocationUpdate}
+      handleLocationDelete={handleLocationDelete}
+      handleGenerateViews={NOOP}
+      handleCharacterDeepDevelop={NOOP}
+      handleLocationDeepDevelop={NOOP}
+      handleSequenceUpdate={NOOP}
+      handleSequenceAdd={NOOP}
+      handleFocusMode={handleFocusMode}
+      onValidateBrainstorming={onValidateBrainstorming}
+      onValidateLogline={onValidateLogline}
+      onValidate3Act={onValidate3Act}
+      onValidateSynopsis={onValidateSynopsis}
+      onValidateCharacterBible={onValidateCharacterBible}
+      onValidateLocationBible={onValidateLocationBible}
+      onValidateTreatment={onValidateTreatment}
+      onValidateStepOutline={onValidateStepOutline}
+      onValidateScript={onValidateScript}
+      onValidateStoryboard={onValidateStoryboard}
+    />
+  );
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col md:flex-row bg-background overflow-hidden relative font-sans">
-      {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
-      {!isMobile && (
-        <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-          <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85vh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
-            <Sidebar
-              activeStage={activeStage}
-              onStageChange={handleStageChange}
-              validatedStages={currentProject.validatedStages || EMPTY_ARRAY}
-              isVisible={true}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ── Script Doctor Floating Action Button (Universal) ──────────────── */}
-      {!isFocusMode && (
-        <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-          <div
-            className={cn(
-              "pointer-events-auto absolute transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
-              isMobile
-                ? "bottom-[calc(112px+env(safe-area-inset-bottom,0px))] right-6"
-                : "bottom-6 right-6",
-              isDoctorOpen
-                ? "opacity-0 scale-50 pointer-events-none translate-x-12"
-                : "opacity-100 scale-100",
-            )}
-          >
-            <button
-              onClick={handleOpenDoctor}
-              className="w-14 h-14 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none"
-            >
-              <Bot className="w-7 h-7 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Main content column ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col h-full relative transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-10 min-w-0">
-        <Header
-          projectName={currentProject?.metadata?.title || "Untitled"}
-          onProjectSwitch={handleProjectExit}
-          onCallStart={NOOP}
-          onInfoClick={() => setIsHelpOpen(true)}
-          onDoctorToggle={handleToggleDoctor}
-          isDoctorOpen={isDoctorOpen}
-          syncStatus={syncStatus}
-          collaborators={collaborators}
-          isCompact={isDoctorOpen}
-          accessibilitySettings={accessibilitySettings}
-          onAccessibilityChange={setAccessibilitySettings}
-          onTitleClick={handleOpenDrawer}
-          isTitleOpen={isProjectDrawerOpen}
-        />
-
-        <FormErrorBoundary>
-          <ProjectDrawer
-            isOpen={isProjectDrawerOpen}
-            onClose={handleCloseDrawer}
-            metadata={currentProject.metadata || DEFAULT_METADATA}
-            onUpdate={handleMetadataUpdate}
-            onDelete={handleDeleteCurrentProject}
-          />
-        </FormErrorBoundary>
-
-        <div className="flex-1 flex flex-col relative overflow-hidden items-center justify-center w-full">
-          <div
-            className={cn(
-              "w-full flex-1 overflow-y-auto no-scrollbar scroll-smooth relative",
-              isMobile && "pb-safe-nav",
-            )}
-          >
-            <div
-              className={cn(
-                "w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative",
-                isMobile ? "px-4 py-6" : "px-6 py-12 md:px-12",
-              )}
-            >
-              {/* Breadcrumb Navigation removed for a cleaner experience */}
-
-              <Suspense fallback={<StageSkeleton />}>
-                {activeStage === "Brainstorming" ? (
-                  <BrainstormingStage
-                    analysis={
-                      pitchPrimitives.find((p) => p.order === 2)?.content || ""
-                    }
-                    story={
-                      pitchPrimitives.find((p) => p.order === 1)?.content || ""
-                    }
-                    onStoryChange={handleStoryChange}
-                    onValidate={onValidateBrainstorming}
-                    onDoctorToggle={handleToggleDoctor}
-                    isGenerating={isTyping}
-                    insight={currentProject.stageAnalyses?.["Brainstorming"]}
-                  />
-                ) : activeStage === "Logline" ? (
-                  <LoglineStage
-                    content={loglinePrimitives[0]?.content || ""}
-                    onContentChange={onLoglineChange}
-                    onValidate={onValidateLogline}
-                    onRefine={onRefineLogline}
-                    isGenerating={isTyping}
-                    insight={currentProject.stageAnalyses?.["Logline"]}
-                  />
-                ) : activeStage === "3-Act Structure" ? (
-                  <WorkflowStageComponent
-                    stage="3-Act Structure"
-                    step={3}
-                    title={t("stages.3-Act Structure.title")}
-                    subtitle={t("stages.3-Act Structure.subtitle")}
-                    content={
-                      structurePrimitives.length === 1
-                        ? structurePrimitives[0].content
-                        : ""
-                    }
-                    items={
-                      structurePrimitives.length > 1
-                        ? structurePrimitives
-                        : undefined
-                    }
-                    onContentChange={onContentChange3Act}
-                    onItemChange={(id, content) =>
-                      handleSubcollectionUpdate(
-                        "structure_primitives",
-                        id,
-                        content,
-                      )
-                    }
-                    onValidate={onValidate3Act}
-                    onRefine={onRefine3Act}
-                    onRegenerate={onRegenerate3Act}
-                    isGenerating={
-                      isTyping ||
-                      (hydrationState.isHydrating &&
-                        hydrationState.hydratingStage === "3-Act Structure")
-                    }
-                    isHydrating={
-                      hydrationState.isHydrating &&
-                      hydrationState.hydratingStage === "3-Act Structure"
-                    }
-                    hydrationLabel={
-                      hydrationState.hydratingStage === "3-Act Structure"
-                        ? hydrationState.hydratingLabel
-                        : undefined
-                    }
-                    refiningBlockId={refiningBlockId}
-                    validateLabel={t("stages.3-Act Structure.validateLabel")}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-                    insight={currentProject.stageAnalyses?.["3-Act Structure"]}
-                  />
-                ) : activeStage === "Synopsis" ? (
-                  <WorkflowStageComponent
-                    stage="Synopsis"
-                    step={4}
-                    title={t("stages.Synopsis.title")}
-                    subtitle={t("stages.Synopsis.subtitle")}
-                    content={synopsisPrimitives[0]?.content || ""}
-                    onContentChange={onContentChangeSynopsis}
-                    onValidate={onValidateSynopsis}
-                    onRefine={onRefineSynopsis}
-                    onRegenerate={onRegenerateSynopsis}
-                    isGenerating={
-                      isTyping ||
-                      (hydrationState.isHydrating &&
-                        hydrationState.hydratingStage === "Synopsis")
-                    }
-                    isHydrating={
-                      hydrationState.isHydrating &&
-                      hydrationState.hydratingStage === "Synopsis"
-                    }
-                    hydrationLabel={
-                      hydrationState.hydratingStage === "Synopsis"
-                        ? hydrationState.hydratingLabel
-                        : undefined
-                    }
-                    refiningBlockId={refiningBlockId}
-                    validateLabel={t("stages.Synopsis.validateLabel")}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-                    insight={currentProject.stageAnalyses?.["Synopsis"]}
-                  />
-                ) : activeStage === "Character Bible" ? (
-                  <CharacterBible
-                    characters={characters}
-                    onCharacterAdd={handleCharacterAdd}
-                    onCharacterUpdate={handleCharacterUpdate}
-                    onCharacterDelete={handleCharacterDelete}
-                    onGenerateViews={handleGenerateViews}
-                    onDeepDevelop={handleCharacterDeepDevelop}
-                    isGenerating={isTyping}
-                    refiningBlockId={refiningBlockId}
-                    onValidate={onValidateCharacterBible}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-                    insight={currentProject.stageAnalyses?.["Character Bible"]}
-                  />
-                ) : activeStage === "Location Bible" ? (
-                  <LocationBible
-                    locations={locations}
-                    onLocationAdd={handleLocationAdd}
-                    onLocationUpdate={handleLocationUpdate}
-                    onLocationDelete={handleLocationDelete}
-                    onGenerateViews={handleGenerateViews}
-                    onDeepDevelop={handleLocationDeepDevelop}
-                    isGenerating={isTyping}
-                    refiningBlockId={refiningBlockId}
-                    onValidate={onValidateLocationBible}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-                    insight={currentProject.stageAnalyses?.["Location Bible"]}
-                  />
-                ) : activeStage === "Treatment" ? (
-                  <WorkflowStageComponent
-                    stage="Treatment"
-                    step={7}
-                    title={t("stages.Treatment.title")}
-                    subtitle={t("stages.Treatment.subtitle")}
-                    content={treatmentSequences[0]?.content || ""}
-                    items={treatmentSequences}
-                    onContentChange={onContentChangeTreatment}
-                    onItemChange={onItemChangeTreatment}
-                    onValidate={onValidateTreatment}
-                    onRefine={onRefineTreatment}
-                    onRegenerate={onRegenerateTreatment}
-                    isGenerating={
-                      isTyping ||
-                      (hydrationState.isHydrating &&
-                        hydrationState.hydratingStage === "Treatment")
-                    }
-                    isHydrating={
-                      hydrationState.isHydrating &&
-                      hydrationState.hydratingStage === "Treatment"
-                    }
-                    hydrationLabel={
-                      hydrationState.hydratingStage === "Treatment"
-                        ? hydrationState.hydratingLabel
-                        : undefined
-                    }
-                    refiningBlockId={refiningBlockId}
-                    validateLabel={t("stages.Treatment.validateLabel")}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-                    insight={currentProject.stageAnalyses?.["Treatment"]}
-                  />
-                ) : activeStage === "Step Outline" ? (
-                  <CanvasErrorBoundary>
-                    <MainCanvas
-                      sequences={sequences}
-                      onSequenceUpdate={handleSequenceUpdate}
-                      onSequenceAdd={handleSequenceAdd}
-                      onFocusMode={handleFocusMode}
-                      onAiMagic={handleAiMagic}
-                      onValidate={onValidateStepOutline}
-                      isGenerating={isTyping}
-                      refiningBlockId={refiningBlockId}
-                      insight={currentProject.stageAnalyses?.["Step Outline"]}
-                    />
-                  </CanvasErrorBoundary>
-                ) : activeStage === "Script" ? (
-                  <WorkflowStageComponent
-                    stage="Script"
-                    step={9}
-                    title={t("stages.Script.title")}
-                    subtitle={t("stages.Script.subtitle")}
-                    content={scriptScenes[0]?.content || ""}
-                    items={scriptScenes}
-                    onContentChange={onContentChangeScript}
-                    onItemChange={onItemChangeScript}
-                    onValidate={onValidateScript}
-                    onRefine={onRefineScript}
-                    onRegenerate={onRegenerateScript}
-                    isGenerating={
-                      isTyping ||
-                      (hydrationState.isHydrating &&
-                        hydrationState.hydratingStage === "Script")
-                    }
-                    isHydrating={
-                      hydrationState.isHydrating &&
-                      hydrationState.hydratingStage === "Script"
-                    }
-                    hydrationLabel={
-                      hydrationState.hydratingStage === "Script"
-                        ? hydrationState.hydratingLabel
-                        : undefined
-                    }
-                    refiningBlockId={refiningBlockId}
-                    validateLabel={t("stages.Script.validateLabel")}
-                    lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-                    insight={currentProject.stageAnalyses?.["Script"]}
-                  />
-                ) : activeStage === "Storyboard" ? (
-                  <div className="w-full space-y-12 py-24 flex flex-col items-center justify-center text-center">
-                    <div className="max-w-2xl space-y-8">
-                      <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-8">
-                        <ImageIcon className="w-12 h-12 text-white/20" />
-                      </div>
-                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tighter text-white">
-                        {t("stages.Storyboard.title")}
-                      </h2>
-                      <p className="text-secondary text-lg">
-                        {t("stages.Storyboard.subtitle")}
-                      </p>
-                      <div className="bg-surface p-8 rounded-[32px] border border-white/5">
-                        <p className="text-white/40 font-medium">
-                          {t("stages.Storyboard.comingSoon")}
-                        </p>
-                      </div>
-                      <button
-                        onClick={onValidateStoryboard}
-                        className="px-12 py-5 rounded-2xl bg-[#2a2a2a] text-white border border-[#444444] font-semibold tracking-tight hover:bg-[#333333] transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-2xl mx-auto"
-                      >
-                        <Check className="w-5 h-5" />
-                        {t("common.completeProject")}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-white/20">
-                    {t("common.selectStage")}
-                  </div>
-                )}
-              </Suspense>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── DESKTOP: Script Doctor side panel ─────────────────────────────── */}
-      {!isMobile && (
-        <div
-          className={cn(
-            "h-full border-l border-white/5 bg-background z-40 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden relative",
-            isDoctorOpen
-              ? "w-[30%] min-w-[350px] max-w-[450px]"
-              : "w-0 min-w-0 border-none",
-          )}
-        >
-          <div className="absolute right-0 top-0 w-[30vw] min-w-[350px] max-w-[450px] h-full">
-            <Suspense
-              fallback={
-                <div className="h-full flex flex-col items-center justify-center p-12 space-y-4">
-                  <OrbitingLoader size="small" showText={false} />
-                  <span className="text-white/20 text-xs font-bold uppercase tracking-widest">
-                    Initialisation du Docteur...
-                  </span>
-                </div>
-              }
-            >
-              <ScriptDoctor
-                isOpen={isDoctorOpen}
-                onClose={handleCloseDoctor}
-                messages={doctorMessages}
-                onSendMessage={handleDoctorMessage}
-                isTyping={isDoctorTyping}
-                isHeavyThinking={isHeavyThinking}
-                aiStatus={aiStatus}
-                activeStage={activeStage}
-                activeTool={activeTool}
-                projectLanguages={currentProject.metadata?.languages}
-                telemetryStatus={telemetryStatus}
-              />
-            </Suspense>
-          </div>
-        </div>
-      )}
-
-      {/* ── MOBILE: Script Doctor as bottom sheet ─────────────────────────── */}
-      {isMobile && (
-        <Suspense fallback={null}>
-          <ScriptDoctor
-            isOpen={isDoctorOpen}
-            onClose={handleCloseDoctor}
-            messages={doctorMessages}
-            onSendMessage={handleDoctorMessage}
-            isTyping={isDoctorTyping}
-            isHeavyThinking={isHeavyThinking}
-            aiStatus={aiStatus}
-            activeStage={activeStage}
-            activeTool={activeTool}
-            projectLanguages={currentProject.metadata?.languages}
-            telemetryStatus={telemetryStatus}
-          />
-        </Suspense>
-      )}
-
-      {isMobile && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col pt-2"
-          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-        >
-          {/* Stage tabs */}
-          <div className="h-20 flex items-center">
-            <Sidebar
-              activeStage={activeStage}
-              onStageChange={handleStageChange}
-              validatedStages={currentProject.validatedStages || EMPTY_ARRAY}
-              isVisible={true}
-              variant="bottom-nav"
-            />
-          </div>
-        </div>
-      )}
-
-      <FocusMode
-        isOpen={isFocusMode}
-        onClose={handleCloseFocus}
-        title={focusedSequence?.title || ""}
-        content={focusedSequence?.content || ""}
-        onContentChange={(content) =>
-          focusedSequenceId &&
-          handleSequenceUpdate(focusedSequenceId, { content })
-        }
-        onAiMagic={() => focusedSequenceId && handleAiMagic(focusedSequenceId)}
-        onTts={NOOP}
-        isGenerating={isTyping}
+    <>
+      <MainLayout
+        currentProject={currentProject}
+        activeStage={activeStage}
+        isMobile={window.innerWidth < 768}
+        isDoctorOpen={isDoctorOpen}
+        isFocusMode={isFocusMode}
+        isTyping={isTyping}
+        isHeavyThinking={isHeavyThinking}
+        isProjectDrawerOpen={isProjectDrawerOpen}
+        isHelpOpen={isHelpOpen}
+        isFirstTime={isFirstTime}
+        isDeleting={isDeleting}
+        projectToDelete={projectToDelete}
+        toasts={toasts}
+        syncStatus={syncStatus}
+        collaborators={[]}
+        accessibilitySettings={accessibilitySettings}
+        refiningBlockId={refiningBlockId}
+        lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
+        hydrationState={hydrationState}
+        telemetryStatus={{}}
+        doctorMessages={doctorMessages}
+        isDoctorTyping={isDoctorTyping}
+        aiStatus={aiStatus}
+        activeTool={activeTool}
+        handleStageChange={handleStageChange}
+        handleProjectExit={handleProjectExit}
+        handleOpenDoctor={handleOpenDoctor}
+        handleCloseDoctor={handleCloseDoctor}
+        handleToggleDoctor={handleToggleDoctor}
+        handleOpenDrawer={handleOpenDrawer}
+        handleCloseDrawer={handleCloseDrawer}
+        handleCloseFocus={handleCloseFocus}
+        handleCancelDelete={handleCancelDelete}
+        handleProjectDelete={performProjectDelete}
+        setAccessibilitySettings={setAccessibilitySettings}
+        setIsHelpOpen={setIsHelpOpen}
+        setIsFirstTime={setIsFirstTime}
+        setToasts={setToasts}
+        handleDoctorMessage={handleDoctorMessage}
+        handleMetadataUpdate={handleMetadataUpdate}
+        handleDeleteCurrentProject={handleDeleteCurrentProject}
+        renderStage={renderStage}
+        ScriptDoctor={ScriptDoctorComponent}
       />
-
-      <AnimatePresence>
-        {projectToDelete && (
-          <DeleteProjectModal
-            projectId={projectToDelete}
-            isDeleting={isDeleting}
-            onCancel={handleCancelDelete}
-            onConfirm={handleProjectDelete}
-          />
-        )}
-      </AnimatePresence>
-
-      <div className="fixed bottom-32 right-8 z-[100] flex flex-col gap-2">
-        <AnimatePresence>
-          {toasts.map((toast) => (
-            <motion.div
-              key={toast.id}
-              initial={{ opacity: 0, x: 20, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 20, scale: 0.9 }}
-              className={cn(
-                "px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 min-w-[300px]",
-                toast.type === "success"
-                  ? "bg-green-500/10 border-green-500/20 text-green-400"
-                  : toast.type === "error"
-                    ? "bg-red-500/10 border-red-500/20 text-red-400"
-                    : "bg-white/5 border-white/10 text-white",
-              )}
-            >
-              {toast.type === "success" ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <Wand2 className="w-5 h-5" />
-              )}
-              <div className="flex flex-col gap-1 items-start">
-                <p className="text-sm font-medium tracking-tight">
-                  {toast.message}
-                </p>
-                {toast.action && (
-                  <button
-                    onClick={() => {
-                      toast.action?.onClick();
-                      setToasts((p) => p.filter((t) => t.id !== toast.id));
-                    }}
-                    className="text-xs font-bold underline opacity-80 hover:opacity-100 transition-opacity"
-                  >
-                    {toast.action.label}
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      <AnimatePresence>
-        {((isTyping && !refiningBlockId) ||
-          (hydrationState.isHydrating && !refiningBlockId)) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0f0f0f]/80 backdrop-blur-sm z-[90] flex flex-col items-center justify-center gap-6"
-          >
-            <div className="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin" />
-            <div className="text-center space-y-2">
-              <h3 className="text-xl font-bold tracking-tight text-white">
-                {hydrationState.isHydrating
-                  ? hydrationState.hydratingLabel ||
-                    "Auto-generating content..."
-                  : isHeavyThinking
-                    ? activeStage === "Treatment"
-                      ? "Structuring narrative primitives..."
-                      : "The AI Architect is crafting your project using the Pro engine."
-                    : t("common.aiWorking")}
-              </h3>
-              <p className="text-secondary text-sm">
-                {hydrationState.isHydrating
-                  ? "The AI Architect is analyzing validated stages and generating content..."
-                  : isHeavyThinking
-                    ? "This may take a moment..."
-                    : t("common.aiWorkingDesc")}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
-
-      <AnimatePresence>
-        {isFirstTime && (
-          <OnboardingWizard
-            onComplete={() => {
-              setIsFirstTime(false);
-              localStorage.setItem("scenaria_onboarded", "true");
-            }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+      
+      {isFocusMode && focusedSequenceId && (
+        <FocusMode
+          content={sequences.find(s => s.id === focusedSequenceId)?.content || ""}
+          onClose={handleCloseFocus}
+          onSave={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, c)}
+          title={sequences.find(s => s.id === focusedSequenceId)?.title || "Sequence"}
+        />
+      )}
+    </>
   );
 }

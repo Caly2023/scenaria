@@ -8,6 +8,7 @@ interface LoglineStageProps {
   content: string;
   onContentChange: (content: string) => void;
   onValidate: () => void;
+  onRefine: (feedback?: string) => void;
   isGenerating?: boolean;
   insight?: StageInsight | StageAnalysis;
 }
@@ -16,6 +17,7 @@ export function LoglineStage({
   content, 
   onContentChange, 
   onValidate,
+  onRefine,
   isGenerating = false,
   insight
 }: LoglineStageProps) {
@@ -36,6 +38,7 @@ export function LoglineStage({
         title={t('stages.Logline.label')}
         content={content}
         onContentChange={onContentChange}
+        onAiRefine={onRefine}
         isGenerating={isGenerating}
         placeholder={t('stages.Logline.placeholder')}
         mode="single"

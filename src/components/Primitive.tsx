@@ -25,7 +25,7 @@ interface PrimitiveProps {
   type?: PrimitiveType;
   onContentChange?: (content: string) => void;
   onTitleChange?: (title: string) => void;
-  onAiRefine?: () => void;
+  onAiRefine?: (feedback?: string) => void;
   onGenerateImage?: () => void;
   onDeepDevelop?: () => void;
   onFocus?: () => void;
@@ -203,7 +203,7 @@ export const Primitive = memo(function Primitive({
             
             {onAiRefine && (
               <button 
-                onClick={onAiRefine}
+                onClick={() => onAiRefine?.()}
                 disabled={isGenerating}
                 aria-label="Refine with AI"
                 className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50"
@@ -287,7 +287,7 @@ export const Primitive = memo(function Primitive({
 
                 {onAiRefine && (
                   <button 
-                    onClick={() => { onAiRefine(); setIsMenuOpen(false); }}
+                    onClick={() => { onAiRefine?.(); setIsMenuOpen(false); }}
                     disabled={isGenerating}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-white/80 disabled:opacity-50"
                   >

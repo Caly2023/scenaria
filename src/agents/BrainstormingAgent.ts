@@ -20,7 +20,7 @@ export class BrainstormingAgent extends BaseStageAgent {
   }
 
   async updatePrimitive(
-    primitiveId: string,
+    _primitiveId: string,
     instruction: string,
     currentContent: ContentPrimitive[],
     context: ProjectContext

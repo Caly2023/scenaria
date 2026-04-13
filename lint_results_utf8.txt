@@ -1,0 +1,17 @@
+﻿src/agents/__tests__/agentRegistry.test.ts(1,32): error TS6133: 'vi' is declared but its value is never read.
+src/agents/__tests__/agentRegistry.test.ts(3,1): error TS6133: 'IStageAgent' is declared but its value is never read.
+src/agents/BrainstormingAgent.ts(23,5): error TS6133: 'primitiveId' is declared but its value is never read.
+src/agents/StructureAgent.ts(50,5): error TS6133: 'primitiveId' is declared but its value is never read.
+src/agents/TreatmentAgent.ts(4,1): error TS6133: 'contextAssembler' is declared but its value is never read.
+src/App.tsx(480,5): error TS2353: Object literal may only specify known properties, and 'setDoctorMessages' does not exist in type 'UseProjectLifecycleProps'.
+src/App.tsx(871,15): error TS2322: Type '{ activeStage: WorkflowStage; onStageChange: (stage: WorkflowStage) => void; validatedStages: WorkflowStage[]; isVisible: boolean; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'isVisible' does not exist on type 'IntrinsicAttributes & SidebarProps'.
+src/App.tsx(964,21): error TS2322: Type '{ content: string; onContentChange: (c: string) => void; onValidate: () => Promise<void>; onRefine: (f: string) => Promise<void>; isGenerating: boolean; insight: StageAnalysis | undefined; }' is not assignable to type 'IntrinsicAttributes & LoglineStageProps'.
+  Property 'onRefine' does not exist on type 'IntrinsicAttributes & LoglineStageProps'.
+src/App.tsx(1256,15): error TS2322: Type '{ activeStage: WorkflowStage; onStageChange: (stage: WorkflowStage) => void; validatedStages: WorkflowStage[]; isVisible: boolean; variant: "bottom-nav"; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'isVisible' does not exist on type 'IntrinsicAttributes & SidebarProps'.
+src/components/WorkflowStage.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/WorkflowStage.tsx(3,1): error TS6133: 'useTranslation' is declared but its value is never read.
+src/hooks/useProjectActions.ts(7,3): error TS6133: 'useUpdateProjectFieldMutation' is declared but its value is never read.
+src/services/WebRTCService.ts(16,11): error TS6133: '_stream' is declared but its value is never read.
+src/services/WebRTCService.ts(64,10): error TS2551: Property 'stream' does not exist on type 'WebRTCService'. Did you mean '_stream'?

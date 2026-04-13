@@ -4,7 +4,6 @@ import { geminiService } from '../services/geminiService';
 import { classifyError } from '../lib/errorClassifier';
 import { contextAssembler } from '../services/contextAssembler';
 import { 
-  useUpdateProjectFieldMutation, 
   useUpdateProjectMetadataMutation,
   useUpdateSubcollectionDocMutation,
   useAddSubcollectionDocMutation 

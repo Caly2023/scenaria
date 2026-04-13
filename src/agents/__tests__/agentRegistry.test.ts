@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { agentRegistry } from '../agentRegistry';
-import { IStageAgent } from '../../types/stageContract';
 
 describe('agentRegistry', () => {
   it('instantiates all registered agents automatically with async lazy imports', async () => {

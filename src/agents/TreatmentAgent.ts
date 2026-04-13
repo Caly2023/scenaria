@@ -1,7 +1,6 @@
 import { BaseStageAgent } from './BaseStageAgent';
 import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageContract';
 import { geminiService } from '../services/geminiService';
-import { contextAssembler } from '../services/contextAssembler';
 
 export class TreatmentAgent extends BaseStageAgent {
   readonly stageId = 'Treatment';

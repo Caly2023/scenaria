@@ -13,8 +13,8 @@ import { HomePage } from "./components/HomePage";
 import { MainLayout } from "./components/MainLayout";
 import { StageRenderer } from "./components/StageRenderer";
 import { ScriptDoctor as ScriptDoctorComponent } from "./components/ScriptDoctor";
+import { ttsService } from "./services/ttsService";
 
-const NOOP = () => {};
 
 export default function App() {
   const [toasts, setToasts] = useState<any[]>([]);
@@ -30,7 +30,7 @@ export default function App() {
     isTyping, syncStatus, handleRegenerate, handleStageValidate, activeStage, handleStageRefine, handleStageAnalyze,
     pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
     isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
-    handleAiMagic
+    handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop, handleSequenceUpdate, handleSequenceAdd
   } = useProjects(user, addToast);
 
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
@@ -110,6 +110,17 @@ export default function App() {
   const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f || "Refine Script", id), [handleStageRefine]);
   const onRegenerateScript = useCallback(() => handleRegenerate("Script"), [handleRegenerate]);
 
+  const [isTtsPlaying, setIsTtsPlaying] = useState(false);
+  const handleTts = useCallback((id: string, text: string) => {
+    if (isTtsPlaying) {
+      ttsService.cancel();
+      setIsTtsPlaying(false);
+    } else {
+      setIsTtsPlaying(true);
+      ttsService.speak(text, id, currentProject?.metadata?.languages || [], () => setIsTtsPlaying(false));
+    }
+  }, [isTtsPlaying, currentProject]);
+
   if (!isAuthReady) return <LoadingPage />;
   if (isOffline) return <OfflinePage onRetry={() => window.location.reload()} />;
   if (connectionError) return <ConnectionErrorPage onRetry={() => window.location.reload()} />;
@@ -167,11 +178,11 @@ export default function App() {
       handleLocationAdd={handleLocationAdd}
       handleLocationUpdate={handleLocationUpdate}
       handleLocationDelete={handleLocationDelete}
-      handleGenerateViews={NOOP}
-      handleCharacterDeepDevelop={NOOP}
-      handleLocationDeepDevelop={NOOP}
-      handleSequenceUpdate={NOOP}
-      handleSequenceAdd={NOOP}
+      handleGenerateViews={handleGenerateViews}
+      handleCharacterDeepDevelop={handleCharacterDeepDevelop}
+      handleLocationDeepDevelop={handleLocationDeepDevelop}
+      handleSequenceUpdate={handleSequenceUpdate}
+      handleSequenceAdd={handleSequenceAdd}
       handleFocusMode={handleFocusMode}
       handleAiMagic={handleAiMagic}
       handleToggleDoctor={handleToggleDoctor}
@@ -244,7 +255,7 @@ export default function App() {
           onClose={handleCloseFocus}
           onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, c)}
           onAiMagic={() => handleAiMagic(focusedSequenceId)}
-          onTts={NOOP}
+          onTts={() => handleTts(focusedSequenceId, sequences.find(s => s.id === focusedSequenceId)?.content || "")}
           title={sequences.find(s => s.id === focusedSequenceId)?.title || "Sequence"}
           content={sequences.find(s => s.id === focusedSequenceId)?.content || ""}
         />

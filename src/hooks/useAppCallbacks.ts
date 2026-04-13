@@ -118,14 +118,19 @@ export function useAppCallbacks({
   const handleCharacterUpdate = useCallback(
     async (id: string, updates: any) => {
       if (!currentProject) return;
-      await updateSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "characters",
-        docId: id,
-        data: updates,
-      }).unwrap();
+      try {
+        await updateSubcollectionDoc({
+          projectId: currentProject.id,
+          collectionName: "characters",
+          docId: id,
+          data: updates,
+        }).unwrap();
+      } catch (e) {
+        const classified = classifyError(e);
+        addToast(classified.userMessage, "error");
+      }
     },
-    [currentProject, updateSubcollectionDoc],
+    [currentProject, updateSubcollectionDoc, addToast],
   );
 
   const handleCharacterDelete = useCallback(
@@ -162,14 +167,19 @@ export function useAppCallbacks({
   const handleLocationUpdate = useCallback(
     async (id: string, updates: any) => {
       if (!currentProject) return;
-      await updateSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "locations",
-        docId: id,
-        data: updates,
-      }).unwrap();
+      try {
+        await updateSubcollectionDoc({
+          projectId: currentProject.id,
+          collectionName: "locations",
+          docId: id,
+          data: updates,
+        }).unwrap();
+      } catch (e) {
+        const classified = classifyError(e);
+        addToast(classified.userMessage, "error");
+      }
     },
-    [currentProject, updateSubcollectionDoc],
+    [currentProject, updateSubcollectionDoc, addToast],
   );
 
   const handleLocationDelete = useCallback(

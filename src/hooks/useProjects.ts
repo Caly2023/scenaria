@@ -5,6 +5,7 @@ import { useProjectData } from './useProjectData';
 import { useProjectLifecycle } from './useProjectLifecycle';
 import { useProjectSync } from './useProjectSync';
 import { useProjectActions } from './useProjectActions';
+import { buildProjectContext } from '../services/orchestratorService';
 
 export function useProjects(user: User | null, addToast: (msg: string, type: 'error' | 'info' | 'success') => void) {
   const [isTyping, setIsTyping] = useState(false);
@@ -42,6 +43,26 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleSubcollectionUpdate
   } = useProjectSync(currentProject, addToast);
 
+  const getProjectContext = useCallback(() => {
+    if (!currentProject) return null;
+    return buildProjectContext(
+      currentProject.id,
+      currentProject.metadata,
+      {
+        'Brainstorming': pitchPrimitives as any,
+        'Logline': loglinePrimitives as any,
+        '3-Act Structure': structurePrimitives as any,
+        'Synopsis': synopsisPrimitives as any,
+        'Character Bible': characters as any,
+        'Location Bible': locations as any,
+        'Treatment': treatmentSequences as any,
+        'Step Outline': sequences as any,
+        'Script': scriptScenes as any,
+      },
+      currentProject.stageAnalyses || {}
+    );
+  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
+
   const {
     handleRegenerate,
     handleProjectDelete,
@@ -64,7 +85,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     setProjectToDelete,
     setDeleteConfirmText: () => {},
     hydrationState: {},
-    getProjectContext: undefined 
+    getProjectContext
   });
 
   const {
@@ -97,7 +118,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     if (!currentProject) return;
     setIsTyping(true);
     try {
-      const { interpretIntent, dispatchToAgent, persistAgentOutput, buildProjectContext } = await import('../services/orchestratorService');
+      const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestratorService');
       
       let currentContent: any[] = [];
       if (stage === 'Brainstorming') currentContent = pitchPrimitives;
@@ -110,22 +131,8 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       else if (stage === 'Step Outline') currentContent = sequences;
       else if (stage === 'Script') currentContent = scriptScenes;
 
-      const context = buildProjectContext(
-        currentProject.id,
-        currentProject.metadata,
-        {
-          'Brainstorming': pitchPrimitives as any,
-          'Logline': loglinePrimitives as any,
-          '3-Act Structure': structurePrimitives as any,
-          'Synopsis': synopsisPrimitives as any,
-          'Character Bible': characters as any,
-          'Location Bible': locations as any,
-          'Treatment': treatmentSequences as any,
-          'Step Outline': sequences as any,
-          'Script': scriptScenes as any,
-        },
-        currentProject.stageAnalyses || {}
-      );
+      const context = getProjectContext();
+      if (!context) throw new Error("Project context is not available.");
 
       const decision = interpretIntent('analyze', stage);
       const agentOutput = await dispatchToAgent(decision, context, currentContent);

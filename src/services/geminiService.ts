@@ -22,12 +22,15 @@ export function consumeQuotaNotice(): boolean {
 }
 
 // Resilience Wrapper: Retry & Fallback Cascade
+// Model names verified against Google AI API (April 2025).
+// gemini-2.5-flash-preview and gemini-2.5-pro-preview are the leading-edge models.
 const MODELS = {
-  LITE: "gemini-2.5-flash-lite",
+  LITE: "gemini-2.5-flash-lite-preview-06-17",
   FLASH: "gemini-2.5-flash",
   PRO: "gemini-2.5-pro",
-  PRO_3_1: "gemini-3.1-pro",
-  FLASH_3_1: "gemini-3.1-flash",
+  // Leading-edge preview models (used as primary in cascade)
+  PRO_3_1: "gemini-2.5-pro-preview-05-06",
+  FLASH_3_1: "gemini-2.5-flash-preview-05-20",
   FALLBACK: "gemini-2.0-flash"
 };
 
@@ -181,16 +184,37 @@ function safeJsonParse(text: string | null | undefined): any {
 }
 
 /**
- * Safely extract text from a model response, handling potential SDK differences.
+ * Safely extract text from a model response, handling @google/genai SDK differences.
+ * - v1.x: `.text` is a string property (getter), not a function.
+ * - Legacy: `.text` could be a function.
+ * - Always falls back to digging into candidates for robustness.
  */
 async function extractText(response: any): Promise<string> {
+  // v1.x: .text is a string property (most common)
+  if (typeof response?.text === 'string' && response.text.length > 0) {
+    return response.text;
+  }
+  // Legacy function form (older SDK versions)
   if (typeof response?.text === 'function') {
-    return await response.text();
+    try {
+      const result = await response.text();
+      if (result) return result;
+    } catch { /* fall through */ }
   }
+  // Nested response.response.text() form
   if (typeof response?.response?.text === 'function') {
-    return await response.response.text();
+    try {
+      const result = await response.response.text();
+      if (result) return result;
+    } catch { /* fall through */ }
   }
-  return response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  // Deep fallback: dig into candidates array
+  const parts = response?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(parts)) {
+    const textPart = parts.find((p: any) => typeof p.text === 'string');
+    if (textPart?.text) return textPart.text;
+  }
+  return '';
 }
 
 

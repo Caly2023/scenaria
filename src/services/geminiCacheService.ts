@@ -21,6 +21,22 @@ function hashString(str: string): string {
 }
 
 /**
+ * Models that support the Gemini context caching API (as of April 2025).
+ * Preview and lite models typically do NOT support caching.
+ * Source: https://ai.google.dev/gemini-api/docs/caching
+ */
+const CACHE_SUPPORTED_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.5-pro',
+  'gemini-2.0-flash',
+];
+
+/** Returns true if the given model name is known to support context caching. */
+function supportsCaching(model: string): boolean {
+  return CACHE_SUPPORTED_MODELS.some(m => model.includes(m));
+}
+
+/**
  * Ensures a context cache exists for the given system instruction and model.
  * Note: the `@google/genai` library's cache APIs are still evolving. 
  * Often the model prefix `models/` is required when creating cached content.
@@ -31,6 +47,10 @@ export async function getOrCreateCache(
   systemInstructionText: string, 
   tools: any[] | undefined
 ): Promise<string> {
+  // Early exit for models known to not support caching — avoids wasted API calls
+  if (!supportsCaching(modelName)) {
+    throw new Error(`[CacheService] Model "${modelName}" does not support context caching. Skipping.`);
+  }
   // Model normalization - Cache API usually requires 'models/' prefix
   const cacheModel = modelName.startsWith('models/') ? modelName : `models/${modelName}`;
   const stringifiedTools = tools ? JSON.stringify(tools) : "";

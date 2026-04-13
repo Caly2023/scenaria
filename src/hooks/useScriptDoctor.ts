@@ -16,12 +16,14 @@ interface UseScriptDoctorProps {
   sequences: Sequence[];
   treatmentSequences: Sequence[];
   scriptScenes: Sequence[];
-  pitchPrimitives: Sequence[];
+  /** Brainstorming/pitch primitives — used by research_context tool */
+  pitchPrimitives?: Sequence[];
   characters: Character[];
   locations: Location[];
   addToast: (msg: string, type: "error" | "info" | "success") => void;
   setRefiningBlockId: (id: string | null) => void;
-  setLastUpdatedPrimitiveId: (id: string | null) => void;
+  /** Optional: signals the UI which primitive was last updated by the agent */
+  setLastUpdatedPrimitiveId?: (id: string | null) => void;
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
 }
 
@@ -31,10 +33,12 @@ export function useScriptDoctor({
   sequences,
   treatmentSequences,
   scriptScenes,
+  pitchPrimitives = [],
   characters,
   locations,
   addToast,
   setRefiningBlockId,
+  setLastUpdatedPrimitiveId,
   handleStageAnalyze,
 }: UseScriptDoctorProps) {
   const { t } = useTranslation();
@@ -161,6 +165,9 @@ export function useScriptDoctor({
               ...item,
             }));
 
+          // Use already-loaded props data where available to avoid redundant fetches
+          if (stageName === "Brainstorming")
+            return { success: true, data: enrichWithIds(pitchPrimitives) };
           if (stageName === "Character Bible")
             return { success: true, data: enrichWithIds(characters) };
           if (stageName === "Location Bible")
@@ -284,8 +291,24 @@ export function useScriptDoctor({
               };
             }
 
+            // ── Field aliasing for character/location documents ──────────────
+            // Firestore character docs use 'name' + 'description'.
+            // AI agents always send 'title' + 'content'.
+            // We map both directions so both field names are updated correctly.
+            let safeUpdates: Record<string, any> = { ...updates };
+            if (stage === "Character Bible" || stage === "Location Bible") {
+              if (updates.title !== undefined) {
+                safeUpdates.name = updates.title;
+              }
+              if (updates.content !== undefined) {
+                safeUpdates.description = updates.content;
+              }
+            }
+
+            console.log(`[ScriptDoctor] propose_patch → ${subcollection}/${id}`, safeUpdates);
+
             await updateDoc(docRef, {
-              ...updates,
+              ...safeUpdates,
               updatedAt: serverTimestamp(),
             });
 
@@ -295,6 +318,10 @@ export function useScriptDoctor({
               : null;
 
             await handleStageAnalyze(stage as WorkflowStage);
+
+            // Signal the UI that this primitive was last updated
+            setLastUpdatedPrimitiveId?.(id);
+            setRefiningBlockId(null);
 
             addToast(
               t("common.primitiveUpdated", {
@@ -414,14 +441,38 @@ export function useScriptDoctor({
           const subcollection = subcollectionMap[stage];
 
           if (subcollection) {
+            // ── Required-field guard ────────────────────────────────────────
+            // AI agents don't always provide every required field.
+            // We normalise here so the Firestore write never fails validation.
+            const safeTitle = primitive.title || primitive.name || 'Untitled';
+            const safeContent = primitive.content || primitive.description || '';
+
+            const safeData: Record<string, any> = {
+              // Standard fields — provide safe defaults before AI spread
+              title: safeTitle,
+              content: safeContent,
+              order: position ?? primitive.order ?? 0,
+              projectId: currentProject.id,
+              createdAt: serverTimestamp(),
+              // Spread remaining AI-provided fields (may override above if better)
+              ...primitive,
+              // Field aliasing for character/location collections
+              // Firestore character/location docs use 'name' + 'description'.
+              ...(stage === 'Character Bible' || stage === 'Location Bible'
+                ? {
+                    name: primitive.name || safeTitle,
+                    description: primitive.description || safeContent,
+                  }
+                : {}),
+            };
+            // Ensure projectId is always correct (spread from primitive could override it)
+            safeData.projectId = currentProject.id;
+
+            console.log(`[ScriptDoctor] add_primitive → ${subcollection}`, safeData);
+
             const newDocRef = await addDoc(
               collection(db, "projects", currentProject.id, subcollection),
-              {
-                ...primitive,
-                order: position ?? 0,
-                projectId: currentProject.id,
-                createdAt: serverTimestamp(),
-              },
+              safeData,
             );
             telemetryService.invalidateStage(stage);
             telemetryService.setStatus(

@@ -1,6 +1,6 @@
 import { store } from '../store';
 import { firebaseApi } from './firebaseApi';
-import { Project, Character, Location, Sequence, WorkflowStage } from '../types';
+import { Character, Location, Sequence, WorkflowStage } from '../types';
 import { telemetryService } from './telemetryService';
 import { stageRegistry } from '../config/stageRegistry';
 
@@ -58,8 +58,6 @@ class ContextAssembler {
       return primitives;
     }
 
-    const projectResult = await store.dispatch(firebaseApi.endpoints.getProjectById.initiate(projectId));
-    const project = projectResult.data;
     return [];
   }
 

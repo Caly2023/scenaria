@@ -1,13 +1,10 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { 
   Plus, 
-  Import, 
   ChevronRight, 
   Clock, 
   Film,
-  Tv,
   Clapperboard,
-  Send,
   Paperclip,
   ArrowUp,
   Trash2,
@@ -131,7 +128,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           transition={{ delay: 0.2 }}
           className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-2 px-4"
         >
-          {['Auto', 'Short Film', 'Feature', 'Series'].map((format, i) => (
+          {['Auto', 'Short Film', 'Feature', 'Series'].map((format) => (
             <button
               key={format}
               onClick={() => setSelectedFormat(format as any)}

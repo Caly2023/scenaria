@@ -1,21 +1,18 @@
-import React from 'react';
+import { FC, ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { 
   WifiOff, 
   AlertCircle, 
   Search, 
   CloudOff, 
-  RefreshCcw, 
-  Home, 
-  ArrowLeft 
+  RefreshCcw
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '../lib/utils';
 
 interface ErrorPageProps {
   title: string;
   message: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   onAction?: () => void;
   actionLabel?: string;
   onSecondaryAction?: () => void;
@@ -24,7 +21,7 @@ interface ErrorPageProps {
   details?: string;
 }
 
-const ErrorLayout: React.FC<ErrorPageProps> = ({
+const ErrorLayout: FC<ErrorPageProps> = ({
   title,
   message,
   icon,
@@ -129,7 +126,7 @@ const ErrorLayout: React.FC<ErrorPageProps> = ({
   );
 };
 
-export const NotFoundPage: React.FC<{ onBackHome?: () => void }> = ({ onBackHome }) => {
+export const NotFoundPage: FC<{ onBackHome?: () => void }> = ({ onBackHome }) => {
   const { t } = useTranslation();
   return (
     <ErrorLayout
@@ -143,7 +140,7 @@ export const NotFoundPage: React.FC<{ onBackHome?: () => void }> = ({ onBackHome
   );
 };
 
-export const OfflinePage: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => {
+export const OfflinePage: FC<{ onRetry?: () => void }> = ({ onRetry }) => {
   const { t } = useTranslation();
   return (
     <ErrorLayout
@@ -156,7 +153,7 @@ export const OfflinePage: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => 
   );
 };
 
-export const ConnectionErrorPage: React.FC<{ onRetry?: () => void, onBackHome?: () => void }> = ({ onRetry, onBackHome }) => {
+export const ConnectionErrorPage: FC<{ onRetry?: () => void, onBackHome?: () => void }> = ({ onRetry, onBackHome }) => {
   const { t } = useTranslation();
   return (
     <ErrorLayout
@@ -171,7 +168,7 @@ export const ConnectionErrorPage: React.FC<{ onRetry?: () => void, onBackHome?: 
   );
 };
 
-export const BugPage: React.FC<{ error?: Error; onReload?: () => void }> = ({ error, onReload }) => {
+export const BugPage: FC<{ error?: Error; onReload?: () => void }> = ({ error, onReload }) => {
   const { t } = useTranslation();
   return (
     <ErrorLayout

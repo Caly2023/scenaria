@@ -1,22 +1,19 @@
 import { useTranslation } from 'react-i18next';
 import { Project, WorkflowStage, ProjectFormat } from '../types';
 import { geminiService } from '../services/geminiService';
-import { contextAssembler } from '../services/contextAssembler';
+import { classifyError } from '../lib/errorClassifier';
 import { 
   useUpdateProjectFieldMutation, 
-  useCreateProjectMutation, 
   useDeleteProjectMutation,
-  useAddSubcollectionDocMutation,
-  useUpdateSubcollectionDocMutation,
   useClearSubcollectionMutation,
   useInitializeProjectWithPrimitivesMutation
 } from '../services/firebaseApi';
 import { db } from '../lib/firebase';
-import { collection, getDocs, deleteDoc, query, where, doc } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 import { agentRegistry } from '../agents/agentRegistry';
 import { stageRegistry } from '../config/stageRegistry';
 import { persistAgentOutput, buildProjectContext } from '../services/orchestratorService';
-import { ProjectContext, ContentPrimitive } from '../types/stageContract';
+import { ProjectContext } from '../types/stageContract';
 
 interface UseProjectLifecycleProps {
   user: any;
@@ -31,8 +28,6 @@ interface UseProjectLifecycleProps {
   handleProjectSelect: (id: string, project: Project) => void;
   handleProjectExit: () => void;
   handleStageChange: (stage: WorkflowStage) => void;
-  setDoctorMessages: React.Dispatch<React.SetStateAction<any[]>>;
-  setIsDoctorOpen: (val: boolean) => void;
   setIsDeleting: (val: boolean) => void;
   setProjectToDelete: (val: string | null) => void;
   setDeleteConfirmText: (val: string) => void;
@@ -54,8 +49,6 @@ export function useProjectLifecycle({
   handleProjectSelect,
   handleProjectExit,
   handleStageChange,
-  setDoctorMessages,
-  setIsDoctorOpen,
   setIsDeleting,
   setProjectToDelete,
   setDeleteConfirmText,
@@ -65,10 +58,7 @@ export function useProjectLifecycle({
   const { t } = useTranslation();
   
   const [updateField] = useUpdateProjectFieldMutation();
-  const [createProject] = useCreateProjectMutation();
   const [deleteProject] = useDeleteProjectMutation();
-  const [addSubcol] = useAddSubcollectionDocMutation();
-  const [updateSubcol] = useUpdateSubcollectionDocMutation();
   const [clearSubcol] = useClearSubcollectionMutation();
   const [initProjectWithPrims] = useInitializeProjectWithPrimitivesMutation();
 
@@ -244,9 +234,6 @@ export function useProjectLifecycle({
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
-      const insight = currentProject.stageAnalyses?.[stage];
-      const state = currentProject.stageStates?.[stage];
-      const isReady = state === 'good' || state === 'excellent';
 
       const nextStages: WorkflowStage[] = [
         'Brainstorming', 'Logline', '3-Act Structure', 'Synopsis', 'Character Bible',
@@ -274,7 +261,7 @@ export function useProjectLifecycle({
       // The UI picks up the new content via Firestore onSnapshot listeners.
       const triggeredStage = stageRegistry.getTriggeredStage(stage);
       if (triggeredStage && currentProject) {
-        triggerProactiveGeneration(triggeredStage, currentProject, newValidatedStages);
+        triggerProactiveGeneration(triggeredStage, currentProject);
       }
 
     } catch (error: any) {
@@ -293,8 +280,7 @@ export function useProjectLifecycle({
    */
   const triggerProactiveGeneration = async (
     targetStage: WorkflowStage,
-    project: Project,
-    validatedStages: WorkflowStage[]
+    project: Project
   ) => {
     try {
       // Skip Storyboard (manual-only per system_logic.md §4)
@@ -352,23 +338,4 @@ export function useProjectLifecycle({
     handleProjectCreate,
     handleStageValidate
   };
-}
-
-// ── Error classification helper ────────────────────────────────────────────────
-
-function classifyError(error: any): string {
-  const msg = (error?.message || error?.toString() || '').toLowerCase();
-  if (msg.includes('429') || msg.includes('quota') || msg.includes('rate limit')) {
-    return 'AI quota limit reached — try again later';
-  }
-  if (msg.includes('network') || msg.includes('fetch') || msg.includes('econnreset') || msg.includes('failed to fetch')) {
-    return 'Network error — check your connection';
-  }
-  if (msg.includes('timeout') || msg.includes('timed out')) {
-    return 'Request timed out — try again';
-  }
-  if (msg.includes('permission') || msg.includes('403')) {
-    return 'Permission denied';
-  }
-  return 'Unexpected error';
 }

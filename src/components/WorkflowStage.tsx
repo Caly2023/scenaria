@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Primitive } from './Primitive';
-import { Check, Send, RefreshCw, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 import { StepLayout } from './StepLayout';
 import { StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
@@ -47,7 +45,6 @@ export function WorkflowStage({
   onItemChange,
   onValidate, 
   onRefine,
-  onRegenerate,
   isGenerating = false,
   isHydrating = false,
   hydrationLabel = null,
@@ -57,7 +54,6 @@ export function WorkflowStage({
   lastUpdatedPrimitiveId = null,
   insight
 }: WorkflowStageProps) {
-  const { t } = useTranslation();
   
   let blocks: Block[] = [];
   let isJson = false;
@@ -108,7 +104,6 @@ export function WorkflowStage({
     }
   };
 
-  const hasContent = blocks.length > 0 && blocks.some(b => b.content?.trim());
 
   return (
     <StepLayout

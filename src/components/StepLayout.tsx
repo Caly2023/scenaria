@@ -1,6 +1,5 @@
-import React from 'react';
 import { Primitive } from './Primitive';
-import { Check, ChevronRight, AlertCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { Check, ChevronRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,7 +41,6 @@ export function StepLayout({
   const isReady = insight 
     ? ('isReady' in insight ? insight.isReady : ('issues' in insight ? insight.issues.length === 0 : false))
     : false;
-  const statusColor = isReady ? "green" : "amber";
 
   return (
     <div className="w-full space-y-12 pb-32">

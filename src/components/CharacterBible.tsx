@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Check, Users, Maximize2, X, Sparkles } from 'lucide-react';
+import { Plus, Users, Maximize2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from './Primitive';
 import { Character, StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
-import { cn } from '@/lib/utils';
 import { StepLayout } from './StepLayout';
 
 interface CharacterBibleProps {

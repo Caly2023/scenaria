@@ -7,20 +7,17 @@ import {
   updateDoc, 
   getDoc, 
   setDoc,
-  deleteDoc,
-  query,
-  where
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 export class WebRTCService {
   private peer: Peer.Instance | null = null;
-  private stream: MediaStream | null = null;
+  private _stream: MediaStream | null = null;
   private roomId: string | null = null;
 
   async startCall(roomId: string, localStream: MediaStream, onRemoteStream: (stream: MediaStream) => void) {
     this.roomId = roomId;
-    this.stream = localStream;
 
     const callDoc = doc(db, 'calls', roomId);
     const offerCandidates = collection(callDoc, 'offerCandidates');

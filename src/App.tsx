@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, Suspense, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { DictationButton } from './components/DictationButton';
 import { HomePage } from './components/HomePage';
 import { ProjectDrawer } from './components/ProjectDrawer';
 import { FocusMode } from './components/FocusMode';
@@ -15,13 +14,11 @@ import { HelpModal } from './components/HelpModal';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { CanvasErrorBoundary } from './components/ErrorBoundary/CanvasErrorBoundary';
 import { FormErrorBoundary } from './components/ErrorBoundary/FormErrorBoundary';
-import { SpeechErrorBoundary } from './components/ErrorBoundary/SpeechErrorBoundary';
-import { CardSkeleton } from './components/Skeleton';
 import { telemetryService, TelemetryStatus } from './services/telemetryService';
 import { contextAssembler } from './services/contextAssembler';
-import { aiQuotaState, aiQuotaNoticeConsumed } from './services/serviceState';
+import { aiQuotaState } from './services/serviceState';
 import { consumeQuotaNotice } from './services/geminiService';
-import { Check, Wand2, Send, Image as ImageIcon, ChevronRight, Bot } from 'lucide-react';
+import { Check, Wand2, Image as ImageIcon, Bot } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
 import { WorkflowStage } from './types';
@@ -140,7 +137,6 @@ export default function App() {
     handleProjectSelect,
     handleProjectExit,
     activeStage,
-    setActiveStage,
     handleStageChange
   } = useProjectData(user);
 
@@ -435,11 +431,6 @@ export default function App() {
   const onRefineScript = useCallback((f: string, blockId?: string) => handleStageRefine('Script', f, blockId), [handleStageRefine]);
   const onRegenerateScript = useCallback(() => handleRegenerate('Script'), [handleRegenerate]);
 
-  const handleGlobalAiSubmit = useCallback((text: string) => {
-    setIsDoctorOpen(true);
-    handleDoctorMessage(text);
-  }, [handleDoctorMessage, setIsDoctorOpen]);
-
   const handleStoryChange = useCallback((c: string) => {
     const pitchId = pitchPrimitives.find(p => p.order === 1)?.id;
     if (pitchId) handleSubcollectionUpdate('pitch_primitives', pitchId, c);
@@ -706,7 +697,7 @@ export default function App() {
                     <MainCanvas 
                       sequences={sequences} onSequenceUpdate={handleSequenceUpdate} onSequenceAdd={handleSequenceAdd}
                       onFocusMode={handleFocusMode}
-                      onAiMagic={handleAiMagic} onTts={NOOP} onValidate={onValidateStepOutline}
+                      onAiMagic={handleAiMagic} onValidate={onValidateStepOutline}
                       isGenerating={isTyping} refiningBlockId={refiningBlockId} insight={currentProject.stageAnalyses?.['Step Outline']}
                     />
                   </CanvasErrorBoundary>

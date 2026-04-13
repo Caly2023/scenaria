@@ -1,16 +1,12 @@
-import React from 'react';
 import { 
   Target, 
   X, 
   Sparkles, 
   Mic,
-  Maximize2,
-  Minimize2,
   RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 
 interface FocusModeProps {
   isOpen: boolean;

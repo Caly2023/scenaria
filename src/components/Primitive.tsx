@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Volume2, 
@@ -41,7 +41,7 @@ interface PrimitiveProps {
   isUpdated?: boolean;
 }
 
-export const Primitive = React.memo(function Primitive({ 
+export const Primitive = memo(function Primitive({ 
   title, 
   content, 
   type = 'text',
@@ -52,7 +52,6 @@ export const Primitive = React.memo(function Primitive({
   onFocus,
   onSpeaker,
   onDelete,
-  tier,
   onTitleChange,
   images = [],
   onImageClick,
@@ -92,6 +91,7 @@ export const Primitive = React.memo(function Primitive({
       const timer = setTimeout(() => setShowGlow(false), 2000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [isUpdated]);
 
   // Auto-resize textarea

@@ -1,10 +1,10 @@
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db } from '../lib/firebase';
 import { 
   collection, query, where, doc, getDocs, onSnapshot, 
-  updateDoc, addDoc, setDoc, deleteDoc, orderBy, serverTimestamp, writeBatch 
+  updateDoc, addDoc, deleteDoc, orderBy, serverTimestamp, writeBatch 
 } from 'firebase/firestore';
-import { Project, Sequence, Character, Location } from '../types';
+import { Project } from '../types';
 
 export const firebaseApi = createApi({
   reducerPath: 'firebaseApi',
@@ -75,7 +75,7 @@ export const firebaseApi = createApi({
     }),
 
     getSubcollection: builder.query<any[], { projectId: string; collectionName: string; orderByField?: string }>({
-      async queryFn({ projectId, collectionName, orderByField }) {
+      async queryFn({ projectId, collectionName: _collectionName, orderByField: _orderByField }) {
         if (!projectId) return { data: [] };
         return { data: [] };
       },

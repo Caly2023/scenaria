@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from './Primitive';
 import { StepLayout } from './StepLayout';
@@ -10,7 +8,6 @@ interface LoglineStageProps {
   content: string;
   onContentChange: (content: string) => void;
   onValidate: () => void;
-  onRefine: (feedback: string) => void;
   isGenerating?: boolean;
   insight?: StageInsight | StageAnalysis;
 }
@@ -18,8 +15,7 @@ interface LoglineStageProps {
 export function LoglineStage({ 
   content, 
   onContentChange, 
-  onValidate, 
-  onRefine,
+  onValidate,
   isGenerating = false,
   insight
 }: LoglineStageProps) {

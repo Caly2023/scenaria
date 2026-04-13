@@ -1,8 +1,4 @@
-import React from 'react';
-import { Check, Sparkles, AlertCircle, ChevronRight } from 'lucide-react';
-import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 import { StepLayout } from './StepLayout';
 import { Primitive } from './Primitive';
 import { StageInsight } from '@/types';
@@ -23,7 +19,6 @@ export function BrainstormingStage({
   story, 
   onStoryChange, 
   onValidate,
-  onDoctorToggle,
   isGenerating,
   insight
 }: BrainstormingStageProps) {

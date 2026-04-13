@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Zap, 
   LayoutGrid, 
@@ -21,7 +20,6 @@ interface SidebarProps {
   activeStage: WorkflowStage;
   onStageChange: (stage: WorkflowStage) => void;
   validatedStages: WorkflowStage[];
-  isVisible: boolean;
   /** If true, renders as a horizontal bottom navigation bar (mobile) */
   variant?: 'sidebar' | 'bottom-nav';
 }
@@ -39,10 +37,10 @@ const stages: { id: WorkflowStage; icon: React.ElementType; step: number; estTim
   { id: 'Storyboard', icon: ImageIcon, step: 10, estTime: 'TBD' },
 ];
 
-export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible, variant = 'sidebar' }: SidebarProps) {
+export function Sidebar({ activeStage, onStageChange, validatedStages, variant = 'sidebar' }: SidebarProps) {
   const { t } = useTranslation();
 
-  const isStageUnlocked = (stageId: WorkflowStage, index: number) => {
+  const isStageUnlocked = (index: number) => {
     if (index === 0) return true;
     const previousStage = stages[index - 1].id;
     return validatedStages.includes(previousStage);
@@ -58,7 +56,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
         {stages.map((stage, index) => {
           const Icon = stage.icon;
           const isActive = activeStage === stage.id;
-          const isUnlocked = isStageUnlocked(stage.id, index);
+          const isUnlocked = isStageUnlocked(index);
           const isLocked = !isUnlocked;
 
           return (
@@ -117,7 +115,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, isVisible
         {stages.map((stage, index) => {
           const Icon = stage.icon;
           const isActive = activeStage === stage.id;
-          const isUnlocked = isStageUnlocked(stage.id, index);
+          const isUnlocked = isStageUnlocked(index);
           const isLocked = !isUnlocked;
           
           return (

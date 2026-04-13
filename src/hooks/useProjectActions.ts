@@ -9,8 +9,6 @@ import {
   useUpdateSubcollectionDocMutation,
   useAddSubcollectionDocMutation 
 } from '../services/firebaseApi';
-import { db } from '../lib/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
 import { ContentPrimitive } from '../types/stageContract';
 
@@ -51,7 +49,6 @@ export function useProjectActions({
 }: UseProjectActionsProps) {
   const { t } = useTranslation();
   
-  const [updateField] = useUpdateProjectFieldMutation();
   const [updateMetadata] = useUpdateProjectMetadataMutation();
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
   const [addSubcol] = useAddSubcollectionDocMutation();

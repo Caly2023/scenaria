@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   X, 
   Sparkles, 
@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Bot
 } from 'lucide-react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -99,7 +99,6 @@ function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean
 
 // ── Script Doctor inner content ───────────────────────────────────────────────
 function ScriptDoctorContent({
-  isOpen,
   onClose,
   onSendMessage,
   messages,
@@ -453,7 +452,7 @@ function ScriptDoctorContent({
 // ── Main export: renders as desktop panel OR mobile bottom sheet ──────────────
 export function ScriptDoctor(props: ScriptDoctorProps) {
   // Detect mobile via window width — SSR-safe with a hook
-  const [isMobile, setIsMobile] = React.useState(
+  const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
 

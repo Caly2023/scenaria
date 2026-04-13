@@ -31,12 +31,10 @@ export function useScriptDoctor({
   sequences,
   treatmentSequences,
   scriptScenes,
-  pitchPrimitives,
   characters,
   locations,
   addToast,
   setRefiningBlockId,
-  setLastUpdatedPrimitiveId,
   handleStageAnalyze,
 }: UseScriptDoctorProps) {
   const { t } = useTranslation();

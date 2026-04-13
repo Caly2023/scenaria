@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode } from 'react';
 import { MicOff } from 'lucide-react';
 
 interface Props {
@@ -16,7 +16,7 @@ export class SpeechErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
     console.group('Speech Recognition Error');
     console.error('Message:', error.message);
     console.error('Stack:', error.stack);

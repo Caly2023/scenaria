@@ -9,11 +9,8 @@
  * This service is stateless and has no UI dependencies.
  */
 
-import { db } from '../lib/firebase';
 import {
-  serverTimestamp,
-  doc,
-  collection
+  serverTimestamp
 } from 'firebase/firestore';
 import { store } from '../store';
 import { firebaseApi } from './firebaseApi';
@@ -24,7 +21,6 @@ import {
   ContentPrimitive,
   ProjectContext,
   StageAnalysis,
-  StageState,
   PersistResult,
 } from '../types/stageContract';
 import { agentRegistry } from '../agents/agentRegistry';
@@ -157,8 +153,6 @@ export async function persistAgentOutput(
   const primitiveIds: string[] = [];
 
   try {
-    const projectRef = doc(db, 'projects', projectId);
-
     // ── STEP 1: Write Analysis ────────────────────────────────────────────────
     telemetryService.setStatus('persist_analysis', '📊', `Writing analysis for ${stageName}...`);
     await store.dispatch(firebaseApi.endpoints.updateProjectField.initiate({
@@ -178,8 +172,6 @@ export async function persistAgentOutput(
     }
 
     if (stageDef && output.content.length > 0) {
-      const collRef = collection(db, 'projects', projectId, stageDef.collectionName);
-
       if (options.replaceAll) {
         // Delete existing before writing new ones
         await store.dispatch(firebaseApi.endpoints.clearSubcollection.initiate({ projectId, collectionName: stageDef.collectionName })).unwrap();

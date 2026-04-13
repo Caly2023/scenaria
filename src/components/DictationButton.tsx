@@ -1,4 +1,3 @@
-import React from 'react';
 import { Mic, MicOff } from 'lucide-react';
 import { useSpeechToText } from '@/hooks/useSpeechToText';
 import { cn } from '@/lib/utils';

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WorkflowStage, Character, Location, Sequence, Project } from '../types';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
-import { ContentPrimitive } from '../types/stageContract';
 
 interface StageHydrationConfig {
   stage: WorkflowStage;

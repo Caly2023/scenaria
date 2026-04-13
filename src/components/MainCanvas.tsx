@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,6 @@ interface MainCanvasProps {
   onSequenceAdd: () => void;
   onFocusMode: (id: string) => void;
   onAiMagic: (id: string) => void;
-  onTts: (id: string) => void;
   onValidate: () => void;
   isGenerating?: boolean;
   refiningBlockId?: string | null;
@@ -80,7 +79,6 @@ export const MainCanvas = React.memo(function MainCanvas({
   onSequenceAdd, 
   onFocusMode, 
   onAiMagic, 
-  onTts,
   onValidate,
   isGenerating = false,
   refiningBlockId = null,

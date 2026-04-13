@@ -1,8 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
-let currentCacheContextHash: string | null = null;
 let currentCacheName: string | null = null;
-let currentCacheModel: string | null = null;
+let currentCacheContextHash: string | null = null;
 
 // Keep a map of previously created caches by hash so we can attempt to reuse them even if model changes slightly 
 // Note: caches in Gemini are usually bound to the specific model used during creation.
@@ -61,7 +60,6 @@ export async function getOrCreateCache(
         console.log(`[CacheService] Session Cache HIT: ${cacheMap[hashKey]} (Model: ${cacheModel})`);
         currentCacheName = cacheMap[hashKey];
         currentCacheContextHash = hashKey;
-        currentCacheModel = cacheModel;
         return currentCacheName;
       }
     } catch (e) {
@@ -87,9 +85,8 @@ export async function getOrCreateCache(
 
     const cacheDetails = await ai.caches.create(cacheConfig);
     
-    currentCacheName = cacheDetails.name;
+    currentCacheName = cacheDetails.name ?? null;
     currentCacheContextHash = hashKey;
-    currentCacheModel = cacheModel;
     
     if (currentCacheName) {
       cacheMap[hashKey] = currentCacheName;
@@ -111,6 +108,5 @@ export async function getOrCreateCache(
 export function invalidateCache() {
   currentCacheName = null;
   currentCacheContextHash = null;
-  currentCacheModel = null;
   console.log(`[CacheService] Cache state manually invalidated.`);
 }

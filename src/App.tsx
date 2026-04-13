@@ -19,7 +19,7 @@ import { SpeechErrorBoundary } from './components/ErrorBoundary/SpeechErrorBound
 import { CardSkeleton } from './components/Skeleton';
 import { telemetryService, TelemetryStatus } from './services/telemetryService';
 import { contextAssembler } from './services/contextAssembler';
-import { Check, Wand2, Send, Image as ImageIcon, ChevronRight } from 'lucide-react';
+import { Check, Wand2, Send, Image as ImageIcon, ChevronRight, Bot } from 'lucide-react';
 import { cn } from './lib/utils';
 import { AnimatePresence, motion } from 'motion/react';
 import { WorkflowStage } from './types';
@@ -557,15 +557,15 @@ export default function App() {
           <div 
             className={cn(
               "pointer-events-auto absolute transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
-              isMobile ? "bottom-24 right-6" : "bottom-6 right-6",
+              isMobile ? "bottom-[calc(112px+env(safe-area-inset-bottom,0px))] right-6" : "bottom-6 right-6",
               isDoctorOpen ? "opacity-0 scale-50 pointer-events-none translate-x-12" : "opacity-100 scale-100"
             )}
           >
             <button 
               onClick={handleOpenDoctor} 
-              className="w-16 h-16 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none"
+              className="w-14 h-14 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none"
             >
-              <span className="text-xl font-bold italic tracking-tighter group-hover:scale-110 transition-transform">Dr</span>
+              <Bot className="w-7 h-7 group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>

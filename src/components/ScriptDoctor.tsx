@@ -6,7 +6,8 @@ import {
   RefreshCw,
   MoreHorizontal,
   Volume2,
-  CheckCircle2
+  CheckCircle2,
+  Bot
 } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -175,7 +176,9 @@ function ScriptDoctorContent({
       {/* Header */}
       <div className="h-16 md:h-14 bg-[#0f0f0f] flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-bold italic tracking-tighter text-sm">Dr</div>
+          <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
+            <Bot className="w-5 h-5" />
+          </div>
           <div className="flex flex-col leading-none">
             <h3 className="text-sm font-bold tracking-tight text-white">{t('common.scriptDoctor')}</h3>
             <div className="flex items-center gap-1.5 mt-0.5">

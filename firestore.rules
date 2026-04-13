@@ -159,7 +159,7 @@ service cloud.firestore {
 
       match /pitch_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if (isProjectMember(projectId) || (isAuthenticated() && request.resource.data.get('ownerId', '') == request.auth.uid)) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }

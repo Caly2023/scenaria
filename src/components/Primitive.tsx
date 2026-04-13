@@ -111,7 +111,12 @@ export const Primitive = React.memo(function Primitive({
   ), [deferredContent]);
 
   const handleTts = useCallback(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      return;
+    }
+
     if (onSpeaker) {
+      setIsSpeaking(prev => !prev);
       onSpeaker();
       return;
     }

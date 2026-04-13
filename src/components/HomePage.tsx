@@ -282,7 +282,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     
                     <button
                       onClick={() => onProjectSelect(project.id)}
-                      className="relative w-full py-6 px-6 md:py-10 md:px-12 text-left flex items-center gap-6 md:gap-12 glass rounded-[32px] border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden"
+                      className="relative w-full p-8 md:py-10 md:px-12 text-left flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 glass rounded-[40px] border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden"
                     >
                       {/* Decorative Background Element */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -297,28 +297,24 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
 
                       {/* Center: Main Information */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <div className="flex items-center justify-between gap-8 mb-4">
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-xl md:text-2xl md:text-3xl font-serif font-bold tracking-tight text-white/95 truncate group-hover:text-white transition-colors duration-300">
-                              {project.metadata?.title || t('common.untitled')}
-                            </h3>
-                            {project.metadata?.logline && (
-                              <p className="text-sm md:text-base text-white/40 line-clamp-2 italic font-light mt-2 group-hover:text-white/60 transition-colors duration-300 max-w-2xl leading-relaxed">
-                                {project.metadata.logline}
-                              </p>
-                            )}
-                          </div>
+                        <div className="min-w-0 mb-4">
+                          <h3 className="text-lg md:text-xl font-sans font-bold tracking-tight text-white/95 truncate group-hover:text-white transition-colors duration-300">
+                            {project.metadata?.title || t('common.untitled')}
+                          </h3>
                           
-                          {/* Date display */}
-                          <div className="hidden md:flex flex-col items-end gap-1 flex-shrink-0 opacity-20 group-hover:opacity-50 transition-opacity duration-500">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('common.lastEdited', { defaultValue: 'Last Edited' })}</span>
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-3.5 h-3.5" />
-                              <span className="text-xs font-medium">
-                                {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'NEW'}
-                              </span>
-                            </div>
+                          {/* Last Update Detail - Now below title */}
+                          <div className="flex items-center gap-2 mt-1 opacity-40 group-hover:opacity-60 transition-opacity duration-500">
+                            <Clock className="w-3 h-3" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">
+                              {t('common.lastUpdated', { defaultValue: 'Last Update' })} • {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'NEW'}
+                            </span>
                           </div>
+
+                          {project.metadata?.logline && (
+                            <p className="text-sm md:text-base text-white/40 line-clamp-2 italic font-light mt-3 group-hover:text-white/60 transition-colors duration-300 max-w-2xl leading-relaxed">
+                              {project.metadata.logline}
+                            </p>
+                          )}
                         </div>
 
                         {/* Metadata Tags Row */}
@@ -351,9 +347,9 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                       </div>
 
                       {/* Right: Interaction Indicator */}
-                      <div className="flex-shrink-0 ml-4">
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center border border-white/5 group-hover:border-white/20 group-hover:bg-white/5 transition-all duration-500">
-                          <ChevronRight className="w-6 h-6 text-white/10 group-hover:text-white/60 group-hover:translate-x-1 transition-all duration-500" />
+                      <div className="flex-shrink-0 ml-auto md:ml-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border border-white/5 group-hover:border-white/20 group-hover:bg-white/5 transition-all duration-500">
+                          <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white/10 group-hover:text-white/60 group-hover:translate-x-1 transition-all duration-500" />
                         </div>
                       </div>
                     </button>

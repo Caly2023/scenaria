@@ -640,20 +640,6 @@ export const geminiService = {
     return responseObj;
   },
 
-  async extractMetadata(description: string, existingMetadata?: any): Promise<any> {
-    return resilientRequest(async (model) => {
-      const response = await ai.models.generateContent({
-        model: model,
-        contents: [{
-          role: "user",
-          parts: [{ text: `Task: extract and refine film metadata from this description: "${description}"\n` + 
-                    (existingMetadata ? `Existing context: ${JSON.stringify(existingMetadata)}` : '') }]
-        }]
-      });
-      const text = await extractText(response);
-      return safeJsonParse(text);
-    }, MODELS.LITE || MODELS.FLASH);
-  },
 
   async analyzeScript(content: string, stage: string) {
     return resilientRequest(async (model) => {

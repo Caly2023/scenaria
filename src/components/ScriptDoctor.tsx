@@ -44,34 +44,9 @@ interface ScriptDoctorProps {
   } | null;
 }
 
-// ── Mobile Bottom Sheet wrapper ──────────────────────────────────────────────
-function MobileBottomSheet({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
-  const y = useMotionValue(0);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const dragStartY = useRef(0);
-  const isDragging = useRef(false);
-
-  const handleDragStart = useCallback((e: React.TouchEvent) => {
-    dragStartY.current = e.touches[0].clientY;
-    isDragging.current = true;
-  }, []);
-
-  const handleDragMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    const delta = e.touches[0].clientY - dragStartY.current;
-    if (delta > 0) y.set(delta); // only drag down
-  }, [y]);
-
-  const handleDragEnd = useCallback(() => {
-    isDragging.current = false;
-    const currentY = y.get();
-    if (currentY > 100) {
-      onClose();
-    }
-    y.set(0);
-  }, [y, onClose]);
-
-  // Lock body scroll when sheet is open
+// ── Mobile Full-Screen Drawer wrapper ───────────────────────────────────────
+function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: React.ReactNode }) {
+  // Lock body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -85,7 +60,7 @@ function MobileBottomSheet({ isOpen, onClose, children }: { isOpen: boolean; onC
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop (hidden but keeps consistent structure or provides slight dimming behind full-screen if needed) */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
@@ -96,27 +71,20 @@ function MobileBottomSheet({ isOpen, onClose, children }: { isOpen: boolean; onC
             className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Sheet */}
+          {/* Full Screen Drawer */}
           <motion.div
-            key="sheet"
-            ref={sheetRef}
+            key="drawer"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            style={{ y, height: '85dvh' }}
-            className="fixed bottom-0 left-0 right-0 z-[70] flex flex-col bg-[#212121] rounded-t-[28px] overflow-hidden touch-none"
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[70] flex flex-col bg-[#212121] overflow-hidden"
+            style={{ 
+              height: '100dvh',
+              paddingTop: 'env(safe-area-inset-top)',
+              paddingBottom: 'env(safe-area-inset-bottom)'
+            }}
           >
-            {/* Drag Handle */}
-            <div
-              className="flex-shrink-0 pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing"
-              onTouchStart={handleDragStart}
-              onTouchMove={handleDragMove}
-              onTouchEnd={handleDragEnd}
-            >
-              <div className="w-10 h-1 bg-white/20 rounded-full" />
-            </div>
-
             {children}
           </motion.div>
         </>
@@ -205,7 +173,7 @@ function ScriptDoctorContent({
   return (
     <div className="h-full w-full bg-[#212121] flex flex-col">
       {/* Header */}
-      <div className="h-14 bg-[#0f0f0f] flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0">
+      <div className="h-16 md:h-14 bg-[#0f0f0f] flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-bold italic tracking-tighter text-sm">Dr</div>
           <div className="flex flex-col leading-none">
@@ -219,15 +187,16 @@ function ScriptDoctorContent({
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <button className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white border-none">
+        <div className="flex items-center gap-2">
+          <button className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white border-none hidden md:block">
             <MoreHorizontal className="w-4 h-4" />
           </button>
           <button 
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/5 transition-all text-white/40 hover:text-white border-none"
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all text-white border-none shadow-lg active:scale-95"
+            aria-label="Close"
           >
-            <X className="w-4 h-4" />
+            <X className="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -473,9 +442,9 @@ export function ScriptDoctor(props: ScriptDoctorProps) {
 
   if (isMobile) {
     return (
-      <MobileBottomSheet isOpen={props.isOpen} onClose={props.onClose}>
+      <MobileFullScreenDrawer isOpen={props.isOpen} onClose={props.onClose}>
         <ScriptDoctorContent {...props} />
-      </MobileBottomSheet>
+      </MobileFullScreenDrawer>
     );
   }
 

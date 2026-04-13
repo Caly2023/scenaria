@@ -2,14 +2,12 @@ import { useState, useCallback, useMemo, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { useIdleTimer } from "react-idle-timer";
 import { db } from "./lib/firebase";
-import { useAuth } from "./hooks/useAuth";
+import { useAppAuth as useAuth } from "./hooks/useAppAuth";
 import { useProjects } from "./hooks/useProjects";
-import { useSubcollections } from "./hooks/useSubcollections";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useProjectLifecycle } from "./hooks/useProjectLifecycle";
 import { useScriptDoctor } from "./hooks/useScriptDoctor";
 import { useAppCallbacks } from "./hooks/useAppCallbacks";
-import { handleStageAnalyze as handleStageAnalyzeInternal, handleStageRefine } from "./services/stageAgentApi";
 import { contextAssembler } from "./services/contextAssembler";
 import { aiQuotaState } from "./services/serviceState";
 import { consumeQuotaNotice } from "./services/geminiService";
@@ -26,35 +24,29 @@ import { ScriptDoctor as ScriptDoctorComponent } from "./components/ScriptDoctor
 const NOOP = () => {};
 
 export default function App() {
-  const { user, isAuthReady } = useAuth();
-  const { 
-    projects, currentProject, currentProjectId, isProjectLoading, isProjectNotFound, isOffline, connectionError, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate 
-  } = useProjects(user);
-
-  const { 
-    pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes 
-  } = useSubcollections(currentProjectId);
-
   const [toasts, setToasts] = useState<any[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
-  const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-  const [isFocusMode, setIsFocusMode] = useState(false);
-  const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(null);
-  const [accessibilitySettings, setAccessibilitySettings] = useState({ fontSize: "medium", contrast: "normal", motion: "standard" });
-  const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
-  const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<string | null>(null);
-
   const addToast = useCallback((message: string, type: 'error' | 'info' | 'success') => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000);
   }, []);
+
+  const { user, isAuthReady, isOffline, connectionError } = useAuth();
+  const { 
+    projects, currentProject, currentProjectId, isProjectLoading, isProjectNotFound, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
+    isTyping, setIsTyping, isRegenerating, syncStatus, setSyncStatus, handleRegenerate, handleStageValidate, activeStage, handleStageRefine, handleStageAnalyze,
+    pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
+    isDeleting, setIsDeleting, projectToDelete, setProjectToDelete
+  } = useProjects(user, addToast);
+
+  const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(null);
+  const [accessibilitySettings, setAccessibilitySettings] = useState({ fontSize: "medium", contrast: "normal", motion: "standard" });
+  const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
+  const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<string | null>(null);
 
   const getProjectContext = useCallback(async () => {
     if (!currentProject) return "";
@@ -65,18 +57,11 @@ export default function App() {
 
   const hydrationState = useAutoHydration(currentProject, getProjectContext);
 
-  const activeStage = currentProject?.activeStage || "Brainstorming";
-
-  const handleStageAnalyze = useCallback((stage: any) => handleStageAnalyzeInternal(currentProject, stage, setIsTyping), [handleStageAnalyzeInternal, currentProject]);
 
   const {
     isDoctorOpen, setIsDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage
   } = useScriptDoctor({
     currentProject, activeStage, sequences, treatmentSequences, scriptScenes, pitchPrimitives, characters, locations, addToast, setRefiningBlockId, setLastUpdatedPrimitiveId, handleStageAnalyze
-  });
-
-  const { handleRegenerate, handleProjectDelete: performProjectDelete, handleProjectCreate: performProjectCreate, handleStageValidate } = useProjectLifecycle({
-    user, currentProject, currentProjectId, setIsTyping, setSyncStatus, setIsHeavyThinking: NOOP, setIsRegenerating, isRegenerating, addToast, handleProjectSelect, handleProjectExit, handleStageChange, setIsDeleting, setProjectToDelete, hydrationState, getProjectContext, setDeleteConfirmText: NOOP
   });
 
   const handleToggleDoctor = useCallback(() => setIsDoctorOpen(prev => !prev), [setIsDoctorOpen]);
@@ -232,7 +217,7 @@ export default function App() {
         handleCloseDrawer={handleCloseDrawer}
         handleCloseFocus={handleCloseFocus}
         handleCancelDelete={handleCancelDelete}
-        handleProjectDelete={performProjectDelete}
+        handleProjectDelete={handleProjectDelete}
         setAccessibilitySettings={setAccessibilitySettings}
         setIsHelpOpen={setIsHelpOpen}
         setIsFirstTime={setIsFirstTime}

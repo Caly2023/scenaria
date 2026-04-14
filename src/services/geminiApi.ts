@@ -9,7 +9,7 @@ export const geminiApi = createApi({
       queryFn: async (brainstorming) => {
         try {
           const result = await geminiService.generateLoglineDraft(brainstorming);
-          return { data: result };
+          return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -19,7 +19,7 @@ export const geminiApi = createApi({
       queryFn: async ({ brainstorming, logline }) => {
         try {
           const result = await geminiService.generate3ActStructure(brainstorming, logline);
-          return { data: result };
+          return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -29,7 +29,7 @@ export const geminiApi = createApi({
       queryFn: async ({ brainstorming, structure }) => {
         try {
           const result = await geminiService.generateSynopsis(brainstorming, structure);
-          return { data: result };
+          return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -39,7 +39,7 @@ export const geminiApi = createApi({
       queryFn: async (brainstorming) => {
         try {
           const result = await geminiService.extractCharactersAndSettings(brainstorming);
-          return { data: result };
+          return { data: result as { characters: any[]; settings: any[] } };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -49,7 +49,7 @@ export const geminiApi = createApi({
       queryFn: async (prompt) => {
         try {
           const result = await geminiService.generateTreatment(prompt);
-          return { data: result };
+          return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -59,7 +59,7 @@ export const geminiApi = createApi({
       queryFn: async ({ treatmentText, format, characters, locations }) => {
         try {
           const result = await geminiService.generateInitialSequences(treatmentText, format, characters, locations);
-          return { data: result };
+          return { data: result as any[] };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -69,7 +69,7 @@ export const geminiApi = createApi({
       queryFn: async ({ structure, synopsis, treatmentText, characters }) => {
         try {
           const result = await geminiService.generateFullScript(structure, synopsis, treatmentText, characters);
-          return { data: result };
+          return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };
         }

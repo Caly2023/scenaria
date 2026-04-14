@@ -50,17 +50,17 @@ function createTimeout(ms: number): { promise: Promise<never>; clear: () => void
   };
 }
 
-async function resilientRequest(
-  operation: (model: string) => Promise<any>,
+async function resilientRequest<T>(
+  operation: (model: string) => Promise<T>,
   primaryModel: string = MODELS.FLASH_3_1,
   maxRetries: number = 2,
   timeoutMs: number = 0,
-  fallbackResponse?: any,
+  fallbackResponse?: T,
   customCascade?: string[],
-  simplifyOperation?: (model: string) => Promise<any>
+  simplifyOperation?: (model: string) => Promise<T>
 ) {
   const cascade = customCascade || [primaryModel, MODELS.PRO_3_1, MODELS.LITE, MODELS.FALLBACK].filter((v, i, a) => a.indexOf(v) === i);
-  let lastError: any = null;
+  let lastError: unknown = null;
   let hitQuota = false;
 
   for (const model of cascade) {
@@ -84,12 +84,13 @@ async function resilientRequest(
           }
         }
         return await operation(model);
-      } catch (error: any) {
+      } catch (error: unknown) {
         lastError = error;
-        const msg = (error.message || error.toString() || "").toLowerCase();
+        const errMsg = error instanceof Error ? error.message : String(error);
+        const msg = errMsg.toLowerCase();
         const isRateLimit = msg.includes("429") || msg.includes("quota") || msg.includes("rate limit") || msg.includes("too many requests");
         
-        console.warn(`[ScriptDoctor] Attempt ${attempt + 1} failed for model ${model}:`, error.message || error);
+        console.warn(`[ScriptDoctor] Attempt ${attempt + 1} failed for model ${model}:`, errMsg);
         
         if (isRateLimit) {
           hitQuota = true;
@@ -135,10 +136,11 @@ async function resilientRequest(
           }
         }
         return await simplifyOperation(model);
-      } catch (simplifyError: any) {
-        console.warn(`[ScriptDoctor] Simplify operation failed for ${model}:`, simplifyError.message || simplifyError);
+      } catch (simplifyError: unknown) {
+        const errMsg = simplifyError instanceof Error ? simplifyError.message : String(simplifyError);
+        console.warn(`[ScriptDoctor] Simplify operation failed for ${model}:`, errMsg);
         lastError = simplifyError;
-        const msg = (simplifyError.message || "").toLowerCase();
+        const msg = errMsg.toLowerCase();
         if (msg.includes("429") || msg.includes("quota") || msg.includes("rate limit")) {
           hitQuota = true;
         }
@@ -159,10 +161,11 @@ async function resilientRequest(
         })
       };
     }
-    console.warn("[ScriptDoctor] All models in cascade failed after retries. Returning graceful fallback. Last error:", lastError?.message || lastError);
+    const lastErrMsg = lastError instanceof Error ? lastError.message : String(lastError);
+    console.warn("[ScriptDoctor] All models in cascade failed after retries. Returning graceful fallback. Last error:", lastErrMsg);
     return fallbackResponse;
   }
-  throw lastError || new Error("All models in cascade failed after retries.");
+  throw lastError instanceof Error ? lastError : new Error(String(lastError || "All models in cascade failed after retries."));
 }
 
 /**
@@ -172,7 +175,7 @@ function safeJsonParse(text: string | null | undefined): any {
   if (!text) return null;
   try {
     return JSON.parse(text);
-  } catch (e) {
+  } catch (_e) {
     const cleaned = text.replace(/```json|```/g, '').trim();
     try {
       return JSON.parse(cleaned);
@@ -189,10 +192,11 @@ function safeJsonParse(text: string | null | undefined): any {
  * - Legacy: `.text` could be a function.
  * - Always falls back to digging into candidates for robustness.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function extractText(response: any): Promise<string> {
   // v1.x: .text is a string property (most common)
   if (typeof response?.text === 'string' && response.text.length > 0) {
-    return response.text;
+    return response.text || '';
   }
   // Legacy function form (older SDK versions)
   if (typeof response?.text === 'function') {
@@ -219,9 +223,10 @@ async function extractText(response: any): Promise<string> {
 
 
 export const geminiService = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
     if (aiQuotaState.get()) {
-      console.log(`[ScriptDoctor] Quota exhausted mode active. Using degraded cascade.`);
+      console.warn(`[ScriptDoctor] Quota exhausted mode active. Using degraded cascade.`);
     }
 
     let customCascade: string[];
@@ -255,7 +260,7 @@ export const geminiService = {
       }
     }
 
-    console.log(`[ScriptDoctor] Request complexity: ${complexity}, cascade: [${customCascade.join(', ')}], timeout: ${timeoutMs}ms`);
+
 
     const fallbackResponse = {
       text: JSON.stringify({
@@ -264,9 +269,9 @@ export const geminiService = {
         response: "I encountered a temporary issue. Let me try again — could you rephrase or repeat your message?",
         suggested_actions: ["Retry", "Ask something else"]
       })
-    };
+    } as any;
 
-    const responseObj = await resilientRequest(async (model) => {
+    const responseObj = await resilientRequest<any>(async (model) => {
       const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, model);
 
       // CHAT-ONLY DEGRADED PROMPT
@@ -468,7 +473,7 @@ export const geminiService = {
         ];
       }
 
-      console.log('[ScriptDoctor] Calling model: ' + model + ', complexity: ' + complexity + ', tools: YES');
+
 
       try {
         const cacheName = await getOrCreateCache(ai, model, config.systemInstruction, config.tools);
@@ -496,7 +501,7 @@ export const geminiService = {
 
       return response;
     }, customCascade[0], 2, timeoutMs, fallbackResponse, customCascade, async (model) => {
-      console.log('[ScriptDoctor] Calling simplified model: ' + model);
+
       
       const simplifiedConfig: any = {
         systemInstruction: `You are the "SCÉNARIA INTELLIGENT ARCHITECT". The previous request was too heavy processing. 
@@ -507,11 +512,13 @@ export const geminiService = {
         responseMimeType: "application/json"
       };
 
-      // Strip functionCall and shrink history to reduce token mass when degraded/simplified
+      // strip functionCall
+       
       const cleanMessages = messages.map(msg => {
         if (msg.parts && Array.isArray(msg.parts)) {
           return {
             ...msg,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             parts: msg.parts.filter((p: any) => !p.functionCall && !p.functionResponse)
           };
         }
@@ -580,7 +587,7 @@ export const geminiService = {
         Content:
         ${content}`,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.PRO || MODELS.FLASH);
   },
 
@@ -593,7 +600,7 @@ export const geminiService = {
         Original:
         ${content}`,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.FLASH);
   },
 
@@ -646,7 +653,7 @@ export const geminiService = {
         Brainstorming Content:
         ${content}`,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.FLASH);
   },
 
@@ -660,7 +667,7 @@ export const geminiService = {
         Source of Truth (Brainstorming):
         ${brainstorming}`,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.FLASH);
   },
 
@@ -812,7 +819,7 @@ export const geminiService = {
         model: model,
         contents: prompt,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.FLASH);
   },
 
@@ -822,7 +829,7 @@ export const geminiService = {
         model: model,
         contents: prompt,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.PRO || MODELS.FLASH);
   },
 
@@ -836,7 +843,7 @@ export const geminiService = {
         Current Logline:
         ${currentLogline}`,
       });
-      return response.text;
+      return response.text || '';
     }, MODELS.FLASH);
   },
 

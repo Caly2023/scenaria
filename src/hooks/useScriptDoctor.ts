@@ -295,7 +295,7 @@ export function useScriptDoctor({
             // Firestore character docs use 'name' + 'description'.
             // AI agents always send 'title' + 'content'.
             // We map both directions so both field names are updated correctly.
-            let safeUpdates: Record<string, any> = { ...updates };
+            const safeUpdates: Record<string, any> = { ...updates };
             if (stage === "Character Bible" || stage === "Location Bible") {
               if (updates.title !== undefined) {
                 safeUpdates.name = updates.title;
@@ -305,7 +305,7 @@ export function useScriptDoctor({
               }
             }
 
-            console.log(`[ScriptDoctor] propose_patch → ${subcollection}/${id}`, safeUpdates);
+
 
             await updateDoc(docRef, {
               ...safeUpdates,
@@ -468,7 +468,7 @@ export function useScriptDoctor({
             // Ensure projectId is always correct (spread from primitive could override it)
             safeData.projectId = currentProject.id;
 
-            console.log(`[ScriptDoctor] add_primitive → ${subcollection}`, safeData);
+
 
             const newDocRef = await addDoc(
               collection(db, "projects", currentProject.id, subcollection),
@@ -667,7 +667,7 @@ export function useScriptDoctor({
         };
 
         // Attempt to look up the referenced assistant message for richer context
-        let detailLines: string[] = [];
+        const detailLines: string[] = [];
 
         if (msgId) {
           // doctorMessages is the state snapshot captured at render time; we read
@@ -904,7 +904,7 @@ export function useScriptDoctor({
         );
 
         // Parse the response (degraded mode always returns JSON)
-        let degradedText =
+        const degradedText =
           degradedResult?.candidates?.[0]?.content?.parts?.find(
             (p: any) => p.text,
           )?.text ??
@@ -957,7 +957,7 @@ export function useScriptDoctor({
       let conversationHistory = [...cleanedHistory];
       let contentChanged = false;
       let finalResponse = "";
-      let allToolsCalled: string[] = [];
+      const allToolsCalled: string[] = [];
 
       telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
 

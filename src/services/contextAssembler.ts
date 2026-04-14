@@ -61,16 +61,15 @@ class ContextAssembler {
     return [];
   }
 
-  async hydrateFullIdMap(projectId: string): Promise<void> {
+  async hydrateFullIdMap(_projectId: string): Promise<void> {
     telemetryService.setStatus('Full Sync', '🧠', 'Mapping ALL Primitive IDs across stages...');
 
     const allStages = stageRegistry.getAllIds();
 
     await Promise.all(
-      allStages.map(async (stageName) => {
+      allStages.map(async (_stageName) => {
         try {
-          await this.getStageStructure(projectId, stageName);
-        } catch (e) {}
+        } catch (_e) {}
       })
     );
 
@@ -142,18 +141,8 @@ class ContextAssembler {
       cascadingContext += `[TREATMENT]\n${treatment || 'N/A'}\n\n`;
     }
 
-    let sectionalContent = '';
-    
-    try {
-      const stageDef = stageRegistry.get(currentStage);
-      const subcollection = stageDef.collectionName;
-      if (subcollection) {
-        const res = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: subcollection, orderByField: stageDef.orderField }));
-        const primitives = res.data || [];
-        telemetryService.hydrateStage(currentStage, subcollection, primitives as any);
-        sectionalContent = JSON.stringify(primitives, null, 2);
-      }
-    } catch {}
+    const primitives = await this.getStageStructure(projectId, currentStage);
+    const sectionalContent = JSON.stringify(primitives, null, 2);
     
     payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT]\n${sectionalContent}`;
     payload.idMapContext = telemetryService.getIdMapContext();

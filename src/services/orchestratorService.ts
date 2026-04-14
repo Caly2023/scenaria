@@ -71,7 +71,7 @@ export function interpretIntent(
   // Context requirements based on the target stage
   let requiresContext: string[] = [];
   try {
-    const stageDef = stageRegistry.get(targetStage as any);
+    const stageDef = stageRegistry.get(targetStage);
     requiresContext = stageDef.requires as string[];
   } catch {
     requiresContext = [];
@@ -165,7 +165,7 @@ export async function persistAgentOutput(
     telemetryService.setStatus('persist_content', '📡', `Writing content for ${stageName}...`);
     let stageDef;
     try {
-      stageDef = stageRegistry.get(stageName as any);
+      stageDef = stageRegistry.get(stageName);
     } catch {
       // Unknown stage — skip subcollection write
       telemetryService.setStatus('persist_content', '⚠️', `Unknown stage ${stageName} — skipping subcollection write`);
@@ -180,7 +180,7 @@ export async function persistAgentOutput(
       // Write all content primitives in parallel
       const writeResults = await Promise.all(
         output.content.map(async (prim, i) => {
-          const data: Record<string, any> = {
+          const data: Record<string, unknown> = {
             title: prim.title,
             content: prim.content,
             order: prim.order ?? i,
@@ -246,9 +246,11 @@ export async function persistAgentOutput(
     telemetryService.setStatus('Confirmed', '✅', `${stageName} persisted (Analysis→Content→State)`);
 
     return { success: true, primitiveIds };
-  } catch (error: any) {
-    telemetryService.setStatus('Error', '❌', `Persist failed for ${stageName}: ${error.message}`);
-    return { success: false, primitiveIds, error: error.message };
+  } catch (error: unknown) {
+    const errorObj = error !== null && typeof error === 'object' ? (error as Record<string, unknown>) : {};
+    const errorMessage = typeof errorObj.message === 'string' ? errorObj.message : String(error);
+    telemetryService.setStatus('Error', '❌', `Persist failed for ${stageName}: ${errorMessage}`);
+    return { success: false, primitiveIds, error: errorMessage };
   }
 }
 
@@ -263,12 +265,12 @@ export function buildProjectContext(
   return {
     projectId,
     metadata: {
-      title: metadata?.title || 'Untitled',
-      genre: metadata?.genre || '',
-      format: metadata?.format || 'Short Film',
-      tone: metadata?.tone || '',
-      languages: metadata?.languages || [],
-      logline: metadata?.logline || '',
+      title: typeof metadata?.title === 'string' ? metadata.title : 'Untitled',
+      genre: typeof metadata?.genre === 'string' ? metadata.genre : '',
+      format: typeof metadata?.format === 'string' ? metadata.format : 'Short Film',
+      tone: typeof metadata?.tone === 'string' ? metadata.tone : '',
+      languages: Array.isArray(metadata?.languages) ? (metadata.languages as string[]) : [],
+      logline: typeof metadata?.logline === 'string' ? metadata.logline : '',
     },
     stageContents: stageContentsMap,
     stageAnalyses: stageAnalysesMap,

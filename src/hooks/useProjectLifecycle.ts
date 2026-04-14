@@ -120,14 +120,14 @@ export function useProjectLifecycle({
       addToast(t('common.generatingProject', { defaultValue: 'AI is analyzing your idea...' }), 'info');
 
       // 1. Await AI Analysis BEFORE navigating
-      console.log('[useProjectLifecycle] Starting AI initialization...');
+
       const initResult = await geminiService.initializeProjectAgent(brainstormingDraft, format);
       
       if (!initResult || !initResult.metadata) {
         throw new Error('AI analysis failed to return valid metadata');
       }
 
-      console.log('[useProjectLifecycle] AI initialization complete:', initResult);
+
 
       const newMetadata = {
         title: (initResult.metadata.title || 'Untitled Project').substring(0, 100),
@@ -183,7 +183,7 @@ export function useProjectLifecycle({
       ];
 
       // 2. Commit to Database
-      console.log('[useProjectLifecycle] Committing to Firestore...');
+
       // Generate ID locally so we can use it for optimistic navigation
       const projectilesRef = doc(collection(db, 'projects'));
       const docId = projectilesRef.id;
@@ -196,8 +196,8 @@ export function useProjectLifecycle({
         updatedAt: timestamp 
       } as Project;
       
-      const resultId = await initProjectWithPrims({ projectId: docId, projectData, primitives }).unwrap();
-      console.log('[useProjectLifecycle] Firestore commit success:', resultId);
+      await initProjectWithPrims({ projectId: docId, projectData, primitives }).unwrap();
+
       
       // 3. EAGER TRANSITION: Move to project immediately after db write
       handleProjectSelect(docId, newProject);
@@ -309,7 +309,7 @@ export function useProjectLifecycle({
         );
       }
 
-      console.log(`[ProactiveGen] 🚀 Starting ghost generation for "${targetStage}"...`);
+
       addToast(`🧠 Drafting ${targetStage}...`, 'info');
 
       const output = await agent.generate(context);
@@ -318,7 +318,7 @@ export function useProjectLifecycle({
       const result = await persistAgentOutput(project.id, targetStage, output, { replaceAll: true });
 
       if (result.success) {
-        console.log(`[ProactiveGen] ✅ "${targetStage}" ghost generation complete (${result.primitiveIds.length} primitives)`);
+
         addToast(`✅ ${targetStage} draft ready!`, 'success');
       } else {
         console.warn(`[ProactiveGen] ⚠️ Persist failed for "${targetStage}": ${result.error}`);

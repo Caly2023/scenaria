@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ttsService } from '@/services/ttsService';
 import { aiQuotaState } from '@/services/serviceState';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface Message {
   id: string;
@@ -454,18 +455,7 @@ function ScriptDoctorContent({
 
 // ── Main export: renders as desktop panel OR mobile bottom sheet ──────────────
 export function ScriptDoctor(props: ScriptDoctorProps) {
-  // Detect mobile via window width — SSR-safe with a hook
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
-  );
-
-  useEffect(() => {
-    const mql = window.matchMedia('(max-width: 767px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener('change', handler);
-    setIsMobile(mql.matches);
-    return () => mql.removeEventListener('change', handler);
-  }, []);
+  const isMobile = useIsMobile();
 
   if (isMobile) {
     return (

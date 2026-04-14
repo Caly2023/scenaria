@@ -252,9 +252,10 @@ class TelemetryStore {
 
   // ─── Firebase Error Classification ─────────────────────────────────────
 
-  classifyFirebaseError(error: any): FirebaseErrorClassification {
-    const errorMessage = error?.message || error?.code || String(error);
-    const errorCode = error?.code || '';
+  classifyFirebaseError(error: unknown): FirebaseErrorClassification {
+    const errorObj = error !== null && typeof error === 'object' ? (error as Record<string, unknown>) : {};
+    const errorMessage = typeof errorObj.message === 'string' ? errorObj.message : (typeof error === 'string' ? error : String(error));
+    const errorCode = typeof errorObj.code === 'string' ? errorObj.code : (typeof errorObj.code === 'number' ? String(errorObj.code) : '');
 
     // Permission Denied (403)
     if (

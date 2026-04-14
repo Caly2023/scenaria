@@ -52,13 +52,15 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
         }
       };
 
-      setRecognition(rec);
+      setTimeout(() => {
+        setRecognition(rec);
+      }, 0);
     }
 
     return () => {
       // Memory leak fix: Cleanup properly on unmount
       if (rec) {
-        try { rec.abort(); } catch(e) {}
+        try { rec.abort(); } catch (_e) {}
         rec.onresult = null;
         rec.onerror = null;
         rec.onend = null;
@@ -71,8 +73,8 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
       try {
         recognition.start();
         setIsListening(true);
-      } catch (e) {
-        console.warn('Failed to start recognition', e);
+      } catch (_e) {
+        console.warn('Failed to start recognition', _e);
       }
     }
   }, [recognition]);

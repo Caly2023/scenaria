@@ -5,6 +5,7 @@ import { ProjectMetadata } from '../types';
 import { useTranslation } from 'react-i18next';
 import { validateProjectMetadata } from '../lib/formValidators';
 import { cn } from '../lib/utils';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 interface ProjectDrawerProps {
   isOpen: boolean;
@@ -14,20 +15,7 @@ interface ProjectDrawerProps {
   onDelete: () => void;
 }
 
-// ── Mobile detection hook (consistent with App/ScriptDoctor) ──────────────────
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
-  );
-  useEffect(() => {
-    const mql = window.matchMedia('(max-width: 767px)');
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mql.addEventListener('change', handler);
-    setIsMobile(mql.matches);
-    return () => mql.removeEventListener('change', handler);
-  }, []);
-  return isMobile;
-}
+// ── Project Drawer component ──────────────────────────────────────────────
 
 export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }: ProjectDrawerProps) {
   const { t } = useTranslation();

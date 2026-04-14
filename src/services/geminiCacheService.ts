@@ -63,10 +63,10 @@ export async function getOrCreateCache(
       // Ping API to ensure it hasn't expired
       const cacheInfo = await ai.caches.get({ name: currentCacheName });
       if (cacheInfo) {
-        console.log(`[CacheService] Cache HIT: ${currentCacheName} (Model: ${cacheModel})`);
+
         return currentCacheName;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn(`[CacheService] Cache expired or missing on server. Re-creating...`);
       currentCacheName = null;
     }
@@ -77,12 +77,12 @@ export async function getOrCreateCache(
     try {
       const cacheInfo = await ai.caches.get({ name: cacheMap[hashKey] });
       if (cacheInfo) {
-        console.log(`[CacheService] Session Cache HIT: ${cacheMap[hashKey]} (Model: ${cacheModel})`);
+
         currentCacheName = cacheMap[hashKey];
         currentCacheContextHash = hashKey;
         return currentCacheName;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn(`[CacheService] Stored session cache expired. Re-creating...`);
       delete cacheMap[hashKey];
     }
@@ -90,7 +90,7 @@ export async function getOrCreateCache(
 
   // Create new cache
   try {
-    console.log(`[CacheService] Creating new cache for Model: ${cacheModel}...`);
+
     
     // Convert tools to format accepted by cache creation
     const cacheConfig: any = {
@@ -112,7 +112,7 @@ export async function getOrCreateCache(
       cacheMap[hashKey] = currentCacheName;
     }
     
-    console.log(`[CacheService] Formatted cache successfully: ${currentCacheName} for Model ${cacheModel}`);
+
     return currentCacheName as string;
   } catch (error) {
     console.error(`[CacheService] Failed to create cache:`, error);
@@ -128,5 +128,5 @@ export async function getOrCreateCache(
 export function invalidateCache() {
   currentCacheName = null;
   currentCacheContextHash = null;
-  console.log(`[CacheService] Cache state manually invalidated.`);
+
 }

@@ -144,7 +144,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     } finally {
       setIsTyping(false);
     }
-  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes, addToast]);
+  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes, addToast, setIsTyping, getProjectContext]);
 
   const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;

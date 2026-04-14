@@ -182,11 +182,13 @@ export function useAutoHydration({
     }
 
     activeHydrations.current.add(hydrationKey);
-    setHydrationState({
-      isHydrating: true,
-      hydratingStage: config.stage,
-      hydratingLabel: config.label,
-    });
+    setTimeout(() => {
+      setHydrationState({
+        isHydrating: true,
+        hydratingStage: config.stage,
+        hydratingLabel: config.label,
+      });
+    }, 0);
 
     addToast(config.label, 'info');
 

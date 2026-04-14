@@ -87,7 +87,7 @@ export const Primitive = memo(function Primitive({
   // Trigger glow effect when isUpdated changes to true
   useEffect(() => {
     if (isUpdated) {
-      setShowGlow(true);
+      setTimeout(() => setShowGlow(true), 0);
       const timer = setTimeout(() => setShowGlow(false), 2000);
       return () => clearTimeout(timer);
     }

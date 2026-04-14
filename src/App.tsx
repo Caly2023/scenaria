@@ -73,14 +73,14 @@ export default function App() {
   const handleOpenDrawer = useCallback(() => setIsProjectDrawerOpen(true), []);
   const handleCloseDrawer = useCallback(() => setIsProjectDrawerOpen(false), []);
   const handleCloseFocus = useCallback(() => setIsFocusMode(false), []);
-  const handleCancelDelete = useCallback(() => setProjectToDelete(null), []);
+  const handleCancelDelete = useCallback(() => setProjectToDelete(null), [setProjectToDelete]);
 
   useKeyboardShortcuts({
     onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Brainstorming", "Logline", "3-Act Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Storyboard"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
   });
 
-  const handleFocusMode = useCallback((id: string) => { setFocusedSequenceId(id); setIsFocusMode(true); }, []);
-  const handleDeleteCurrentProject = useCallback(() => { if (currentProject) setProjectToDelete(currentProject.id); }, [currentProject]);
+  const handleFocusMode = useCallback((id: string) => { setFocusedSequenceId(id); setIsFocusMode(true); }, [setFocusedSequenceId, setIsFocusMode]);
+  const handleDeleteCurrentProject = useCallback(() => { if (currentProject) setProjectToDelete(currentProject.id); }, [currentProject, setProjectToDelete]);
 
   const {
     handleStoryChange, onLoglineChange, handleCharacterAdd, handleCharacterUpdate, handleCharacterDelete, handleLocationAdd, handleLocationUpdate, handleLocationDelete, onValidateBrainstorming, onValidateLogline, onValidate3Act, onValidateSynopsis, onValidateCharacterBible, onValidateLocationBible, onValidateTreatment, onValidateStepOutline, onValidateScript, onValidateStoryboard

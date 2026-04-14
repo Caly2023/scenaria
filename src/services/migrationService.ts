@@ -32,7 +32,7 @@ const LEGACY_FIELD_MAP: Record<string, string> = {
 // ─── Migration Entry ──────────────────────────────────────────────────────────
 
 export async function migrateProjectIfNeeded(project: Project): Promise<void> {
-  const updates: Record<string, any> = {};
+  const updates: Record<string, unknown> = {};
   let needsUpdate = false;
 
   // ── 1. Migrate stageStates from validatedStages[] ────────────────────────
@@ -49,9 +49,9 @@ export async function migrateProjectIfNeeded(project: Project): Promise<void> {
 
   // ── 2. Migrate stageAnalyses from insights ────────────────────────────────
   // ── 2. Migrate stageAnalyses from insights ────────────────────────────────
-  if (!project.stageAnalyses && (project as any).insights) {
-    const stageAnalyses: Record<string, any> = {};
-    for (const [stageName, insight] of Object.entries((project as any).insights as Record<string, any>)) {
+  if (!project.stageAnalyses && 'insights' in project) {
+    const stageAnalyses: Record<string, unknown> = {};
+    for (const [stageName, insight] of Object.entries((project as Record<string, unknown>).insights as Record<string, {content?: string, updatedAt?: number}>)) {
       stageAnalyses[stageName] = {
         evaluation: insight.content || '',
         issues: [],
@@ -70,15 +70,15 @@ export async function migrateProjectIfNeeded(project: Project): Promise<void> {
     if (!legacyContent?.trim()) continue;
 
     try {
-      const stageDef = stageRegistry.get(stageName as any);
+      const stageDef = stageRegistry.get(stageName);
       const collRef = collection(db, 'projects', project.id, stageDef.collectionName);
       const existing = await getDocs(query(collRef, orderBy(stageDef.orderField)));
 
       if (existing.empty) {
         // No primitives yet — migrate the root field content
-        let title = stageName;
-        let content = legacyContent;
-        let primitiveType = stageDef.primitiveTypes[0] || 'content';
+        const title = stageName;
+        const content = legacyContent;
+        const primitiveType = stageDef.primitiveTypes[0] || 'content';
 
         // For 3-Act Structure: try to parse JSON blocks
         if (stageName === '3-Act Structure') {
@@ -87,7 +87,7 @@ export async function migrateProjectIfNeeded(project: Project): Promise<void> {
             const blocks = parsed.blocks || (Array.isArray(parsed) ? parsed : null);
             if (blocks && blocks.length > 0) {
               await Promise.all(
-                blocks.map((beat: any, i: number) =>
+                blocks.map((beat: Record<string, unknown>, i: number) =>
                   addDoc(collRef, {
                     title: beat.title || `Beat ${i + 1}`,
                     content: beat.content || '',

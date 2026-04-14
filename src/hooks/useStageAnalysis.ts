@@ -43,8 +43,8 @@ export function useStageAnalysis() {
         }).unwrap()
       ]);
       
-    } catch (error) {
-      console.error('Stage analysis failed:', error);
+    } catch (_error) {
+      console.error('Stage analysis failed:', _error);
     } finally {
       setIsTyping(false);
     }

@@ -229,7 +229,7 @@ function ScriptDoctorContent({
       {/* Messages */}
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden p-5 space-y-6 scroll-smooth overscroll-contain touch-action-pan-y"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-5 space-y-6 scroll-smooth overscroll-none touch-action-pan-y"
       >
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-30">

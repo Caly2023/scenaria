@@ -53,14 +53,14 @@
     }
   }
 
-  html {
-    -webkit-text-size-adjust: 100%;
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
   }
   
   /* Global Focus Reset (Clean & Minimal) */

@@ -43,49 +43,51 @@ export function StepLayout({
     : false;
 
   return (
-    <div className="w-full space-y-10 md:space-y-16 pb-0 md:pb-12">
-      <div className="text-center space-y-4">
-        <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">
-          {t('common.step', { defaultValue: 'Step' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
-        </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
-        <p className="text-secondary text-lg md:text-xl max-w-2xl mx-auto px-6 leading-relaxed">{subtitle}</p>
-      </div>
+    <div className="w-full h-full flex-1 flex flex-col space-y-10 md:space-y-16 pb-0 md:pb-12">
+      <div className="flex-1 flex flex-col space-y-10 md:space-y-16">
+        <div className="text-center space-y-4">
+          <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">
+            {t('common.step', { defaultValue: 'Step' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
+          </span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
+          <p className="text-secondary text-lg md:text-xl max-w-2xl mx-auto px-6 leading-relaxed">{subtitle}</p>
+        </div>
 
-      {/* Hydration Status Banner */}
-      <AnimatePresence>
-        {isHydrating && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-white/5 border border-white/10"
-          >
-            <Loader2 className="w-5 h-5 text-white/60 animate-spin" />
-            <span className="text-sm font-medium text-white/60">
-              {hydrationLabel || 'Auto-generating content...'}
-            </span>
-          </motion.div>
+        {/* Hydration Status Banner */}
+        <AnimatePresence>
+          {isHydrating && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-white/5 border border-white/10"
+            >
+              <Loader2 className="w-5 h-5 text-white/60 animate-spin" />
+              <span className="text-sm font-medium text-white/60">
+                {hydrationLabel || 'Auto-generating content...'}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* A. AI Insight primitive */}
+        {insight && (
+          <Primitive
+            title={t('common.aiInsight', { defaultValue: 'AI Insight' })}
+            content={'content' in insight 
+              ? insight.content 
+              : `${insight.evaluation}\n\n**Issues to Address:**\n${insight.issues.length ? insight.issues.map(i => `- ${i}`).join('\n') : '*None*'}\n\n**Recommendations:**\n${insight.recommendations.length ? insight.recommendations.map(r => `- ${r}`).join('\n') : '*None*'}`
+            }
+            type="ai_insight"
+            mode="stacked"
+            isGenerating={isGenerating}
+          />
         )}
-      </AnimatePresence>
 
-      {/* A. AI Insight primitive */}
-      {insight && (
-        <Primitive
-          title={t('common.aiInsight', { defaultValue: 'AI Insight' })}
-          content={'content' in insight 
-            ? insight.content 
-            : `${insight.evaluation}\n\n**Issues to Address:**\n${insight.issues.length ? insight.issues.map(i => `- ${i}`).join('\n') : '*None*'}\n\n**Recommendations:**\n${insight.recommendations.length ? insight.recommendations.map(r => `- ${r}`).join('\n') : '*None*'}`
-          }
-          type="ai_insight"
-          mode="stacked"
-          isGenerating={isGenerating}
-        />
-      )}
-
-      {/* B. Content primitives (Passed as children) */}
-      <div className="space-y-8">
-        {children}
+        {/* B. Content primitives (Passed as children) */}
+        <div className="space-y-8 flex-1">
+          {children}
+        </div>
       </div>
 
       {/* C. Global step status block */}

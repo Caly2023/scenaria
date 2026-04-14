@@ -189,7 +189,7 @@ export function MainLayout({
           />
         </FormErrorBoundary>
 
-        <div className="flex-1 flex flex-col relative overflow-hidden items-center justify-center w-full">
+        <div className="flex-1 flex flex-col relative overflow-hidden w-full">
           <div
             className={cn(
               "w-full flex-1 overflow-y-auto no-scrollbar scroll-smooth relative overscroll-none",
@@ -199,7 +199,7 @@ export function MainLayout({
             <div
               className={cn(
                 "w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative",
-                isMobile ? "px-4 pt-12 pb-0" : "px-6 py-12 md:px-12",
+                isMobile ? "px-4 pt-8 pb-0" : "px-6 py-12 md:px-12",
               )}
             >
               <Suspense fallback={<StageSkeleton />}>

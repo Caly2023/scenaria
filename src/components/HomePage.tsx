@@ -79,7 +79,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-x-hidden overflow-y-auto pb-20 pb-safe-nav no-scrollbar">
+    <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-x-hidden overflow-y-auto pb-safe-nav no-scrollbar">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden h-screen">
@@ -93,7 +93,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-        className="mt-12 md:mt-24 mb-10 md:mb-16 flex flex-col items-center gap-8 z-10 w-full"
+        className="mt-24 md:mt-24 mb-10 md:mb-16 flex flex-col items-center gap-8 z-10 w-full"
       >
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
           <div className="relative group">

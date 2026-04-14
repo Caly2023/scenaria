@@ -78,7 +78,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="h-full w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto no-scrollbar scroll-smooth">
+    <div className="h-screen w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto scroll-smooth">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -239,30 +239,26 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         </AnimatePresence>
 
         {/* Recent Projects Section */}
-        <AnimatePresence>
-          {projects.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="w-full pt-16"
-            >
-              <div className="flex items-center justify-between mb-8 px-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                  <h2 className="text-xs uppercase tracking-[0.4em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
-                </div>
-              </div>
+        <div className="w-full pt-16 pb-20">
+          <div className="flex items-center justify-between mb-8 px-6">
+            <div className="flex items-center gap-4">
+              <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+              <h2 className="text-xs uppercase tracking-[0.4em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
+            </div>
+          </div>
 
-              <div className="flex flex-col gap-3 w-full px-4 overflow-y-visible">
-                {projects.slice(0, 10).map((project, idx) => (
+          <div className="flex flex-col gap-3 w-full px-4 overflow-y-visible">
+            <AnimatePresence mode="popLayout">
+              {projects.length > 0 ? (
+                projects.slice(0, 10).map((project, idx) => (
                   <motion.div
                     key={project.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
                     whileHover={{ y: -4 }}
                     transition={{ 
-                      delay: 0.5 + (idx * 0.05),
+                      delay: idx * 0.05,
                       duration: 0.4,
                       ease: [0.23, 1, 0.32, 1]
                     }}
@@ -297,7 +293,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           <div className="flex items-center gap-2 mt-2 opacity-70 group-hover:opacity-90 transition-opacity duration-500 font-bold">
                             <Clock className="w-3.5 h-3.5" />
                             <span className="text-xs uppercase tracking-widest">
-                              {t('common.lastUpdated', { defaultValue: 'Last Update' })} • {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'NEW'}
+                              {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'NEW'}
                             </span>
                           </div>
 
@@ -357,33 +353,41 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </motion.div>
-                ))}
+                ))
+              ) : (
+                <div className="py-12 px-6 rounded-[32px] border border-white/5 bg-white/[0.01] text-center">
+                  <p className="text-white/20 italic text-sm tracking-widest uppercase">
+                    {t('common.noProjectsYet', { defaultValue: 'No recent films yet' })}
+                  </p>
+                </div>
+              )}
+            </AnimatePresence>
 
-                {/* 'New' Card Redesign */}
-                <motion.button 
-                  whileHover={{ y: -4 }}
-                  onClick={() => {
-                    textareaRef.current?.focus();
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="group relative w-full py-8 px-6 md:py-10 md:px-12 rounded-[32px] border-2 border-dashed border-white/5 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all duration-700 flex items-center gap-6 md:gap-12 text-left"
-                >
-                  <div className="flex-shrink-0 w-14 h-14 md:w-24 md:h-24 rounded-[20px] md:rounded-[28px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700">
-                    <Plus className="w-6 h-6 md:w-10 md:h-10 text-white/20 group-hover:text-black transition-colors" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white/80 transition-all duration-500">
-                      {t('common.startNewProject', { defaultValue: 'Start New Project' })}
-                    </h3>
-                    <p className="text-sm text-white/30 group-hover:text-white/60 transition-all duration-500 mt-2 font-light tracking-widest uppercase">
-                      Transform your vision into reality
-                    </p>
-                  </div>
-                </motion.button>
+            {/* 'New' Card Redesign - Always Visible */}
+            <motion.button 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              whileHover={{ y: -4 }}
+              onClick={() => {
+                textareaRef.current?.focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="group relative w-full py-8 px-6 md:py-10 md:px-12 rounded-[32px] border-2 border-dashed border-white/5 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all duration-700 flex items-center gap-6 md:gap-12 text-left"
+            >
+              <div className="flex-shrink-0 w-14 h-14 md:w-24 md:h-24 rounded-[20px] md:rounded-[28px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700">
+                <Plus className="w-6 h-6 md:w-10 md:h-10 text-white/20 group-hover:text-black transition-colors" />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <div className="flex-1">
+                <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white/80 transition-all duration-500">
+                  {t('common.startNewProject', { defaultValue: 'Start New Project' })}
+                </h3>
+                <p className="text-sm text-white/30 group-hover:text-white/60 transition-all duration-500 mt-2 font-light tracking-widest uppercase">
+                  Transform your vision into reality
+                </p>
+              </div>
+            </motion.button>
+          </div>
+        </div>
       </div>
 
       {/* Footer Branding */}

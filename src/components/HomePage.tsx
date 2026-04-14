@@ -5,7 +5,6 @@ import {
   Clock, 
   Film,
   Clapperboard,
-  Paperclip,
   ArrowUp,
   Trash2,
   Globe,
@@ -79,7 +78,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32">
+    <div className="h-full w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto no-scrollbar scroll-smooth">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -149,6 +148,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className={cn(
             "w-full bg-white/[0.03] backdrop-blur-2xl rounded-[32px] transition-all duration-500 overflow-hidden border border-white/10",
             isFocused ? "border-white/20 bg-white/[0.04]" : ""
           )}

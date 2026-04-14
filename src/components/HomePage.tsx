@@ -79,7 +79,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="h-full w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-y-auto pb-24 no-scrollbar overscroll-none">
+    <div className="min-h-screen w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -112,7 +112,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         </div>
 
         <div className="text-center max-w-2xl px-4">
-          <p className="text-sm md:text-base text-white/50 leading-relaxed font-light tracking-wide italic">
+          <p className="text-sm md:text-base text-white/80 leading-relaxed font-light tracking-wide italic">
             {t('common.helperText')}
           </p>
         </div>
@@ -149,9 +149,8 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className={cn(
-            "w-full bg-white/[0.03] backdrop-blur-2xl rounded-[32px] transition-all duration-500 overflow-hidden border border-white/[0.05]",
-            isFocused ? "border-white/10 bg-white/[0.04]" : ""
+            "w-full bg-white/[0.03] backdrop-blur-2xl rounded-[32px] transition-all duration-500 overflow-hidden border border-white/10",
+            isFocused ? "border-white/20 bg-white/[0.04]" : ""
           )}
         >
           <div className="p-6 md:p-12 space-y-6">
@@ -167,13 +166,13 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               onBlur={() => setIsFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder={t('common.whatsTheStory')}
-              className="w-full bg-transparent border-none text-lg md:text-xl font-normal leading-relaxed placeholder:text-white/20 px-2 min-h-[150px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
+              className="w-full bg-transparent border-none text-lg md:text-xl font-normal leading-relaxed placeholder:text-white/45 px-2 min-h-[150px] resize-none no-scrollbar text-white/95 selection:bg-white/30"
             />
           </div>
 
           {/* Integrated Toolbar Footer */}
           <div className="px-6 md:px-12 pb-8 md:pb-10 pt-2 flex items-center justify-between">
-            <div className="flex items-center gap-2 p-1 bg-white/5 rounded-full border border-white/5">
+            <div className="flex items-center gap-3 p-1.5 bg-white/5 rounded-full border border-white/5">
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -183,17 +182,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               />
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-all flex items-center justify-center group relative border-none"
+                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center group relative border-none"
                 title={t('common.importText')}
               >
                 <Plus className="w-5 h-5" />
               </button>
-              <button className="w-10 h-10 rounded-full hover:bg-white/10 text-white/30 hover:text-white transition-all flex items-center justify-center group relative border-none" title={t('common.attach')}>
-                <Paperclip className="w-5 h-5" />
-              </button>
               
-              <div className="w-[1px] h-6 bg-white/10 mx-1" />
-
               <DictationButton 
                 onResult={(text) => setStoryIdea(prev => prev + (prev ? ' ' : '') + text)}
                 size="md"
@@ -279,7 +273,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     
                     <button
                       onClick={() => onProjectSelect(project.id)}
-                      className="relative w-full p-8 md:py-10 md:px-12 text-left flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 glass rounded-[40px] border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden"
+                      className="relative w-full p-6 md:p-8 text-left flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-10 glass rounded-[32px] border-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden"
                     >
                       {/* Decorative Background Element */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.01] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
@@ -295,12 +289,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                       {/* Center: Main Information */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
                         <div className="min-w-0 mb-4">
-                          <h3 className="text-lg md:text-xl font-sans font-bold tracking-tight text-white/95 truncate group-hover:text-white transition-colors duration-300">
+                          <h3 className="text-xl md:text-2xl font-sans font-bold tracking-tight text-white truncate group-hover:text-white transition-colors duration-300">
                             {project.metadata?.title || t('common.untitled')}
                           </h3>
                           
                           {/* Last Update Detail - Now below title */}
-                          <div className="flex items-center gap-2 mt-2 opacity-50 group-hover:opacity-70 transition-opacity duration-500 font-bold">
+                          <div className="flex items-center gap-2 mt-2 opacity-70 group-hover:opacity-90 transition-opacity duration-500 font-bold">
                             <Clock className="w-3.5 h-3.5" />
                             <span className="text-xs uppercase tracking-widest">
                               {t('common.lastUpdated', { defaultValue: 'Last Update' })} • {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'NEW'}
@@ -308,7 +302,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           </div>
 
                           {project.metadata?.logline && (
-                            <p className="text-sm md:text-base text-white/40 line-clamp-2 italic font-light mt-3 group-hover:text-white/60 transition-colors duration-300 max-w-2xl leading-relaxed">
+                            <p className="text-sm md:text-base text-white/70 line-clamp-2 italic font-light mt-3 group-hover:text-white/90 transition-colors duration-300 max-w-2xl leading-relaxed">
                               {project.metadata.logline}
                             </p>
                           )}
@@ -316,7 +310,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
 
                         {/* Metadata Tags Row */}
                         <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
+                          <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.05] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/70 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 whitespace-nowrap">
                             <Film className="w-4 h-4 opacity-50" />
                             <span>{project.metadata?.format || 'Auto'}</span>
                           </div>
@@ -324,7 +318,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.genre && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
+                              <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.05] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/70 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 whitespace-nowrap">
                                 <Tag className="w-4 h-4 opacity-50" />
                                 <span>{project.metadata.genre}</span>
                               </div>
@@ -334,7 +328,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.languages?.[0] && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/50 group-hover:bg-white/10 group-hover:text-white/90 transition-all duration-300 whitespace-nowrap">
+                              <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.05] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/80 group-hover:bg-white/10 group-hover:text-white transition-all duration-300 whitespace-nowrap">
                                 <Globe className="w-4 h-4 opacity-50" />
                                 <span>{project.metadata.languages[0]}</span>
                               </div>
@@ -378,10 +372,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     <Plus className="w-6 h-6 md:w-10 md:h-10 text-white/20 group-hover:text-black transition-colors" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/20 group-hover:text-white/80 transition-all duration-500">
+                    <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white/80 transition-all duration-500">
                       {t('common.startNewProject', { defaultValue: 'Start New Project' })}
                     </h3>
-                    <p className="text-sm text-white/10 group-hover:text-white/30 transition-all duration-500 mt-2 font-light tracking-widest uppercase">
+                    <p className="text-sm text-white/30 group-hover:text-white/60 transition-all duration-500 mt-2 font-light tracking-widest uppercase">
                       Transform your vision into reality
                     </p>
                   </div>

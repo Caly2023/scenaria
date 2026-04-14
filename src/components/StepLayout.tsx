@@ -43,7 +43,7 @@ export function StepLayout({
     : false;
 
   return (
-    <div className="w-full h-full flex-1 flex flex-col space-y-10 md:space-y-16 pb-0 md:pb-12">
+    <div className="w-full h-auto flex-1 flex flex-col space-y-10 md:space-y-16 pb-0 md:pb-12">
       <div className="flex-1 flex flex-col space-y-10 md:space-y-16">
         <div className="text-center space-y-4">
           <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">

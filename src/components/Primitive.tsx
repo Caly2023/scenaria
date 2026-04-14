@@ -159,7 +159,7 @@ export const Primitive = memo(function Primitive({
         (type === 'analysis' || type === 'analysis_block') && "border-white/20 bg-white/5",
         type === 'pitch_result' && "border-white/10 bg-[#252525]",
         showGlow && "ring-2 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]",
-        mode === 'single' ? "min-h-[600px] flex flex-col" : "mb-4 md:mb-6"
+        mode === 'single' ? "min-h-[400px] md:min-h-[600px] flex flex-col" : "mb-4 md:mb-6"
       )}
     >
       {/* Header */}

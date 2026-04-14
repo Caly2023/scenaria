@@ -192,13 +192,13 @@ export function MainLayout({
         <div className="flex-1 flex flex-col relative overflow-hidden w-full">
           <div
             className={cn(
-              "w-full flex-1 overflow-y-auto no-scrollbar scroll-smooth relative overscroll-none",
+              "w-full flex-1 flex flex-col overflow-y-auto no-scrollbar scroll-smooth relative overscroll-none",
               isMobile && "pb-safe-nav",
             )}
           >
             <div
               className={cn(
-                "w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative",
+                "w-full max-w-4xl mx-auto flex-1 flex flex-col justify-start relative",
                 isMobile ? "px-4 pt-8 pb-0" : "px-6 py-12 md:px-12",
               )}
             >

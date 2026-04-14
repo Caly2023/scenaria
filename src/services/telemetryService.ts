@@ -128,7 +128,9 @@ class TelemetryStore {
     }>
   ): StageStructureEntry {
     const entries: PrimitiveEntry[] = primitives.map((p, idx) => {
-      const content = p.content || p.description || '';
+      const rawContent = p.content || p.description || '';
+      const content = typeof rawContent === 'string' ? rawContent : JSON.stringify(rawContent);
+      
       const entry: PrimitiveEntry = {
         primitive_id: p.id,
         stage_id: stageName,

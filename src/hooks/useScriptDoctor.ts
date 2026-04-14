@@ -325,7 +325,7 @@ export function useScriptDoctor({
 
             addToast(
               t("common.primitiveUpdated", {
-                defaultValue: `Primitive ${id.substring(0, 8)}... updated by Architect`,
+                defaultValue: `Primitive ${String(id).substring(0, 8)}... updated by Architect`,
               }),
               "success",
             );
@@ -699,7 +699,7 @@ export function useScriptDoctor({
               detailLines.push(
                 `Patch details extracted from the message:\n${patchBlockMatch[1]}`,
               );
-            } else if (rawContent.length > 0 && rawContent.length <= 2000) {
+            } else if (rawContent.length > 0) {
               // Include a trimmed version of the full response as context
               detailLines.push(
                 `Full context from the message:\n${rawContent.substring(0, 2000)}`,
@@ -1170,7 +1170,9 @@ export function useScriptDoctor({
       const botMsg = {
         id: (Date.now() + 1).toString(),
         role: "assistant" as const,
-        content: parsedResponse.response,
+        content: typeof parsedResponse.response === 'string' 
+          ? parsedResponse.response 
+          : JSON.stringify(parsedResponse.response, null, 2),
         thinking: parsedResponse.thinking,
         suggested_actions: parsedResponse.suggested_actions,
         active_tool: parsedResponse.active_tool,

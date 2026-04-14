@@ -105,9 +105,10 @@ export const Primitive = memo(function Primitive({
   // Defer content updates for markdown to prevent lag on every keystroke
   const deferredContent = useDeferredValue(content);
 
-  // Memoize markdown renders — avoids re-parsing on every keystroke
   const renderedMarkdown = useMemo(() => (
-    <ReactMarkdown>{deferredContent}</ReactMarkdown>
+    <ReactMarkdown>
+      {typeof deferredContent === 'string' ? deferredContent : JSON.stringify(deferredContent, null, 2)}
+    </ReactMarkdown>
   ), [deferredContent]);
 
   const handleTts = useCallback(() => {

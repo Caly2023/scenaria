@@ -260,7 +260,9 @@ function ScriptDoctorContent({
                   : "bg-surface text-white/80 border border-white/5 shadow-sm"
               )}>
                 <div className="prose prose-invert prose-sm">
-                  <ReactMarkdown>{displayContent}</ReactMarkdown>
+                  <ReactMarkdown>
+                    {typeof displayContent === 'string' ? displayContent : JSON.stringify(displayContent, null, 2)}
+                  </ReactMarkdown>
                 </div>
 
                 {msg.role === 'assistant' && (
@@ -398,7 +400,7 @@ function ScriptDoctorContent({
                       animate={{ opacity: 1 }}
                       className="text-[8px] font-mono text-white/15 tracking-wider pl-4"
                     >
-                      ID: {telemetryStatus.primitiveId.substring(0, 12)}...
+                      ID: {String(telemetryStatus.primitiveId).substring(0, 12)}...
                     </motion.div>
                   )}
                   

@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { AiFlowToggle } from './AiFlowToggle';
 
 interface HeaderProps {
   projectName: string;
@@ -115,6 +116,9 @@ export function Header({
           >
             <Info className="w-4 h-4" />
           </button>
+
+          {/* AI Flow Toggle */}
+          <AiFlowToggle />
 
           {/* Doctor toggle */}
           <button

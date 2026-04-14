@@ -1,7 +1,10 @@
-const CACHE_NAME = 'scenaria-v1';
+const CACHE_NAME = 'scenaria-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/logo.png',
+  '/manifest.webmanifest',
+  '/favicon.svg'
 ];
 
 // Install: pre-cache static shell

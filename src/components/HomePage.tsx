@@ -363,29 +363,6 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               )}
             </AnimatePresence>
 
-            {/* 'New' Card Redesign - Always Visible */}
-            <motion.button 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              whileHover={{ y: -4 }}
-              onClick={() => {
-                textareaRef.current?.focus();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="group relative w-full py-8 px-6 md:py-10 md:px-12 rounded-[32px] border-2 border-dashed border-white/5 hover:border-white/20 bg-transparent hover:bg-white/[0.01] transition-all duration-700 flex items-center gap-6 md:gap-12 text-left"
-            >
-              <div className="flex-shrink-0 w-14 h-14 md:w-24 md:h-24 rounded-[20px] md:rounded-[28px] bg-white/[0.02] border border-white/5 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-700">
-                <Plus className="w-6 h-6 md:w-10 md:h-10 text-white/20 group-hover:text-black transition-colors" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white/80 transition-all duration-500">
-                  {t('common.startNewProject', { defaultValue: 'Start New Project' })}
-                </h3>
-                <p className="text-sm text-white/30 group-hover:text-white/60 transition-all duration-500 mt-2 font-light tracking-widest uppercase">
-                  Transform your vision into reality
-                </p>
-              </div>
-            </motion.button>
           </div>
         </div>
       </div>

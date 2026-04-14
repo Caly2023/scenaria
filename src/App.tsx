@@ -16,6 +16,7 @@ import { StageRenderer } from "./components/StageRenderer";
 import { ScriptDoctor as ScriptDoctorComponent } from "./components/ScriptDoctor";
 import { ttsService } from "./services/ttsService";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { LoginPage } from "./components/LoginPage";
 
 
 export default function App() {
@@ -128,6 +129,7 @@ export default function App() {
   if (!isAuthReady) return <LoadingPage />;
   if (isOffline) return <OfflinePage onRetry={() => window.location.reload()} />;
   if (connectionError) return <ConnectionErrorPage onRetry={() => window.location.reload()} />;
+  if (!user) return <LoginPage />;
   if (isProjectLoading) return <LoadingPage />;
   if (isProjectNotFound) return <NotFoundPage onBackHome={handleProjectExit} />;
 

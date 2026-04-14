@@ -199,7 +199,7 @@ export function MainLayout({
             <div
               className={cn(
                 "w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative",
-                isMobile ? "px-4 pt-6 pb-2" : "px-6 py-12 md:px-12",
+                isMobile ? "px-4 pt-12 pb-0" : "px-6 py-12 md:px-12",
               )}
             >
               <Suspense fallback={<StageSkeleton />}>
@@ -274,7 +274,7 @@ export function MainLayout({
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
           {/* Stage tabs */}
-          <div className="h-20 flex items-center">
+          <div className="h-20 flex items-end pb-2">
             <Sidebar
               activeStage={activeStage}
               onStageChange={handleStageChange}

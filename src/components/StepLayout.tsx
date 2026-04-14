@@ -43,7 +43,7 @@ export function StepLayout({
     : false;
 
   return (
-    <div className="w-full space-y-16 pb-6 md:pb-12">
+    <div className="w-full space-y-10 md:space-y-16 pb-0 md:pb-12">
       <div className="text-center space-y-4">
         <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">
           {t('common.step', { defaultValue: 'Step' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}

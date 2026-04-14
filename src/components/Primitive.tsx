@@ -403,7 +403,7 @@ export const Primitive = memo(function Primitive({
                       value={content}
                       onChange={(e) => onContentChange(e.target.value)}
                       placeholder={placeholder}
-                      className="w-full bg-transparent border-none text-white font-sans text-base md:text-lg leading-relaxed resize-none no-scrollbar placeholder:text-white/5 min-h-[120px]"
+                      className="w-full bg-transparent border-none text-white font-sans text-base md:text-lg leading-relaxed resize-none no-scrollbar placeholder:text-white/30 min-h-[120px]"
                     />
                   ) : (
                     <div className="prose prose-invert max-w-none font-sans text-lg md:text-xl leading-[1.6] text-white/90">
@@ -442,7 +442,7 @@ export const Primitive = memo(function Primitive({
                   >
                     <Sparkles className="w-10 h-10" />
                     <div className="space-y-3">
-                      <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/40">{t('common.visualDescriptionReady')}</span>
+                      <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/60">{t('common.visualDescriptionReady')}</span>
                       {visualPrompt && (
                         <p className="text-xs text-secondary italic max-w-xs mx-auto leading-relaxed">"{visualPrompt}"</p>
                       )}

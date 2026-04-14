@@ -393,7 +393,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         className="mt-32 pb-12 flex flex-col items-center gap-4"
       >
         <div className="w-8 h-[1px] bg-white/20" />
-        <p className="text-xs uppercase tracking-[0.6em] text-white/30 font-bold">
+        <p className="text-xs uppercase tracking-[0.6em] text-white/50 font-bold">
           Powered by Gemini 2.0
         </p>
       </motion.div>

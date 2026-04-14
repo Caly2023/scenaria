@@ -75,7 +75,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
         <button 
           onClick={onComplete}
-          className="absolute top-8 right-8 p-2 rounded-full hover:bg-white/5 text-white/20 hover:text-white transition-all"
+          className="absolute top-8 right-8 p-2 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all"
         >
           <X className="w-5 h-5" />
         </button>
@@ -125,7 +125,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           
           <button 
             onClick={onComplete}
-            className="mt-6 text-xs font-bold uppercase tracking-widest text-white/20 hover:text-white/40 transition-colors"
+            className="mt-6 text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white/60 transition-colors"
           >
             Skip Intro
           </button>

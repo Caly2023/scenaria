@@ -45,7 +45,7 @@ export function StepLayout({
   return (
     <div className="w-full space-y-16 pb-6 md:pb-12">
       <div className="text-center space-y-4">
-        <span className="text-xs uppercase tracking-[0.4em] text-white/30 font-bold">
+        <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">
           {t('common.step', { defaultValue: 'Step' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
         </span>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
@@ -158,7 +158,7 @@ export function StepLayout({
             >
               <div className="space-y-2 text-center">
                 <h3 className="text-xl font-semibold tracking-tight text-white">Ready to continue?</h3>
-                <p className="text-white/40 text-sm">
+                <p className="text-white/60 text-sm">
                   {!isReady ? (
                     <span className="text-amber-500/80 block mb-2">Note: This stage still has pending AI insights.</span>
                   ) : null}

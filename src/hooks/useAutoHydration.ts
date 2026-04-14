@@ -160,6 +160,7 @@ export function useAutoHydration({
   }, [
     activeStage, currentProject, characters, locations, 
     sequences, treatmentSequences, scriptScenes,
+    loglinePrimitives, structurePrimitives, synopsisPrimitives,
     generateLogline, generateStructure, generateSynopsis,
     generateCharactersAndLocations, generateTreatment,
     generateStepOutline, generateScript

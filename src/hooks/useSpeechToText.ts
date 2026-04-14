@@ -12,6 +12,17 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
 
+  const onResultRef = useRef(onResult);
+  const onSpeechErrorRef = useRef(onSpeechError);
+
+  useEffect(() => {
+    onResultRef.current = onResult;
+  }, [onResult]);
+
+  useEffect(() => {
+    onSpeechErrorRef.current = onSpeechError;
+  }, [onSpeechError]);
+
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     let rec: any = null;
@@ -34,8 +45,8 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
           }
         }
 
-        if (finalTranscript && onResult) {
-          onResult(finalTranscript);
+        if (finalTranscript && onResultRef.current) {
+          onResultRef.current(finalTranscript);
         }
       };
 
@@ -45,8 +56,8 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
 
       rec.onerror = (event: any) => {
         setIsListening(false);
-        if (onSpeechError) {
-          onSpeechError(event.error);
+        if (onSpeechErrorRef.current) {
+          onSpeechErrorRef.current(event.error);
         } else {
           console.warn('Speech recognition error', event.error);
         }
@@ -66,7 +77,7 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
         rec.onend = null;
       }
     };
-  }, [i18n.language, lang, onResult, onSpeechError]);
+  }, [i18n.language, lang]);
 
   const startListening = useCallback(() => {
     if (recognition) {

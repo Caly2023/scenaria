@@ -93,13 +93,7 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, variant =
                 </div>
               </div>
               
-              {isActive && (
-                <motion.div 
-                  layoutId="active-nav-dot"
-                  className="w-1 h-1 bg-white rounded-full mt-2"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
+
             </button>
           );
         })}

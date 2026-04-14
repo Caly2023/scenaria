@@ -43,13 +43,13 @@ export function StepLayout({
     : false;
 
   return (
-    <div className="w-full space-y-12 pb-32">
-      <div className="text-center space-y-2">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-secondary font-semibold">
+    <div className="w-full space-y-16 pb-32">
+      <div className="text-center space-y-4">
+        <span className="text-xs uppercase tracking-[0.4em] text-white/30 font-bold">
           {t('common.step', { defaultValue: 'Step' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
         </span>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
-        <p className="text-secondary text-base md:text-lg max-w-2xl mx-auto px-4">{subtitle}</p>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
+        <p className="text-secondary text-lg md:text-xl max-w-2xl mx-auto px-6 leading-relaxed">{subtitle}</p>
       </div>
 
       {/* Hydration Status Banner */}

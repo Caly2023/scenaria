@@ -153,13 +153,13 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, variant =
                   "w-0 opacity-0 group-hover:w-auto group-hover:opacity-100"
                 )}>
                   <span className={cn(
-                    "text-[10px] uppercase tracking-widest font-semibold",
-                    isActive ? "text-black/60" : "text-white/40"
+                    "text-xs uppercase tracking-[0.2em] font-bold mb-0.5 whitespace-nowrap",
+                    isActive ? "text-black/60" : "text-white/30"
                   )}>
-                    Stage {stage.step} <span className="opacity-50 mx-1">•</span> {stage.estTime}
+                    Stage {stage.step} <span className="opacity-50 mx-1.5">•</span> {stage.estTime}
                   </span>
                   <span className={cn(
-                    "text-sm font-semibold tracking-tight",
+                    "text-base font-bold tracking-tight",
                     isActive ? "text-black" : "text-white/90"
                   )}>
                     {t(`stages.${stage.id}.label`, { defaultValue: stage.id })}

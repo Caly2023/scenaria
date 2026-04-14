@@ -83,8 +83,8 @@
   textarea, 
   select {
     @apply font-sans text-white/90 bg-transparent transition-all;
-    font-size: 0.9375rem; /* 15px - standard normal */
-    line-height: 1.5;
+    font-size: 1rem; /* 16px - comfortable native size & prevents iOS zoom */
+    line-height: 1.6;
   }
 
   input[type="text"],

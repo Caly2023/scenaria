@@ -74,9 +74,9 @@ export function LocationBible({
       <div className="space-y-12 pb-32">
         {/* Locations Section */}
         <div className="space-y-12">
-          <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-            <MapPin className="w-6 h-6 text-white/40" />
-            <h3 className="text-xl sm:text-2xl font-semibold tracking-tight text-white/80">{t('common.locations')}</h3>
+          <div className="flex items-center gap-5 border-b border-white/5 pb-6">
+            <MapPin className="w-8 h-8 text-white/30" />
+            <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white/90">{t('common.locations')}</h3>
           </div>
           
           <div className="space-y-12">
@@ -107,10 +107,10 @@ export function LocationBible({
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-[#212121] p-12 rounded-[32px] shadow-2xl border border-white/5"
+                className="bg-[#212121] p-10 md:p-14 rounded-[32px] shadow-2xl border border-white/10"
               >
-                <h3 className="text-xl sm:text-2xl font-semibold tracking-tight mb-8">{t('common.newLocation')}</h3>
-                <form onSubmit={handleAdd} className="space-y-6">
+                <h3 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-10 text-white">{t('common.newLocation')}</h3>
+                <form onSubmit={handleAdd} className="space-y-10">
                   <input 
                     type="text" 
                     value={newLoc.name}
@@ -124,7 +124,7 @@ export function LocationBible({
                       value={newLoc.description}
                       onChange={(e) => setNewLoc({ ...newLoc, description: e.target.value })}
                       placeholder={t('common.describeAtmosphere')} 
-                      className="yt-input w-full min-h-[200px] resize-none no-scrollbar font-sans"
+                      className="yt-input w-full min-h-[250px] py-6 resize-none no-scrollbar font-sans text-lg leading-relaxed"
                     />
                   </div>
                   <div className="flex gap-4">

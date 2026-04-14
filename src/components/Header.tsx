@@ -89,7 +89,7 @@ export function Header({
             onClick={onTitleClick}
             className="flex flex-col items-start leading-none min-w-0 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title"
           >
-            <span className="text-[9px] uppercase tracking-widest text-secondary font-semibold mb-0.5">
+            <span className="text-xs uppercase tracking-[0.2em] text-white/30 font-bold mb-1">
               {t('common.project')}
             </span>
             <div className="flex items-center gap-1.5 min-w-0">
@@ -155,7 +155,7 @@ export function Header({
           onClick={onTitleClick}
           className="flex items-center gap-1.5 min-w-0 border-none bg-transparent p-0"
         >
-          <span className="text-sm font-semibold tracking-tight text-white truncate">
+          <span className="text-base font-bold tracking-tight text-white truncate">
             {projectName}
           </span>
           <ChevronDown 
@@ -207,7 +207,7 @@ export function Header({
             syncStatus === 'syncing' ? "animate-spin text-white" : "text-white/20",
             syncStatus === 'error' && "text-red-500"
           )} />
-          <span className="hidden sm:block text-[9px] uppercase tracking-widest font-semibold text-secondary">
+          <span className="hidden sm:block text-xs uppercase tracking-widest font-bold text-white/30">
             {syncStatus === 'synced' ? t('common.synced') : syncStatus === 'syncing' ? t('common.syncing') : t('common.error')}
           </span>
         </div>

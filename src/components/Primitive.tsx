@@ -162,8 +162,8 @@ export const Primitive = memo(function Primitive({
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 md:px-10 md:py-8 border-b border-white/5">
-        <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+      <div className="flex items-center justify-between px-8 py-6 md:px-12 md:py-10 border-b border-white/5">
+        <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
           {type === 'ai_insight' ? (
             <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0" />
           ) : (
@@ -178,11 +178,11 @@ export const Primitive = memo(function Primitive({
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent border-none text-sm md:text-base font-semibold tracking-tight w-full text-white/80 focus:outline-none truncate"
+              className="bg-transparent border-none text-lg md:text-xl font-semibold tracking-tight w-full text-white/90 focus:outline-none truncate"
               placeholder={t('common.untitled')}
             />
           ) : (
-            <h3 className="text-sm md:text-base font-semibold tracking-tight text-white/80 truncate">{title}</h3>
+            <h3 className="text-lg md:text-xl font-semibold tracking-tight text-white/90 truncate">{title}</h3>
           )}
         </div>
 
@@ -395,7 +395,7 @@ export const Primitive = memo(function Primitive({
 
             <div className="flex-1 flex flex-col">
               {/* Text Area */}
-              <div className="p-6 md:p-10 space-y-6 md:space-y-8">
+              <div className="p-8 md:p-12 space-y-8 md:space-y-12">
                 <div className="relative group/text">
                   {onContentChange ? (
                     <textarea
@@ -403,16 +403,16 @@ export const Primitive = memo(function Primitive({
                       value={content}
                       onChange={(e) => onContentChange(e.target.value)}
                       placeholder={placeholder}
-                      className="w-full bg-transparent border-none text-white font-sans text-sm md:text-base leading-relaxed resize-none no-scrollbar placeholder:text-white/5 min-h-[100px]"
+                      className="w-full bg-transparent border-none text-white font-sans text-base md:text-lg leading-relaxed resize-none no-scrollbar placeholder:text-white/5 min-h-[120px]"
                     />
                   ) : (
-                    <div className="prose prose-invert max-w-none font-sans text-lg md:text-xl leading-relaxed text-white/80">
+                    <div className="prose prose-invert max-w-none font-sans text-lg md:text-xl leading-[1.6] text-white/90">
                       {renderedMarkdown}
                     </div>
                   )}
                   
                   {onContentChange && content && (
-                    <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-white/5 prose prose-invert max-w-none text-sm md:text-base">
+                    <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-white/5 prose prose-invert max-w-none text-base md:text-lg opacity-80">
                       {renderedMarkdown}
                     </div>
                   )}
@@ -425,7 +425,7 @@ export const Primitive = memo(function Primitive({
                       onClick={onDeepDevelop}
                       disabled={isGenerating}
                       aria-label="Deep Develop"
-                      className="px-8 py-3 rounded-full bg-[#2a2a2a] text-white/60 border border-white/5 text-[10px] uppercase font-semibold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50"
+                      className="px-8 py-3.5 rounded-full bg-[#2a2a2a] text-white/70 border border-white/5 text-xs uppercase font-bold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50 tracking-wider"
                     >
                       {t('common.deepDevelop', { defaultValue: 'Deep Develop' })}
                     </button>
@@ -441,10 +441,10 @@ export const Primitive = memo(function Primitive({
                     className="aspect-video rounded-3xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center gap-4 opacity-40 cursor-pointer hover:bg-white/5 transition-all"
                   >
                     <Sparkles className="w-10 h-10" />
-                    <div className="space-y-2">
-                      <span className="text-xs font-semibold uppercase tracking-widest block">{t('common.visualDescriptionReady')}</span>
+                    <div className="space-y-3">
+                      <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/40">{t('common.visualDescriptionReady')}</span>
                       {visualPrompt && (
-                        <p className="text-[10px] text-secondary italic max-w-xs mx-auto">"{visualPrompt}"</p>
+                        <p className="text-xs text-secondary italic max-w-xs mx-auto leading-relaxed">"{visualPrompt}"</p>
                       )}
                     </div>
                   </div>

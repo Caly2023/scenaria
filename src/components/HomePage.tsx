@@ -133,10 +133,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               key={format}
               onClick={() => setSelectedFormat(format as any)}
               className={cn(
-                "px-5 py-2.5 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase transition-all border whitespace-nowrap",
+                "px-6 py-3 rounded-full text-xs md:text-sm font-bold tracking-[0.1em] uppercase transition-all border whitespace-nowrap",
                 selectedFormat === format 
                   ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-110" 
-                  : "bg-white/5 text-white/40 border-white/5 hover:bg-white/10 hover:text-white"
+                  : "bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white"
               )}
             >
               {format === 'Auto' ? t('common.autoDetect', { defaultValue: 'Auto-détection' }) : format}
@@ -167,7 +167,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               onBlur={() => setIsFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder={t('common.whatsTheStory')}
-              className="w-full bg-transparent border-none text-base font-normal leading-relaxed placeholder:text-white/10 px-2 min-h-[120px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
+              className="w-full bg-transparent border-none text-lg md:text-xl font-normal leading-relaxed placeholder:text-white/20 px-2 min-h-[150px] resize-none no-scrollbar text-white/90 selection:bg-white/20"
             />
           </div>
 
@@ -204,13 +204,13 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               onClick={() => handleSubmit()}
               disabled={!storyIdea.trim() || isCreating}
               className={cn(
-                "h-11 px-8 rounded-full flex items-center gap-3 transition-all duration-500 border-none",
+                "h-12 px-10 rounded-full flex items-center gap-4 transition-all duration-500 border-none",
                 storyIdea.trim() && !isCreating
                   ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
-                  : "bg-white/5 text-white/10 cursor-not-allowed border border-white/10"
+                  : "bg-white/5 text-white/20 cursor-not-allowed border border-white/10"
               )}
             >
-              <span className="text-[10px] font-black uppercase tracking-widest">
+              <span className="text-xs font-black uppercase tracking-[0.2em]">
                 {isCreating ? creationStatus : 'Create'}
               </span>
               {isCreating ? (
@@ -254,9 +254,9 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               className="w-full pt-16"
             >
               <div className="flex items-center justify-between mb-8 px-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-1 h-1 rounded-full bg-white/20" />
-                  <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
+                <div className="flex items-center gap-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                  <h2 className="text-xs uppercase tracking-[0.4em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
                 </div>
               </div>
 
@@ -300,9 +300,9 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           </h3>
                           
                           {/* Last Update Detail - Now below title */}
-                          <div className="flex items-center gap-2 mt-1 opacity-40 group-hover:opacity-60 transition-opacity duration-500">
-                            <Clock className="w-3 h-3" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">
+                          <div className="flex items-center gap-2 mt-2 opacity-50 group-hover:opacity-70 transition-opacity duration-500 font-bold">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-xs uppercase tracking-widest">
                               {t('common.lastUpdated', { defaultValue: 'Last Update' })} • {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'NEW'}
                             </span>
                           </div>
@@ -316,16 +316,16 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
 
                         {/* Metadata Tags Row */}
                         <div className="flex flex-wrap items-center gap-4">
-                          <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
-                            <Film className="w-3.5 h-3.5 opacity-50" />
+                          <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
+                            <Film className="w-4 h-4 opacity-50" />
                             <span>{project.metadata?.format || 'Auto'}</span>
                           </div>
                           
                           {project.metadata?.genre && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
-                                <Tag className="w-3.5 h-3.5 opacity-50" />
+                              <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
+                                <Tag className="w-4 h-4 opacity-50" />
                                 <span>{project.metadata.genre}</span>
                               </div>
                             </>
@@ -334,8 +334,8 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                           {project.metadata?.languages?.[0] && (
                             <>
                               <div className="w-1 h-1 rounded-full bg-white/10" />
-                              <div className="flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 group-hover:bg-white/10 group-hover:text-white/70 transition-all duration-300 whitespace-nowrap">
-                                <Globe className="w-3.5 h-3.5 opacity-50" />
+                              <div className="flex items-center gap-3 px-4 py-2 md:px-6 md:py-2.5 rounded-full bg-white/[0.03] border border-white/5 text-xs font-bold uppercase tracking-[0.2em] text-white/50 group-hover:bg-white/10 group-hover:text-white/90 transition-all duration-300 whitespace-nowrap">
+                                <Globe className="w-4 h-4 opacity-50" />
                                 <span>{project.metadata.languages[0]}</span>
                               </div>
                             </>
@@ -399,7 +399,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         className="mt-32 pb-12 flex flex-col items-center gap-4"
       >
         <div className="w-8 h-[1px] bg-white/20" />
-        <p className="text-[9px] uppercase tracking-[0.6em] text-white/20 font-black">
+        <p className="text-xs uppercase tracking-[0.6em] text-white/30 font-bold">
           Powered by Gemini 2.0
         </p>
       </motion.div>

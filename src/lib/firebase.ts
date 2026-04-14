@@ -63,10 +63,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 export async function testConnection() {
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration. ");
+    // Attempt to fetch a non-existent doc to test connectivity and permissions
+    await getDocFromServer(doc(db, 'system', 'connectivity'));
+  } catch (error: any) {
+    if (error?.code === 'failed-precondition' || error?.code === 'permission-denied') {
+      // These are "expected" if the doc is truly restricted, 
+      // but they still mean we can talk to the server.
+      return;
     }
+    console.error("Firebase connection test failed: ", error);
+    throw error;
   }
 }

@@ -89,7 +89,6 @@ export function MainLayout({
   collaborators,
   accessibilitySettings,
   refiningBlockId,
-  // lastUpdatedPrimitiveId, // Unused
   hydrationState,
   telemetryStatus,
   doctorMessages,
@@ -104,7 +103,6 @@ export function MainLayout({
   handleToggleDoctor,
   handleOpenDrawer,
   handleCloseDrawer,
-  // handleCloseFocus, // Unused
   handleCancelDelete,
   handleProjectDelete,
   setAccessibilitySettings,

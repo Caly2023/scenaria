@@ -79,7 +79,17 @@ export const firebaseApi = createApi({
     getProjectById: builder.query<Project | null, string>({
       async queryFn(projectId) {
         if (!projectId) return { data: null };
-        return { data: null }; // Will be populated by onCacheEntryAdded or getDoc
+        try {
+          const docRef = doc(db, "projects", projectId);
+          const snapshot = await getDocs(query(docRef.parent, where("__name__", "==", docRef.id)));
+          if (snapshot.empty) {
+            return { error: { message: "Project not found", status: 404 } };
+          }
+          const data = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Project;
+          return { data };
+        } catch (error: any) {
+          return { error: { message: error.message } };
+        }
       },
       async onCacheEntryAdded(
         projectId,
@@ -111,13 +121,19 @@ export const firebaseApi = createApi({
       any[],
       { projectId: string; collectionName: string; orderByField?: string }
     >({
-      async queryFn({
-        projectId,
-        collectionName: _collectionName,
-        orderByField: _orderByField,
-      }) {
+      async queryFn({ projectId, collectionName, orderByField }) {
         if (!projectId) return { data: [] };
-        return { data: [] };
+        try {
+          let q = query(collection(db, "projects", projectId, collectionName));
+          if (orderByField) {
+            q = query(q, orderBy(orderByField));
+          }
+          const snapshot = await getDocs(q);
+          const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          return { data };
+        } catch (error: any) {
+          return { error: { message: error.message } };
+        }
       },
       async onCacheEntryAdded(
         { projectId, collectionName, orderByField },
@@ -342,6 +358,9 @@ export const firebaseApi = createApi({
             "characters",
             "locations",
             "pitch_primitives",
+            "logline_primitives",
+            "structure_primitives",
+            "synopsis_primitives",
             "treatment_sequences",
             "script_scenes",
           ];

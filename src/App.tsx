@@ -5,6 +5,7 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useScriptDoctor } from "./hooks/useScriptDoctor";
 import { useAppCallbacks } from "./hooks/useAppCallbacks";
 import { useAutoHydration } from "./hooks/useAutoHydration";
+import { useTelemetry } from "./hooks/useTelemetry";
 import { WorkflowStage } from "./types";
 import { FocusMode } from "./components/FocusMode";
 import { LoadingPage } from "./components/LoadingPage";
@@ -59,6 +60,8 @@ export default function App() {
     addToast,
     onStageAnalyze: handleStageAnalyze
   });
+
+  const telemetryStatus = useTelemetry();
 
 
   const {
@@ -223,7 +226,7 @@ export default function App() {
         refiningBlockId={refiningBlockId}
         lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
         hydrationState={hydrationState}
-        telemetryStatus={{}}
+        telemetryStatus={telemetryStatus || {}}
         doctorMessages={doctorMessages}
         isDoctorTyping={isDoctorTyping}
         aiStatus={aiStatus}

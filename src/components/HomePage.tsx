@@ -79,10 +79,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-x-hidden overflow-y-auto pb-safe-nav no-scrollbar">
+    <div className="h-full w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative overflow-y-auto pb-24 no-scrollbar overscroll-none">
       
       {/* Premium Background — Animated Mesh Gradients */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden h-screen">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-white/[0.03] rounded-full blur-[120px] animate-[mesh-gradient_20s_infinite_alternate]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-white/[0.02] rounded-full blur-[100px] animate-[mesh-gradient_25s_infinite_alternate_reverse]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)]" />

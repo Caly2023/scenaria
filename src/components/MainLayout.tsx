@@ -125,7 +125,7 @@ export function MainLayout({
   const NOOP = () => {};
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col md:flex-row bg-background overflow-hidden relative font-sans">
+    <div className="h-full w-full flex flex-col md:flex-row bg-background overflow-hidden relative font-sans">
       {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
       {!isMobile && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
@@ -201,7 +201,7 @@ export function MainLayout({
             <div
               className={cn(
                 "w-full max-w-4xl mx-auto min-h-full flex flex-col justify-start relative",
-                isMobile ? "px-4 py-6" : "px-6 py-12 md:px-12",
+                isMobile ? "px-4 pt-6 pb-2" : "px-6 py-12 md:px-12",
               )}
             >
               <Suspense fallback={<StageSkeleton />}>

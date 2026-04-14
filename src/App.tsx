@@ -15,6 +15,7 @@ import { MainLayout } from "./components/MainLayout";
 import { StageRenderer } from "./components/StageRenderer";
 import { ScriptDoctor as ScriptDoctorComponent } from "./components/ScriptDoctor";
 import { ttsService } from "./services/ttsService";
+import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 
 
 export default function App() {
@@ -263,6 +264,8 @@ export default function App() {
           content={sequences.find(s => s.id === focusedSequenceId)?.content || ""}
         />
       )}
+
+      <PWAInstallPrompt />
     </>
   );
 }

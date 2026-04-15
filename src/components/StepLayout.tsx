@@ -3,7 +3,7 @@ import { Check, ChevronRight, ShieldCheck, AlertCircle, Loader2, Sparkles } from
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
 
@@ -41,6 +41,23 @@ export function StepLayout({
   const { t } = useTranslation();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  const [isStuck, setIsStuck] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsStuck(!entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sentinelRef.current) {
+      observer.observe(sentinelRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   // Derive readiness from insight
   const isReady = insight
@@ -126,16 +143,22 @@ export function StepLayout({
         </div>
       </div>
 
+      {/* Sentinel for sticky detection */}
+      <div ref={sentinelRef} className="h-px w-full pointer-events-none" />
+
       {/* C. Global step status block — Sticky or Relative based on viewport */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-50",
-          // Mobile: Boxed, in flow, fully rounded
+          // Mobile: Boxed, in flow
           "relative w-full rounded-[32px] p-6 border bg-[#212121] mt-12 mb-8",
-          // Desktop: Sticky to bottom, centered within parent's max-width
-          "md:sticky md:bottom-0 md:w-full md:mt-20 md:mb-0 md:rounded-t-[40px] md:rounded-b-none md:border-t md:border-x md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12",
+          // Desktop: Conditional sticky behavior
+          "md:sticky md:w-full md:mt-20 md:border md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
+          isStuck 
+            ? "md:bottom-0 md:rounded-b-none md:mb-0" 
+            : "md:bottom-8 md:rounded-[40px] md:mb-12",
           isReady ? "border-green-500/30" : "border-white/10"
         )}
       >

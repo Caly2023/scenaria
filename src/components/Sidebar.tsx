@@ -69,31 +69,29 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, variant =
               aria-disabled={isLocked}
               className={cn(
                 'flex-shrink-0 flex flex-col items-center justify-center transition-all duration-300 group/nav',
-                isActive ? 'px-4' : 'px-2'
+                isActive ? 'px-5' : 'px-3'
               )}
             >
               <div className={cn(
-                "w-11 h-11 rounded-full flex items-center justify-center transition-all duration-500",
+                "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500",
                 isActive 
-                  ? "bg-white text-black shadow-lg shadow-white/10 scale-110" 
+                  ? "bg-white text-black shadow-lg shadow-white/20 scale-105" 
                   : isLocked
-                    ? "bg-transparent text-white/10"
-                    : "bg-white/5 text-white/40 group-hover/nav:bg-white/10 group-hover/nav:text-white"
+                    ? "bg-transparent text-white/5"
+                    : "bg-white/5 text-white/60 group-hover/nav:bg-white/10 group-hover/nav:text-white"
               )}>
                 <div className="relative">
                   <Icon className={cn(
-                    "w-5 h-5 transition-transform duration-300",
-                    isActive ? "scale-110" : "group-hover/nav:scale-110"
+                    "w-7 h-7 transition-transform duration-300",
+                    isActive ? "scale-105" : "group-hover/nav:scale-110"
                   )} />
                   {isLocked && (
-                    <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 border border-white/5">
-                      <Lock className="w-2.5 h-2.5 text-white/30" />
+                    <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1 border border-white/5">
+                      <Lock className="w-3 h-3 text-white/20" />
                     </div>
                   )}
                 </div>
               </div>
-              
-
             </button>
           );
         })}

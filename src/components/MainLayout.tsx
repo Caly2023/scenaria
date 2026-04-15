@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { Bot, Check, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
@@ -118,6 +118,26 @@ export function MainLayout({
   ScriptDoctor
 }: MainLayoutProps) {
   
+  const [showDoctorBubble, setShowDoctorBubble] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY.current && currentScrollY > 20) {
+        setShowDoctorBubble(false);
+      } else {
+        setShowDoctorBubble(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMobile]);
+  
   const EMPTY_ARRAY: any[] = [];
   const DEFAULT_METADATA = {};
   const NOOP = () => {};
@@ -147,16 +167,19 @@ export function MainLayout({
             className={cn(
               "pointer-events-auto absolute transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
               isMobile
-                ? "bottom-[calc(112px+env(safe-area-inset-bottom,0px))] right-6"
+                ? "bottom-[calc(88px+env(safe-area-inset-bottom,0px))] right-6"
                 : "bottom-6 right-6",
-              isDoctorOpen
-                ? "opacity-0 scale-50 pointer-events-none translate-x-12"
+              isDoctorOpen || (isMobile && !showDoctorBubble)
+                ? "opacity-0 scale-50 pointer-events-none translate-y-12"
                 : "opacity-100 scale-100",
             )}
           >
             <button
               onClick={handleOpenDoctor}
-              className="w-14 h-14 rounded-full bg-white text-black shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border-none"
+              className={cn(
+                "w-14 h-14 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10",
+                isMobile ? "bg-surface text-white" : "bg-white text-black"
+              )}
             >
               <Bot className="w-7 h-7 group-hover:scale-110 transition-transform" />
             </button>
@@ -286,11 +309,11 @@ export function MainLayout({
 
       {isMobile && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col pt-2"
+          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         >
           {/* Stage tabs */}
-          <div className="h-20 flex items-end pb-2">
+          <div className="h-18 flex items-end pb-0">
             <Sidebar
               activeStage={activeStage}
               onStageChange={handleStageChange}

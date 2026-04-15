@@ -88,13 +88,10 @@ export function Header({
         <div className="hidden md:flex items-center gap-4 min-w-0">
           <button 
             onClick={onTitleClick}
-            className="flex flex-col items-start leading-none min-w-0 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title"
           >
-            <span className="text-xs uppercase tracking-[0.2em] text-white/30 font-bold mb-1">
-              {t('common.project')}
-            </span>
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-sm font-medium tracking-tight text-white truncate max-w-[200px]">
+              <span className="text-sm font-bold tracking-tight text-white truncate max-w-[200px]">
                 {projectName}
               </span>
               <ChevronDown 
@@ -120,21 +117,6 @@ export function Header({
           {/* AI Flow Toggle */}
           <AiFlowToggle />
 
-          {/* Doctor toggle */}
-          <button
-            onClick={onDoctorToggle}
-            aria-label="Toggle Script Doctor"
-            aria-pressed={isDoctorOpen}
-            className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all border flex-shrink-0",
-              isDoctorOpen 
-                ? "bg-white text-black border-white" 
-                : "bg-white/5 text-white/40 border-white/10 hover:text-white hover:bg-white/10"
-            )}
-          >
-            <Bot className="w-4 h-4" />
-            <span className="hidden sm:block text-[10px] font-semibold uppercase tracking-widest">Doctor</span>
-          </button>
         </div>
 
 

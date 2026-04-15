@@ -28,12 +28,9 @@ export function AiFlowToggle() {
           <Cpu className="w-4 h-4" />
         )}
       </motion.div>
-      <div className="flex flex-col items-start leading-[1.1]">
-        <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">AI Engine</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
-          {isDevFlow ? 'DEV FLOW' : 'PRO FLOW'}
-        </span>
-      </div>
+      <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
+        {isDevFlow ? 'DEV FLOW' : 'PRO FLOW'}
+      </span>
     </button>
   );
 }

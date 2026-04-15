@@ -143,17 +143,11 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, variant =
                 
                 {/* Expanded Text Content */}
                 <div className={cn(
-                  "flex flex-col items-start whitespace-nowrap overflow-hidden transition-all duration-300",
+                  "flex items-center whitespace-nowrap overflow-hidden transition-all duration-300",
                   "w-0 opacity-0 group-hover:w-auto group-hover:opacity-100"
                 )}>
                   <span className={cn(
-                    "text-xs uppercase tracking-[0.2em] font-bold mb-0.5 whitespace-nowrap",
-                    isActive ? "text-black/60" : "text-white/30"
-                  )}>
-                    Stage {stage.step} <span className="opacity-50 mx-1.5">•</span> {stage.estTime}
-                  </span>
-                  <span className={cn(
-                    "text-base font-bold tracking-tight",
+                    "text-base font-bold tracking-tight truncate",
                     isActive ? "text-black" : "text-white/90"
                   )}>
                     {t(`stages.${stage.id}.label`, { defaultValue: stage.id })}

@@ -126,7 +126,7 @@ export function StepLayout({
         </div>
       </div>
 
-      {/* C. Global step status block — Fixed or Relative based on viewport */}
+      {/* C. Global step status block — Sticky or Relative based on viewport */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,8 +134,8 @@ export function StepLayout({
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-50",
           // Mobile: Boxed, in flow
           "relative w-full rounded-[28px] p-6 border bg-[#212121] mt-12 mb-8",
-          // Desktop: Fixed, centered, matched to primitive width (max-w-4xl)
-          "md:fixed md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-4xl md:mt-0 md:mb-0 md:rounded-t-[40px] md:rounded-b-none md:border-t md:border-x md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12",
+          // Desktop: Sticky to bottom, centered within parent's max-width
+          "md:sticky md:bottom-0 md:w-full md:mt-20 md:mb-0 md:rounded-t-[40px] md:rounded-b-none md:border-t md:border-x md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12",
           isReady ? "border-green-500/30" : "border-white/10"
         )}
       >

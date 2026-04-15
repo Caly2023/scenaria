@@ -199,7 +199,7 @@ export function MainLayout({
             <div
               className={cn(
                 "w-full max-w-4xl mx-auto flex-1 flex flex-col justify-start relative",
-                isMobile ? "px-4 pt-8 pb-0" : "px-6 py-12 md:px-12",
+                isMobile ? "px-4 pt-8 pb-0" : "px-6 py-12 md:pl-32 md:pr-12",
               )}
             >
               <Suspense fallback={<StageSkeleton />}>

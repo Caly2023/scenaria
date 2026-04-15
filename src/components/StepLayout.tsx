@@ -174,15 +174,13 @@ export function StepLayout({
               )}
             </AnimatePresence>
 
-            {/* Continuer / Étape suivante button */}
+            {/* Continuer / Étape suivante button — Always enabled and prominent */}
             <button
               onClick={() => setShowConfirmModal(true)}
               aria-label="Passer à l'étape suivante"
               className={cn(
                 "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold border-none transition-all",
-                isReady
-                  ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[12px_12px_24px_rgba(0,0,0,0.2)]"
-                  : "bg-white/5 text-white/30 hover:bg-white/8 active:scale-95"
+                "bg-white text-black hover:scale-105 active:scale-95 shadow-[12px_12px_24px_rgba(0,0,0,0.2)]"
               )}
             >
               <span>{validateLabel ?? (isReady ? 'Continuer' : 'Étape suivante')}</span>

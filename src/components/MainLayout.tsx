@@ -167,7 +167,7 @@ export function MainLayout({
             className={cn(
               "pointer-events-auto absolute transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
               isMobile
-                ? "bottom-[calc(88px+env(safe-area-inset-bottom,0px))] right-6"
+                ? "bottom-[calc(100px+env(safe-area-inset-bottom,0px))] right-6"
                 : "bottom-6 right-6",
               isDoctorOpen || (isMobile && !showDoctorBubble)
                 ? "opacity-0 scale-50 pointer-events-none translate-y-12"
@@ -177,11 +177,11 @@ export function MainLayout({
             <button
               onClick={handleOpenDoctor}
               className={cn(
-                "w-14 h-14 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10",
+                "w-16 h-16 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10",
                 isMobile ? "bg-surface text-white" : "bg-white text-black"
               )}
             >
-              <Bot className="w-7 h-7 group-hover:scale-110 transition-transform" />
+              <Bot className="w-8 h-8 group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>

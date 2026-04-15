@@ -147,6 +147,7 @@ export function useProjectLifecycle({
           evaluation: initResult.critique || 'Initial critique',
           issues: initResult.validation?.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
           recommendations: [],
+          suggestedPrompt: initResult.suggestedPrompt || '',
           updatedAt: Date.now()
         }
       };

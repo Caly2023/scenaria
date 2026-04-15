@@ -1020,7 +1020,11 @@ export const geminiService = {
         ${format ? `SELECTED FORMAT: ${format}` : ''}
         
         Analyze this idea and generate the core project metadata and initial critique.
-        Be professional, cinematic, and helpful.`
+        Be professional, cinematic, and helpful.
+
+        YOUR TASK:
+        1. Evaluate if the idea is "GOOD TO GO" (strong foundations) or "NEEDS WORK" (vague, lacks conflict, or poor structure).
+        2. If "NEEDS WORK", provide a "suggestedPrompt": a clear, direct instruction for a "Script Doctor AI" to automatically fix or improve the current idea. If GOOD TO GO, suggestedPrompt should be empty.`
           }]
         }],
         config: {
@@ -1043,6 +1047,7 @@ export const geminiService = {
               },
               critique: { type: Type.STRING },
               pitch: { type: Type.STRING },
+              suggestedPrompt: { type: Type.STRING },
               validation: {
                 type: Type.OBJECT,
                 properties: {
@@ -1052,7 +1057,7 @@ export const geminiService = {
                 required: ["status", "feedback"]
               }
             },
-            required: ["metadata", "critique", "pitch", "validation"]
+            required: ["metadata", "critique", "pitch", "validation", "suggestedPrompt"]
           }
         }
       });

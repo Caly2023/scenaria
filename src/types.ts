@@ -18,6 +18,7 @@ export type WorkflowStage =
 export interface StageInsight {
   content: string;
   isReady: boolean;
+  suggestedPrompt?: string;
   updatedAt?: number;
 }
 

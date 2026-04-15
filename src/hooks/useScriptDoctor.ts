@@ -850,6 +850,8 @@ export function useScriptDoctor({
             ],
           });
         } else {
+          // Assistant message: ensure we preserve the JSON structure in history
+          // so the model understands its previous state (thinking, actions, etc.)
           history.push({
             role: "model",
             parts: [
@@ -857,10 +859,7 @@ export function useScriptDoctor({
                 text: JSON.stringify({
                   status: msg.status || "✅ Done",
                   thinking: msg.thinking || "",
-                  response:
-                    typeof msg.content === "string"
-                      ? msg.content
-                      : JSON.stringify(msg.content),
+                  response: msg.content,
                   suggested_actions: msg.suggested_actions || [],
                 }),
               },
@@ -1128,30 +1127,23 @@ export function useScriptDoctor({
 
       let parsedResponse;
       try {
-        parsedResponse = JSON.parse(finalResponse);
-      } catch (e) {
-        const jsonMatch = finalResponse.match(/\{[\s\S]*"response"[\s\S]*\}/);
+        // More robust JSON extraction - handling potential text outside or markdown blocks
+        const cleanedResponse = finalResponse.replace(/```json|```/g, "").trim();
+        const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+        
         if (jsonMatch) {
-          try {
-            parsedResponse = JSON.parse(jsonMatch[0]);
-          } catch {
-            parsedResponse = {
-              status: "✅ Done",
-              response:
-                finalResponse ||
-                "I received your message but couldn't format the response properly. Could you try again?",
-              suggested_actions: ["Continue", "Ask something else"],
-            };
-          }
+          parsedResponse = JSON.parse(jsonMatch[0]);
         } else {
-          parsedResponse = {
-            status: "✅ Done",
-            response:
-              finalResponse ||
-              "I received your message but couldn't format the response properly. Could you try again?",
-            suggested_actions: ["Continue", "Ask something else"],
-          };
+          parsedResponse = JSON.parse(cleanedResponse);
         }
+      } catch (e) {
+        console.warn("[ScriptDoctor] Parsing failed, using plain text fallback:", e);
+        parsedResponse = {
+          status: "✅ Done",
+          response: finalResponse || "I encountered an issue processing the response.",
+          thinking: "The AI returned a non-JSON response which was captured as plain text.",
+          suggested_actions: ["Continue", "Retry"]
+        };
       }
 
       if (!parsedResponse.response || parsedResponse.response.trim() === "") {

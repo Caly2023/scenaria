@@ -7,7 +7,9 @@ import {
   MoreHorizontal,
   Volume2,
   CheckCircle2,
-  Bot
+  Bot,
+  ChevronDown,
+  BrainCircuit
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -249,25 +251,43 @@ function ScriptDoctorContent({
               key={msg.id}
               id={`msg-${msg.id}`}
               className={cn(
-                "flex flex-col gap-2 max-w-[90%]",
-                msg.role === 'user' ? "ml-auto items-end" : "mr-auto items-start"
+                "flex flex-col gap-2 w-full",
+                msg.role === 'user' ? "ml-auto items-end max-w-[85%]" : "mr-auto items-start w-full"
               )}
             >
               <div className={cn(
-                "p-4 rounded-xl text-sm leading-relaxed font-sans relative group",
+                "text-sm leading-relaxed font-sans relative group w-full transition-all duration-300",
                 msg.role === 'user' 
-                  ? "bg-white text-black font-medium" 
-                  : "bg-surface text-white/80 border border-white/5 shadow-sm"
+                  ? "p-4 rounded-xl bg-white text-black font-medium shadow-sm" 
+                  : "text-white/90"
               )}>
-                <div className="prose prose-invert prose-sm">
+                {msg.role === 'assistant' && msg.thinking && (
+                  <details className="mb-4 group/thinking">
+                    <summary className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 cursor-pointer hover:text-white/50 transition-colors list-none select-none">
+                      <BrainCircuit className="w-3 h-3" />
+                      <span>{t('common.reasoning', { defaultValue: 'Internal Reasoning' })}</span>
+                      <ChevronDown className="w-3 h-3 transition-transform group-open/thinking:rotate-180" />
+                    </summary>
+                    <div className="mt-2 pl-4 border-l border-white/10 text-xs text-white/40 italic leading-relaxed">
+                      <ReactMarkdown>
+                        {msg.thinking}
+                      </ReactMarkdown>
+                    </div>
+                  </details>
+                )}
+
+                <div className={cn(
+                  "prose prose-invert prose-sm max-w-none",
+                  msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5" : ""
+                )}>
                   <ReactMarkdown>
-                    {typeof displayContent === 'string' ? displayContent : JSON.stringify(displayContent, null, 2)}
+                    {String(displayContent)}
                   </ReactMarkdown>
                 </div>
 
                 {msg.role === 'assistant' && (
-                  <div className="mt-4 flex flex-col gap-3">
-                    {/* Action Chips */}
+                  <div className="mt-6 flex flex-col gap-4">
+                    {/* Minimal Action Buttons */}
                     <div className="flex flex-wrap gap-2">
                       {msg.suggested_actions?.map((action, idx) => {
                         const isApply = action.toLowerCase().includes('apply') || 
@@ -293,16 +313,16 @@ function ScriptDoctorContent({
                             }}
                             disabled={isApplyingThis}
                             className={cn(
-                              "px-4 py-2 rounded-full text-[10px] font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 border-none",
+                              "h-8 px-4 rounded-full text-[10px] font-bold transition-all border flex items-center gap-2",
                               isApply 
-                                ? "bg-white text-black" 
-                                : "border border-white/20 text-white/60 hover:bg-white/5"
+                                ? "bg-white text-black border-white hover:bg-white/90" 
+                                : "bg-transparent border-white/20 text-white/60 hover:bg-white/5 hover:border-white/40"
                             )}
                           >
                             {isApply && isApplyingThis ? (
-                              <RefreshCw className="w-3 h-3 animate-spin mr-2 inline" />
+                              <RefreshCw className="w-3 h-3 animate-spin" />
                             ) : isApply ? (
-                              <Sparkles className="w-3 h-3 mr-2 inline" />
+                              <Sparkles className="w-3 h-3" />
                             ) : null}
                             {action}
                           </button>
@@ -310,27 +330,28 @@ function ScriptDoctorContent({
                       })}
 
                       {isApplied && (
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold border border-green-500/20">
+                        <div className="flex items-center gap-2 h-8 px-4 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold border border-green-500/20">
                           <CheckCircle2 className="w-3 h-3" />
-                          Applied
+                          {t('common.applied', { defaultValue: 'Applied' })}
                         </div>
                       )}
                     </div>
 
-                    {/* TTS Button */}
+                    {/* TTS Button - Floating/Minimal */}
                     <button 
                       onClick={() => handleTts(displayContent, msg.id)}
                       className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-none",
-                        isSpeaking === msg.id ? "bg-white text-black animate-pulse" : "bg-white/5 text-white/40 hover:text-white"
+                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-none bg-white/5 text-white/20 hover:text-white/60 hover:bg-white/10",
+                        isSpeaking === msg.id && "bg-white text-black animate-pulse opacity-100 text-black"
                       )}
+                      title={t('common.speak', { defaultValue: 'Speak' })}
                     >
                       <Volume2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
               </div>
-              <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">
+              <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold px-1 mt-1">
                 {msg.role === 'user' ? t('common.you') : t('common.doctor')} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>

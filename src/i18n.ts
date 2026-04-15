@@ -102,7 +102,10 @@ const resources = {
         notReadyYetFeedback: 'I\'ve analyzed this stage and it\'s not quite ready yet.',
         insightUpdated: 'AI Insight updated',
         fixRequiredToast: 'Please address the AI insights before proceeding.',
-        helperText: 'Transform your vision into a cinematic masterpiece. What do you want to create today?'
+        helperText: 'Transform your vision into a cinematic masterpiece. What do you want to create today?',
+        reasoning: 'Internal Reasoning',
+        applied: 'Applied',
+        speak: 'Speak'
       },
       stages: {
         Brainstorming: {
@@ -283,7 +286,10 @@ const resources = {
         notReadyYetFeedback: 'J\'ai analysé cette étape et elle n\'est pas encore tout à fait prête.',
         insightUpdated: 'Analyse de l\'IA mise à jour',
         fixRequiredToast: 'Veuillez traiter les analyses de l\'IA avant de continuer.',
-        helperText: 'Transformez votre vision en un chef-d\'œuvre cinématographique. Que souhaitez-vous créer aujourd\'hui ?'
+        helperText: 'Transformez votre vision en un chef-d\'œuvre cinématographique. Que souhaitez-vous créer aujourd\'hui ?',
+        reasoning: 'Raisonnement interne',
+        applied: 'Appliqué',
+        speak: 'Écouter'
       },
       stages: {
         Brainstorming: {

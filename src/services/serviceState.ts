@@ -35,6 +35,6 @@ export const aiQuotaState = new ServiceState<boolean>(false);
 export const aiQuotaNoticeConsumed = new ServiceState<boolean>(false);
 
 // AI Flow Mode: 'production' | 'development'
-// Defaults to 'development' for safety and cost during dev phases.
-const initialFlow = (import.meta as any).env?.VITE_AI_FLOW === 'production' ? 'production' : 'development';
-export const aiFlowMode = new ServiceState<'production' | 'development'>(initialFlow);
+// DevFlow (development) is ALWAYS the default across the entire application.
+// This ensures only gemini-2.5-flash and gemini-2.5-flash-lite are used by default.
+export const aiFlowMode = new ServiceState<'production' | 'development'>('development');

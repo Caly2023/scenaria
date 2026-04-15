@@ -203,6 +203,7 @@ export default function App() {
       onValidateStepOutline={onValidateStepOutline}
       onValidateScript={onValidateScript}
       onValidateStoryboard={onValidateStoryboard}
+      onAnalyzeStage={handleStageAnalyze}
       CanvasErrorBoundary={({ children }: any) => <>{children}</>}
     />
   );

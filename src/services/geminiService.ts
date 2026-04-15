@@ -33,15 +33,23 @@ const PRODUCTION_MODELS = {
   FALLBACK: "gemini-2.5-flash"
 };
 
+/**
+ * DevFlow: ONLY these two models are ever used.
+ * - LITE (gemini-2.5-flash-lite): default for lightweight tasks
+ * - FLASH (gemini-2.5-flash): only for heavy tasks (large generation, complex reasoning)
+ * All legacy model keys map to one of these two to prevent accidental prod-model usage.
+ */
 const DEVELOPMENT_MODELS = {
-  // As per USER request: in dev flow don't use a pro model only flash and flash lite ones.
-  LITE: "gemini-2.5-flash-lite",
-  FLASH: "gemini-2.5-flash",
-  PRO: "gemini-3-flash-preview", 
-  PRO_3_1: "gemini-3.1-flash-lite-preview",
-  FLASH_3_1: "gemini-3-flash-preview",
-  FALLBACK: "gemini-2.5-flash-lite"
+  LITE: "gemini-2.5-flash-lite",   // Default — cost-efficient
+  FLASH: "gemini-2.5-flash",       // Heavy tasks only
+  PRO: "gemini-2.5-flash",         // No pro in dev → map to FLASH
+  PRO_3_1: "gemini-2.5-flash",     // No pro in dev → map to FLASH
+  FLASH_3_1: "gemini-2.5-flash-lite", // Map to LITE
+  FALLBACK: "gemini-2.5-flash-lite"   // Always lite as final safety net
 };
+
+/** High-level switch for Lite vs Flash in DevFlow */
+type DevModelType = 'lite' | 'flash';
 
 /** Returns the active model group based on global aiFlowMode. */
 function getModels() {
@@ -51,6 +59,47 @@ function getModels() {
 /** Returns true if the model is a restricted Gemini 3.x model (high-cost/high-quota). */
 function isRestrictedModel(model: string): boolean {
   return /gemini-3(\.|$|-)/i.test(model);
+}
+
+/**
+ * DevFlow mutual fallback counters.
+ * - gemini-2.5-flash fails 2+ times  → switch primary to gemini-2.5-flash-lite
+ * - gemini-2.5-flash-lite fails 2+ times → switch primary to gemini-2.5-flash
+ */
+const devFlowFailures: Record<string, number> = {
+  "gemini-2.5-flash": 0,
+  "gemini-2.5-flash-lite": 0
+};
+const DEV_FLOW_FAILURE_THRESHOLD = 2;
+
+/** Resolve the 2-model DevFlow cascade, respecting failure counts. */
+/** Resolve the 2-model DevFlow cascade, respecting failure counts. */
+function getDevFlowCascade(primary: DevModelType): string[] {
+  const flashFailed = devFlowFailures["gemini-2.5-flash"] >= DEV_FLOW_FAILURE_THRESHOLD;
+  const liteFailed = devFlowFailures["gemini-2.5-flash-lite"] >= DEV_FLOW_FAILURE_THRESHOLD;
+
+  if (primary === 'flash') {
+    // If flash failed multiple times, switch to lite as primary
+    return flashFailed
+      ? ["gemini-2.5-flash-lite", "gemini-2.5-flash"]
+      : ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+  }
+  
+  // Default is lite. If it failed multiple times, switch to flash as primary
+  return liteFailed
+    ? ["gemini-2.5-flash", "gemini-2.5-flash-lite"]
+    : ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
+}
+
+function recordDevFlowFailure(model: string) {
+  if (model in devFlowFailures) {
+    devFlowFailures[model]++;
+    console.warn(`[DevFlow] Failure #${devFlowFailures[model]} for ${model}`);
+  }
+}
+
+function resetDevFlowFailures(model: string) {
+  if (model in devFlowFailures) devFlowFailures[model] = 0;
 }
 
 function createTimeout(ms: number): { promise: Promise<never>; clear: () => void } {
@@ -74,91 +123,118 @@ async function resilientRequest<T>(
   simplifyOperation?: (model: string) => Promise<T>
 ) {
   const MODELS = getModels();
-  const actualPrimary = primaryModel || MODELS.FLASH_3_1;
-  const cascade = customCascade || [actualPrimary, MODELS.PRO_3_1, MODELS.LITE, MODELS.FALLBACK].filter((v, i, a) => a.indexOf(v) === i);
+  const isDevFlow = aiFlowMode.get() === 'development';
+
+  // --- DEVFLOW ENFORCEMENT ---
+  // In DevFlow, only gemini-2.5-flash and gemini-2.5-flash-lite are ever used.
+  // The cascade is resolved purely from mutual failure counters — customCascade is
+  // used only to detect whether the caller intended a heavy (flash) or light (lite) task.
+  let cascade: string[];
+  if (isDevFlow) {
+    const intendedPrimary = customCascade?.[0] ?? primaryModel ?? DEVELOPMENT_MODELS.LITE;
+    // Check if the intended primary is explicitly the "heavy" model
+    const isPrimaryHeavy = intendedPrimary === DEVELOPMENT_MODELS.FLASH;
+    cascade = getDevFlowCascade(isPrimaryHeavy ? 'flash' : 'lite');
+    
+    // Safety check: DevFlow MUST ONLY use these two models.
+    cascade = cascade.filter(m => m === "gemini-2.5-flash" || m === "gemini-2.5-flash-lite");
+    if (cascade.length === 0) cascade = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
+
+    console.debug(`[DevFlow] Cascade: ${cascade.join(' → ')} (${isPrimaryHeavy ? 'heavy' : 'light'} task)`);
+  } else {
+    const actualPrimary = primaryModel || MODELS.FLASH_3_1;
+    cascade = customCascade || [actualPrimary, MODELS.PRO_3_1, MODELS.LITE, MODELS.FALLBACK].filter((v, i, a) => a.indexOf(v) === i);
+  }
+
   let lastError: unknown = null;
   let hitQuota = aiQuotaState.get();
 
   for (const model of cascade) {
-    // If quota was already exhausted, skip ONLY Gemini 3 restricted models.
-    // This allowed the cascade to fall through to LITE/FALLBACK models normally.
+    // Skip restricted (Gemini 3.x) models when quota is exhausted
     if (aiQuotaState.get() && isRestrictedModel(model)) {
-      console.warn(`[ScriptDoctor] Quota exhausted — skipping restricted model ${model} in main cascade.`);
+      console.warn(`[Gemini] Quota exhausted — skipping restricted model ${model}.`);
       continue;
     }
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
+        let result: T;
         if (timeoutMs > 0) {
           const timeout = createTimeout(timeoutMs);
           try {
-            const result = await Promise.race([operation(model), timeout.promise]);
+            result = await Promise.race([operation(model), timeout.promise]);
             timeout.clear();
-            return result;
           } catch (raceErr) {
             timeout.clear();
             throw raceErr;
           }
+        } else {
+          result = await operation(model);
         }
-        return await operation(model);
+        // Success — reset DevFlow failure counter for this model
+        if (isDevFlow) resetDevFlowFailures(model);
+        return result;
       } catch (error: unknown) {
         lastError = error;
         const errMsg = error instanceof Error ? error.message : String(error);
         const msg = errMsg.toLowerCase();
         const isRateLimit = msg.includes("429") || msg.includes("quota") || msg.includes("rate limit") || msg.includes("too many requests");
-        
-        console.warn(`[ScriptDoctor] Attempt ${attempt + 1} failed for model ${model}:`, errMsg);
-        
+
+        console.warn(`[Gemini] Attempt ${attempt + 1} failed for ${model}:`, errMsg);
+        if (isDevFlow) recordDevFlowFailure(model);
+
         if (isRateLimit) {
           hitQuota = true;
-          console.warn(`[ScriptDoctor] Rate Limit (429) detected on ${model}.`);
-          // Only mark Gemini 3.x quota exhausted when the failing model is a Gemini 3 model.
+          console.warn(`[Gemini] Rate limit on ${model}.`);
           if (isRestrictedModel(model)) {
             aiQuotaState.set(true);
-            console.warn(`[ScriptDoctor] ⚠️ Gemini 3 quota EXHAUSTED. Switching to High-Efficiency fallback mode.`);
+            console.warn(`[Gemini] ⚠️ Gemini 3 quota EXHAUSTED. Switching to High-Efficiency mode.`);
           }
-          break; // Break inner retry loop — move to next model in cascade (or exit if quota)
+          break; // Move to next model
         }
-        
-        // Exponential backoff for non-rate-limit errors
+
+        // Exponential backoff for transient errors
         if (attempt < maxRetries - 1) {
           const delay = Math.pow(2, attempt) * 500;
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
     }
-    // Re-check after inner loop: if quota was just set, stop cascade immediately
-    if (aiQuotaState.get()) {
-      break;
-    }
+    // In production mode, stop cascade immediately if quota was just set
+    if (!isDevFlow && aiQuotaState.get()) break;
   }
 
   if (simplifyOperation) {
-    console.warn("[ScriptDoctor] All complex operations failed. Attempting to simplify request...");
-    // If rate-limited, prioritize the lightest models and STRIP any Gemini 3 models to avoid repeat failures.
-    const MODELS = getModels();
-    const simplifyCascade = (hitQuota || aiQuotaState.get()) 
-      ? [MODELS.LITE, MODELS.FALLBACK, MODELS.FLASH].filter(m => !isRestrictedModel(m)) 
-      : cascade;
-    
+    console.warn("[Gemini] All operations failed. Attempting simplified request...");
+    // DevFlow: always try lite-first for simplification (cheapest path)
+    const simplifyCascade = isDevFlow
+      ? getDevFlowCascade('lite')
+      : (hitQuota || aiQuotaState.get())
+        ? [MODELS.LITE, MODELS.FALLBACK, MODELS.FLASH].filter(m => !isRestrictedModel(m))
+        : cascade;
+
     for (const model of simplifyCascade) {
       try {
-        console.warn(`[ScriptDoctor] Simplify attempt with model: ${model}`);
+        console.warn(`[Gemini] Simplify attempt with: ${model}`);
+        let result: T;
         if (timeoutMs > 0) {
           const timeout = createTimeout(timeoutMs);
           try {
-            const result = await Promise.race([simplifyOperation(model), timeout.promise]);
+            result = await Promise.race([simplifyOperation(model), timeout.promise]);
             timeout.clear();
-            return result;
           } catch (raceErr) {
             timeout.clear();
             throw raceErr;
           }
+        } else {
+          result = await simplifyOperation(model);
         }
-        return await simplifyOperation(model);
+        if (isDevFlow) resetDevFlowFailures(model);
+        return result;
       } catch (simplifyError: unknown) {
         const errMsg = simplifyError instanceof Error ? simplifyError.message : String(simplifyError);
-        console.warn(`[ScriptDoctor] Simplify operation failed for ${model}:`, errMsg);
+        console.warn(`[Gemini] Simplify failed for ${model}:`, errMsg);
         lastError = simplifyError;
+        if (isDevFlow) recordDevFlowFailure(model);
         const msg = errMsg.toLowerCase();
         if (msg.includes("429") || msg.includes("quota") || msg.includes("rate limit")) {
           hitQuota = true;
@@ -169,7 +245,7 @@ async function resilientRequest<T>(
 
   if (fallbackResponse !== undefined) {
     if (hitQuota) {
-      console.warn("[ScriptDoctor] Quota exhausted. Returning quota specific fallback.");
+      console.warn("[Gemini] Quota exhausted. Returning quota fallback.");
       return {
         ...fallbackResponse,
         text: JSON.stringify({
@@ -181,7 +257,7 @@ async function resilientRequest<T>(
       };
     }
     const lastErrMsg = lastError instanceof Error ? lastError.message : String(lastError);
-    console.warn("[ScriptDoctor] All models in cascade failed after retries. Returning graceful fallback. Last error:", lastErrMsg);
+    console.warn("[Gemini] All models failed. Returning graceful fallback. Last error:", lastErrMsg);
     return fallbackResponse;
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError || "All models in cascade failed after retries."));
@@ -252,47 +328,42 @@ export const geminiService = {
 
     let customCascade: string[];
     let timeoutMs: number;
-    
-    // Timeouts must be generous — the system prompt + tools + schema is large.
-    // Gemini models with thinking can take 20-60s on complex requests.
-    // Fallback rules: Always start with Gemini 3 Flash
-    // Escalate to 3.1 Pro only for complex reasoning or failures
-    // Downgrade to Flash Light when speed or rate limits are constrained
+
+    // DevFlow: ONLY gemini-2.5-flash (heavy) and gemini-2.5-flash-lite (default).
+    // Cascade is resolved inside resilientRequest via getDevFlowCascade().
+    // Here we just signal the complexity so resilientRequest picks the right primary.
     const MODELS = getModels();
-    if (aiQuotaState.get()) {
-      // High-Efficiency mode: Use available Gemini 2.5/Lite models
-      const ALL_FALLBACKS = [MODELS.LITE, MODELS.FALLBACK, "gemini-2.5-pro", "gemini-2.5-flash-lite"];
-      customCascade = ALL_FALLBACKS.filter((v, i, a) => a.indexOf(v) === i && !isRestrictedModel(v));
-      if (customCascade.length === 0) customCascade = [MODELS.FALLBACK]; // Safety net
+    if (aiFlowMode.get() === 'development') {
+      // Complex agentic tasks → flash (heavy). Simple/moderate → lite (default).
+      if (complexity === 'complex') {
+        customCascade = [DEVELOPMENT_MODELS.FLASH, DEVELOPMENT_MODELS.LITE];
+        timeoutMs = 90000;
+      } else {
+        customCascade = [DEVELOPMENT_MODELS.LITE, DEVELOPMENT_MODELS.FLASH];
+        timeoutMs = 60000;
+      }
+    } else if (aiQuotaState.get()) {
+      // Production + quota exhausted: fall back to 2.5 models only
+      customCascade = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
       timeoutMs = 45000;
     } else {
-      // In Development mode, we strictly follow the user's preference for lightweight models
-      if (aiFlowMode.get() === 'development') {
-        // "3 flash lite" is primary for complex, "2.5 flash lite" is for repetitive
-        if (complexity === 'complex') {
-          customCascade = [MODELS.PRO, MODELS.FLASH, MODELS.FALLBACK];
-        } else {
-          customCascade = [MODELS.LITE, MODELS.PRO, MODELS.FLASH];
-        }
-        timeoutMs = 60000;
-      } else {
-        switch (complexity) {
-          case 'simple':
-            customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FLASH, MODELS.FALLBACK];
-            timeoutMs = 45000;
-            break;
-          case 'moderate':
-            customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FLASH, MODELS.PRO_3_1, MODELS.FALLBACK];
-            timeoutMs = 90000;
-            break;
-          case 'complex':
-            customCascade = [MODELS.PRO_3_1, MODELS.FLASH, MODELS.LITE, MODELS.FLASH_3_1, MODELS.FALLBACK];
-            timeoutMs = 120000;
-            break;
-          default:
-            customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FALLBACK];
-            timeoutMs = 90000;
-        }
+      // Production mode: full cascade by complexity
+      switch (complexity) {
+        case 'simple':
+          customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FLASH, MODELS.FALLBACK];
+          timeoutMs = 45000;
+          break;
+        case 'moderate':
+          customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FLASH, MODELS.PRO_3_1, MODELS.FALLBACK];
+          timeoutMs = 90000;
+          break;
+        case 'complex':
+          customCascade = [MODELS.PRO_3_1, MODELS.FLASH, MODELS.LITE, MODELS.FLASH_3_1, MODELS.FALLBACK];
+          timeoutMs = 120000;
+          break;
+        default:
+          customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FALLBACK];
+          timeoutMs = 90000;
       }
     }
 
@@ -673,6 +744,12 @@ export const geminiService = {
   },
 
   async brainstormFeedback(content: string) {
+    // Optimization: check if content exists
+    if (!content || content.trim().length < 10) {
+      console.warn("[GeminiService] brainstormFeedback skipped: insufficient content.");
+      return "Please provide more details for brainstorming analysis.";
+    }
+
     const MODELS = getModels();
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({
@@ -688,6 +765,12 @@ export const geminiService = {
   },
 
   async generateLoglineDraft(brainstorming: string) {
+    // Optimization: check if requirement exists
+    if (!brainstorming || brainstorming.trim().length < 20) {
+      console.warn("[GeminiService] generateLoglineDraft skipped: no brainstorming content.");
+      return "Based on your brainstorming, I will draft a logline here once you provide more details.";
+    }
+
     const MODELS = getModels();
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({
@@ -703,6 +786,12 @@ export const geminiService = {
   },
 
   async generateSynopsis(brainstorming: string, structure: string) {
+    // Optimization: check if requirement exists
+    if (!brainstorming || brainstorming.trim().length < 20) {
+      console.warn("[GeminiService] generateSynopsis skipped: no story context.");
+      return "Once the story is more developed, I will generate a full synopsis here.";
+    }
+
     const MODELS = getModels();
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({
@@ -1156,6 +1245,14 @@ export const geminiService = {
   },
 
   async generateStageInsight(stage: string, content: string, projectContext: string) {
+    // Validation check: if content is empty, skip AI insight
+    if (!content || content.trim().length < 5) {
+      return {
+        content: "Please start writing or brainstorming to generate an insight.",
+        isReady: false
+      };
+    }
+
     const MODELS = getModels();
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({

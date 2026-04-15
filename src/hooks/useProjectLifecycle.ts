@@ -309,6 +309,14 @@ export function useProjectLifecycle({
         );
       }
 
+      // --- DEVFLOW RULE 3: AI Call Optimization ---
+      // Before every AI request, check if the required content already exists.
+      // If content exists → do not call Gemini. Keep existing content!
+      const existingContent = context.stageContents[targetStage];
+      if (existingContent && existingContent.length > 0) {
+        console.log(`[ProactiveGen] Development check: Content already exists for ${targetStage}. Skipping AI generation.`);
+        return; // Content exists, save the API call.
+      }
 
       addToast(`🧠 Drafting ${targetStage}...`, 'info');
 

@@ -19,6 +19,7 @@ interface CharacterBibleProps {
   onValidate: () => void;
   lastUpdatedPrimitiveId?: string | null;
   insight?: StageInsight | StageAnalysis;
+  onAnalyze?: () => void | Promise<void>;
 }
 
 export function CharacterBible({ 
@@ -32,7 +33,8 @@ export function CharacterBible({
   refiningBlockId = null,
   onValidate,
   lastUpdatedPrimitiveId = null,
-  insight
+  insight,
+  onAnalyze
 }: CharacterBibleProps) {
   const { t } = useTranslation();
   const [isAdding, setIsAdding] = useState(false);
@@ -73,6 +75,7 @@ export function CharacterBible({
       insight={insight}
       isGenerating={isGenerating}
       onValidate={onValidate}
+      onAnalyze={onAnalyze}
       validateLabel={t('stages.Character Bible.validateLabel')}
     >
       <div className="space-y-12 pb-32">

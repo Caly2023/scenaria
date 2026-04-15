@@ -132,16 +132,16 @@ export function StepLayout({
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-50",
-          // Mobile: Boxed, in flow
-          "relative w-full rounded-[28px] p-6 border bg-[#212121] mt-12 mb-8",
+          // Mobile: Boxed, in flow, fully rounded
+          "relative w-full rounded-[32px] p-6 border bg-[#212121] mt-12 mb-8",
           // Desktop: Sticky to bottom, centered within parent's max-width
           "md:sticky md:bottom-0 md:w-full md:mt-20 md:mb-0 md:rounded-t-[40px] md:rounded-b-none md:border-t md:border-x md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12",
           isReady ? "border-green-500/30" : "border-white/10"
         )}
       >
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-6 sm:gap-4">
           {/* Status indicator */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-center gap-3">
             <div className={cn(
               "w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
               isReady ? "bg-green-500/15 text-green-400" : "bg-white/5 text-white/30"
@@ -160,15 +160,15 @@ export function StepLayout({
             </span>
           </div>
 
-          {/* Action buttons — minimal, right-aligned */}
-          <div className="flex items-center gap-4 flex-shrink-0">
+          {/* Action buttons — stacked on mobile */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             {/* Always show Vérifier button */}
             <motion.button
               onClick={handleVerifier}
               disabled={isValidating || isGenerating}
               aria-label="Vérifier cette étape"
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-2 rounded-xl text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
                 isValidating 
                   ? "bg-white/5 text-white/40 border-white/10" 
                   : isReady
@@ -189,12 +189,12 @@ export function StepLayout({
               onClick={() => setShowConfirmModal(true)}
               aria-label="Passer à l'étape suivante"
               className={cn(
-                "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold border-none transition-all",
-                "bg-white text-black hover:scale-105 active:scale-95 shadow-[12px_12px_24px_rgba(0,0,0,0.2)]"
+                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-semibold border-none transition-all",
+                "bg-white text-black hover:scale-[1.02] sm:hover:scale-105 active:scale-95 shadow-[12px_12px_24px_rgba(0,0,0,0.2)]"
               )}
             >
               <span>{validateLabel ?? (isReady ? 'Continuer' : 'Étape suivante')}</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
         </div>

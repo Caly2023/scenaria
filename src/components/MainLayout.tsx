@@ -123,7 +123,10 @@ export function MainLayout({
   const NOOP = () => {};
 
   return (
-    <div className="h-[100dvh] w-full flex flex-col md:flex-row bg-background overflow-hidden relative font-sans">
+    <div className={cn(
+      "w-full flex flex-col md:flex-row bg-background relative font-sans",
+      isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden"
+    )}>
       {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
       {!isMobile && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
@@ -162,22 +165,27 @@ export function MainLayout({
       )}
 
       {/* ── Main content column ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col h-full relative transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-10 min-w-0">
-        <Header
-          projectName={currentProject?.metadata?.title || "Untitled"}
-          onProjectSwitch={handleProjectExit}
-          onCallStart={NOOP}
-          onInfoClick={() => setIsHelpOpen(true)}
-          onDoctorToggle={handleToggleDoctor}
-          isDoctorOpen={isDoctorOpen}
-          syncStatus={syncStatus}
-          collaborators={collaborators}
-          isCompact={isDoctorOpen}
-          accessibilitySettings={accessibilitySettings}
-          onAccessibilityChange={setAccessibilitySettings}
-          onTitleClick={handleOpenDrawer}
-          isTitleOpen={isProjectDrawerOpen}
-        />
+      <div className={cn(
+        "flex-1 flex flex-col relative transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-10 min-w-0",
+        isMobile ? "h-auto" : "h-full"
+      )}>
+        <div className={cn(isMobile && "fixed top-0 left-0 right-0 z-50")}>
+          <Header
+            projectName={currentProject?.metadata?.title || "Untitled"}
+            onProjectSwitch={handleProjectExit}
+            onCallStart={NOOP}
+            onInfoClick={() => setIsHelpOpen(true)}
+            onDoctorToggle={handleToggleDoctor}
+            isDoctorOpen={isDoctorOpen}
+            syncStatus={syncStatus}
+            collaborators={collaborators}
+            isCompact={isDoctorOpen}
+            accessibilitySettings={accessibilitySettings}
+            onAccessibilityChange={setAccessibilitySettings}
+            onTitleClick={handleOpenDrawer}
+            isTitleOpen={isProjectDrawerOpen}
+          />
+        </div>
 
         <FormErrorBoundary>
           <ProjectDrawer
@@ -189,17 +197,25 @@ export function MainLayout({
           />
         </FormErrorBoundary>
 
-        <div className="flex-1 flex flex-col relative overflow-hidden w-full">
+        <div className={cn(
+          "flex-1 flex flex-col relative w-full",
+          isMobile ? "overflow-visible" : "overflow-hidden"
+        )}>
           <div
             className={cn(
-              "w-full flex-1 flex flex-col overflow-y-auto no-scrollbar scroll-smooth relative overscroll-none",
+              "w-full relative",
+              isMobile 
+                ? "overflow-visible scroll-smooth" 
+                : "flex-1 flex flex-col overflow-y-auto no-scrollbar scroll-smooth overscroll-none",
               isMobile && "pb-safe-nav",
             )}
           >
             <div
               className={cn(
-                "w-full max-w-4xl mx-auto flex-1 flex flex-col justify-start relative",
-                isMobile ? "px-4 pt-8 pb-0" : "px-6 py-12 md:pl-32 md:pr-12",
+                "w-full max-w-4xl mx-auto flex flex-col justify-start relative",
+                isMobile 
+                  ? "px-4 pb-0 pt-[calc(var(--header-top-padding)+60px)]" 
+                  : "flex-1 px-6 py-12 md:pl-32 md:pr-12",
               )}
             >
               <Suspense fallback={<StageSkeleton />}>

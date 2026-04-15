@@ -78,7 +78,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="h-screen w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto scroll-smooth">
+    <div className="min-h-dvh w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto scroll-smooth">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

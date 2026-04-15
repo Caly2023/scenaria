@@ -127,7 +127,7 @@ export function MainLayout({
       {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
       {!isMobile && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-          <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85vh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
+          <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85dvh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
             <Sidebar
               activeStage={activeStage}
               onStageChange={handleStageChange}

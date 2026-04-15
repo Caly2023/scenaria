@@ -33,7 +33,7 @@ const ErrorLayout: FC<ErrorPageProps> = ({
   details
 }) => {
   return (
-    <div className="min-h-screen w-full bg-[#0f0f0f] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+    <div className="min-h-dvh w-full bg-[#0f0f0f] flex items-center justify-center p-6 relative overflow-hidden font-sans">
       {/* Background Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-white/[0.02] rounded-full blur-[120px]" />

@@ -8,7 +8,7 @@ export function LoginPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="h-screen w-full bg-[#050505] text-white flex flex-col items-center justify-center px-4 md:px-6 relative overflow-hidden">
+    <div className="h-dvh w-full bg-[#050505] text-white flex flex-col items-center justify-center px-4 md:px-6 relative overflow-hidden">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

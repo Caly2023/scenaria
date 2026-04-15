@@ -78,7 +78,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="min-h-dvh w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto scroll-smooth">
+    <div className="h-dvh w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto scroll-smooth">
       
       {/* Premium Background — Animated Mesh Gradients */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -250,7 +250,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           <div className="flex flex-col gap-3 w-full px-4 overflow-y-visible">
             <AnimatePresence mode="popLayout">
               {projects.length > 0 ? (
-                projects.slice(0, 10).map((project, idx) => (
+                projects.map((project, idx) => (
                   <motion.div
                     key={project.id}
                     initial={{ opacity: 0, y: 20 }}

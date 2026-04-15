@@ -114,6 +114,10 @@ export default function App() {
   const onItemChangeScript = useCallback((id: string, content: string) => handleSubcollectionUpdate("script_scenes", id, content), [handleSubcollectionUpdate]);
   const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f || "Refine Script", id), [handleStageRefine]);
   const onRegenerateScript = useCallback(() => handleRegenerate("Script"), [handleRegenerate]);
+  const onApplyFix = useCallback((prompt: string) => {
+    handleOpenDoctor();
+    handleDoctorMessage(prompt);
+  }, [handleOpenDoctor, handleDoctorMessage]);
 
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const handleTts = useCallback((id: string, text: string) => {
@@ -204,6 +208,7 @@ export default function App() {
       onValidateScript={onValidateScript}
       onValidateStoryboard={onValidateStoryboard}
       onAnalyzeStage={handleStageAnalyze}
+      onApplyFix={onApplyFix}
       CanvasErrorBoundary={({ children }: any) => <>{children}</>}
     />
   );

@@ -31,6 +31,7 @@ interface WorkflowStageProps {
   lastUpdatedPrimitiveId?: string | null;
   insight?: StageInsight | StageAnalysis;
   onAnalyze?: () => void | Promise<void>;
+  onApplyFix?: (prompt: string) => void;
 }
 
 export function WorkflowStage({ 
@@ -52,7 +53,8 @@ export function WorkflowStage({
   validateLabel = "Validate & Next Step",
   lastUpdatedPrimitiveId = null,
   insight,
-  onAnalyze
+  onAnalyze,
+  onApplyFix
 }: WorkflowStageProps) {
   
   let blocks: Block[] = [];
@@ -117,6 +119,7 @@ export function WorkflowStage({
       hydrationLabel={hydrationLabel}
       onValidate={onValidate}
       onAnalyze={onAnalyze}
+      onApplyFix={onApplyFix}
       validateLabel={validateLabel}
     >
       <div className="space-y-8">

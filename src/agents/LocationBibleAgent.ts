@@ -59,7 +59,12 @@ export class LocationBibleAgent extends BaseStageAgent {
     const fullText = content.map(p => `**${p.title}**: ${p.content.substring(0, 200)}`).join('\n');
     try {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Location Bible', fullText, context.metadata.logline));
-      const analysis = this.buildAnalysis(raw.content, raw.isReady ? [] : ['Locations need more detail'], raw.isReady ? [] : ['Add atmosphere and narrative significance to each location']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        raw.isReady ? [] : ['Locations need more detail'], 
+        raw.isReady ? [] : ['Add atmosphere and narrative significance to each location'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[LocationBibleAgent] evaluate() AI call failed, using heuristic fallback:`, err);

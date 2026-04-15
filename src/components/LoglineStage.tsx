@@ -12,6 +12,7 @@ interface LoglineStageProps {
   isGenerating?: boolean;
   insight?: StageInsight | StageAnalysis;
   onAnalyze?: () => void | Promise<void>;
+  onApplyFix?: (prompt: string) => void;
 }
 
 export function LoglineStage({ 
@@ -21,7 +22,8 @@ export function LoglineStage({
   onRefine,
   isGenerating = false,
   insight,
-  onAnalyze
+  onAnalyze,
+  onApplyFix
 }: LoglineStageProps) {
   const { t } = useTranslation();
 
@@ -35,6 +37,7 @@ export function LoglineStage({
       isGenerating={isGenerating}
       onValidate={onValidate}
       onAnalyze={onAnalyze}
+      onApplyFix={onApplyFix}
       validateLabel={t('stages.Logline.validateLabel')}
     >
       <Primitive

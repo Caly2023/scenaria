@@ -20,6 +20,7 @@ interface LocationBibleProps {
   lastUpdatedPrimitiveId?: string | null;
   insight?: StageInsight | StageAnalysis;
   onAnalyze?: () => void | Promise<void>;
+  onApplyFix?: (prompt: string) => void;
 }
 
 export function LocationBible({ 
@@ -34,7 +35,8 @@ export function LocationBible({
   refiningBlockId = null,
   lastUpdatedPrimitiveId = null,
   insight,
-  onAnalyze
+  onAnalyze,
+  onApplyFix
 }: LocationBibleProps) {
   const { t } = useTranslation();
   const [isAdding, setIsAdding] = useState(false);
@@ -72,6 +74,7 @@ export function LocationBible({
       isGenerating={isGenerating}
       onValidate={onValidate}
       onAnalyze={onAnalyze}
+      onApplyFix={onApplyFix}
       validateLabel={t('stages.Location Bible.validateLabel')}
     >
       <div className="space-y-12 pb-32">

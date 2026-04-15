@@ -55,7 +55,12 @@ export class LoglineAgent extends BaseStageAgent {
     try {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Logline', loglineText, context.metadata.logline || loglineText));
       const issues = raw.isReady ? [] : ['Logline may lack a clear protagonist or conflict'];
-      const analysis = this.buildAnalysis(raw.content, issues, raw.isReady ? [] : ['Tighten to 1-2 sentences with protagonist, goal, conflict']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        issues, 
+        raw.isReady ? [] : ['Tighten to 1-2 sentences with protagonist, goal, conflict'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[LoglineAgent] evaluate() AI call failed, using heuristic fallback:`, err);

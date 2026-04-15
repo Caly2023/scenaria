@@ -71,7 +71,8 @@ export class BrainstormingAgent extends BaseStageAgent {
       const analysis = this.buildAnalysis(
         raw.content,
         raw.isReady ? [] : ['Content may need strengthening'],
-        raw.isReady ? [] : ['Expand on the core conflict and protagonist motivation']
+        raw.isReady ? [] : ['Expand on the core conflict and protagonist motivation'],
+        raw.suggestedPrompt
       );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {

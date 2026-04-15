@@ -13,6 +13,7 @@ interface BrainstormingStageProps {
   isGenerating: boolean;
   insight?: StageInsight | StageAnalysis;
   onAnalyze?: () => void | Promise<void>;
+  onApplyFix?: (prompt: string) => void;
 }
 
 export function BrainstormingStage({ 
@@ -22,7 +23,8 @@ export function BrainstormingStage({
   onValidate,
   isGenerating,
   insight,
-  onAnalyze
+  onAnalyze,
+  onApplyFix
 }: BrainstormingStageProps) {
   const { t } = useTranslation();
 
@@ -36,6 +38,7 @@ export function BrainstormingStage({
       isGenerating={isGenerating}
       onValidate={onValidate}
       onAnalyze={onAnalyze}
+      onApplyFix={onApplyFix}
       validateLabel={t('stages.Brainstorming.validateLabel', { defaultValue: 'Passer à l\'étape suivante' })}
     >
       <div className="grid grid-cols-1 gap-8">

@@ -36,6 +36,7 @@ export interface StageAnalysis {
   evaluation: string;        // Professional AI narrative evaluation (markdown)
   issues: string[];          // Identified weaknesses or gaps
   recommendations: string[]; // Actionable improvement suggestions
+  suggestedPrompt?: string;  // Clear instruction for Script Doctor to fix issues
   updatedAt: number;
 }
 

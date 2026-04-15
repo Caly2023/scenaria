@@ -1,5 +1,5 @@
 import { Primitive } from './Primitive';
-import { Check, ChevronRight, ShieldCheck, AlertCircle, Loader2 } from 'lucide-react';
+import { Check, ChevronRight, ShieldCheck, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,6 +18,7 @@ interface StepLayoutProps {
   hydrationLabel?: string | null;
   onValidate: () => void;
   onAnalyze?: () => Promise<void> | void;
+  onApplyFix?: (prompt: string) => void;
   validateLabel?: string;
   children: React.ReactNode;
 }
@@ -33,6 +34,7 @@ export function StepLayout({
   hydrationLabel = null,
   onValidate,
   onAnalyze,
+  onApplyFix,
   validateLabel,
   children
 }: StepLayoutProps) {
@@ -87,16 +89,35 @@ export function StepLayout({
 
         {/* A. AI Insight primitive */}
         {insight && (
-          <Primitive
-            title={t('common.aiInsight', { defaultValue: 'AI Insight' })}
-            content={'content' in insight
-              ? insight.content
-              : `${insight.evaluation}\n\n**Issues to Address:**\n${insight.issues.length ? insight.issues.map(i => `- ${i}`).join('\n') : '*None*'}\n\n**Recommendations:**\n${insight.recommendations.length ? insight.recommendations.map(r => `- ${r}`).join('\n') : '*None*'}`
-            }
-            type="ai_insight"
-            mode="stacked"
-            isGenerating={isGenerating}
-          />
+          <div className="relative">
+            <Primitive
+              title={t('common.aiInsight', { defaultValue: 'AI Insight' })}
+              content={'content' in insight
+                ? insight.content
+                : `${insight.evaluation}\n\n**Issues to Address:**\n${insight.issues.length ? insight.issues.map(i => `- ${i}`).join('\n') : '*None*'}\n\n**Recommendations:**\n${insight.recommendations.length ? insight.recommendations.map(r => `- ${r}`).join('\n') : '*None*'}`
+              }
+              type="ai_insight"
+              mode="stacked"
+              isGenerating={isGenerating}
+            />
+
+            {/* 'Apply Fix' Button — only shown if there's a suggested prompt and stage isn't perfect */}
+            {'suggestedPrompt' in insight && insight.suggestedPrompt && !isReady && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 pl-12"
+              >
+                <button
+                  onClick={() => onApplyFix?.(insight.suggestedPrompt!)}
+                  className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-black text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl border-none group"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+                  {t('common.applyAIFix', { defaultValue: 'Améliorer via Script Doctor' })}
+                </button>
+              </motion.div>
+            )}
+          </div>
         )}
 
         {/* B. Content primitives (Passed as children) */}

@@ -67,7 +67,12 @@ export class StepOutlineAgent extends BaseStageAgent {
     const fullText = content.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
     try {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Step Outline', fullText, context.metadata.logline));
-      const analysis = this.buildAnalysis(raw.content, raw.isReady ? [] : ['Scenes need more detail'], raw.isReady ? [] : ['Flesh out each scene with more action information']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        raw.isReady ? [] : ['Scenes need more detail'], 
+        raw.isReady ? [] : ['Flesh out each scene with more action information'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[StepOutlineAgent] evaluate() AI call failed, using heuristic fallback:`, err);

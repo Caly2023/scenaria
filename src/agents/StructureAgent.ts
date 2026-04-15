@@ -92,7 +92,12 @@ export class StructureAgent extends BaseStageAgent {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('3-Act Structure', fullText, context.metadata.logline));
       const beatCount = content.filter(p => p.primitiveType === 'beat').length;
       const issues = raw.isReady && beatCount >= 8 ? [] : [`Only ${beatCount}/8 beats defined`];
-      const analysis = this.buildAnalysis(raw.content, issues, raw.isReady ? [] : ['Complete all 8 beats']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        issues, 
+        raw.isReady ? [] : ['Complete all 8 beats'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[StructureAgent] evaluate() AI call failed, using heuristic fallback:`, err);

@@ -59,7 +59,12 @@ export class SynopsisAgent extends BaseStageAgent {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Synopsis', text, context.metadata.logline));
       const wordCount = text.split(/\s+/).length;
       const issues = raw.isReady && wordCount >= 200 ? [] : ['Synopsis may be too brief'];
-      const analysis = this.buildAnalysis(raw.content, issues, raw.isReady ? [] : ['Expand to ~500 words covering the full narrative arc']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        issues, 
+        raw.isReady ? [] : ['Expand to ~500 words covering the full narrative arc'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[SynopsisAgent] evaluate() AI call failed, using heuristic fallback:`, err);

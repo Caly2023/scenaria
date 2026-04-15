@@ -19,6 +19,7 @@ interface MainCanvasProps {
   refiningBlockId?: string | null;
   insight?: StageInsight | StageAnalysis;
   onAnalyze?: () => void | Promise<void>;
+  onApplyFix?: (prompt: string) => void;
 }
 
 // Memoized per-sequence row — only re-renders when its own data changes
@@ -84,7 +85,8 @@ export const MainCanvas = React.memo(function MainCanvas({
   isGenerating = false,
   refiningBlockId = null,
   insight,
-  onAnalyze
+  onAnalyze,
+  onApplyFix
 }: MainCanvasProps) {
   const { t } = useTranslation();
 
@@ -102,6 +104,7 @@ export const MainCanvas = React.memo(function MainCanvas({
       isGenerating={isGenerating}
       onValidate={onValidate}
       onAnalyze={onAnalyze}
+      onApplyFix={onApplyFix}
       validateLabel={t('stages.Step Outline.validateLabel')}
     >
       <div className="space-y-6">

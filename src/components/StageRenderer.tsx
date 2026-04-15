@@ -103,6 +103,7 @@ interface StageRendererProps {
   onValidateStoryboard: () => void;
   
   onAnalyzeStage: (stage: WorkflowStage) => Promise<void>;
+  onApplyFix: (prompt: string) => void;
   
   // Error Boundary Wrapper
   CanvasErrorBoundary: React.ComponentType<any>;
@@ -170,6 +171,7 @@ export function StageRenderer({
   onValidateStoryboard,
   
   onAnalyzeStage,
+  onApplyFix,
 
   CanvasErrorBoundary
 }: StageRendererProps) {
@@ -185,6 +187,7 @@ export function StageRenderer({
           onValidate={onValidateBrainstorming}
           onDoctorToggle={handleToggleDoctor}
           onAnalyze={() => onAnalyzeStage("Brainstorming")}
+          onApplyFix={onApplyFix}
           isGenerating={isTyping}
           insight={currentProject.stageAnalyses?.["Brainstorming"]}
         />
@@ -197,6 +200,7 @@ export function StageRenderer({
           onValidate={onValidateLogline}
           onRefine={onRefineLogline}
           onAnalyze={() => onAnalyzeStage("Logline")}
+          onApplyFix={onApplyFix}
           isGenerating={isTyping}
           insight={currentProject.stageAnalyses?.["Logline"]}
         />
@@ -216,6 +220,7 @@ export function StageRenderer({
           onRefine={onRefine3Act}
           onRegenerate={onRegenerate3Act}
           onAnalyze={() => onAnalyzeStage("3-Act Structure")}
+          onApplyFix={onApplyFix}
           isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === "3-Act Structure")}
           isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === "3-Act Structure"}
           hydrationLabel={hydrationState.hydratingStage === "3-Act Structure" ? hydrationState.hydratingLabel : undefined}
@@ -238,6 +243,7 @@ export function StageRenderer({
           onRefine={onRefineSynopsis}
           onRegenerate={onRegenerateSynopsis}
           onAnalyze={() => onAnalyzeStage("Synopsis")}
+          onApplyFix={onApplyFix}
           isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === "Synopsis")}
           isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === "Synopsis"}
           hydrationLabel={hydrationState.hydratingStage === "Synopsis" ? hydrationState.hydratingLabel : undefined}
@@ -260,6 +266,7 @@ export function StageRenderer({
           refiningBlockId={refiningBlockId}
           onValidate={onValidateCharacterBible}
           onAnalyze={() => onAnalyzeStage("Character Bible")}
+          onApplyFix={onApplyFix}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
           insight={currentProject.stageAnalyses?.["Character Bible"]}
         />
@@ -277,6 +284,7 @@ export function StageRenderer({
           refiningBlockId={refiningBlockId}
           onValidate={onValidateLocationBible}
           onAnalyze={() => onAnalyzeStage("Location Bible")}
+          onApplyFix={onApplyFix}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
           insight={currentProject.stageAnalyses?.["Location Bible"]}
         />
@@ -296,6 +304,7 @@ export function StageRenderer({
           onRefine={onRefineTreatment}
           onRegenerate={onRegenerateTreatment}
           onAnalyze={() => onAnalyzeStage("Treatment")}
+          onApplyFix={onApplyFix}
           isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === "Treatment")}
           isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === "Treatment"}
           hydrationLabel={hydrationState.hydratingStage === "Treatment" ? hydrationState.hydratingLabel : undefined}
@@ -316,6 +325,7 @@ export function StageRenderer({
             onAiMagic={handleAiMagic}
             onValidate={onValidateStepOutline}
             onAnalyze={() => onAnalyzeStage("Step Outline")}
+            onApplyFix={onApplyFix}
             isGenerating={isTyping}
             refiningBlockId={refiningBlockId}
             insight={currentProject.stageAnalyses?.["Step Outline"]}
@@ -337,6 +347,7 @@ export function StageRenderer({
           onRefine={onRefineScript}
           onRegenerate={onRegenerateScript}
           onAnalyze={() => onAnalyzeStage("Script")}
+          onApplyFix={onApplyFix}
           isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === "Script")}
           isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === "Script"}
           hydrationLabel={hydrationState.hydratingStage === "Script" ? hydrationState.hydratingLabel : undefined}

@@ -65,7 +65,12 @@ export class TreatmentAgent extends BaseStageAgent {
     try {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Treatment', fullText, context.metadata.logline));
       const issues = raw.isReady && content.length >= 5 ? [] : [`Only ${content.length} sections (minimum 5 recommended)`];
-      const analysis = this.buildAnalysis(raw.content, issues, raw.isReady ? [] : ['Add more detailed cinematic sections']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        issues, 
+        raw.isReady ? [] : ['Add more detailed cinematic sections'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[TreatmentAgent] evaluate() AI call failed, using heuristic fallback:`, err);

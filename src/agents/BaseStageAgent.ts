@@ -58,12 +58,14 @@ export abstract class BaseStageAgent implements IStageAgent {
   protected buildAnalysis(
     evaluation: string,
     issues: string[] = [],
-    recommendations: string[] = []
+    recommendations: string[] = [],
+    suggestedPrompt?: string
   ): StageAnalysis {
     return {
       evaluation: evaluation || 'Analysis pending.',
       issues: issues.filter(Boolean),
       recommendations: recommendations.filter(Boolean),
+      suggestedPrompt,
       updatedAt: Date.now(),
     };
   }

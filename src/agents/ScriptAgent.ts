@@ -59,7 +59,12 @@ export class ScriptAgent extends BaseStageAgent {
     const fullText = content.map(p => `[${p.title}]\n${p.content.substring(0, 300)}`).join('\n\n');
     try {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Script', fullText, context.metadata.logline));
-      const analysis = this.buildAnalysis(raw.content, raw.isReady ? [] : ['Script needs refinement'], raw.isReady ? [] : ['Review dialogue, action lines, and scene structure']);
+      const analysis = this.buildAnalysis(
+        raw.content, 
+        raw.isReady ? [] : ['Script needs refinement'], 
+        raw.isReady ? [] : ['Review dialogue, action lines, and scene structure'],
+        raw.suggestedPrompt
+      );
       return { analysis, state: this.computeState(analysis) };
     } catch (err) {
       console.warn(`[ScriptAgent] evaluate() AI call failed, using heuristic fallback:`, err);

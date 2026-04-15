@@ -1268,11 +1268,13 @@ export const geminiService = {
         YOUR TASK:
         1. Provide a professional, concise analysis (AI Insight) of the content (Markdown supported).
         2. Evaluate if the stage is "Ready to proceed" or "Needs work" based on completeness, narrative logic, and industry standards.
+        3. If "Needs work" (isReady: false), provide a "suggestedPrompt": a clear, direct, and actionable instruction that a human can send to a "Script Doctor AI" to automatically fix or improve the current content. If isReady is true, suggestedPrompt should be an empty string.
         
         Output a JSON object:
         {
           "content": "Professional analysis...",
-          "isReady": true/false
+          "isReady": true/false,
+          "suggestedPrompt": "Direct instruction for Script Doctor..."
         }`,
         config: {
           responseMimeType: "application/json",
@@ -1280,9 +1282,10 @@ export const geminiService = {
             type: Type.OBJECT,
             properties: {
               content: { type: Type.STRING },
-              isReady: { type: Type.BOOLEAN }
+              isReady: { type: Type.BOOLEAN },
+              suggestedPrompt: { type: Type.STRING }
             },
-            required: ["content", "isReady"]
+            required: ["content", "isReady", "suggestedPrompt"]
           }
         }
       });

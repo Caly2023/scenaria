@@ -60,7 +60,7 @@ export function StepLayout({
   };
 
   return (
-    <div className="w-full h-auto flex-1 flex flex-col space-y-10 md:space-y-16 pb-0 md:pb-12">
+    <div className="w-full h-auto flex-1 flex flex-col space-y-10 md:space-y-16 pb-12 md:pb-40">
       <div className="flex-1 flex flex-col space-y-10 md:space-y-16">
         <div className="text-center space-y-4">
           <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">
@@ -101,8 +101,8 @@ export function StepLayout({
               isGenerating={isGenerating}
             />
 
-            {/* 'Apply Fix' Button — only shown if there's a suggested prompt and stage isn't perfect */}
-            {'suggestedPrompt' in insight && insight.suggestedPrompt && !isReady && (
+            {/* 'Apply Fix' Button — shown if there's a suggested prompt */}
+            {'suggestedPrompt' in insight && insight.suggestedPrompt && (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -126,13 +126,17 @@ export function StepLayout({
         </div>
       </div>
 
-      {/* C. Global step status block */}
+      {/* C. Global step status block — Fixed or Relative based on viewport */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "bg-[#212121] p-6 rounded-[28px] shadow-2xl border transition-all duration-500",
-          isReady ? "border-green-500/30 shadow-green-500/5" : "border-white/10"
+          "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-50",
+          // Mobile: Boxed, in flow
+          "relative w-full rounded-[28px] p-6 border bg-[#212121] mt-12 mb-8",
+          // Desktop: Fixed, centered, matched to primitive width (max-w-4xl)
+          "md:fixed md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-4xl md:mt-0 md:mb-0 md:rounded-t-[40px] md:rounded-b-none md:border-t md:border-x md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12",
+          isReady ? "border-green-500/30" : "border-white/10"
         )}
       >
         <div className="flex items-center justify-between gap-4">
@@ -157,43 +161,28 @@ export function StepLayout({
           </div>
 
           {/* Action buttons — minimal, right-aligned */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Vérifier button — shown when not yet ready */}
-            <AnimatePresence mode="wait">
-              {!isReady ? (
-                <motion.button
-                  key="verifier-btn"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  onClick={handleVerifier}
-                  disabled={isValidating || isGenerating}
-                  aria-label="Vérifier cette étape"
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                    isValidating 
-                      ? "bg-white/5 text-white/40 border-white/10" 
-                      : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20 active:scale-95",
-                    (isValidating || isGenerating) && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {isValidating
-                    ? <Loader2 className="w-3 h-3 animate-spin" />
-                    : <ShieldCheck className="w-3 h-3" />}
-                  <span>{isValidating ? 'Analyse...' : 'Vérifier'}</span>
-                </motion.button>
-              ) : (
-                <motion.div
-                  key="validated-badge"
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400 border border-green-500/20"
-                >
-                  <Check className="w-3 h-3" />
-                  Validé
-                </motion.div>
+          <div className="flex items-center gap-4 flex-shrink-0">
+            {/* Always show Vérifier button */}
+            <motion.button
+              onClick={handleVerifier}
+              disabled={isValidating || isGenerating}
+              aria-label="Vérifier cette étape"
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                isValidating 
+                  ? "bg-white/5 text-white/40 border-white/10" 
+                  : isReady
+                    ? "bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20"
+                    : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
               )}
-            </AnimatePresence>
+            >
+              {isValidating
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : isReady 
+                  ? <Check className="w-4 h-4" />
+                  : <ShieldCheck className="w-4 h-4" />}
+              <span>{isValidating ? 'Analyse...' : 'Vérifier'}</span>
+            </motion.button>
 
             {/* Continuer / Étape suivante button — Always enabled and prominent */}
             <button

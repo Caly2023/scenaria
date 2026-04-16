@@ -130,20 +130,42 @@ async function resilientRequest<T>(
   // The cascade is resolved purely from mutual failure counters — customCascade is
   // used only to detect whether the caller intended a heavy (flash) or light (lite) task.
   let cascade: string[];
+  let isPrimaryHeavy = false;
   if (isDevFlow) {
-    const intendedPrimary = customCascade?.[0] ?? primaryModel ?? DEVELOPMENT_MODELS.LITE;
-    // Check if the intended primary is explicitly the "heavy" model
-    const isPrimaryHeavy = intendedPrimary === DEVELOPMENT_MODELS.FLASH;
-    cascade = getDevFlowCascade(isPrimaryHeavy ? 'flash' : 'lite');
+    // If caller requests lite-only explicitly, honor it strictly.
+    const isLiteOnly =
+      (customCascade?.length && customCascade.every((m) => m === DEVELOPMENT_MODELS.LITE)) ||
+      primaryModel === DEVELOPMENT_MODELS.LITE;
+    if (isLiteOnly) {
+      cascade = [DEVELOPMENT_MODELS.LITE];
+    } else {
+      const intendedPrimary = customCascade?.[0] ?? primaryModel ?? DEVELOPMENT_MODELS.LITE;
+      // Check if the intended primary is explicitly the "heavy" model
+      isPrimaryHeavy = intendedPrimary === DEVELOPMENT_MODELS.FLASH;
+      cascade = getDevFlowCascade(isPrimaryHeavy ? 'flash' : 'lite');
+    }
     
     // Safety check: DevFlow MUST ONLY use these two models.
     cascade = cascade.filter(m => m === "gemini-2.5-flash" || m === "gemini-2.5-flash-lite");
-    if (cascade.length === 0) cascade = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
+    if (cascade.length === 0) cascade = [DEVELOPMENT_MODELS.LITE];
 
     console.debug(`[DevFlow] Cascade: ${cascade.join(' → ')} (${isPrimaryHeavy ? 'heavy' : 'light'} task)`);
   } else {
     const actualPrimary = primaryModel || MODELS.FLASH_3_1;
-    cascade = customCascade || [actualPrimary, MODELS.PRO_3_1, MODELS.LITE, MODELS.FALLBACK].filter((v, i, a) => a.indexOf(v) === i);
+    const wantsLiteOnly =
+      (customCascade?.length && customCascade.every((m) => /flash-lite/i.test(m))) ||
+      /flash-lite/i.test(actualPrimary);
+
+    if (wantsLiteOnly) {
+      // Keep the cascade strictly within flash-lite models to avoid expensive fallbacks.
+      const liteFallback = "gemini-2.5-flash-lite";
+      const requested = customCascade?.length ? customCascade : [actualPrimary];
+      cascade = Array.from(new Set([...requested, liteFallback])).filter(
+        (v, i, a) => a.indexOf(v) === i
+      );
+    } else {
+      cascade = customCascade || [actualPrimary, MODELS.PRO_3_1, MODELS.LITE, MODELS.FALLBACK].filter((v, i, a) => a.indexOf(v) === i);
+    }
   }
 
   let lastError: unknown = null;
@@ -207,12 +229,27 @@ async function resilientRequest<T>(
     console.warn("[Gemini] All operations failed. Attempting simplified request...");
     // DevFlow: always try lite-first for simplification (cheapest path)
     const simplifyCascade = isDevFlow
-      ? getDevFlowCascade('lite')
+      ? (((customCascade?.length && customCascade.every((m) => m === DEVELOPMENT_MODELS.LITE)) || primaryModel === DEVELOPMENT_MODELS.LITE)
+          ? [DEVELOPMENT_MODELS.LITE]
+          : getDevFlowCascade('lite'))
       : (hitQuota || aiQuotaState.get())
-        ? [MODELS.LITE, MODELS.FALLBACK, MODELS.FLASH].filter(m => !isRestrictedModel(m))
+        ? (
+            (customCascade?.length && customCascade.every((m) => /flash-lite/i.test(m))) ||
+            (typeof primaryModel === "string" && /flash-lite/i.test(primaryModel))
+              ? (
+                  ((
+                    customCascade?.length ? customCascade : [primaryModel]
+                  ).filter((m) => m && !isRestrictedModel(m))).length
+                    ? (customCascade?.length ? customCascade : [primaryModel]).filter(
+                        (m) => m && !isRestrictedModel(m)
+                      )
+                    : ["gemini-2.5-flash-lite"]
+                )
+              : [MODELS.LITE, MODELS.FALLBACK, MODELS.FLASH].filter(m => !isRestrictedModel(m))
+          )
         : cascade;
 
-    for (const model of simplifyCascade) {
+    for (const model of simplifyCascade as string[]) {
       try {
         console.warn(`[Gemini] Simplify attempt with: ${model}`);
         let result: T;
@@ -333,38 +370,27 @@ export const geminiService = {
     // Cascade is resolved inside resilientRequest via getDevFlowCascade().
     // Here we just signal the complexity so resilientRequest picks the right primary.
     const MODELS = getModels();
+    // Verification/doctor tools must stay on flash-lite only (cost + consistency).
     if (aiFlowMode.get() === 'development') {
-      // Complex agentic tasks → flash (heavy). Simple/moderate → lite (default).
-      if (complexity === 'complex') {
-        customCascade = [DEVELOPMENT_MODELS.FLASH, DEVELOPMENT_MODELS.LITE];
-        timeoutMs = 90000;
-      } else {
-        customCascade = [DEVELOPMENT_MODELS.LITE, DEVELOPMENT_MODELS.FLASH];
-        timeoutMs = 60000;
-      }
+      customCascade = [DEVELOPMENT_MODELS.LITE];
+      timeoutMs =
+        complexity === 'complex'
+          ? 90000
+          : complexity === 'simple'
+            ? 45000
+            : 60000;
     } else if (aiQuotaState.get()) {
-      // Production + quota exhausted: fall back to 2.5 models only
-      customCascade = ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
-      timeoutMs = 45000;
+      // When Gemini 3 quota is exhausted, stay on the non-restricted lite model.
+      customCascade = ["gemini-2.5-flash-lite"];
+      timeoutMs = complexity === 'complex' ? 60000 : 45000;
     } else {
-      // Production mode: full cascade by complexity
-      switch (complexity) {
-        case 'simple':
-          customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FLASH, MODELS.FALLBACK];
-          timeoutMs = 45000;
-          break;
-        case 'moderate':
-          customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FLASH, MODELS.PRO_3_1, MODELS.FALLBACK];
-          timeoutMs = 90000;
-          break;
-        case 'complex':
-          customCascade = [MODELS.PRO_3_1, MODELS.FLASH, MODELS.LITE, MODELS.FLASH_3_1, MODELS.FALLBACK];
-          timeoutMs = 120000;
-          break;
-        default:
-          customCascade = [MODELS.FLASH_3_1, MODELS.LITE, MODELS.FALLBACK];
-          timeoutMs = 90000;
-      }
+      customCascade = [MODELS.LITE];
+      timeoutMs =
+        complexity === 'complex'
+          ? 90000
+          : complexity === 'simple'
+            ? 45000
+            : 60000;
     }
 
 
@@ -700,7 +726,7 @@ export const geminiService = {
         ${content}`,
       });
       return response.text || '';
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async generateInitialSequences(storyDump: string, format: string, availableCharacters: any[], availableLocations: any[]) {
@@ -740,7 +766,7 @@ export const geminiService = {
       });
       
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async brainstormFeedback(content: string) {
@@ -761,7 +787,7 @@ export const geminiService = {
         ${content}`,
       });
       return response.text || '';
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async generateLoglineDraft(brainstorming: string) {
@@ -782,7 +808,7 @@ export const geminiService = {
         ${brainstorming}`,
       });
       return response.text || '';
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async generateSynopsis(brainstorming: string, structure: string) {
@@ -847,7 +873,7 @@ export const geminiService = {
       });
       
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async generate3ActStructure(brainstorming: string, logline: string) {
@@ -861,7 +887,7 @@ export const geminiService = {
         }
       });
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async refine3ActStructure(currentStructure: string, feedback: string) {
@@ -885,7 +911,7 @@ export const geminiService = {
         }
       });
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async generateTreatment(context: string) {
@@ -1062,7 +1088,7 @@ export const geminiService = {
         }
       });
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async brainstormDual(userInput: string, currentStory: string, currentMetadata: any) {
@@ -1124,7 +1150,7 @@ export const geminiService = {
         }
       });
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   },
 
   async suggestProjectTitle(storyDump: string) {
@@ -1295,6 +1321,6 @@ export const geminiService = {
         }
       });
       return safeJsonParse(await extractText(response));
-    }, MODELS.FLASH);
+    }, MODELS.LITE);
   }
 };

@@ -1095,6 +1095,27 @@ ${resolvedContent}`;
           break;
         }
 
+        // If the model already returned a structured "final JSON" in text parts,
+        // we can finalize after executing the tool calls (skip an extra Gemini round).
+        const textCandidate = (textParts || [])
+          .map((p: any) => p.text)
+          .join("")
+          .trim();
+        let earlyParsedFinal: any = null;
+        if (textCandidate) {
+          try {
+            const cleaned = textCandidate.replace(/```json|```/g, "").trim();
+            const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+            earlyParsedFinal = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);
+          } catch {
+            // Ignore parse errors; we only use it as an optimization.
+          }
+        }
+        const statusStr = String(earlyParsedFinal?.status || "");
+        const shouldFinalizeAfterTools =
+          Boolean(earlyParsedFinal?.response) &&
+          (statusStr.toLowerCase().includes("done") || statusStr.includes("✅"));
+
         const toolResults: any[] = [];
 
         for (const part of functionCallParts) {
@@ -1199,6 +1220,11 @@ ${resolvedContent}`;
               response: toolResult,
             },
           });
+        }
+
+        if (shouldFinalizeAfterTools && textCandidate) {
+          finalResponse = textCandidate;
+          break;
         }
 
         conversationHistory = [

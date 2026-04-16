@@ -6,6 +6,10 @@ import { useProjectLifecycle } from './useProjectLifecycle';
 import { useProjectSync } from './useProjectSync';
 import { useProjectActions } from './useProjectActions';
 import { buildProjectContext } from '../services/orchestratorService';
+import { buildStageContentsMap } from '../lib/stageContent';
+import { ContentPrimitive } from '../types/stageContract';
+
+type BrainstormPrimitive = ContentPrimitive & { primitiveType?: string };
 
 export function useProjects(user: User | null, addToast: (msg: string, type: 'error' | 'info' | 'success') => void) {
   const [isTyping, setIsTyping] = useState(false);
@@ -48,17 +52,17 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     return buildProjectContext(
       currentProject.id,
       currentProject.metadata,
-      {
-        'Brainstorming': pitchPrimitives as any,
-        'Logline': loglinePrimitives as any,
-        '3-Act Structure': structurePrimitives as any,
-        'Synopsis': synopsisPrimitives as any,
-        'Character Bible': characters as any,
-        'Location Bible': locations as any,
-        'Treatment': treatmentSequences as any,
-        'Step Outline': sequences as any,
-        'Script': scriptScenes as any,
-      },
+      buildStageContentsMap({
+        pitchPrimitives,
+        loglinePrimitives,
+        structurePrimitives,
+        synopsisPrimitives,
+        characters,
+        locations,
+        treatmentSequences,
+        sequences,
+        scriptScenes,
+      }),
       currentProject.stageAnalyses || {}
     );
   }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
@@ -120,11 +124,21 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     try {
       const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestratorService');
       
-      let currentContent: any[] = [];
+      let currentContent: ContentPrimitive[] = [];
       if (stage === 'Brainstorming') {
         // Enforce strict contract: Brainstorming subcollection contains ONLY one content primitive:
         // primitiveType = 'brainstorming_result' (feedback lives in stageAnalyses / insight).
-        const typedPitchPrimitives = pitchPrimitives as Array<any>;
+        const typedPitchPrimitives = buildStageContentsMap({
+          pitchPrimitives,
+          loglinePrimitives: [],
+          structurePrimitives: [],
+          synopsisPrimitives: [],
+          characters: [],
+          locations: [],
+          treatmentSequences: [],
+          sequences: [],
+          scriptScenes: [],
+        }).Brainstorming as BrainstormPrimitive[];
         const existing =
           typedPitchPrimitives.find((p) => p.primitiveType === 'brainstorming_result') ||
           typedPitchPrimitives.find((p) => p.primitiveType === 'pitch_result') ||
@@ -142,14 +156,11 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
             ]
           : [];
       }
-      else if (stage === 'Logline') currentContent = loglinePrimitives;
-      else if (stage === '3-Act Structure') currentContent = structurePrimitives;
-      else if (stage === 'Synopsis') currentContent = synopsisPrimitives;
-      else if (stage === 'Character Bible') currentContent = characters;
-      else if (stage === 'Location Bible') currentContent = locations;
-      else if (stage === 'Treatment') currentContent = treatmentSequences;
-      else if (stage === 'Step Outline') currentContent = sequences;
-      else if (stage === 'Script') currentContent = scriptScenes;
+      else {
+        currentContent =
+          getProjectContext()?.stageContents[stage] ||
+          [];
+      }
 
       const context = getProjectContext();
       if (!context) throw new Error("Project context is not available.");

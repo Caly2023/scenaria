@@ -27,7 +27,7 @@ interface HeaderProps {
   collaborators: { id: string; name: string; photoURL: string; isActive: boolean }[];
   isCompact?: boolean;
   accessibilitySettings: { highContrast: boolean; largeText: boolean; reducedMotion: boolean };
-  onAccessibilityChange: (settings: any) => void;
+  onAccessibilityChange: (settings: HeaderProps['accessibilitySettings']) => void;
   onTitleClick: () => void;
   isTitleOpen: boolean;
   onSettingsClick: () => void;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { WorkflowStage, Character, Location, Sequence, Project } from '../types';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
+import { buildStageContentsMap } from '../lib/stageContent';
 
 interface StageHydrationConfig {
   stage: WorkflowStage;
@@ -61,20 +62,31 @@ export function useAutoHydration({
     return buildProjectContext(
       currentProject.id,
       currentProject.metadata,
-      {
-        'Brainstorming': pitchPrimitives as any,
-        'Logline': loglinePrimitives as any,
-        '3-Act Structure': structurePrimitives as any,
-        'Synopsis': synopsisPrimitives as any,
-        'Character Bible': characters as any,
-        'Location Bible': locations as any,
-        'Treatment': treatmentSequences as any,
-        'Step Outline': sequences as any,
-        'Script': scriptScenes as any,
-      },
+      buildStageContentsMap({
+        pitchPrimitives,
+        loglinePrimitives,
+        structurePrimitives,
+        synopsisPrimitives,
+        characters,
+        locations,
+        treatmentSequences,
+        sequences,
+        scriptScenes,
+      }),
       currentProject.stageAnalyses || {}
     );
-  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
+  }, [
+    currentProject,
+    pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
+    characters,
+    locations,
+    treatmentSequences,
+    sequences,
+    scriptScenes,
+  ]);
 
   const runStageHydration = useCallback(async (stageName: WorkflowStage) => {
     const context = getContext();
@@ -212,7 +224,7 @@ export function useAutoHydration({
           hydratingLabel: null,
         });
       });
-  }, [activeStage, currentProject?.id, getHydrationConfig, addToast,
+  }, [activeStage, currentProject, getHydrationConfig, addToast, onStageAnalyze,
       characters.length, locations.length, sequences.length, 
       treatmentSequences.length, scriptScenes.length
   ]);

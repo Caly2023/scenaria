@@ -16,7 +16,7 @@ interface WorkflowStageProps {
   title: string;
   subtitle: string;
   content: string;
-  items?: any[];
+  items?: Block[];
   onContentChange: (content: string) => void;
   onItemChange?: (id: string, content: string) => void;
   onValidate: () => void;
@@ -78,7 +78,7 @@ export function WorkflowStage({
         blocks = parsed;
         isJson = true;
       }
-    } catch (e) {
+    } catch {
       // Not JSON, fallback to single block
       blocks = [{ id: 'main', title: stage, content: content }];
     }

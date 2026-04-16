@@ -7,8 +7,9 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
-    "lint": "tsc --noEmit && eslint ."
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "lint": "tsc --noEmit && eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

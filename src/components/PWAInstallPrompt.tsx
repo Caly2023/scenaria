@@ -3,9 +3,18 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Share, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
+type NavigatorWithStandalone = Navigator & {
+  standalone?: boolean;
+};
+
 export function PWAInstallPrompt() {
   const [isVisible, setIsVisible] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   // Compute once to avoid calling setState synchronously inside useEffect.
   const [isIOS] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -17,7 +26,7 @@ export function PWAInstallPrompt() {
   useEffect(() => {
     // 1. Detection: Already in standalone mode?
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone 
+      || (window.navigator as NavigatorWithStandalone).standalone 
       || document.referrer.includes('android-app://');
 
     if (isStandalone) return;
@@ -37,7 +46,7 @@ export function PWAInstallPrompt() {
     // 5. Handling: Android/Chrome 'beforeinstallprompt'
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       // Small delay to allow the app to settle before showing the popup
       setTimeout(() => setIsVisible(true), 2000);
     };

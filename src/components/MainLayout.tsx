@@ -4,9 +4,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { 
   Project, 
+  ProjectMetadata,
   WorkflowStage, 
   Toast,
 } from '../types';
+import { TelemetryStatus } from '../services/telemetryService';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ProjectDrawer } from './ProjectDrawer';
@@ -18,6 +20,36 @@ import { FormErrorBoundary } from './ErrorBoundary/FormErrorBoundary';
 import { StageSkeleton } from './StageSkeleton';
 
 // Props for MainLayout
+type AccessibilitySettings = {
+  highContrast: boolean;
+  largeText: boolean;
+  reducedMotion: boolean;
+};
+
+type ScriptDoctorMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  thinking?: string;
+  suggested_actions?: string[];
+  active_tool?: string;
+  timestamp: number;
+};
+
+type ScriptDoctorProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  onSendMessage: (message: string) => void;
+  messages: ScriptDoctorMessage[];
+  isTyping?: boolean;
+  isHeavyThinking?: boolean;
+  aiStatus: string | null;
+  activeStage: string;
+  activeTool?: string | null;
+  projectLanguages?: string[];
+  telemetryStatus?: TelemetryStatus | null;
+};
+
 interface MainLayoutProps {
   currentProject: Project;
   user: {
@@ -38,18 +70,23 @@ interface MainLayoutProps {
   isFirstTime: boolean;
   isDeleting: boolean;
   projectToDelete: string | null;
-  toasts: any[];
+  toasts: Toast[];
   syncStatus: 'synced' | 'syncing' | 'error';
-  collaborators: any[];
-  accessibilitySettings: any;
+  collaborators: { id: string; name: string; photoURL: string; isActive: boolean }[];
+  accessibilitySettings: AccessibilitySettings;
   refiningBlockId: string | null;
   lastUpdatedPrimitiveId: string | null;
-  hydrationState: any;
-  telemetryStatus: any;
-  doctorMessages: any[];
+  hydrationState: {
+    isHydrating: boolean;
+    hydratingStage: WorkflowStage | null;
+    hydratingLabel: string | null;
+    resetHydration?: (stage: WorkflowStage) => void;
+  };
+  telemetryStatus: TelemetryStatus | null;
+  doctorMessages: ScriptDoctorMessage[];
   isDoctorTyping: boolean;
-  aiStatus: any;
-  activeTool: any;
+  aiStatus: string | null;
+  activeTool: string | null;
   
   // Callbacks
   handleStageChange: (stage: WorkflowStage) => void;
@@ -63,14 +100,14 @@ interface MainLayoutProps {
   handleCloseFocus: () => void;
   handleCancelDelete: () => void;
   handleProjectDelete: (id: string) => void;
-  setAccessibilitySettings: (s: any) => void;
+  setAccessibilitySettings: (s: AccessibilitySettings) => void;
   setIsHelpOpen: (v: boolean) => void;
   setIsFirstTime: (v: boolean) => void;
   setToasts: React.Dispatch<React.SetStateAction<Toast[]>>;
   
   // Logic callbacks
   handleDoctorMessage: (msg: string) => void;
-  handleMetadataUpdate: (metadata: any) => void;
+  handleMetadataUpdate: (metadata: ProjectMetadata) => void;
   handleDeleteCurrentProject: () => void;
   handleLanguageChange: (language: string) => void;
   handleThemeChange: (theme: 'dark' | 'light' | 'system') => void;
@@ -83,7 +120,7 @@ interface MainLayoutProps {
   renderStage: () => React.ReactNode;
   
   // Components from App.tsx
-  ScriptDoctor: React.ComponentType<any>;
+  ScriptDoctor: React.ComponentType<ScriptDoctorProps>;
 }
 
 export function MainLayout({
@@ -162,8 +199,16 @@ export function MainLayout({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobile]);
   
-  const EMPTY_ARRAY: any[] = [];
-  const DEFAULT_METADATA = {};
+  const EMPTY_ARRAY: WorkflowStage[] = [];
+  const DEFAULT_METADATA: ProjectMetadata = {
+    title: '',
+    format: '',
+    genre: '',
+    tone: '',
+    languages: [],
+    targetDuration: '',
+    logline: '',
+  };
   const NOOP = () => {};
 
   return (
@@ -465,7 +510,17 @@ export function MainLayout({
 }
 
 // Missing component from layout
-function DeleteProjectModal({ projectId, isDeleting, onCancel, onConfirm }: any) {
+function DeleteProjectModal({
+  projectId,
+  isDeleting,
+  onCancel,
+  onConfirm,
+}: {
+  projectId: string;
+  isDeleting: boolean;
+  onCancel: () => void;
+  onConfirm: (id: string) => void;
+}) {
   return (
     <motion.div 
       initial={{ opacity: 0 }}

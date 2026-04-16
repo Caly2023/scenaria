@@ -11,6 +11,51 @@ import {
 import { contextAssembler } from "../services/contextAssembler";
 import { telemetryService } from "../services/telemetryService";
 
+type ScriptDoctorMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  status?: string;
+  thinking?: string;
+  suggested_actions?: string[];
+  active_tool?: string;
+  timestamp: number;
+};
+
+type ToolCall = {
+  name: string;
+  args?: Record<string, unknown>;
+};
+
+type ToolResult = {
+  success: boolean;
+  data?: unknown;
+  error?: string;
+  error_code?: number;
+  [key: string]: unknown;
+};
+
+function getArgString(args: Record<string, unknown>, key: string): string | undefined {
+  const value = args[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function getArgNumber(args: Record<string, unknown>, key: string): number | undefined {
+  const value = args[key];
+  return typeof value === "number" ? value : undefined;
+}
+
+function getArgRecord(args: Record<string, unknown>, key: string): Record<string, unknown> | undefined {
+  const value = args[key];
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  return value as Record<string, unknown>;
+}
+
+function getArgArray(args: Record<string, unknown>, key: string): unknown[] | undefined {
+  const value = args[key];
+  return Array.isArray(value) ? value : undefined;
+}
+
 interface UseScriptDoctorProps {
   currentProject: Project | null;
   activeStage: WorkflowStage;
@@ -45,7 +90,7 @@ export function useScriptDoctor({
   const { t } = useTranslation();
 
   const [isDoctorOpen, setIsDoctorOpen] = useState(false);
-  const [doctorMessages, setDoctorMessages] = useState<any[]>([]);
+  const [doctorMessages, setDoctorMessages] = useState<ScriptDoctorMessage[]>([]);
   const [isDoctorTyping, setIsDoctorTyping] = useState(false);
   const [isHeavyThinking, setIsHeavyThinking] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -65,12 +110,13 @@ export function useScriptDoctor({
   };
 
   const executeToolCall = async (
-    call: any,
+    call: ToolCall,
     retryAttempt: number = 0,
-  ): Promise<any> => {
+  ): Promise<ToolResult> => {
     if (!currentProject)
       return { success: false, error: "No active project", error_code: 0 };
-    const { name, args } = call;
+    const { name } = call;
+    const args = call.args ?? {};
     setActiveTool(name);
 
     try {
@@ -122,7 +168,7 @@ export function useScriptDoctor({
         }
 
         case "get_stage_structure": {
-          const { stage_id } = args;
+          const stage_id = getArgString(args, "stage_id") ?? "";
           telemetryService.setStatus(
             "get_stage_structure",
             "🧠",
@@ -152,35 +198,48 @@ export function useScriptDoctor({
         }
 
         case "research_context": {
-          const { stageName } = args;
+          const stageName = getArgString(args, "stageName") ?? "";
           telemetryService.setStatus(
             "research_context",
             "🔍",
             `Retrieving ${stageName} with primitive IDs...`,
           );
 
-          const enrichWithIds = (items: any[]) =>
-            items.map((item) => ({
-              primitive_id: item.id,
-              title: item.title || item.name || "",
-              content: item.content || item.description || "",
-              order_index: item.order ?? 0,
-              ...item,
-            }));
+          const enrichWithIds = (items: Array<Record<string, unknown>>) =>
+            items.map((item) => {
+              const id = typeof item.id === "string" ? item.id : "";
+              const title =
+                (typeof item.title === "string" && item.title) ||
+                (typeof item.name === "string" && item.name) ||
+                "";
+              const content =
+                (typeof item.content === "string" && item.content) ||
+                (typeof item.description === "string" && item.description) ||
+                "";
+              const order_index = typeof item.order === "number" ? item.order : 0;
+
+              return {
+                primitive_id: id,
+                title,
+                content,
+                order_index,
+                ...item,
+              };
+            });
 
           // Use already-loaded props data where available to avoid redundant fetches
           if (stageName === "Brainstorming")
-            return { success: true, data: enrichWithIds(pitchPrimitives) };
+            return { success: true, data: enrichWithIds(pitchPrimitives as unknown as Array<Record<string, unknown>>) };
           if (stageName === "Character Bible")
-            return { success: true, data: enrichWithIds(characters) };
+            return { success: true, data: enrichWithIds(characters as unknown as Array<Record<string, unknown>>) };
           if (stageName === "Location Bible")
-            return { success: true, data: enrichWithIds(locations) };
+            return { success: true, data: enrichWithIds(locations as unknown as Array<Record<string, unknown>>) };
           if (stageName === "Step Outline")
-            return { success: true, data: enrichWithIds(sequences) };
+            return { success: true, data: enrichWithIds(sequences as unknown as Array<Record<string, unknown>>) };
           if (stageName === "Treatment")
-            return { success: true, data: enrichWithIds(treatmentSequences) };
+            return { success: true, data: enrichWithIds(treatmentSequences as unknown as Array<Record<string, unknown>>) };
           if (stageName === "Script")
-            return { success: true, data: enrichWithIds(scriptScenes) };
+            return { success: true, data: enrichWithIds(scriptScenes as unknown as Array<Record<string, unknown>>) };
 
           const structure = await contextAssembler.getStageStructure(
             currentProject.id,
@@ -197,7 +256,7 @@ export function useScriptDoctor({
         }
 
         case "fetch_character_details": {
-          const { characterId } = args;
+          const characterId = getArgString(args, "characterId") ?? "";
           const char = characters.find((c) => c.id === characterId);
           if (!char)
             return {
@@ -209,7 +268,7 @@ export function useScriptDoctor({
         }
 
         case "search_project_content": {
-          const { query: searchQuery } = args;
+          const searchQuery = getArgString(args, "query") ?? "";
           const q = searchQuery.toLowerCase();
           const results = {
             characters: characters
@@ -253,7 +312,9 @@ export function useScriptDoctor({
         }
 
         case "propose_patch": {
-          const { id, stage, updates } = args;
+          const id = getArgString(args, "id") ?? "";
+          const stage = getArgString(args, "stage") ?? "";
+          const updates = getArgRecord(args, "updates");
           telemetryService.setStatus(
             "propose_patch",
             "📡",
@@ -298,12 +359,12 @@ export function useScriptDoctor({
             // Firestore character docs use 'name' + 'description'.
             // AI agents always send 'title' + 'content'.
             // We map both directions so both field names are updated correctly.
-            const safeUpdates: Record<string, any> = { ...updates };
+            const safeUpdates: Record<string, unknown> = { ...updates };
             if (stage === "Character Bible" || stage === "Location Bible") {
-              if (updates.title !== undefined) {
+              if (typeof updates.title === "string") {
                 safeUpdates.name = updates.title;
               }
-              if (updates.content !== undefined) {
+              if (typeof updates.content === "string") {
                 safeUpdates.description = updates.content;
               }
             }
@@ -347,7 +408,7 @@ export function useScriptDoctor({
         }
 
         case "execute_multi_stage_fix": {
-          const { fixes } = args;
+          const fixes = getArgArray(args, "fixes");
           if (!fixes || !Array.isArray(fixes))
             return {
               success: false,
@@ -362,7 +423,18 @@ export function useScriptDoctor({
           }> = [];
 
           for (const fix of fixes) {
-            const { id, stage, updates } = fix;
+            if (!fix || typeof fix !== "object" || Array.isArray(fix)) {
+              results.push({
+                primitive_id: "",
+                success: false,
+                error: "Invalid fix entry",
+              });
+              continue;
+            }
+            const fixObj = fix as Record<string, unknown>;
+            const id = getArgString(fixObj, "id") ?? "";
+            const stage = getArgString(fixObj, "stage") ?? "";
+            const updates = getArgRecord(fixObj, "updates") ?? {};
             telemetryService.setStatus(
               "multi_stage_fix",
               "📡",
@@ -373,13 +445,13 @@ export function useScriptDoctor({
             try {
               const subcollection = subcollectionMap[stage];
               if (subcollection) {
-                const safeUpdates: Record<string, any> = { ...(updates || {}) };
+                const safeUpdates: Record<string, unknown> = { ...updates };
 
                 // Firestore character/location docs use 'name' + 'description'.
                 // Script Doctor sometimes sends 'title' + 'content' instead.
                 if (stage === "Character Bible" || stage === "Location Bible") {
-                  if (safeUpdates.title !== undefined) safeUpdates.name = safeUpdates.title;
-                  if (safeUpdates.content !== undefined) {
+                  if (typeof safeUpdates.title === "string") safeUpdates.name = safeUpdates.title;
+                  if (typeof safeUpdates.content === "string") {
                     safeUpdates.description = safeUpdates.content;
                   }
                 }
@@ -428,7 +500,7 @@ export function useScriptDoctor({
         }
 
         case "sync_metadata": {
-          const { metadata } = args;
+          const metadata = getArgRecord(args, "metadata") ?? {};
           await updateDoc(doc(db, "projects", currentProject.id), {
             metadata: {
               ...currentProject.metadata,
@@ -451,21 +523,29 @@ export function useScriptDoctor({
         }
 
         case "add_primitive": {
-          const { stage, primitive, position } = args;
+          const stage = getArgString(args, "stage") ?? "";
+          const primitive = getArgRecord(args, "primitive") ?? {};
+          const position = getArgNumber(args, "position");
           const subcollection = subcollectionMap[stage];
 
           if (subcollection) {
             // ── Required-field guard ────────────────────────────────────────
             // AI agents don't always provide every required field.
             // We normalise here so the Firestore write never fails validation.
-            const safeTitle = primitive.title || primitive.name || 'Untitled';
-            const safeContent = primitive.content || primitive.description || '';
+            const safeTitle =
+              (typeof primitive.title === "string" && primitive.title) ||
+              (typeof primitive.name === "string" && primitive.name) ||
+              "Untitled";
+            const safeContent =
+              (typeof primitive.content === "string" && primitive.content) ||
+              (typeof primitive.description === "string" && primitive.description) ||
+              "";
 
-            const safeData: Record<string, any> = {
+            const safeData: Record<string, unknown> = {
               // Standard fields — provide safe defaults before AI spread
               title: safeTitle,
               content: safeContent,
-              order: position ?? primitive.order ?? 0,
+              order: position ?? (typeof primitive.order === "number" ? primitive.order : 0),
               projectId: currentProject.id,
               createdAt: serverTimestamp(),
               // Spread remaining AI-provided fields (may override above if better)
@@ -474,8 +554,11 @@ export function useScriptDoctor({
               // Firestore character/location docs use 'name' + 'description'.
               ...(stage === 'Character Bible' || stage === 'Location Bible'
                 ? {
-                    name: primitive.name || safeTitle,
-                    description: primitive.description || safeContent,
+                    name:
+                      (typeof primitive.name === "string" && primitive.name) || safeTitle,
+                    description:
+                      (typeof primitive.description === "string" && primitive.description) ||
+                      safeContent,
                   }
                 : {}),
             };
@@ -515,7 +598,8 @@ export function useScriptDoctor({
         }
 
         case "delete_primitive": {
-          const { id, stage } = args;
+          const id = getArgString(args, "id") ?? "";
+          const stage = getArgString(args, "stage") ?? "";
           const subcollection = subcollectionMap[stage];
 
           if (subcollection) {
@@ -550,7 +634,8 @@ export function useScriptDoctor({
         }
 
         case "restructure_stage": {
-          const { stage, primitives } = args;
+          const stage = getArgString(args, "stage") ?? "";
+          const primitives = getArgArray(args, "primitives");
           if (!primitives || !Array.isArray(primitives))
             return {
               success: false,
@@ -579,7 +664,11 @@ export function useScriptDoctor({
 
             const newIds: string[] = [];
             for (let i = 0; i < primitives.length; i++) {
-              const p = primitives[i] ?? {};
+              const raw = primitives[i];
+              if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+                continue;
+              }
+              const p = raw as Record<string, unknown>;
 
               const safeTitle =
                 typeof p.title === "string" && p.title.trim() !== ""
@@ -595,7 +684,7 @@ export function useScriptDoctor({
                     ? p.description
                     : "";
 
-              const safeData: Record<string, any> = {
+              const safeData: Record<string, unknown> = {
                 // Keep any extra fields the model may have provided.
                 ...p,
                 title: safeTitle,
@@ -647,10 +736,12 @@ export function useScriptDoctor({
         }
 
         case "update_stage_insight": {
-          const { stage, insight } = args;
+          const stage = getArgString(args, "stage") ?? "";
+          const insight = getArgRecord(args, "insight") ?? {};
           const hasContent =
-            typeof insight?.content === "string" && insight.content.trim().length > 0;
-          const isReady = typeof insight?.isReady === "boolean" ? insight.isReady : false;
+            typeof insight.content === "string" && insight.content.trim().length > 0;
+          const isReady =
+            typeof insight.isReady === "boolean" ? (insight.isReady as boolean) : false;
 
           const nextStageState: StageState = hasContent
             ? isReady
@@ -689,7 +780,7 @@ export function useScriptDoctor({
       console.error("Tool execution failed:", error);
 
       const classification = telemetryService.classifyFirebaseError(error);
-      const targetId = args?.id || name;
+      const targetId = getArgString(args, "id") ?? name;
       const failureCount = telemetryService.recordFailure(targetId);
 
       telemetryService.setStatus(
@@ -709,13 +800,16 @@ export function useScriptDoctor({
         return executeToolCall(call, retryAttempt + 1);
       }
 
-      const errorResult: any = {
+      const errorResult: ToolResult = {
         success: false,
         error: classification.message,
         error_code: classification.code,
         error_type: classification.type,
         failed_tool: name,
-        failed_primitive_id: args?.id || null,
+        failed_primitive_id:
+          args && typeof (args as Record<string, unknown>).id === "string"
+            ? ((args as Record<string, unknown>).id as string)
+            : null,
         retry_count: retryAttempt,
         recovery_attempted: failureCount >= 2,
       };
@@ -751,7 +845,7 @@ export function useScriptDoctor({
         if (msgId) {
           // doctorMessages is the state snapshot captured at render time; we read
           // it directly here since this closure is called after state is set.
-          const referencedMsg = doctorMessages.find((m: any) => m.id === msgId);
+          const referencedMsg = doctorMessages.find((m) => m.id === msgId);
 
           if (referencedMsg) {
             // 1. Surface suggested_actions if present
@@ -830,7 +924,7 @@ ${resolvedContent}`;
       role: "user",
       content: resolvedContent,
       timestamp: Date.now(),
-    };
+    } satisfies ScriptDoctorMessage;
     setDoctorMessages((prev) => [...prev, userMsg]);
     setIsDoctorTyping(true);
 
@@ -1160,11 +1254,13 @@ ${resolvedContent}`;
           const toolResult = await executeToolCall(call);
 
           if (toolResult.success) {
+            const primitiveId =
+              typeof toolResult.primitive_id === "string" ? toolResult.primitive_id : undefined;
             telemetryService.setStatus(
               "Confirmed",
               "✅",
               `Confirmation received. Syncing UI...`,
-              toolResult.primitive_id,
+              primitiveId,
             );
             if (
               [
@@ -1177,8 +1273,8 @@ ${resolvedContent}`;
             ) {
               contentChanged = true;
             }
-            if (toolResult.primitive_id) {
-              telemetryService.clearFailure(toolResult.primitive_id);
+            if (primitiveId) {
+              telemetryService.clearFailure(primitiveId);
             }
           } else if (toolResult.error_code) {
             const classification = telemetryService.classifyFirebaseError({

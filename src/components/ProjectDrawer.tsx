@@ -46,7 +46,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
   
   const hasChanges = JSON.stringify(localMeta) !== JSON.stringify(metadata);
 
-  const handleChange = (field: keyof ProjectMetadata, value: any) => {
+  const handleChange = <K extends keyof ProjectMetadata>(field: K, value: ProjectMetadata[K]) => {
     setLocalMeta({
       ...localMeta,
       [field]: value

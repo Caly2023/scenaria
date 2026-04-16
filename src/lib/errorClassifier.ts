@@ -8,15 +8,24 @@ export interface ClassifiedError {
   userMessage: string;
 }
 
-export function classifyError(error: any): ClassifiedError {
-  const message = (error?.message || error?.toString() || '').toLowerCase();
-  const statusCode = error?.status || error?.code;
+type ErrorWithDetails = {
+  message?: string;
+  status?: number | string;
+  code?: number | string;
+  toString?: () => string;
+};
+
+export function classifyError(error: unknown): ClassifiedError {
+  const errorDetails =
+    error !== null && typeof error === 'object' ? (error as ErrorWithDetails) : undefined;
+  const message = (errorDetails?.message || errorDetails?.toString?.() || '').toLowerCase();
+  const statusCode = errorDetails?.status || errorDetails?.code;
 
   // Authentication Errors
   if (message.includes('auth') || statusCode === 'auth/unauthorized' || message.includes('permission_denied')) {
     return {
       type: 'AuthError',
-      message: error?.message || 'Authentication failed',
+      message: errorDetails?.message || 'Authentication failed',
       canRetry: false,
       userMessage: 'Your session has expired. Please sign in again.'
     };
@@ -26,7 +35,7 @@ export function classifyError(error: any): ClassifiedError {
   if (message.includes('quota') || statusCode === 429 || message.includes('rate limit') || statusCode === 'resource-exhausted') {
     return {
       type: 'QuotaError',
-      message: error?.message || 'Quota exceeded',
+      message: errorDetails?.message || 'Quota exceeded',
       canRetry: true,
       retryDelay: 30000,
       userMessage: 'API quota exceeded. The AI Architect is taking a brief rest. Please try again in a few moments.'
@@ -37,7 +46,7 @@ export function classifyError(error: any): ClassifiedError {
   if (message.includes('network') || message.includes('failed to fetch') || message.includes('offline') || message.includes('timeout') || statusCode === 'unavailable') {
     return {
       type: 'NetworkError',
-      message: error?.message || 'Network connection failed',
+      message: errorDetails?.message || 'Network connection failed',
       canRetry: true,
       retryDelay: 5000,
       userMessage: 'Connection lost. Please check your network and try again.'
@@ -48,7 +57,7 @@ export function classifyError(error: any): ClassifiedError {
   if (message.includes('validation') || statusCode === 'invalid-argument') {
     return {
       type: 'ValidationError',
-      message: error?.message || 'Invalid input provided',
+      message: errorDetails?.message || 'Invalid input provided',
       canRetry: false,
       userMessage: 'Please check your input for errors and try again.'
     };
@@ -57,7 +66,7 @@ export function classifyError(error: any): ClassifiedError {
   // Generic/Unknown Errors
   return {
     type: 'UnknownError',
-    message: error?.message || 'An unknown error occurred',
+    message: errorDetails?.message || 'An unknown error occurred',
     canRetry: true,
     retryDelay: 5000,
     userMessage: 'An unexpected error occurred. Please try again.'

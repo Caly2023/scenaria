@@ -10,6 +10,7 @@ import {
 } from '../services/firebaseApi';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
 import { ContentPrimitive } from '../types/stageContract';
+import { buildStageContentsMap, getStageContentPrimitives } from '../lib/stageContent';
 
 interface UseProjectActionsProps {
   currentProject: Project | null;
@@ -52,6 +53,18 @@ export function useProjectActions({
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
   const [addSubcol] = useAddSubcollectionDocMutation();
 
+  const stageCollections = {
+    pitchPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    synopsisPrimitives,
+    characters,
+    locations,
+    treatmentSequences,
+    sequences,
+    scriptScenes,
+  };
+
   const handleStageRefine = async (stage: WorkflowStage, feedback: string, blockId?: string) => {
     if (!currentProject) return;
     setIsTyping(true);
@@ -60,31 +73,12 @@ export function useProjectActions({
     try {
       const decision = interpretIntent(feedback, stage, blockId);
       
-      let currentContent: ContentPrimitive[] = [];
-      if (stage === 'Brainstorming') currentContent = pitchPrimitives as any;
-      else if (stage === 'Logline') currentContent = loglinePrimitives as any;
-      else if (stage === '3-Act Structure') currentContent = structurePrimitives as any;
-      else if (stage === 'Synopsis') currentContent = synopsisPrimitives as any;
-      else if (stage === 'Character Bible') currentContent = characters as any;
-      else if (stage === 'Location Bible') currentContent = locations as any;
-      else if (stage === 'Treatment') currentContent = treatmentSequences as any;
-      else if (stage === 'Step Outline') currentContent = sequences as any;
-      else if (stage === 'Script') currentContent = scriptScenes as any;
+      const currentContent: ContentPrimitive[] = getStageContentPrimitives(stage, stageCollections);
       
       const context = buildProjectContext(
         currentProject.id,
         currentProject.metadata,
-        {
-          'Brainstorming': pitchPrimitives as any,
-          'Logline': loglinePrimitives as any,
-          '3-Act Structure': structurePrimitives as any,
-          'Synopsis': synopsisPrimitives as any,
-          'Character Bible': characters as any,
-          'Location Bible': locations as any,
-          'Treatment': treatmentSequences as any,
-          'Step Outline': sequences as any,
-          'Script': scriptScenes as any,
-        },
+        buildStageContentsMap(stageCollections),
         currentProject.stageAnalyses || {}
       );
 

@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { 
   Project, 
   WorkflowStage, 
-  Sequence 
+  Sequence,
+  Character,
+  Location,
 } from '../types';
 import { 
   useAddSubcollectionDocMutation,
@@ -13,6 +15,9 @@ import {
 import { classifyError } from '../lib/errorClassifier';
 
 type BrainstormPrimitive = Sequence & { primitiveType?: string };
+type CharacterCreateTier = Character['tier'];
+type CharacterUpdates = Partial<Character>;
+type LocationUpdates = Partial<Location>;
 
 interface UseAppCallbacksProps {
   currentProject: Project | null;
@@ -104,7 +109,7 @@ export function useAppCallbacks({
   );
 
   const handleCharacterAdd = useCallback(
-    async (name: string, description: string, tier: any) => {
+    async (name: string, description: string, tier: CharacterCreateTier) => {
       if (!currentProject) return;
       try {
         await addSubcollectionDoc({
@@ -122,7 +127,7 @@ export function useAppCallbacks({
   );
 
   const handleCharacterUpdate = useCallback(
-    async (id: string, updates: any) => {
+    async (id: string, updates: CharacterUpdates) => {
       if (!currentProject) return;
       try {
         await updateSubcollectionDoc({
@@ -171,7 +176,7 @@ export function useAppCallbacks({
   );
 
   const handleLocationUpdate = useCallback(
-    async (id: string, updates: any) => {
+    async (id: string, updates: LocationUpdates) => {
       if (!currentProject) return;
       try {
         await updateSubcollectionDoc({

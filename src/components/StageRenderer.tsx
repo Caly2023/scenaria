@@ -6,10 +6,24 @@ import {
   WorkflowStage, 
   Character, 
   Location, 
-  Sequence 
+  Sequence,
 } from '../types';
 
 type BrainstormPrimitive = Sequence & { primitiveType?: string };
+type HydrationState = {
+  isHydrating: boolean;
+  hydratingStage: WorkflowStage | null;
+  hydratingLabel: string | null;
+  resetHydration?: (stage: WorkflowStage) => void;
+};
+
+type CanvasErrorBoundaryProps = {
+  children: React.ReactNode;
+};
+
+type CharacterUpdate = Partial<Character>;
+type LocationUpdate = Partial<Location>;
+type SequenceUpdate = Partial<Sequence>;
 
 function getBrainstormStory(primitives: Sequence[]): string {
   const typedPrimitives = primitives as BrainstormPrimitive[];
@@ -65,7 +79,7 @@ interface StageRendererProps {
   characters: Character[];
   locations: Location[];
   isTyping: boolean;
-  hydrationState: any;
+  hydrationState: HydrationState;
   refiningBlockId: string | null;
   lastUpdatedPrimitiveId: string | null;
   
@@ -87,16 +101,16 @@ interface StageRendererProps {
   onItemChangeScript: (id: string, content: string) => void;
   onRefineScript: (f?: string, blockId?: string) => void;
   onRegenerateScript: () => void;
-  handleCharacterAdd: (name: string, description: string, tier: any) => void;
-  handleCharacterUpdate: (id: string, updates: any) => void;
+  handleCharacterAdd: (name: string, description: string, tier: Character['tier']) => void;
+  handleCharacterUpdate: (id: string, updates: CharacterUpdate) => void;
   handleCharacterDelete: (id: string) => void;
   handleLocationAdd: (name: string, description: string) => void;
-  handleLocationUpdate: (id: string, updates: any) => void;
+  handleLocationUpdate: (id: string, updates: LocationUpdate) => void;
   handleLocationDelete: (id: string) => void;
-  handleGenerateViews: (type: any) => void;
-  handleCharacterDeepDevelop: (id: string, stage: any) => void;
-  handleLocationDeepDevelop: (id: string, stage: any) => void;
-  handleSequenceUpdate: (id: string, updates: any) => void;
+  handleGenerateViews: (id: string) => void;
+  handleCharacterDeepDevelop: (id: string, stage: WorkflowStage) => void;
+  handleLocationDeepDevelop: (id: string, stage: WorkflowStage) => void;
+  handleSequenceUpdate: (id: string, updates: SequenceUpdate) => void;
   handleSequenceAdd: () => void;
   handleFocusMode: (id: string) => void;
   handleAiMagic: (id: string) => void;
@@ -119,7 +133,7 @@ interface StageRendererProps {
   onApplyFix: (prompt: string) => void;
   
   // Error Boundary Wrapper
-  CanvasErrorBoundary: React.ComponentType<any>;
+  CanvasErrorBoundary: React.ComponentType<CanvasErrorBoundaryProps>;
 }
 
 export function StageRenderer({

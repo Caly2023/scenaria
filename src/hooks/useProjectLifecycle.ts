@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { User } from 'firebase/auth';
 import { Project, WorkflowStage, ProjectFormat } from '../types';
 import { geminiService } from '../services/geminiService';
 import { classifyError } from '../lib/errorClassifier';
@@ -16,7 +17,7 @@ import { persistAgentOutput, buildProjectContext } from '../services/orchestrato
 import { ProjectContext } from '../types/stageContract';
 
 interface UseProjectLifecycleProps {
-  user: any;
+  user: User | null;
   currentProject: Project | null;
   currentProjectId: string | null;
   setIsTyping: (val: boolean) => void;
@@ -31,7 +32,12 @@ interface UseProjectLifecycleProps {
   setIsDeleting: (val: boolean) => void;
   setProjectToDelete: (val: string | null) => void;
   setDeleteConfirmText: (val: string) => void;
-  hydrationState: any;
+  hydrationState: {
+    isHydrating?: boolean;
+    hydratingStage?: WorkflowStage | null;
+    hydratingLabel?: string | null;
+    resetHydration?: (stage: WorkflowStage) => void;
+  };
   /** Callback to build a ProjectContext from the live subcollection data in App.tsx */
   getProjectContext?: () => ProjectContext | null;
 }
@@ -77,10 +83,10 @@ export function useProjectLifecycle({
       
       addToast(`Regenerating ${stage}...`, 'info');
       hydrationState.resetHydration?.(stage);
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Regenerate failed for ${stage}:`, error);
-      const errMsg = classifyError(error);
-      addToast(`Failed to regenerate ${stage}: ${errMsg}`, 'error');
+      const classified = classifyError(error);
+      addToast(`Failed to regenerate ${stage}: ${classified.userMessage}`, 'error');
     } finally {
       setIsRegenerating(false);
       setIsTyping(false);
@@ -200,10 +206,10 @@ export function useProjectLifecycle({
       setSyncStatus('synced');
       addToast(t('common.projectCreated', { defaultValue: 'Project ready!' }), 'success');
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Project creation failed:', error);
-      const errMsg = classifyError(error);
-      addToast(`Failed to create project: ${errMsg}`, 'error');
+      const classified = classifyError(error);
+      addToast(`Failed to create project: ${classified.userMessage}`, 'error');
       setSyncStatus('error');
       setIsTyping(false);
       throw error; // RE-THROW so the caller (HomePage) can catch it
@@ -258,10 +264,10 @@ export function useProjectLifecycle({
         triggerProactiveGeneration(triggeredStage, currentProject);
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      const errMsg = classifyError(error);
-      addToast(t('common.failedToGenerate') + ` (${errMsg})`, 'error');
+      const classified = classifyError(error);
+      addToast(t('common.failedToGenerate') + ` (${classified.userMessage})`, 'error');
       setSyncStatus('error');
       setIsTyping(false);
     }
@@ -326,11 +332,11 @@ export function useProjectLifecycle({
         console.warn(`[ProactiveGen] ⚠️ Persist failed for "${targetStage}": ${result.error}`);
         addToast(`⚠️ ${targetStage} draft partially saved`, 'info');
       }
-    } catch (error: any) {
+    } catch (error) {
       // Ghost generation failure is non-fatal — user can still manually generate
       console.error(`[ProactiveGen] Failed for "${targetStage}":`, error);
-      const errMsg = classifyError(error);
-      addToast(`Could not auto-draft ${targetStage}: ${errMsg}`, 'info');
+      const classified = classifyError(error);
+      addToast(`Could not auto-draft ${targetStage}: ${classified.userMessage}`, 'info');
     }
   };
 

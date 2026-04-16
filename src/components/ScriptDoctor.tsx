@@ -158,9 +158,11 @@ function ScriptDoctorContent({
   const lastMessageCount = useRef(messages.length);
 
   useEffect(() => {
+    let scrollTimeout: number | undefined;
+
     if (messages.length > lastMessageCount.current) {
       const lastMsg = messages[messages.length - 1];
-      setTimeout(() => {
+      scrollTimeout = window.setTimeout(() => {
         if (!scrollContainerRef.current) return;
         const container = scrollContainerRef.current;
         const msgElement = document.getElementById(`msg-${lastMsg.id}`);
@@ -179,8 +181,15 @@ function ScriptDoctorContent({
         }
       }, 100);
     }
+
     lastMessageCount.current = messages.length;
-  }, [messages.length]);
+
+    return () => {
+      if (scrollTimeout !== undefined) {
+        window.clearTimeout(scrollTimeout);
+      }
+    };
+  }, [messages]);
 
   return (
     <div className="h-full w-full bg-background flex flex-col overflow-hidden">

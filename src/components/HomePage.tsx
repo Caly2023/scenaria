@@ -16,6 +16,24 @@ import { cn } from '@/lib/utils';
 import { Project, ProjectFormat } from '@/types';
 import { DictationButton } from './DictationButton';
 
+function getErrorMessage(error: unknown): string {
+  const rawMessage =
+    error instanceof Error ? error.message : typeof error === 'string' ? error : String(error);
+
+  if (rawMessage.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(rawMessage) as { error?: string };
+      if (parsed.error) {
+        return parsed.error;
+      }
+    } catch {
+      // Fall back to the raw message when parsing fails.
+    }
+  }
+
+  return rawMessage || 'An unexpected error occurred during project creation.';
+}
+
 interface HomePageProps {
   projects: Project[];
   onProjectCreate: (brainstormingDraft: string, format?: ProjectFormat) => void;
@@ -43,14 +61,9 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
       try {
         await onProjectCreate(storyIdea, selectedFormat === 'Auto' ? undefined : selectedFormat);
         setStoryIdea('');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Creation failed:', error);
-        // Extract a clean message if it's a JSON string from our Firestore error handler
-        let msg = error?.message || String(error);
-        if (msg.startsWith('{')) {
-          try { msg = JSON.parse(msg).error; } catch {}
-        }
-        setCreationError(msg || 'An unexpected error occurred during project creation.');
+        setCreationError(getErrorMessage(error));
       } finally {
         setIsCreating(false);
         setCreationStatus('idle');
@@ -130,7 +143,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           {['Auto', 'Short Film', 'Feature', 'Series'].map((format) => (
             <button
               key={format}
-              onClick={() => setSelectedFormat(format as any)}
+              onClick={() => setSelectedFormat(format as ProjectFormat | 'Auto')}
               className={cn(
                 "px-6 py-3 rounded-full text-xs md:text-sm font-bold tracking-[0.1em] uppercase transition-all border whitespace-nowrap",
                 selectedFormat === format 

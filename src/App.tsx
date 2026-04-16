@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { useAppAuth as useAuth } from "./hooks/useAppAuth";
 import { useProjects } from "./hooks/useProjects";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
@@ -27,9 +27,19 @@ type AccessibilitySettings = {
   reducedMotion: boolean;
 };
 
+type Toast = {
+  id: string;
+  message: string;
+  type: 'error' | 'info' | 'success';
+};
+
+type ErrorBoundaryProps = {
+  children: ReactNode;
+};
+
 
 export default function App() {
-  const [toasts, setToasts] = useState<any[]>([]);
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const addToast = useCallback((message: string, type: 'error' | 'info' | 'success') => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -281,7 +291,7 @@ export default function App() {
       onValidateStoryboard={onValidateStoryboard}
       onAnalyzeStage={handleStageAnalyze}
       onApplyFix={onApplyFix}
-      CanvasErrorBoundary={({ children }: any) => <>{children}</>}
+      CanvasErrorBoundary={({ children }: ErrorBoundaryProps) => <>{children}</>}
     />
   );
 
@@ -314,7 +324,7 @@ export default function App() {
         refiningBlockId={refiningBlockId}
         lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
         hydrationState={hydrationState}
-        telemetryStatus={telemetryStatus || {}}
+        telemetryStatus={telemetryStatus || null}
         doctorMessages={doctorMessages}
         isDoctorTyping={isDoctorTyping}
         aiStatus={aiStatus}

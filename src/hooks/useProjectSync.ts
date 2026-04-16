@@ -2,7 +2,15 @@ import { useState, useCallback } from 'react';
 import { Project } from '../types';
 import { useUpdateProjectFieldMutation, useUpdateSubcollectionDocMutation } from '../services/firebaseApi';
 
-export function useProjectSync(currentProject: Project | null, addToast: (msg: string, type: 'error' | 'info' | 'success', action?: any) => void) {
+type ToastAction = {
+  label: string;
+  onClick: () => void;
+};
+
+export function useProjectSync(
+  currentProject: Project | null,
+  addToast: (msg: string, type: 'error' | 'info' | 'success', action?: ToastAction) => void,
+) {
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
   const [updateField] = useUpdateProjectFieldMutation();
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
@@ -18,7 +26,7 @@ export function useProjectSync(currentProject: Project | null, addToast: (msg: s
         await updateField({ id: currentProject.id, field, content }).unwrap();
         setSyncStatus('synced');
         return;
-      } catch (e) {
+      } catch (_error) {
         if (attempt < MAX_RETRIES - 1) {
           const delay = Math.pow(2, attempt) * 1000;
           await new Promise(r => setTimeout(r, delay));
@@ -38,7 +46,7 @@ export function useProjectSync(currentProject: Project | null, addToast: (msg: s
         await updateSubcol({ projectId: currentProject.id, collectionName: collName, docId: id, data: { content }, orderByField: 'order' }).unwrap();
         setSyncStatus('synced');
         return;
-      } catch (e) {
+      } catch (_error) {
         if (attempt < MAX_RETRIES - 1) {
           const delay = Math.pow(2, attempt) * 1000;
           await new Promise(r => setTimeout(r, delay));

@@ -1,6 +1,36 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  0: {
+    transcript: string;
+  };
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: ArrayLike<SpeechRecognitionResultLike>;
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
 interface UseSpeechToTextOptions {
   onResult?: (text: string) => void;
   lang?: string;
@@ -10,7 +40,7 @@ interface UseSpeechToTextOptions {
 export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTextOptions = {}) {
   const { i18n } = useTranslation();
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognitionLike | null>(null);
 
   const onResultRef = useRef(onResult);
   const onSpeechErrorRef = useRef(onSpeechError);
@@ -24,8 +54,13 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
   }, [onSpeechError]);
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    let rec: any = null;
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const SpeechRecognition =
+      speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
+    let rec: SpeechRecognitionLike | null = null;
 
     if (SpeechRecognition) {
       rec = new SpeechRecognition();
@@ -33,15 +68,12 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
       rec.interimResults = true;
       rec.lang = lang || (i18n.language === 'fr' ? 'fr-FR' : 'en-US');
 
-      rec.onresult = (event: any) => {
-        let interimTranscript = '';
+      rec.onresult = (event: SpeechRecognitionEventLike) => {
         let finalTranscript = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTranscript += event.results[i][0].transcript;
-          } else {
-            interimTranscript += event.results[i][0].transcript;
           }
         }
 
@@ -54,7 +86,7 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
         setIsListening(false);
       };
 
-      rec.onerror = (event: any) => {
+      rec.onerror = (event: SpeechRecognitionErrorEventLike) => {
         setIsListening(false);
         if (onSpeechErrorRef.current) {
           onSpeechErrorRef.current(event.error);
@@ -71,7 +103,11 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
     return () => {
       // Memory leak fix: Cleanup properly on unmount
       if (rec) {
-        try { rec.abort(); } catch (_e) {}
+        try {
+          rec.abort();
+        } catch (_error) {
+          // Some browsers throw if recognition was never started.
+        }
         rec.onresult = null;
         rec.onerror = null;
         rec.onend = null;
@@ -108,6 +144,10 @@ export function useSpeechToText({ onResult, lang, onSpeechError }: UseSpeechToTe
   return {
     isListening,
     toggleListening,
-    isSupported: !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+    isSupported: !!(
+      (window as Window & { SpeechRecognition?: SpeechRecognitionConstructor }).SpeechRecognition ||
+      (window as Window & { webkitSpeechRecognition?: SpeechRecognitionConstructor })
+        .webkitSpeechRecognition
+    )
   };
 }

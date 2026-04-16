@@ -44,7 +44,7 @@ export function useProjectData(user: User | null): ProjectDataState {
   useEffect(() => {
     const syncFromHash = () => {
       const hash = window.location.hash.replace(/^#/, '');
-      const match = hash.match(/^\/project\/([^\/]+)(?:\/stage\/(.+))?$/);
+      const match = hash.match(/^\/project\/([^/]+)(?:\/stage\/(.+))?$/);
       if (match) {
         const id = match[1];
         const stage = decodeURIComponent(match[2] || '') as WorkflowStage;
@@ -73,7 +73,7 @@ export function useProjectData(user: User | null): ProjectDataState {
     if (currentProject) {
       import('../services/migrationService').then(m => m.migrateProjectIfNeeded(currentProject));
     }
-  }, [currentProject?.id]);
+  }, [currentProject]);
 
   // ── Stage-gated subcollection fetches ─────────────────────────────────────
   // Each large sequence collection is only subscribed when its stage is active.

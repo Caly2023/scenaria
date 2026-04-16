@@ -6,6 +6,7 @@ import {
   Sequence,
   Character,
   Location,
+  StageState,
 } from "../types";
 import { contextAssembler } from "../services/contextAssembler";
 import { telemetryService } from "../services/telemetryService";
@@ -82,6 +83,8 @@ export function useScriptDoctor({
         addDoc,
         collection,
         deleteDoc,
+        getDocs,
+        writeBatch,
       } = await import("firebase/firestore");
 
       switch (name) {
@@ -370,10 +373,21 @@ export function useScriptDoctor({
             try {
               const subcollection = subcollectionMap[stage];
               if (subcollection) {
+                const safeUpdates: Record<string, any> = { ...(updates || {}) };
+
+                // Firestore character/location docs use 'name' + 'description'.
+                // Script Doctor sometimes sends 'title' + 'content' instead.
+                if (stage === "Character Bible" || stage === "Location Bible") {
+                  if (safeUpdates.title !== undefined) safeUpdates.name = safeUpdates.title;
+                  if (safeUpdates.content !== undefined) {
+                    safeUpdates.description = safeUpdates.content;
+                  }
+                }
+
                 await updateDoc(
                   doc(db, "projects", currentProject.id, subcollection, id),
                   {
-                    ...updates,
+                    ...safeUpdates,
                     updatedAt: serverTimestamp(),
                   },
                 );
@@ -547,21 +561,75 @@ export function useScriptDoctor({
           const subcollection = subcollectionMap[stage];
 
           if (subcollection) {
+            const stageRef = collection(
+              db,
+              "projects",
+              currentProject.id,
+              subcollection,
+            );
+
+            // Tool contract: "replaces all primitives in a stage".
+            // We fully clear the subcollection before re-inserting.
+            const existingSnapshot = await getDocs(stageRef);
+            if (!existingSnapshot.empty) {
+              const batch = writeBatch(db);
+              existingSnapshot.docs.forEach((docSnap) => batch.delete(docSnap.ref));
+              await batch.commit();
+            }
+
             const newIds: string[] = [];
             for (let i = 0; i < primitives.length; i++) {
-              const p = primitives[i];
-              const newRef = await addDoc(
-                collection(db, "projects", currentProject.id, subcollection),
-                {
-                  ...p,
-                  order: i,
-                  projectId: currentProject.id,
-                  createdAt: serverTimestamp(),
-                },
-              );
+              const p = primitives[i] ?? {};
+
+              const safeTitle =
+                typeof p.title === "string" && p.title.trim() !== ""
+                  ? p.title
+                  : typeof p.name === "string" && p.name.trim() !== ""
+                    ? p.name
+                    : "Untitled";
+
+              const safeContent =
+                typeof p.content === "string"
+                  ? p.content
+                  : typeof p.description === "string"
+                    ? p.description
+                    : "";
+
+              const safeData: Record<string, any> = {
+                // Keep any extra fields the model may have provided.
+                ...p,
+                title: safeTitle,
+                content: safeContent,
+                order: typeof p.order === "number" ? p.order : i,
+                projectId: currentProject.id,
+                createdAt: serverTimestamp(),
+                // Firestore character/location docs use 'name' + 'description'.
+                ...(stage === "Character Bible" || stage === "Location Bible"
+                  ? {
+                      name:
+                        typeof p.name === "string" && p.name.trim() !== ""
+                          ? p.name
+                          : safeTitle,
+                      description:
+                        typeof p.description === "string"
+                          ? p.description
+                          : safeContent,
+                    }
+                  : {}),
+              };
+
+              // Prevent Firestore schema issues from undefined values.
+              Object.keys(safeData).forEach((key) => {
+                if (safeData[key] === undefined) delete safeData[key];
+              });
+
+              const newRef = await addDoc(stageRef, safeData);
               newIds.push(newRef.id);
             }
+
             telemetryService.invalidateStage(stage);
+            // Enforce Agent Contract (analysis + stage readiness state)
+            await handleStageAnalyze(stage as WorkflowStage);
             addToast(
               t("common.stageRestructured", {
                 defaultValue: "Stage restructured successfully",
@@ -580,11 +648,22 @@ export function useScriptDoctor({
 
         case "update_stage_insight": {
           const { stage, insight } = args;
+          const hasContent =
+            typeof insight?.content === "string" && insight.content.trim().length > 0;
+          const isReady = typeof insight?.isReady === "boolean" ? insight.isReady : false;
+
+          const nextStageState: StageState = hasContent
+            ? isReady
+              ? "excellent"
+              : "needs_improvement"
+            : "empty";
+
           await updateDoc(doc(db, "projects", currentProject.id), {
             [`stageAnalyses.${stage}`]: {
               ...insight,
               updatedAt: Date.now(),
             },
+            [`stageStates.${stage}`]: nextStageState,
             updatedAt: serverTimestamp(),
           });
           telemetryService.setStatus(

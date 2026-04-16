@@ -6,7 +6,12 @@ import { useTranslation } from 'react-i18next';
 export function PWAInstallPrompt() {
   const [isVisible, setIsVisible] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isIOS, setIsIOS] = useState(false);
+  // Compute once to avoid calling setState synchronously inside useEffect.
+  const [isIOS] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
+  });
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -28,7 +33,6 @@ export function PWAInstallPrompt() {
     // 4. Detection: iOS vs Android
     const userAgent = window.navigator.userAgent.toLowerCase();
     const ios = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(ios);
 
     // 5. Handling: Android/Chrome 'beforeinstallprompt'
     const handleBeforeInstallPrompt = (e: Event) => {

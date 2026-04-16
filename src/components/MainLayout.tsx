@@ -10,6 +10,7 @@ import {
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ProjectDrawer } from './ProjectDrawer';
+import { SettingsDrawer } from './SettingsDrawer';
 import { HelpModal } from './HelpModal';
 import { OnboardingWizard } from './OnboardingWizard';
 import { OrbitingLoader } from './OrbitingLoader';
@@ -19,6 +20,12 @@ import { StageSkeleton } from './StageSkeleton';
 // Props for MainLayout
 interface MainLayoutProps {
   currentProject: Project;
+  user: {
+    displayName: string | null;
+    email: string | null;
+    photoURL: string | null;
+    providerId?: string;
+  };
   activeStage: WorkflowStage;
   isMobile: boolean;
   isDoctorOpen: boolean;
@@ -26,6 +33,7 @@ interface MainLayoutProps {
   isTyping: boolean;
   isHeavyThinking: boolean;
   isProjectDrawerOpen: boolean;
+  isSettingsDrawerOpen: boolean;
   isHelpOpen: boolean;
   isFirstTime: boolean;
   isDeleting: boolean;
@@ -48,9 +56,10 @@ interface MainLayoutProps {
   handleProjectExit: () => void;
   handleOpenDoctor: () => void;
   handleCloseDoctor: () => void;
-  handleToggleDoctor: () => void;
   handleOpenDrawer: () => void;
   handleCloseDrawer: () => void;
+  handleOpenSettings: () => void;
+  handleCloseSettings: () => void;
   handleCloseFocus: () => void;
   handleCancelDelete: () => void;
   handleProjectDelete: (id: string) => void;
@@ -63,6 +72,12 @@ interface MainLayoutProps {
   handleDoctorMessage: (msg: string) => void;
   handleMetadataUpdate: (metadata: any) => void;
   handleDeleteCurrentProject: () => void;
+  handleLanguageChange: (language: string) => void;
+  handleThemeChange: (theme: 'dark' | 'light' | 'system') => void;
+  handleProfileSave: (profile: { displayName: string; photoURL: string }) => Promise<void>;
+  handleLogout: () => Promise<void>;
+  theme: 'dark' | 'light' | 'system';
+  language: string;
   
   // Stage Content Children
   renderStage: () => React.ReactNode;
@@ -73,6 +88,7 @@ interface MainLayoutProps {
 
 export function MainLayout({
   currentProject,
+  user,
   activeStage,
   isMobile,
   isDoctorOpen,
@@ -80,6 +96,7 @@ export function MainLayout({
   isTyping,
   isHeavyThinking,
   isProjectDrawerOpen,
+  isSettingsDrawerOpen,
   isHelpOpen,
   isFirstTime,
   isDeleting,
@@ -100,9 +117,10 @@ export function MainLayout({
   handleProjectExit,
   handleOpenDoctor,
   handleCloseDoctor,
-  handleToggleDoctor,
   handleOpenDrawer,
   handleCloseDrawer,
+  handleOpenSettings,
+  handleCloseSettings,
   handleCancelDelete,
   handleProjectDelete,
   setAccessibilitySettings,
@@ -113,6 +131,12 @@ export function MainLayout({
   handleDoctorMessage,
   handleMetadataUpdate,
   handleDeleteCurrentProject,
+  handleLanguageChange,
+  handleThemeChange,
+  handleProfileSave,
+  handleLogout,
+  theme,
+  language,
   
   renderStage,
   ScriptDoctor
@@ -198,8 +222,6 @@ export function MainLayout({
             onProjectSwitch={handleProjectExit}
             onCallStart={NOOP}
             onInfoClick={() => setIsHelpOpen(true)}
-            onDoctorToggle={handleToggleDoctor}
-            isDoctorOpen={isDoctorOpen}
             syncStatus={syncStatus}
             collaborators={collaborators}
             isCompact={isDoctorOpen}
@@ -207,6 +229,7 @@ export function MainLayout({
             onAccessibilityChange={setAccessibilitySettings}
             onTitleClick={handleOpenDrawer}
             isTitleOpen={isProjectDrawerOpen}
+            onSettingsClick={handleOpenSettings}
           />
         </div>
 
@@ -219,6 +242,20 @@ export function MainLayout({
             onDelete={handleDeleteCurrentProject}
           />
         </FormErrorBoundary>
+
+        <SettingsDrawer
+          isOpen={isSettingsDrawerOpen}
+          onClose={handleCloseSettings}
+          user={user}
+          theme={theme}
+          language={language}
+          accessibilitySettings={accessibilitySettings}
+          onThemeChange={handleThemeChange}
+          onLanguageChange={handleLanguageChange}
+          onAccessibilityChange={setAccessibilitySettings}
+          onSaveProfile={handleProfileSave}
+          onLogout={handleLogout}
+        />
 
         <div className={cn(
           "flex-1 flex flex-col relative w-full",

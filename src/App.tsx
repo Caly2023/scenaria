@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAppAuth as useAuth } from "./hooks/useAppAuth";
 import { useProjects } from "./hooks/useProjects";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
@@ -17,6 +17,15 @@ import { ScriptDoctor as ScriptDoctorComponent } from "./components/ScriptDoctor
 import { ttsService } from "./services/ttsService";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { LoginPage } from "./components/LoginPage";
+import i18n from "./i18n";
+import { signOutUser, updateCurrentUserProfile } from "./lib/firebase";
+
+type ThemeMode = "dark" | "light" | "system";
+type AccessibilitySettings = {
+  highContrast: boolean;
+  largeText: boolean;
+  reducedMotion: boolean;
+};
 
 
 export default function App() {
@@ -37,11 +46,28 @@ export default function App() {
   } = useProjects(user, addToast);
 
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
+  const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(null);
-  const [accessibilitySettings, setAccessibilitySettings] = useState({ fontSize: "medium", contrast: "normal", motion: "standard" });
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const savedTheme = localStorage.getItem("scenaria_theme");
+    return savedTheme === "dark" || savedTheme === "light" || savedTheme === "system" ? savedTheme : "dark";
+  });
+  const [language, setLanguage] = useState(() => localStorage.getItem("scenaria_language") || i18n.resolvedLanguage || "fr");
+  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(() => {
+    const saved = localStorage.getItem("scenaria_accessibility");
+    if (!saved) {
+      return { highContrast: false, largeText: false, reducedMotion: false };
+    }
+
+    try {
+      return JSON.parse(saved) as AccessibilitySettings;
+    } catch {
+      return { highContrast: false, largeText: false, reducedMotion: false };
+    }
+  });
 
   // Sync Status Effect (Log changes if needed)
   // useMemo and other logic around setSyncStatus could go here if specialized handling is needed
@@ -77,8 +103,37 @@ export default function App() {
   const handleCloseDoctor = useCallback(() => setIsDoctorOpen(false), [setIsDoctorOpen]);
   const handleOpenDrawer = useCallback(() => setIsProjectDrawerOpen(true), []);
   const handleCloseDrawer = useCallback(() => setIsProjectDrawerOpen(false), []);
+  const handleOpenSettings = useCallback(() => setIsSettingsDrawerOpen(true), []);
+  const handleCloseSettings = useCallback(() => setIsSettingsDrawerOpen(false), []);
   const handleCloseFocus = useCallback(() => setIsFocusMode(false), []);
   const handleCancelDelete = useCallback(() => setProjectToDelete(null), [setProjectToDelete]);
+
+  useEffect(() => {
+    localStorage.setItem("scenaria_theme", theme);
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
+    const applyTheme = () => {
+      const resolvedTheme = theme === "system" ? (mediaQuery.matches ? "light" : "dark") : theme;
+      document.documentElement.dataset.theme = resolvedTheme;
+    };
+
+    applyTheme();
+    mediaQuery.addEventListener("change", applyTheme);
+    return () => mediaQuery.removeEventListener("change", applyTheme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("scenaria_language", language);
+    void i18n.changeLanguage(language);
+  }, [language]);
+
+  useEffect(() => {
+    localStorage.setItem("scenaria_accessibility", JSON.stringify(accessibilitySettings));
+
+    document.body.classList.toggle("accessibility-high-contrast", accessibilitySettings.highContrast);
+    document.body.classList.toggle("accessibility-large-text", accessibilitySettings.largeText);
+    document.body.classList.toggle("accessibility-reduced-motion", accessibilitySettings.reducedMotion);
+  }, [accessibilitySettings]);
 
   useKeyboardShortcuts({
     onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Brainstorming", "Logline", "3-Act Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Storyboard"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
@@ -86,6 +141,23 @@ export default function App() {
 
   const handleFocusMode = useCallback((id: string) => { setFocusedSequenceId(id); setIsFocusMode(true); }, [setFocusedSequenceId, setIsFocusMode]);
   const handleDeleteCurrentProject = useCallback(() => { if (currentProject) setProjectToDelete(currentProject.id); }, [currentProject, setProjectToDelete]);
+  const handleLanguageChange = useCallback((nextLanguage: string) => {
+    setLanguage(nextLanguage);
+    addToast(nextLanguage === "fr" ? "Langue definie sur francais" : "Language changed to English", "success");
+  }, [addToast]);
+  const handleThemeChange = useCallback((nextTheme: ThemeMode) => {
+    setTheme(nextTheme);
+    addToast("Theme mis a jour", "success");
+  }, [addToast]);
+  const handleProfileSave = useCallback(async (profile: { displayName: string; photoURL: string }) => {
+    await updateCurrentUserProfile(profile);
+    addToast("Profil mis a jour", "success");
+  }, [addToast]);
+  const handleLogout = useCallback(async () => {
+    await signOutUser();
+    setIsSettingsDrawerOpen(false);
+    addToast("Deconnexion effectuee", "success");
+  }, [addToast]);
 
   const {
     handleStoryChange, onLoglineChange, handleCharacterAdd, handleCharacterUpdate, handleCharacterDelete, handleLocationAdd, handleLocationUpdate, handleLocationDelete, onValidateBrainstorming, onValidateLogline, onValidate3Act, onValidateSynopsis, onValidateCharacterBible, onValidateLocationBible, onValidateTreatment, onValidateStepOutline, onValidateScript, onValidateStoryboard
@@ -217,6 +289,12 @@ export default function App() {
     <>
       <MainLayout
         currentProject={currentProject}
+        user={{
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          providerId: user.providerData[0]?.providerId,
+        }}
         activeStage={activeStage}
         isMobile={window.innerWidth < 768}
         isDoctorOpen={isDoctorOpen}
@@ -224,6 +302,7 @@ export default function App() {
         isTyping={isTyping}
         isHeavyThinking={isHeavyThinking}
         isProjectDrawerOpen={isProjectDrawerOpen}
+        isSettingsDrawerOpen={isSettingsDrawerOpen}
         isHelpOpen={isHelpOpen}
         isFirstTime={isFirstTime}
         isDeleting={isDeleting}
@@ -244,9 +323,10 @@ export default function App() {
         handleProjectExit={handleProjectExit}
         handleOpenDoctor={handleOpenDoctor}
         handleCloseDoctor={handleCloseDoctor}
-        handleToggleDoctor={handleToggleDoctor}
         handleOpenDrawer={handleOpenDrawer}
         handleCloseDrawer={handleCloseDrawer}
+        handleOpenSettings={handleOpenSettings}
+        handleCloseSettings={handleCloseSettings}
         handleCloseFocus={handleCloseFocus}
         handleCancelDelete={handleCancelDelete}
         handleProjectDelete={handleProjectDelete}
@@ -257,6 +337,12 @@ export default function App() {
         handleDoctorMessage={handleDoctorMessage}
         handleMetadataUpdate={handleMetadataUpdate}
         handleDeleteCurrentProject={handleDeleteCurrentProject}
+        handleLanguageChange={handleLanguageChange}
+        handleThemeChange={handleThemeChange}
+        handleProfileSave={handleProfileSave}
+        handleLogout={handleLogout}
+        theme={theme}
+        language={language}
         renderStage={renderStage}
         ScriptDoctor={ScriptDoctorComponent}
       />

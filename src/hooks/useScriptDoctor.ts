@@ -723,6 +723,29 @@ export function useScriptDoctor({
       // Not JSON — treat as plain text (normal user message)
     }
 
+    // Stage-aware guardrails for the Architect.
+    // Brainstorming stage is special: the Source of Truth is a pair of primitives:
+    // - pitch_result => "Final Pitch" (the refined 1-2 paragraph pitch)
+    // - analysis_block => "AI Critique" (professional critique aligned with the pitch)
+    if (activeStage === "Brainstorming" && !resolvedContent.includes("[BRAINSTORMING_DOCTOR_SCHEMA]")) {
+      resolvedContent = `You are fixing the "Brainstorming" stage of this ScénarIA project.
+
+[BRAINSTORMING_DOCTOR_SCHEMA]
+Hard requirements (must follow):
+1. Use tools to patch the existing primitives in the Brainstorming stage (preferred).
+2. Ensure BOTH primitives are updated:
+   - primitiveType: "pitch_result" (UI label should be "Final Pitch") => update its 'content' with an improved 1-2 paragraph pitch.
+   - primitiveType: "analysis_block" (UI label should be "AI Critique") => update its 'content' with a professional critique that matches the pitch.
+3. Preserve ordering when writing:
+   - pitch_result should have order = 1
+   - analysis_block should have order = 2
+4. If IDs are needed, call get_stage_structure for stage_id "Brainstorming" first, then patch with propose_patch using the real primitive IDs.
+5. After patching, the UI will re-evaluate the stage readiness from the updated content.
+
+User request:
+${resolvedContent}`;
+    }
+
     const userMsg = {
       id: Date.now().toString(),
       role: "user",

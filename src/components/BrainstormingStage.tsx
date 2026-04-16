@@ -42,21 +42,21 @@ export function BrainstormingStage({
       validateLabel={t('stages.Brainstorming.validateLabel', { defaultValue: 'Passer à l\'étape suivante' })}
     >
       <div className="grid grid-cols-1 gap-8">
-        {/* Primitive A: User Input (pitch_result) */}
+        {/* Primitive A: Source of truth for downstream generations */}
         <Primitive
-          title="Primitive A: User Input"
+          title="Final Pitch"
           content={story}
           type="pitch_result"
           onContentChange={onStoryChange}
           onAiRefine={() => {}} // Refine is handled by global input
           isGenerating={isGenerating}
-          placeholder="Your story idea..."
+          placeholder="Describe the strongest version of your story idea..."
           mode="stacked"
         />
 
-        {/* Primitive B: AI Analysis (analysis_block) */}
+        {/* Primitive B: AI critique and guidance */}
         <Primitive
-          title="Primitive B: AI Analysis"
+          title="AI Critique"
           content={analysis || "AI is analyzing your story..."}
           type="analysis_block"
           onContentChange={() => {}} // Read-only

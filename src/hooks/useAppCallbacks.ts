@@ -12,6 +12,8 @@ import {
 } from '../services/firebaseApi';
 import { classifyError } from '../lib/errorClassifier';
 
+type BrainstormPrimitive = Sequence & { primitiveType?: string };
+
 interface UseAppCallbacksProps {
   currentProject: Project | null;
   addToast: (msg: string, type: 'error' | 'info' | 'success') => void;
@@ -39,7 +41,10 @@ export function useAppCallbacks({
 
   const handleStoryChange = useCallback(
     (c: string) => {
-      const pitchId = pitchPrimitives.find((p) => p.order === 1)?.id;
+      const typedPrimitives = pitchPrimitives as BrainstormPrimitive[];
+      const pitchId = typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id
+        || pitchPrimitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.id
+        || pitchPrimitives.find((p) => p.order === 1)?.id;
       if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, c);
       handleContentUpdate("pitch_result", c);
     },

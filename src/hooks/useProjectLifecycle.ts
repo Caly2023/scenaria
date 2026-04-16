@@ -168,15 +168,15 @@ export function useProjectLifecycle({
 
       const primitives = [
         {
-          title: 'User Input',
-          content: brainstormingDraft,
+          title: 'Final Pitch',
+          content: initResult.pitch || brainstormingDraft,
           primitiveType: 'pitch_result',
           order: 1,
           ownerId: user.uid,
         },
         {
-          title: 'AI Analysis',
-          content: initResult.pitch || initResult.critique || 'Generation complete.',
+          title: 'AI Critique',
+          content: initResult.critique || 'Generation complete.',
           primitiveType: 'analysis_block',
           order: 2,
           ownerId: user.uid,

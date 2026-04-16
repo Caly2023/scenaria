@@ -9,6 +9,26 @@ import {
   Sequence 
 } from '../types';
 
+type BrainstormPrimitive = Sequence & { primitiveType?: string };
+
+function getBrainstormStory(primitives: Sequence[]): string {
+  const typedPrimitives = primitives as BrainstormPrimitive[];
+  return typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.content
+    || primitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.content
+    || primitives.find((p) => p.order === 1)?.content
+    || primitives[0]?.content
+    || "";
+}
+
+function getBrainstormAnalysis(primitives: Sequence[]): string {
+  const typedPrimitives = primitives as BrainstormPrimitive[];
+  return typedPrimitives.find((p) => p.primitiveType === 'analysis_block')?.content
+    || primitives.find((p) => /analysis|critique/i.test(p.title || ''))?.content
+    || primitives.find((p) => p.order === 2)?.content
+    || primitives[1]?.content
+    || "";
+}
+
 // Lazy-loaded stage components
 const BrainstormingStage = React.lazy(() =>
   import("./BrainstormingStage").then((m) => ({
@@ -181,8 +201,8 @@ export function StageRenderer({
     case "Brainstorming":
       return (
         <BrainstormingStage
-          analysis={pitchPrimitives.find((p) => p.order === 2)?.content || ""}
-          story={pitchPrimitives.find((p) => p.order === 1)?.content || ""}
+          analysis={getBrainstormAnalysis(pitchPrimitives)}
+          story={getBrainstormStory(pitchPrimitives)}
           onStoryChange={handleStoryChange}
           onValidate={onValidateBrainstorming}
           onDoctorToggle={handleToggleDoctor}

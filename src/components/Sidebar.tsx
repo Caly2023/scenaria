@@ -11,7 +11,6 @@ import {
   Lightbulb,
   MapPin
 } from 'lucide-react';
-import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { WorkflowStage } from '@/types';

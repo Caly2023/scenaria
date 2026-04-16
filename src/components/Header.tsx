@@ -4,7 +4,7 @@ import {
   ChevronDown, 
   RefreshCw,
   Info,
-  Bot,
+  Settings,
   Accessibility,
   Eye,
   Type,
@@ -23,8 +23,6 @@ interface HeaderProps {
   onProjectSwitch: () => void;
   onCallStart: () => void;
   onInfoClick: () => void;
-  onDoctorToggle: () => void;
-  isDoctorOpen: boolean;
   syncStatus: 'synced' | 'syncing' | 'error';
   collaborators: { id: string; name: string; photoURL: string; isActive: boolean }[];
   isCompact?: boolean;
@@ -32,6 +30,7 @@ interface HeaderProps {
   onAccessibilityChange: (settings: any) => void;
   onTitleClick: () => void;
   isTitleOpen: boolean;
+  onSettingsClick: () => void;
 }
 
 export function Header({ 
@@ -39,15 +38,14 @@ export function Header({
   onProjectSwitch, 
   onCallStart, 
   onInfoClick,
-  onDoctorToggle,
-  isDoctorOpen,
   syncStatus, 
   collaborators,
   isCompact,
   accessibilitySettings,
   onAccessibilityChange,
   onTitleClick,
-  isTitleOpen
+  isTitleOpen,
+  onSettingsClick
 }: HeaderProps) {
   const { t } = useTranslation();
   const [isAccessOpen, setIsAccessOpen] = React.useState(false);
@@ -197,6 +195,14 @@ export function Header({
             {syncStatus === 'synced' ? t('common.synced') : syncStatus === 'syncing' ? t('common.syncing') : t('common.error')}
           </span>
         </div>
+
+        <button
+          onClick={onSettingsClick}
+          aria-label="Parametres"
+          className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40 hover:text-white transition-all border-none"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
 
         {/* Accessibility Toggle — desktop only */}
         <div className="relative hidden md:block">

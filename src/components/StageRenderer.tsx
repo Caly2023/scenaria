@@ -13,19 +13,12 @@ type BrainstormPrimitive = Sequence & { primitiveType?: string };
 
 function getBrainstormStory(primitives: Sequence[]): string {
   const typedPrimitives = primitives as BrainstormPrimitive[];
-  return typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.content
+  return typedPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.content
+    // Backward compatibility for older projects
+    || typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.content
     || primitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.content
     || primitives.find((p) => p.order === 1)?.content
     || primitives[0]?.content
-    || "";
-}
-
-function getBrainstormAnalysis(primitives: Sequence[]): string {
-  const typedPrimitives = primitives as BrainstormPrimitive[];
-  return typedPrimitives.find((p) => p.primitiveType === 'analysis_block')?.content
-    || primitives.find((p) => /analysis|critique/i.test(p.title || ''))?.content
-    || primitives.find((p) => p.order === 2)?.content
-    || primitives[1]?.content
     || "";
 }
 
@@ -201,7 +194,6 @@ export function StageRenderer({
     case "Brainstorming":
       return (
         <BrainstormingStage
-          analysis={getBrainstormAnalysis(pitchPrimitives)}
           story={getBrainstormStory(pitchPrimitives)}
           onStoryChange={handleStoryChange}
           onValidate={onValidateBrainstorming}

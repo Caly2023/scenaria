@@ -168,19 +168,12 @@ export function useProjectLifecycle({
 
       const primitives = [
         {
-          title: 'Final Pitch',
+          title: 'Brainstorming Result',
           content: initResult.pitch || brainstormingDraft,
-          primitiveType: 'pitch_result',
+          primitiveType: 'brainstorming_result',
           order: 1,
           ownerId: user.uid,
         },
-        {
-          title: 'AI Critique',
-          content: initResult.critique || 'Generation complete.',
-          primitiveType: 'analysis_block',
-          order: 2,
-          ownerId: user.uid,
-        }
       ];
 
       // 2. Commit to Database

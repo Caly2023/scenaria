@@ -43,7 +43,7 @@ const STAGES: StageDefinition[] = [
     order: 0,
     collectionName: 'pitch_primitives',
     agentId: 'brainstorming',
-    primitiveTypes: ['analysis_block', 'pitch_result'],
+    primitiveTypes: ['brainstorming_result'],
     description: 'The interactive foundation and Source of Truth for all subsequent stages.',
     requires: [],
     triggers: 'Logline',

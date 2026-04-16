@@ -76,8 +76,8 @@ export class LoglineAgent extends BaseStageAgent {
 
   private _getBrainstorming(context: ProjectContext): string {
     const pitchPrimitives = context.stageContents['Brainstorming'] || [];
-    return pitchPrimitives.find(p => p.primitiveType === 'pitch_result')?.content
-      || pitchPrimitives[1]?.content
+    return pitchPrimitives.find(p => p.primitiveType === 'brainstorming_result')?.content
+      || pitchPrimitives.find(p => p.primitiveType === 'pitch_result')?.content // backward compat
       || pitchPrimitives[0]?.content
       || '';
   }

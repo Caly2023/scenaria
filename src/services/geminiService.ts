@@ -1078,8 +1078,8 @@ export const geminiService = {
         contents: `You are a professional screenwriting consultant and pitch doctor. 
         Based on the user's input and the current state of the story, provide two distinct outputs:
         
-        1. CRITIQUE (analysis_block): A professional assessment of the story's hook, stakes, and clarity. Explain your reasoning and identify what works or needs improvement.
-        2. FINAL PITCH (pitch_result): A high-impact, refined Pitch (1-2 powerful paragraphs) that hooks the audience.
+        1. CRITIQUE (feedback): A professional assessment of the story's hook, stakes, and clarity. Explain your reasoning and identify what works or needs improvement.
+        2. FINAL PITCH (brainstorming_result): A high-impact, refined Pitch (1-2 powerful paragraphs) that hooks the audience.
         
         Also, evaluate if the current Pitch meets professional industry standards (Hook, Conflict, Resolution).
         
@@ -1096,8 +1096,8 @@ export const geminiService = {
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              critique: { type: Type.STRING, description: "Professional assessment (analysis_block)" },
-              pitch: { type: Type.STRING, description: "The high-impact refined pitch (pitch_result)" },
+              critique: { type: Type.STRING, description: "Professional assessment (feedback)" },
+              pitch: { type: Type.STRING, description: "The high-impact refined brainstorming result (brainstorming_result)" },
               validation: { 
                 type: Type.OBJECT,
                 properties: {

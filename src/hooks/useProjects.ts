@@ -121,7 +121,27 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestratorService');
       
       let currentContent: any[] = [];
-      if (stage === 'Brainstorming') currentContent = pitchPrimitives;
+      if (stage === 'Brainstorming') {
+        // Enforce strict contract: Brainstorming subcollection contains ONLY one content primitive:
+        // primitiveType = 'brainstorming_result' (feedback lives in stageAnalyses / insight).
+        const typedPitchPrimitives = pitchPrimitives as Array<any>;
+        const existing =
+          typedPitchPrimitives.find((p) => p.primitiveType === 'brainstorming_result') ||
+          typedPitchPrimitives.find((p) => p.primitiveType === 'pitch_result') ||
+          typedPitchPrimitives.find((p) => p.order === 1) ||
+          typedPitchPrimitives[0];
+
+        currentContent = existing
+          ? [
+              {
+                ...existing,
+                title: existing.title || 'Brainstorming Result',
+                primitiveType: 'brainstorming_result',
+                order: 1,
+              },
+            ]
+          : [];
+      }
       else if (stage === 'Logline') currentContent = loglinePrimitives;
       else if (stage === '3-Act Structure') currentContent = structurePrimitives;
       else if (stage === 'Synopsis') currentContent = synopsisPrimitives;
@@ -136,7 +156,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
       const decision = interpretIntent('analyze', stage);
       const agentOutput = await dispatchToAgent(decision, context, currentContent);
-      await persistAgentOutput(currentProject.id, stage, agentOutput);
+      await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Brainstorming' });
       
       addToast(`Analysis complete for ${stage}`, 'success');
     } catch (error) {

@@ -42,11 +42,12 @@ export function useAppCallbacks({
   const handleStoryChange = useCallback(
     (c: string) => {
       const typedPrimitives = pitchPrimitives as BrainstormPrimitive[];
-      const pitchId = typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id
+      const pitchId = typedPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.id
+        || typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id // backward compat
         || pitchPrimitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.id
         || pitchPrimitives.find((p) => p.order === 1)?.id;
       if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, c);
-      handleContentUpdate("pitch_result", c);
+      handleContentUpdate("brainstorming_result", c);
     },
     [pitchPrimitives, handleSubcollectionUpdate, handleContentUpdate],
   );

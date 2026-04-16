@@ -89,7 +89,7 @@ export function useProjectActions({
       );
 
       const agentOutput = await dispatchToAgent(decision, context, currentContent);
-      await persistAgentOutput(currentProject.id, stage, agentOutput);
+      await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Brainstorming' });
       
       // Handle special metadata updates (like Logline/Brainstorming)
       if (agentOutput.metadataUpdates) {

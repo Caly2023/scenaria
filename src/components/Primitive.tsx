@@ -17,7 +17,14 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
-export type PrimitiveType = 'text' | 'analysis' | 'gallery' | 'analysis_block' | 'pitch_result' | 'ai_insight';
+export type PrimitiveType =
+  | 'text'
+  | 'analysis'
+  | 'gallery'
+  | 'analysis_block'
+  | 'pitch_result'
+  | 'brainstorming_result'
+  | 'ai_insight';
 
 interface PrimitiveProps {
   title: string;
@@ -157,7 +164,7 @@ export const Primitive = memo(function Primitive({
         "group w-full rounded-[32px] overflow-hidden transition-all duration-500",
         type === 'ai_insight' ? "bg-white/5 border border-white/10 shadow-none" : "bg-[#212121] shadow-2xl border border-white/5",
         (type === 'analysis' || type === 'analysis_block') && "border-white/20 bg-white/5",
-        type === 'pitch_result' && "border-white/10 bg-[#252525]",
+        (type === 'pitch_result' || type === 'brainstorming_result') && "border-white/10 bg-[#252525]",
         showGlow && "ring-2 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]",
         mode === 'single' ? "min-h-[400px] md:min-h-[600px] flex flex-col" : "mb-4 md:mb-6"
       )}
@@ -171,7 +178,7 @@ export const Primitive = memo(function Primitive({
             <div className={cn(
               "w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0",
               (type === 'analysis' || type === 'analysis_block') ? "bg-blue-400 animate-pulse" : 
-              type === 'pitch_result' ? "bg-green-400" : "bg-white/20"
+              (type === 'pitch_result' || type === 'brainstorming_result') ? "bg-green-400" : "bg-white/20"
             )} />
           )}
           {onTitleChange ? (

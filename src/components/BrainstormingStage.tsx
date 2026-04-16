@@ -5,7 +5,6 @@ import { StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
 
 interface BrainstormingStageProps {
-  analysis: string;
   story: string;
   onStoryChange: (content: string) => void;
   onValidate: () => void;
@@ -17,7 +16,6 @@ interface BrainstormingStageProps {
 }
 
 export function BrainstormingStage({ 
-  analysis, 
   story, 
   onStoryChange, 
   onValidate,
@@ -42,27 +40,15 @@ export function BrainstormingStage({
       validateLabel={t('stages.Brainstorming.validateLabel', { defaultValue: 'Passer à l\'étape suivante' })}
     >
       <div className="grid grid-cols-1 gap-8">
-        {/* Primitive A: Source of truth for downstream generations */}
+        {/* Single content primitive: retained brainstorming result */}
         <Primitive
-          title="Final Pitch"
+          title="Brainstorming Result"
           content={story}
-          type="pitch_result"
+          type="brainstorming_result"
           onContentChange={onStoryChange}
           onAiRefine={() => {}} // Refine is handled by global input
           isGenerating={isGenerating}
           placeholder="Describe the strongest version of your story idea..."
-          mode="stacked"
-        />
-
-        {/* Primitive B: AI critique and guidance */}
-        <Primitive
-          title="AI Critique"
-          content={analysis || "AI is analyzing your story..."}
-          type="analysis_block"
-          onContentChange={() => {}} // Read-only
-          onAiRefine={() => {}} // No refine for analysis
-          isGenerating={isGenerating}
-          placeholder="AI is analyzing your story..."
           mode="stacked"
         />
       </div>

@@ -8,7 +8,7 @@ export class BrainstormingAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const currentContent = this.normalizeContent(context.stageContents['Brainstorming'] || []);
-      const brainstormContent = this.getPitchContent(currentContent);
+      const brainstormContent = this.getBrainstormingContent(currentContent);
       if (!brainstormContent.trim()) {
         return this.buildFallbackOutput('No brainstorming content provided');
       }
@@ -17,11 +17,12 @@ export class BrainstormingAgent extends BaseStageAgent {
         brainstormContent,
         context.metadata
       );
-      const content = this.buildBrainstormPrimitives(currentContent, result.pitch, result.critique);
+      const content = this.buildBrainstormPrimitives(currentContent, result.pitch);
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content, metadataUpdates: result.metadataUpdates };
     } catch (e: any) {
-      return this.buildFallbackOutput(e.message, context.stageContents['Brainstorming'] || []);
+      const normalized = this.normalizeContent(context.stageContents['Brainstorming'] || []);
+      return this.buildFallbackOutput(e.message, normalized);
     }
   }
 
@@ -33,18 +34,19 @@ export class BrainstormingAgent extends BaseStageAgent {
   ): Promise<AgentOutput> {
     try {
       const normalizedContent = this.normalizeContent(currentContent);
-      const masterStory = this.getPitchContent(normalizedContent);
+      const masterStory = this.getBrainstormingContent(normalizedContent);
       const result = await geminiService.brainstormDual(
         instruction,
         masterStory,
         context.metadata
       );
-      const updatedContent = this.buildBrainstormPrimitives(normalizedContent, result.pitch, result.critique);
+      const updatedContent = this.buildBrainstormPrimitives(normalizedContent, result.pitch);
 
       const evalResult = await this.evaluate(updatedContent, context);
       return { ...evalResult, content: updatedContent, metadataUpdates: result.metadataUpdates };
     } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+      const normalized = this.normalizeContent(currentContent);
+      return this.buildFallbackOutput(e.message, normalized);
     }
   }
 
@@ -75,66 +77,43 @@ export class BrainstormingAgent extends BaseStageAgent {
   }
 
   private normalizeContent(content: ContentPrimitive[]): ContentPrimitive[] {
-    const pitch =
-      content.find(p => p.primitiveType === 'pitch_result')
-      || content.find(p => /pitch|story|input/i.test(p.title))
-      || content[0];
-    const critique =
-      content.find(p => p.primitiveType === 'analysis_block')
-      || content.find(p => /analysis|critique/i.test(p.title))
-      || content[1];
+    const brainstorming =
+      content.find(p => p.primitiveType === 'brainstorming_result') ||
+      content.find(p => p.primitiveType === 'pitch_result') || // backward compat
+      content.find(p => /brainstorm|pitch|story|input/i.test(p.title)) ||
+      content[0];
 
-    const normalized: ContentPrimitive[] = [];
+    if (!brainstorming) return [];
 
-    if (pitch) {
-      normalized.push({
-        ...pitch,
-        title: 'Final Pitch',
-        primitiveType: 'pitch_result',
+    return [
+      {
+        ...brainstorming,
+        title: 'Brainstorming Result',
+        primitiveType: 'brainstorming_result',
         order: 1,
-      });
-    }
-
-    if (critique) {
-      normalized.push({
-        ...critique,
-        title: 'AI Critique',
-        primitiveType: 'analysis_block',
-        order: 2,
-      });
-    }
-
-    return normalized;
+      },
+    ];
   }
 
   private buildBrainstormPrimitives(
     currentContent: ContentPrimitive[],
-    pitch: string,
-    critique: string
+    pitch: string
   ): ContentPrimitive[] {
     const normalizedContent = this.normalizeContent(currentContent);
-    const pitchPrimitive = normalizedContent.find(p => p.primitiveType === 'pitch_result');
-    const critiquePrimitive = normalizedContent.find(p => p.primitiveType === 'analysis_block');
+    const brainstormingPrimitive = normalizedContent[0];
 
     return [
       this.buildPrimitive(
-        pitchPrimitive?.id || 'brainstorm_pitch',
-        'Final Pitch',
+        brainstormingPrimitive?.id || 'brainstorm_result',
+        'Brainstorming Result',
         pitch,
-        'pitch_result',
+        'brainstorming_result',
         1
-      ),
-      this.buildPrimitive(
-        critiquePrimitive?.id || 'brainstorm_analysis',
-        'AI Critique',
-        critique,
-        'analysis_block',
-        2
       ),
     ];
   }
 
-  private getPitchContent(content: ContentPrimitive[]): string {
-    return content.find(p => p.primitiveType === 'pitch_result')?.content || content[0]?.content || '';
+  private getBrainstormingContent(content: ContentPrimitive[]): string {
+    return content.find(p => p.primitiveType === 'brainstorming_result')?.content || content[0]?.content || '';
   }
 }

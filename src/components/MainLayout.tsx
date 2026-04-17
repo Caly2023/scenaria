@@ -281,30 +281,6 @@ export function MainLayout({
           />
         </div>
 
-        <FormErrorBoundary>
-          <ProjectDrawer
-            isOpen={isProjectDrawerOpen}
-            onClose={handleCloseDrawer}
-            metadata={currentProject.metadata || DEFAULT_METADATA}
-            onUpdate={handleMetadataUpdate}
-            onDelete={handleDeleteCurrentProject}
-          />
-        </FormErrorBoundary>
-
-        <SettingsDrawer
-          isOpen={isSettingsDrawerOpen}
-          onClose={handleCloseSettings}
-          user={user}
-          theme={theme}
-          language={language}
-          accessibilitySettings={accessibilitySettings}
-          onThemeChange={handleThemeChange}
-          onLanguageChange={handleLanguageChange}
-          onAccessibilityChange={setAccessibilitySettings}
-          onSaveProfile={handleProfileSave}
-          onLogout={handleLogout}
-        />
-
         <div className={cn(
           "flex-1 flex flex-col relative w-full",
           isMobile ? "overflow-visible" : "overflow-hidden"
@@ -408,6 +384,30 @@ export function MainLayout({
           </div>
         </div>
       )}
+
+      <FormErrorBoundary>
+        <ProjectDrawer
+          isOpen={isProjectDrawerOpen}
+          onClose={handleCloseDrawer}
+          metadata={currentProject.metadata || DEFAULT_METADATA}
+          onUpdate={handleMetadataUpdate}
+          onDelete={handleDeleteCurrentProject}
+        />
+      </FormErrorBoundary>
+
+      <SettingsDrawer
+        isOpen={isSettingsDrawerOpen}
+        onClose={handleCloseSettings}
+        user={user}
+        theme={theme}
+        language={language}
+        accessibilitySettings={accessibilitySettings}
+        onThemeChange={handleThemeChange}
+        onLanguageChange={handleLanguageChange}
+        onAccessibilityChange={setAccessibilitySettings}
+        onSaveProfile={handleProfileSave}
+        onLogout={handleLogout}
+      />
 
       {/* Global Modals & Overlays */}
       <AnimatePresence>

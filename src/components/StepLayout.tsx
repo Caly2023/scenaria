@@ -80,11 +80,11 @@ export function StepLayout({
     <div className="w-full h-auto flex-1 flex flex-col space-y-10 md:space-y-16 pb-0 md:pb-40">
       <div className="flex-1 flex flex-col space-y-10 md:space-y-16">
         <div className="text-center space-y-4">
-          <span className="text-xs uppercase tracking-[0.4em] text-white/50 font-bold">
+          <span className="text-sm md:text-xs uppercase tracking-[0.28em] md:tracking-[0.4em] text-white/50 font-bold">
             {t('common.step', { defaultValue: 'Étape' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
           </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter text-white break-words px-4">{title}</h2>
-          <p className="text-secondary text-lg md:text-xl max-w-2xl mx-auto px-6 leading-relaxed">{subtitle}</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tighter text-white break-words px-2 md:px-4">{title}</h2>
+          <p className="text-secondary text-xl md:text-xl max-w-2xl mx-auto px-3 md:px-6 leading-relaxed">{subtitle}</p>
         </div>
 
         {/* Hydration Status Banner */}
@@ -153,7 +153,7 @@ export function StepLayout({
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-50",
           // Mobile: Boxed, in flow
-          "relative w-full rounded-[32px] p-6 border bg-[#212121] mt-12 mb-0 md:mb-8",
+          "relative w-full rounded-[32px] px-4 py-5 md:p-6 border bg-[#212121] mt-12 mb-0 md:mb-8",
           // Desktop: Conditional sticky behavior
           "md:sticky md:w-full md:mt-20 md:border md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
           isStuck 
@@ -174,7 +174,7 @@ export function StepLayout({
                 : <AlertCircle className="w-4 h-4" />}
             </div>
             <span className={cn(
-              "text-sm font-medium truncate transition-colors",
+              "text-base md:text-sm font-medium truncate transition-colors",
               isReady ? "text-green-400" : "text-white/50"
             )}>
               {isReady
@@ -191,7 +191,7 @@ export function StepLayout({
               disabled={isValidating || isGenerating}
               aria-label="Vérifier cette étape"
               className={cn(
-                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-2 rounded-xl text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-2 rounded-xl text-sm sm:text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
                 isValidating 
                   ? "bg-white/5 text-white/40 border-white/10" 
                   : isReady
@@ -212,7 +212,7 @@ export function StepLayout({
               onClick={() => setShowConfirmModal(true)}
               aria-label="Passer à l'étape suivante"
               className={cn(
-                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-1.5 rounded-xl sm:rounded-lg text-xs font-semibold border-none transition-all",
+                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-1.5 rounded-xl sm:rounded-lg text-sm sm:text-xs font-semibold border-none transition-all",
                 "bg-white text-black hover:scale-[1.02] sm:hover:scale-105 active:scale-95 shadow-[12px_12px_24px_rgba(0,0,0,0.2)]"
               )}
             >

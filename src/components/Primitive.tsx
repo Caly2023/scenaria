@@ -170,7 +170,7 @@ export const Primitive = memo(function Primitive({
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-6 md:px-12 md:py-10 border-b border-white/5">
+      <div className="flex items-center justify-between px-5 py-4 md:px-12 md:py-10 border-b border-white/5">
         <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
           {type === 'ai_insight' ? (
             <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0" />
@@ -186,11 +186,11 @@ export const Primitive = memo(function Primitive({
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent border-none text-lg md:text-xl font-semibold tracking-tight w-full text-white/90 focus:outline-none truncate"
+              className="bg-transparent border-none text-xl md:text-xl font-semibold tracking-tight w-full text-white/90 focus:outline-none truncate"
               placeholder={t('common.untitled')}
             />
           ) : (
-            <h3 className="text-lg md:text-xl font-semibold tracking-tight text-white/90 truncate">{title}</h3>
+            <h3 className="text-xl md:text-xl font-semibold tracking-tight text-white/90 truncate">{title}</h3>
           )}
         </div>
 
@@ -364,7 +364,7 @@ export const Primitive = memo(function Primitive({
           >
             {/* Horizontal Image Gallery (for characters/locations) */}
             {type === 'gallery' && images.length > 0 && (
-              <div className="px-10 py-4 border-b border-white/5 bg-black/10">
+              <div className="px-5 py-4 md:px-10 border-b border-white/5 bg-black/10">
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                   {images.map((url, i) => (
                     <motion.div
@@ -403,7 +403,7 @@ export const Primitive = memo(function Primitive({
 
             <div className="flex-1 flex flex-col">
               {/* Text Area */}
-              <div className="p-8 md:p-12 space-y-8 md:space-y-12">
+              <div className="p-5 md:p-12 space-y-6 md:space-y-12">
                 <div className="relative group/text">
                   {onContentChange ? (
                     <textarea
@@ -411,16 +411,16 @@ export const Primitive = memo(function Primitive({
                       value={content}
                       onChange={(e) => onContentChange(e.target.value)}
                       placeholder={placeholder}
-                      className="w-full bg-transparent border-none text-white font-sans text-base md:text-lg leading-relaxed resize-none no-scrollbar placeholder:text-white/30 min-h-[120px]"
+                      className="w-full bg-transparent border-none text-white font-sans text-lg md:text-lg leading-relaxed resize-none no-scrollbar placeholder:text-white/30 min-h-[120px]"
                     />
                   ) : (
-                    <div className="prose prose-invert max-w-none font-sans text-lg md:text-xl leading-[1.6] text-white/90">
+                    <div className="prose prose-invert max-w-none font-sans text-xl md:text-xl leading-[1.6] text-white/90">
                       {renderedMarkdown}
                     </div>
                   )}
                   
                   {onContentChange && content && (
-                    <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-white/5 prose prose-invert max-w-none text-base md:text-lg opacity-80">
+                    <div className="mt-6 md:mt-12 pt-6 md:pt-12 border-t border-white/5 prose prose-invert max-w-none text-lg md:text-lg opacity-80">
                       {renderedMarkdown}
                     </div>
                   )}
@@ -443,7 +443,7 @@ export const Primitive = memo(function Primitive({
 
               {/* Empty State for Gallery (if no images yet) */}
               {type === 'gallery' && images.length === 0 && (
-                <div className="px-10 pb-10">
+                <div className="px-5 pb-6 md:px-10 md:pb-10">
                   <div 
                     onClick={onGenerateImage}
                     className="aspect-video rounded-3xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center gap-4 opacity-40 cursor-pointer hover:bg-white/5 transition-all"

@@ -231,13 +231,16 @@ export function MainLayout({
 
       {/* ── Script Doctor Floating Action Button (Universal) ──────────────── */}
       {!isFocusMode && (
-        <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
+        <div className={cn(
+          "pointer-events-none z-50 overflow-hidden",
+          isMobile ? "fixed inset-0" : "absolute inset-0"
+        )}>
           <div
             className={cn(
-              "pointer-events-auto absolute transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
+              "pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
               isMobile
-                ? "bottom-[calc(100px+env(safe-area-inset-bottom,0px))] right-6"
-                : "bottom-6 right-6",
+                ? "fixed right-5 bottom-[calc(var(--bottom-nav-height)+16px)]"
+                : "absolute bottom-6 right-6",
               isDoctorOpen || (isMobile && !showDoctorBubble)
                 ? "opacity-0 scale-50 pointer-events-none translate-y-12"
                 : "opacity-100 scale-100",

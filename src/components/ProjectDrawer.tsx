@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { validateProjectMetadata } from '../lib/formValidators';
 import { cn } from '../lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { triggerHaptic } from '../lib/haptics';
 
 interface ProjectDrawerProps {
   isOpen: boolean;
@@ -112,7 +113,10 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  triggerHaptic('light');
+                  onClose();
+                }}
                 disabled={isSaving}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all text-white border-none disabled:opacity-50"
               >
@@ -244,7 +248,11 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                         {lang}
                       </span>
                     ))}
-                    <button disabled={isSaving} className="yt-chip bg-white/5 text-white/30 hover:text-white hover:bg-white/10 transition-all border-dashed">
+                    <button
+                      disabled={isSaving}
+                      onClick={() => triggerHaptic('light')}
+                      className="yt-chip bg-white/5 text-white/30 hover:text-white hover:bg-white/10 transition-all border-dashed"
+                    >
                       + {t('common.add', { defaultValue: 'Add' })}
                     </button>
                   </div>
@@ -258,7 +266,10 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
             {/* Footer: Actions */}
             <div className="p-6 border-t border-white/5 bg-[#1a1a1a] flex-shrink-0 space-y-3">
               <button
-                onClick={handleSave}
+                onClick={() => {
+                  triggerHaptic('success');
+                  handleSave();
+                }}
                 disabled={isSaving || errors.length > 0 || !hasChanges}
                 className="yt-btn-primary w-full h-12 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-base font-bold"
               >
@@ -271,6 +282,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
               </button>
               <button
                 onClick={() => {
+                  triggerHaptic('warning');
                   onClose();
                   onDelete();
                 }}
@@ -280,6 +292,19 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
                 <Trash2 className="w-4 h-4" />
                 {t('common.deleteProject', { defaultValue: 'Delete Project' })}
               </button>
+              {isMobile && (
+                <button
+                  onClick={() => {
+                    triggerHaptic('light');
+                    onClose();
+                  }}
+                  disabled={isSaving}
+                  className="w-full h-12 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                  Fermer
+                </button>
+              )}
             </div>
           </motion.div>
         </>

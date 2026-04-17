@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { triggerHaptic } from '@/lib/haptics';
 import { Project, ProjectFormat } from '@/types';
 import { DictationButton } from './DictationButton';
 
@@ -143,7 +144,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           {['Auto', 'Short Film', 'Feature', 'Series'].map((format) => (
             <button
               key={format}
-              onClick={() => setSelectedFormat(format as ProjectFormat | 'Auto')}
+              onClick={() => {
+                triggerHaptic('light');
+                setSelectedFormat(format as ProjectFormat | 'Auto');
+              }}
               className={cn(
                 "px-6 py-3 rounded-full text-xs md:text-sm font-bold tracking-[0.1em] uppercase transition-all border whitespace-nowrap",
                 selectedFormat === format 
@@ -194,7 +198,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                 accept=".txt,.md"
               />
               <button 
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  triggerHaptic('light');
+                  fileInputRef.current?.click();
+                }}
                 className="w-10 h-10 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center group relative border-none"
                 title={t('common.importText')}
               >
@@ -208,7 +215,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
             </div>
 
             <button 
-              onClick={() => handleSubmit()}
+              onClick={() => {
+                triggerHaptic('medium');
+                handleSubmit();
+              }}
               disabled={!storyIdea.trim() || isCreating}
               className={cn(
                 "h-12 px-10 rounded-full flex items-center gap-4 transition-all duration-500 border-none",
@@ -241,7 +251,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               <p className="flex-1 font-medium">{creationError}</p>
               <button 
-                onClick={() => setCreationError(null)}
+                onClick={() => {
+                  triggerHaptic('light');
+                  setCreationError(null);
+                }}
                 className="text-red-400/50 hover:text-red-400 transition-colors"
                 title="Dismiss"
               >
@@ -281,7 +294,10 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-white/0 via-white/[0.05] to-white/0 rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur" />
                     
                     <button
-                      onClick={() => onProjectSelect(project.id)}
+                      onClick={() => {
+                        triggerHaptic('medium');
+                        onProjectSelect(project.id);
+                      }}
                       className="relative w-full p-6 md:p-8 text-left flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-10 glass rounded-[32px] border-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden"
                     >
                       {/* Decorative Background Element */}
@@ -358,6 +374,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        triggerHaptic('warning');
                         onProjectDelete(project.id);
                       }}
                       className="absolute top-4 right-4 md:top-8 md:right-8 w-12 h-12 rounded-full flex items-center justify-center bg-transparent hover:bg-red-500/10 text-white/0 hover:text-red-500 transition-all duration-300 opacity-100 md:opacity-0 group-hover:opacity-100 z-20"

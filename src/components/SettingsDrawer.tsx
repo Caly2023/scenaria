@@ -20,6 +20,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { triggerHaptic } from '@/lib/haptics';
 
 type ThemeMode = 'dark' | 'light' | 'system';
 
@@ -160,7 +161,10 @@ export function SettingsDrawer({
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  triggerHaptic('light');
+                  onClose();
+                }}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all text-white border-none"
               >
                 <X className="w-5 h-5" />
@@ -236,7 +240,10 @@ export function SettingsDrawer({
                   </div>
 
                   <button
-                    onClick={handleSaveProfile}
+                    onClick={() => {
+                      triggerHaptic('success');
+                      handleSaveProfile();
+                    }}
                     disabled={isSavingProfile || !canSaveProfile}
                     className="yt-btn-primary w-full h-12 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -263,7 +270,10 @@ export function SettingsDrawer({
                     return (
                       <button
                         key={option.value}
-                        onClick={() => onLanguageChange(option.value)}
+                        onClick={() => {
+                          triggerHaptic('light');
+                          onLanguageChange(option.value);
+                        }}
                         className={cn(
                           'rounded-[20px] border px-4 py-3 text-sm font-semibold transition-all',
                           isActive
@@ -297,7 +307,10 @@ export function SettingsDrawer({
                     return (
                       <button
                         key={option.value}
-                        onClick={() => onThemeChange(option.value)}
+                        onClick={() => {
+                          triggerHaptic('light');
+                          onThemeChange(option.value);
+                        }}
                         className={cn(
                           'rounded-[20px] border px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2',
                           isActive
@@ -337,7 +350,10 @@ export function SettingsDrawer({
                   return (
                     <button
                       key={item.key}
-                      onClick={() => handleToggleAccessibility(item.key)}
+                      onClick={() => {
+                        triggerHaptic('light');
+                        handleToggleAccessibility(item.key);
+                      }}
                       className="w-full flex items-center justify-between rounded-[20px] border border-white/5 bg-[#121212] px-4 py-3 hover:bg-white/5 transition-colors"
                     >
                       <span className="flex items-center gap-3 text-white">
@@ -371,7 +387,10 @@ export function SettingsDrawer({
                   </div>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    triggerHaptic('warning');
+                    handleLogout();
+                  }}
                   disabled={isLoggingOut}
                   className="w-full h-12 rounded-2xl bg-red-500/10 text-red-400 font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
@@ -379,6 +398,20 @@ export function SettingsDrawer({
                   {isLoggingOut ? 'Deconnexion...' : 'Se deconnecter'}
                 </button>
               </section>
+              {isMobile && (
+                <section className="pb-2">
+                  <button
+                    onClick={() => {
+                      triggerHaptic('light');
+                      onClose();
+                    }}
+                    className="w-full h-12 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                  >
+                    <X className="w-4 h-4" />
+                    Fermer
+                  </button>
+                </section>
+              )}
             </div>
           </motion.aside>
         </>

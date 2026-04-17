@@ -2,6 +2,7 @@ import { Primitive } from './Primitive';
 import { Check, ChevronRight, ShieldCheck, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { triggerHaptic } from '@/lib/haptics';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useRef, useEffect } from 'react';
 import { StageInsight } from '@/types';
@@ -126,7 +127,10 @@ export function StepLayout({
                 className="mt-6 pl-12"
               >
                 <button
-                  onClick={() => onApplyFix?.(insight.suggestedPrompt!)}
+                  onClick={() => {
+                    triggerHaptic('medium');
+                    onApplyFix?.(insight.suggestedPrompt!);
+                  }}
                   className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-black text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl border-none group"
                 >
                   <Sparkles className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" />
@@ -187,7 +191,10 @@ export function StepLayout({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             {/* Always show Vérifier button */}
             <motion.button
-              onClick={handleVerifier}
+              onClick={async () => {
+                triggerHaptic('light');
+                await handleVerifier();
+              }}
               disabled={isValidating || isGenerating}
               aria-label="Vérifier cette étape"
               className={cn(
@@ -209,7 +216,10 @@ export function StepLayout({
 
             {/* Continuer / Étape suivante button — Always enabled and prominent */}
             <button
-              onClick={() => setShowConfirmModal(true)}
+              onClick={() => {
+                triggerHaptic('medium');
+                setShowConfirmModal(true);
+              }}
               aria-label="Passer à l'étape suivante"
               className={cn(
                 "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-1.5 rounded-xl sm:rounded-lg text-sm sm:text-xs font-semibold border-none transition-all",
@@ -253,7 +263,10 @@ export function StepLayout({
               </div>
               <div className="flex gap-4">
                 <button
-                  onClick={() => setShowConfirmModal(false)}
+                  onClick={() => {
+                    triggerHaptic('light');
+                    setShowConfirmModal(false);
+                  }}
                   className="flex-1 h-11 rounded-2xl bg-white/5 text-white font-semibold hover:bg-white/10 transition-all border-none"
                   aria-label="Annuler"
                 >
@@ -261,6 +274,7 @@ export function StepLayout({
                 </button>
                 <button
                   onClick={() => {
+                    triggerHaptic('success');
                     setShowConfirmModal(false);
                     onValidate();
                   }}

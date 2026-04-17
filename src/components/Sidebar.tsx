@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { triggerHaptic } from '@/lib/haptics';
 import { WorkflowStage } from '@/types';
 
 interface SidebarProps {
@@ -61,7 +62,12 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, variant =
           return (
             <button
               key={stage.id}
-              onClick={() => !isLocked && onStageChange(stage.id)}
+              onClick={() => {
+                if (!isLocked) {
+                  triggerHaptic('light');
+                  onStageChange(stage.id);
+                }
+              }}
               disabled={isLocked}
               aria-label={`${stage.id}`}
               aria-current={isActive ? 'step' : undefined}
@@ -112,7 +118,12 @@ export function Sidebar({ activeStage, onStageChange, validatedStages, variant =
           return (
             <div key={stage.id} className="relative group/btn flex flex-col w-full">
               <button
-                onClick={() => !isLocked && onStageChange(stage.id)}
+                onClick={() => {
+                  if (!isLocked) {
+                    triggerHaptic('light');
+                    onStageChange(stage.id);
+                  }
+                }}
                 disabled={isLocked}
                 aria-label={`Stage ${stage.step} of ${stages.length}: ${stage.id}`}
                 aria-current={isActive ? "step" : undefined}

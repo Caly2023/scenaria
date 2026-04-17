@@ -165,9 +165,15 @@ export function SettingsDrawer({
                   triggerHaptic('light');
                   onClose();
                 }}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all text-white border-none"
+                aria-label="Fermer les paramètres"
+                className={cn(
+                  "flex items-center justify-center rounded-full transition-all text-white border-none",
+                  isMobile
+                    ? "w-11 h-11 bg-white/10 hover:bg-white/20 shadow-lg active:scale-95"
+                    : "w-10 h-10 bg-white/5 hover:bg-white/10"
+                )}
               >
-                <X className="w-5 h-5" />
+                <X className={cn("w-5 h-5", isMobile && "w-6 h-6")} />
               </button>
             </div>
 

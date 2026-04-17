@@ -78,8 +78,8 @@ export function StepLayout({
   };
 
   return (
-    <div className="w-full h-auto flex-1 flex flex-col space-y-10 md:space-y-16 pb-0 md:pb-40">
-      <div className="flex-1 flex flex-col space-y-10 md:space-y-16">
+    <div className="w-full h-auto flex-1 flex flex-col space-y-12 md:space-y-16 pb-4 md:pb-40">
+      <div className="flex-1 flex flex-col space-y-12 md:space-y-16">
         <div className="text-center space-y-4">
           <span className="text-sm md:text-xs uppercase tracking-[0.28em] md:tracking-[0.4em] text-white/50 font-bold">
             {t('common.step', { defaultValue: 'Étape' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}

@@ -106,7 +106,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-        className="mt-24 md:mt-24 mb-10 md:mb-16 flex flex-col items-center gap-8 z-10 w-full"
+        className="mt-20 md:mt-24 mb-12 md:mb-16 flex flex-col items-center gap-10 md:gap-8 z-10 w-full"
       >
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
           <div className="relative group">
@@ -132,14 +132,14 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
       </motion.div>
 
       {/* Main Container / Input Section */}
-      <div className="w-full max-w-4xl space-y-8 z-10">
+      <div className="w-full max-w-4xl space-y-10 md:space-y-8 z-10">
         
         {/* Format Selector */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-2 px-4"
+          className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-3 md:pb-2 px-2 md:px-4"
         >
           {['Auto', 'Short Film', 'Feature', 'Series'].map((format) => (
             <button
@@ -170,7 +170,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
             isFocused ? "border-white/20 bg-white/[0.04]" : ""
           )}
         >
-          <div className="p-6 md:p-12 space-y-6">
+          <div className="p-6 md:p-12 space-y-7 md:space-y-6">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -188,8 +188,8 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           </div>
 
           {/* Integrated Toolbar Footer */}
-          <div className="px-6 md:px-12 pb-8 md:pb-10 pt-2 flex items-center justify-between">
-            <div className="flex items-center gap-3 p-1.5 bg-white/5 rounded-full border border-white/5">
+          <div className="px-6 md:px-12 pb-8 md:pb-10 pt-3 md:pt-2 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 p-1.5 bg-white/5 rounded-full border border-white/5 shrink-0">
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -221,7 +221,7 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
               }}
               disabled={!storyIdea.trim() || isCreating}
               className={cn(
-                "h-12 px-10 rounded-full flex items-center gap-4 transition-all duration-500 border-none",
+                "h-12 px-8 md:px-10 rounded-full flex items-center gap-3 md:gap-4 transition-all duration-500 border-none",
                 storyIdea.trim() && !isCreating
                   ? "bg-white text-black hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
                   : "bg-white/5 text-white/20 cursor-not-allowed border border-white/10"
@@ -265,15 +265,15 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
         </AnimatePresence>
 
         {/* Recent Projects Section */}
-        <div className="w-full pt-16 pb-20">
-          <div className="flex items-center justify-between mb-8 px-6">
+        <div className="w-full pt-14 md:pt-16 pb-20">
+          <div className="flex items-center justify-between mb-7 md:mb-8 px-4 md:px-6">
             <div className="flex items-center gap-4">
               <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
               <h2 className="text-xs uppercase tracking-[0.4em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 w-full px-4 overflow-y-visible">
+          <div className="flex flex-col gap-4 md:gap-3 w-full px-2 md:px-4 overflow-y-visible">
             <AnimatePresence mode="popLayout">
               {projects.length > 0 ? (
                 projects.map((project, idx) => (

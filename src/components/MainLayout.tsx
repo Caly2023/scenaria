@@ -298,7 +298,7 @@ export function MainLayout({
               className={cn(
                 "w-full max-w-4xl mx-auto flex flex-col justify-start relative",
                 isMobile 
-                  ? "px-3 pb-0 pt-[calc(var(--header-top-padding)+56px)]" 
+                  ? "px-3 pb-2 pt-[calc(var(--header-top-padding)+64px)]" 
                   : "flex-1 px-6 py-12 md:pl-32 md:pr-12",
               )}
             >

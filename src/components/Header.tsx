@@ -184,8 +184,8 @@ export function Header({
         </div>
 
 
-        {/* Sync status */}
-        <div className="flex items-center gap-2 px-2.5 md:px-3 py-2 md:py-1.5 rounded-xl bg-white/10 md:bg-white/5 border border-white/10 md:border-transparent">
+        {/* Sync status (desktop only) */}
+        <div className="hidden md:flex items-center gap-2 px-2.5 md:px-3 py-2 md:py-1.5 rounded-xl bg-white/10 md:bg-white/5 border border-white/10 md:border-transparent">
           <RefreshCw className={cn(
             "w-4 h-4",
             syncStatus === 'syncing' ? "animate-spin text-white" : "text-white/50 md:text-white/20",
@@ -195,14 +195,6 @@ export function Header({
             {syncStatus === 'synced' ? t('common.synced') : syncStatus === 'syncing' ? t('common.syncing') : t('common.error')}
           </span>
         </div>
-
-        <button
-          onClick={onInfoClick}
-          aria-label="Informations du projet"
-          className="md:hidden w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 text-white/80 hover:text-white transition-all border border-white/10 border-solid"
-        >
-          <Info className="w-5 h-5" />
-        </button>
 
         <button
           onClick={onSettingsClick}

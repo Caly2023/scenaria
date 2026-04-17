@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-  Home, 
   ChevronDown, 
   RefreshCw,
   Info,
@@ -20,7 +19,10 @@ import { AiFlowToggle } from './AiFlowToggle';
 
 interface HeaderProps {
   projectName: string;
-  onProjectSwitch: () => void;
+  projectHistory: { id: string; title: string; logline: string; updatedAt: number }[];
+  currentProjectId: string;
+  onProjectSelect: (projectId: string) => void;
+  onNewStory: () => void;
   onCallStart: () => void;
   onInfoClick: () => void;
   syncStatus: 'synced' | 'syncing' | 'error';
@@ -35,7 +37,10 @@ interface HeaderProps {
 
 export function Header({ 
   projectName, 
-  onProjectSwitch, 
+  projectHistory,
+  currentProjectId,
+  onProjectSelect,
+  onNewStory,
   onCallStart, 
   onInfoClick,
   syncStatus, 
@@ -49,6 +54,7 @@ export function Header({
 }: HeaderProps) {
   const { t } = useTranslation();
   const [isAccessOpen, setIsAccessOpen] = React.useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);
 
   const toggleAccess = (key: string) => {
     onAccessibilityChange({
@@ -58,6 +64,7 @@ export function Header({
   };
 
   return (
+    <>
     <header 
       className={cn(
         "bg-[#0f0f0f] z-50 border-b border-white/5 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] flex-shrink-0 w-full overflow-hidden",
@@ -72,14 +79,18 @@ export function Header({
         isCompact ? "h-14 md:h-14" : "h-14 md:h-16"
       )}>
 
-      {/* Left — Home + Project name */}
+      {/* Left — Burger + Project name */}
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <button 
-          onClick={onProjectSwitch}
-          aria-label="Home"
-          className="flex items-center justify-center w-11 h-11 md:w-10 md:h-10 rounded-xl hover:bg-white/10 transition-all flex-shrink-0 border-none group"
+          onClick={() => setIsHistoryOpen(true)}
+          aria-label="Ouvrir le menu"
+          className="flex items-center justify-center w-11 h-11 md:w-10 md:h-10 rounded-xl hover:bg-white/10 transition-all flex-shrink-0 border-none group/menu"
         >
-          <Home className="w-5 h-5 text-white/70 md:text-white/40 group-hover:text-white transition-colors" />
+          <div className="flex flex-col items-start gap-1.5">
+            <span className="h-[1.5px] w-5 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
+            <span className="h-[1.5px] w-3.5 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
+            <span className="h-[1.5px] w-4.5 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
+          </div>
         </button>
 
         {/* Desktop-only project info & tools */}
@@ -196,14 +207,6 @@ export function Header({
           </span>
         </div>
 
-        <button
-          onClick={onSettingsClick}
-          aria-label="Parametres"
-          className="w-11 h-11 md:w-8 md:h-8 rounded-xl md:rounded-lg flex items-center justify-center bg-white/10 md:bg-white/5 text-white/80 md:text-white/40 hover:text-white transition-all border border-white/10 md:border-transparent border-solid"
-        >
-          <Settings className="w-5 h-5 md:w-4 md:h-4" />
-        </button>
-
         {/* Accessibility Toggle — desktop only */}
         <div className="relative hidden md:block">
           <button 
@@ -273,5 +276,80 @@ export function Header({
       </div>
     </header>
 
+    <AnimatePresence>
+      {isHistoryOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsHistoryOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]"
+          />
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+            className="fixed left-0 top-0 bottom-0 z-[100] w-[88vw] max-w-[360px] md:w-[340px] bg-[#121212] border-r border-white/10 shadow-2xl flex flex-col"
+            style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 10px)' }}
+          >
+            <div className="px-4 pt-2 pb-4 border-b border-white/10">
+              <button
+                onClick={() => {
+                  setIsHistoryOpen(false);
+                  onNewStory();
+                }}
+                className="w-full h-11 rounded-xl bg-white text-black font-semibold text-sm hover:opacity-90 transition-opacity border-none"
+              >
+                Nouvelle histoire
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {projectHistory.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setIsHistoryOpen(false);
+                    if (item.id !== currentProjectId) onProjectSelect(item.id);
+                  }}
+                  className={cn(
+                    'w-full text-left rounded-xl px-3 py-3 border transition-colors border-solid',
+                    item.id === currentProjectId
+                      ? 'bg-white/10 border-white/20'
+                      : 'bg-white/[0.03] border-transparent hover:bg-white/5'
+                  )}
+                >
+                  <p className="text-sm font-semibold text-white truncate">
+                    {item.title || 'Projet sans titre'}
+                  </p>
+                  <p className="text-xs text-white/50 line-clamp-2 mt-1">
+                    {item.logline || 'Aucune logline'}
+                  </p>
+                </button>
+              ))}
+            </div>
+
+            <div
+              className="p-3 border-t border-white/10 bg-[#151515]"
+              style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+            >
+              <button
+                onClick={() => {
+                  setIsHistoryOpen(false);
+                  onSettingsClick();
+                }}
+                className="w-full h-11 rounded-xl bg-white/5 text-white flex items-center gap-2 justify-center hover:bg-white/10 transition-colors border-none"
+              >
+                <Settings className="w-4 h-4" />
+                Parametres
+              </button>
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

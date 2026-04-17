@@ -52,6 +52,7 @@ type ScriptDoctorProps = {
 
 interface MainLayoutProps {
   currentProject: Project;
+  projectHistory: { id: string; title: string; logline: string; updatedAt: number }[];
   user: {
     displayName: string | null;
     email: string | null;
@@ -90,6 +91,7 @@ interface MainLayoutProps {
   
   // Callbacks
   handleStageChange: (stage: WorkflowStage) => void;
+  handleProjectSelect: (projectId: string) => void;
   handleProjectExit: () => void;
   handleOpenDoctor: () => void;
   handleCloseDoctor: () => void;
@@ -125,6 +127,7 @@ interface MainLayoutProps {
 
 export function MainLayout({
   currentProject,
+  projectHistory,
   user,
   activeStage,
   isMobile,
@@ -151,6 +154,7 @@ export function MainLayout({
   activeTool,
   
   handleStageChange,
+  handleProjectSelect,
   handleProjectExit,
   handleOpenDoctor,
   handleCloseDoctor,
@@ -267,7 +271,10 @@ export function MainLayout({
         <div className={cn(isMobile && "fixed top-0 left-0 right-0 z-50")}>
           <Header
             projectName={currentProject?.metadata?.title || "Untitled"}
-            onProjectSwitch={handleProjectExit}
+            projectHistory={projectHistory}
+            currentProjectId={currentProject.id}
+            onProjectSelect={handleProjectSelect}
+            onNewStory={handleProjectExit}
             onCallStart={NOOP}
             onInfoClick={() => setIsHelpOpen(true)}
             syncStatus={syncStatus}

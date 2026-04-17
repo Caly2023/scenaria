@@ -430,16 +430,19 @@ export function SettingsDrawer({
           />
 
           <motion.aside
-            initial={isMobile ? { y: '100%' } : { x: '100%' }}
-            animate={isMobile ? { y: 0 } : { x: 0 }}
-            exit={isMobile ? { y: '100%' } : { x: '100%' }}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
               'fixed z-[100] bg-background shadow-2xl flex flex-col border-white/10',
-              isMobile ? 'inset-0 h-[100dvh] w-full' : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
+              isMobile ? 'top-0 right-0 bottom-0 w-[90vw] max-w-[420px] border-l' : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
             )}
           >
-            <div className={cn("h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0", isMobile && "h-20")}>
+            <div
+              className={cn("h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0", isMobile && "h-20")}
+              style={isMobile ? { paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' } : undefined}
+            >
               <div className="flex items-center gap-2 min-w-0">
                 {activeSection !== 'menu' && (
                   <button

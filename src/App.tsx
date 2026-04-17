@@ -299,6 +299,15 @@ export default function App() {
     <>
       <MainLayout
         currentProject={currentProject}
+        projectHistory={projects
+          .slice()
+          .sort((a, b) => b.updatedAt - a.updatedAt)
+          .map((project) => ({
+            id: project.id,
+            title: project.metadata?.title || "Projet sans titre",
+            logline: project.metadata?.logline || "",
+            updatedAt: project.updatedAt || 0,
+          }))}
         user={{
           displayName: user.displayName,
           email: user.email,
@@ -330,6 +339,7 @@ export default function App() {
         aiStatus={aiStatus}
         activeTool={activeTool}
         handleStageChange={handleStageChange}
+        handleProjectSelect={handleProjectSelect}
         handleProjectExit={handleProjectExit}
         handleOpenDoctor={handleOpenDoctor}
         handleCloseDoctor={handleCloseDoctor}

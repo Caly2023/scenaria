@@ -68,8 +68,8 @@ export function Header({
       }}
     >
       <div className={cn(
-        "flex items-center justify-between px-4 md:px-6 w-full relative",
-        isCompact ? "h-12 md:h-14" : "h-12 md:h-16"
+        "flex items-center justify-between px-3 md:px-6 w-full relative",
+        isCompact ? "h-14 md:h-14" : "h-14 md:h-16"
       )}>
 
       {/* Left — Home + Project name */}
@@ -77,9 +77,9 @@ export function Header({
         <button 
           onClick={onProjectSwitch}
           aria-label="Home"
-          className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-all flex-shrink-0 border-none group"
+          className="flex items-center justify-center w-11 h-11 md:w-10 md:h-10 rounded-xl hover:bg-white/10 transition-all flex-shrink-0 border-none group"
         >
-          <Home className="w-5 h-5 text-white/40 group-hover:text-white transition-colors" />
+          <Home className="w-5 h-5 text-white/70 md:text-white/40 group-hover:text-white transition-colors" />
         </button>
 
         {/* Desktop-only project info & tools */}
@@ -134,12 +134,12 @@ export function Header({
       </div>
 
       {/* Mobile-only Centered Project Name */}
-      <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[50%]">
+      <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[44%]">
         <button 
           onClick={onTitleClick}
           className="flex items-center gap-1.5 min-w-0 border-none bg-transparent p-0"
         >
-          <span className="text-base font-bold tracking-tight text-white truncate">
+          <span className="text-[15px] font-semibold tracking-tight text-white truncate">
             {projectName}
           </span>
           <ChevronDown 
@@ -153,7 +153,7 @@ export function Header({
 
 
       {/* Right — Sync + Accessibility (+ collaborators on desktop) */}
-      <div className="flex items-center gap-2 md:gap-6 flex-shrink-0">
+      <div className="flex items-center gap-1.5 md:gap-6 flex-shrink-0">
         
         {/* Collaborators — desktop only */}
         <div className={cn("hidden md:flex items-center gap-4 transition-all duration-300 overflow-hidden", isCompact ? "w-0 opacity-0" : "w-auto opacity-100")}>
@@ -185,10 +185,10 @@ export function Header({
 
 
         {/* Sync status */}
-        <div className="flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg bg-white/5">
+        <div className="flex items-center gap-2 px-2.5 md:px-3 py-2 md:py-1.5 rounded-xl bg-white/10 md:bg-white/5 border border-white/10 md:border-transparent">
           <RefreshCw className={cn(
-            "w-3.5 h-3.5",
-            syncStatus === 'syncing' ? "animate-spin text-white" : "text-white/20",
+            "w-4 h-4",
+            syncStatus === 'syncing' ? "animate-spin text-white" : "text-white/50 md:text-white/20",
             syncStatus === 'error' && "text-red-500"
           )} />
           <span className="hidden sm:block text-xs uppercase tracking-widest font-bold text-white/30">
@@ -197,11 +197,19 @@ export function Header({
         </div>
 
         <button
+          onClick={onInfoClick}
+          aria-label="Informations du projet"
+          className="md:hidden w-11 h-11 rounded-xl flex items-center justify-center bg-white/10 text-white/80 hover:text-white transition-all border border-white/10 border-solid"
+        >
+          <Info className="w-5 h-5" />
+        </button>
+
+        <button
           onClick={onSettingsClick}
           aria-label="Parametres"
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 text-white/40 hover:text-white transition-all border-none"
+          className="w-11 h-11 md:w-8 md:h-8 rounded-xl md:rounded-lg flex items-center justify-center bg-white/10 md:bg-white/5 text-white/80 md:text-white/40 hover:text-white transition-all border border-white/10 md:border-transparent border-solid"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-5 h-5 md:w-4 md:h-4" />
         </button>
 
         {/* Accessibility Toggle — desktop only */}

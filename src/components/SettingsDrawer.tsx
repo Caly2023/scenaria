@@ -5,7 +5,6 @@ import {
   Monitor,
   Moon,
   Save,
-  Settings,
   Sun,
   UserCircle2,
   X,
@@ -144,20 +143,14 @@ export function SettingsDrawer({
             exit={isMobile ? { y: '100%' } : { x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
-              'fixed z-[100] bg-[#212121] shadow-2xl flex flex-col border-white/5',
+              'fixed z-[100] bg-[#1b1b1b] shadow-2xl flex flex-col border-white/10',
               isMobile ? 'inset-0 h-[100dvh] w-full' : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
             )}
           >
-            <div className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-[#1a1a1a] flex-shrink-0">
+            <div className="h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/5 text-white flex items-center justify-center">
-                  <Settings className="w-5 h-5" />
-                </div>
                 <div className="flex flex-col leading-none">
-                  <h3 className="text-sm font-bold tracking-tight text-white">Parametres</h3>
-                  <span className="text-[10px] uppercase tracking-widest text-white/30 font-bold mt-1">
-                    Compte, preferences et session
-                  </span>
+                  <h3 className="text-base font-semibold tracking-tight text-white">Parametres</h3>
                 </div>
               </div>
               <button
@@ -169,7 +162,7 @@ export function SettingsDrawer({
                 className={cn(
                   "flex items-center justify-center rounded-full transition-all text-white border-none",
                   isMobile
-                    ? "w-11 h-11 bg-white/10 hover:bg-white/20 shadow-lg active:scale-95"
+                    ? "w-11 h-11 bg-white/10 hover:bg-white/20 active:scale-95"
                     : "w-10 h-10 bg-white/5 hover:bg-white/10"
                 )}
               >
@@ -177,8 +170,8 @@ export function SettingsDrawer({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-5 scroll-smooth overscroll-contain">
-              <section className="bg-white/[0.02] p-5 rounded-[24px] border border-white/5 space-y-5">
+            <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3 scroll-smooth overscroll-contain">
+              <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-4">
                 <div className="flex items-center gap-4">
                   {user.photoURL ? (
                     <img
@@ -194,7 +187,7 @@ export function SettingsDrawer({
                   )}
 
                   <div className="min-w-0">
-                    <p className="text-lg font-semibold text-white truncate">
+                    <p className="text-base font-semibold text-white truncate">
                       {user.displayName || 'Utilisateur'}
                     </p>
                     <p className="text-sm text-white/50 truncate">{user.email || 'Aucun email'}</p>
@@ -203,40 +196,40 @@ export function SettingsDrawer({
 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold ml-1">
+                    <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold ml-1">
                       Nom d'affichage
                     </label>
                     <input
                       type="text"
                       value={displayName}
                       onChange={(event) => setDisplayName(event.target.value)}
-                      className="w-full bg-[#121212] border border-white/5 rounded-full px-5 h-11 text-base font-medium text-white focus:border-white/20 outline-none"
+                      className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-base font-medium text-white focus:border-white/30 outline-none"
                       placeholder="Votre nom"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-widest text-white/30 font-bold ml-1">
+                    <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold ml-1">
                       Photo de profil
                     </label>
                     <input
                       type="url"
                       value={photoURL}
                       onChange={(event) => setPhotoURL(event.target.value)}
-                      className="w-full bg-[#121212] border border-white/5 rounded-full px-5 h-11 text-sm font-medium text-white focus:border-white/20 outline-none"
+                      className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-sm font-medium text-white focus:border-white/30 outline-none"
                       placeholder="https://..."
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="rounded-[20px] border border-white/5 bg-[#121212] px-4 py-3 flex items-center gap-3">
+                    <div className="rounded-xl border border-white/10 bg-[#111111] px-3.5 py-3 flex items-center gap-3">
                       <Mail className="w-4 h-4 text-white/40" />
                       <div className="min-w-0">
                         <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Email</p>
                         <p className="text-sm text-white/70 truncate">{user.email || 'Non renseigne'}</p>
                       </div>
                     </div>
-                    <div className="rounded-[20px] border border-white/5 bg-[#121212] px-4 py-3 flex items-center gap-3">
+                    <div className="rounded-xl border border-white/10 bg-[#111111] px-3.5 py-3 flex items-center gap-3">
                       <Shield className="w-4 h-4 text-white/40" />
                       <div>
                         <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Connexion</p>
@@ -259,12 +252,11 @@ export function SettingsDrawer({
                 </div>
               </section>
 
-              <section className="bg-white/[0.02] p-5 rounded-[24px] border border-white/5 space-y-4">
+              <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3">
                 <div className="flex items-center gap-3">
                   <Globe className="w-4 h-4 text-white/50" />
                   <div>
                     <h4 className="text-sm font-semibold text-white">Langue</h4>
-                    <p className="text-xs text-white/40">Basculer l'interface instantanement</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -281,10 +273,10 @@ export function SettingsDrawer({
                           onLanguageChange(option.value);
                         }}
                         className={cn(
-                          'rounded-[20px] border px-4 py-3 text-sm font-semibold transition-all',
+                          'rounded-xl border px-4 py-3 text-sm font-semibold transition-all',
                           isActive
                             ? 'bg-white text-black border-white'
-                            : 'bg-[#121212] text-white/70 border-white/5 hover:border-white/15 hover:bg-white/5',
+                            : 'bg-[#111111] text-white/80 border-white/10 hover:border-white/20 hover:bg-white/5',
                         )}
                       >
                         {option.label}
@@ -294,12 +286,11 @@ export function SettingsDrawer({
                 </div>
               </section>
 
-              <section className="bg-white/[0.02] p-5 rounded-[24px] border border-white/5 space-y-4">
+              <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3">
                 <div className="flex items-center gap-3">
                   <Sun className="w-4 h-4 text-white/50" />
                   <div>
                     <h4 className="text-sm font-semibold text-white">Theme</h4>
-                    <p className="text-xs text-white/40">Choisir l'apparence generale</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -318,10 +309,10 @@ export function SettingsDrawer({
                           onThemeChange(option.value);
                         }}
                         className={cn(
-                          'rounded-[20px] border px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2',
+                          'rounded-xl border px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2',
                           isActive
                             ? 'bg-white text-black border-white'
-                            : 'bg-[#121212] text-white/70 border-white/5 hover:border-white/15 hover:bg-white/5',
+                            : 'bg-[#111111] text-white/80 border-white/10 hover:border-white/20 hover:bg-white/5',
                         )}
                       >
                         <Icon className="w-4 h-4" />
@@ -332,7 +323,7 @@ export function SettingsDrawer({
                 </div>
               </section>
 
-              <section className="bg-white/[0.02] p-5 rounded-[24px] border border-white/5 space-y-4">
+              <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3">
                 <h4 className="text-sm font-semibold text-white">Accessibilite</h4>
                 {[
                   {
@@ -360,7 +351,7 @@ export function SettingsDrawer({
                         triggerHaptic('light');
                         handleToggleAccessibility(item.key);
                       }}
-                      className="w-full flex items-center justify-between rounded-[20px] border border-white/5 bg-[#121212] px-4 py-3 hover:bg-white/5 transition-colors"
+                      className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] px-4 py-3 hover:bg-white/5 transition-colors"
                     >
                       <span className="flex items-center gap-3 text-white">
                         <Icon className="w-4 h-4 text-white/50" />
@@ -384,12 +375,11 @@ export function SettingsDrawer({
                 })}
               </section>
 
-              <section className="bg-red-500/5 p-5 rounded-[24px] border border-red-500/10 space-y-4">
+              <section className="bg-red-500/5 p-4 rounded-2xl border border-red-500/20 space-y-3">
                 <div className="flex items-center gap-3">
                   <LogOut className="w-4 h-4 text-red-400" />
                   <div>
                     <h4 className="text-sm font-semibold text-white">Session</h4>
-                    <p className="text-xs text-white/40">Se deconnecter de votre espace Scenaria</p>
                   </div>
                 </div>
                 <button

@@ -164,26 +164,26 @@ export function SettingsDrawer({
 
   const renderMenu = () => (
     <section className="space-y-3">
-      <div className="rounded-2xl border border-white/10 bg-[#161616] p-4 flex items-center gap-4">
+      <div className={cn("rounded-2xl border border-white/10 bg-[#161616] p-4 flex items-center gap-4", isMobile && "rounded-3xl p-5")}>
         {user.photoURL ? (
           <img
             src={user.photoURL}
             alt={user.displayName || 'Avatar'}
             referrerPolicy="no-referrer"
-            className="w-14 h-14 rounded-2xl object-cover border border-white/10"
+            className={cn("w-14 h-14 rounded-2xl object-cover border border-white/10", isMobile && "w-16 h-16 rounded-3xl")}
           />
         ) : (
-          <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-            <UserCircle2 className="w-7 h-7 text-white/40" />
+          <div className={cn("w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center", isMobile && "w-16 h-16 rounded-3xl")}>
+            <UserCircle2 className={cn("w-7 h-7 text-white/40", isMobile && "w-8 h-8")} />
           </div>
         )}
         <div className="min-w-0">
-          <p className="text-base font-semibold text-white truncate">{user.displayName || 'Utilisateur'}</p>
-          <p className="text-sm text-white/50 truncate">{user.email || 'Aucun email'}</p>
+          <p className={cn("text-base font-semibold text-white truncate", isMobile && "text-lg")}>{user.displayName || 'Utilisateur'}</p>
+          <p className={cn("text-sm text-white/50 truncate", isMobile && "text-[15px]")}>{user.email || 'Aucun email'}</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-[#161616] p-2">
+      <div className={cn("rounded-2xl border border-white/10 bg-[#161616] p-2", isMobile && "rounded-3xl p-3")}>
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -195,17 +195,18 @@ export function SettingsDrawer({
               }}
               className={cn(
                 'w-full rounded-xl px-3 py-3.5 flex items-center gap-3 hover:bg-white/5 transition-colors border-none',
+                isMobile && 'rounded-2xl px-4 py-4',
                 item.danger && 'hover:bg-red-500/10'
               )}
             >
-              <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center border', item.danger ? 'bg-red-500/10 border-red-500/20' : 'bg-[#111111] border-white/10')}>
-                <Icon className={cn('w-4 h-4', item.danger ? 'text-red-400' : 'text-white/60')} />
+              <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center border', isMobile && "w-11 h-11 rounded-xl", item.danger ? 'bg-red-500/10 border-red-500/20' : 'bg-[#111111] border-white/10')}>
+                <Icon className={cn('w-4 h-4', isMobile && "w-5 h-5", item.danger ? 'text-red-400' : 'text-white/60')} />
               </div>
               <div className="flex-1 text-left min-w-0">
-                <p className={cn('text-sm font-semibold', item.danger ? 'text-red-300' : 'text-white')}>{item.title}</p>
-                <p className={cn('text-xs truncate', item.danger ? 'text-red-300/60' : 'text-white/45')}>{item.subtitle}</p>
+                <p className={cn('text-sm font-semibold', isMobile && "text-base", item.danger ? 'text-red-300' : 'text-white')}>{item.title}</p>
+                <p className={cn('text-xs truncate', isMobile && "text-sm", item.danger ? 'text-red-300/60' : 'text-white/45')}>{item.subtitle}</p>
               </div>
-              <ChevronRight className={cn('w-4 h-4', item.danger ? 'text-red-300/60' : 'text-white/30')} />
+              <ChevronRight className={cn('w-4 h-4', isMobile && "w-5 h-5", item.danger ? 'text-red-300/60' : 'text-white/30')} />
             </button>
           );
         })}
@@ -216,7 +217,7 @@ export function SettingsDrawer({
   const renderSection = () => {
     if (activeSection === 'profile') {
       return (
-        <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-4">
+        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-4", isMobile && "rounded-3xl p-5 space-y-5")}>
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold ml-1">Nom d'affichage</label>
@@ -224,7 +225,7 @@ export function SettingsDrawer({
                 type="text"
                 value={displayName}
                 onChange={(event) => setDisplayName(event.target.value)}
-                className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-base font-medium text-white focus:border-white/30 outline-none"
+                className={cn("w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-base font-medium text-white focus:border-white/30 outline-none", isMobile && "h-13 rounded-2xl text-lg")}
                 placeholder="Votre nom"
               />
             </div>
@@ -235,7 +236,7 @@ export function SettingsDrawer({
                 type="url"
                 value={photoURL}
                 onChange={(event) => setPhotoURL(event.target.value)}
-                className="w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-sm font-medium text-white focus:border-white/30 outline-none"
+                className={cn("w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-sm font-medium text-white focus:border-white/30 outline-none", isMobile && "h-13 rounded-2xl text-base")}
                 placeholder="https://..."
               />
             </div>
@@ -263,7 +264,7 @@ export function SettingsDrawer({
                 handleSaveProfile().then(() => setActiveSection('menu'));
               }}
               disabled={isSavingProfile || !canSaveProfile}
-              className="yt-btn-primary w-full h-12 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={cn("yt-btn-primary w-full h-12 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed", isMobile && "h-14 text-base")}
             >
               {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSavingProfile ? 'Enregistrement...' : 'Enregistrer mes informations'}
@@ -275,7 +276,7 @@ export function SettingsDrawer({
 
     if (activeSection === 'language') {
       return (
-        <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3">
+        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3", isMobile && "rounded-3xl p-5 space-y-4")}>
           <div className="grid grid-cols-2 gap-3">
             {[
               { value: 'fr', label: 'Francais' },
@@ -292,6 +293,7 @@ export function SettingsDrawer({
                   }}
                   className={cn(
                     'rounded-xl border px-4 py-3 text-sm font-semibold transition-all',
+                    isMobile && 'rounded-2xl py-3.5 text-base',
                     isActive
                       ? 'bg-white text-black border-white'
                       : 'bg-[#111111] text-white/80 border-white/10 hover:border-white/20 hover:bg-white/5',
@@ -308,7 +310,7 @@ export function SettingsDrawer({
 
     if (activeSection === 'theme') {
       return (
-        <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3">
+        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3", isMobile && "rounded-3xl p-5 space-y-4")}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { value: 'dark' as ThemeMode, label: 'Sombre', icon: Moon },
@@ -327,12 +329,13 @@ export function SettingsDrawer({
                   }}
                   className={cn(
                     'rounded-xl border px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2',
+                    isMobile && 'rounded-2xl py-3.5 text-base',
                     isActive
                       ? 'bg-white text-black border-white'
                       : 'bg-[#111111] text-white/80 border-white/10 hover:border-white/20 hover:bg-white/5',
                   )}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className={cn("w-4 h-4", isMobile && "w-5 h-5")} />
                   {option.label}
                 </button>
               );
@@ -344,7 +347,7 @@ export function SettingsDrawer({
 
     if (activeSection === 'accessibility') {
       return (
-        <section className="bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3">
+        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3", isMobile && "rounded-3xl p-5 space-y-4")}>
           {[
             {
               key: 'highContrast' as keyof AccessibilitySettings,
@@ -371,11 +374,11 @@ export function SettingsDrawer({
                   triggerHaptic('light');
                   handleToggleAccessibility(item.key);
                 }}
-                className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] px-4 py-3 hover:bg-white/5 transition-colors"
+                className={cn("w-full flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] px-4 py-3 hover:bg-white/5 transition-colors", isMobile && "rounded-2xl px-5 py-4")}
               >
                 <span className="flex items-center gap-3 text-white">
-                  <Icon className="w-4 h-4 text-white/50" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <Icon className={cn("w-4 h-4 text-white/50", isMobile && "w-5 h-5")} />
+                  <span className={cn("text-sm font-medium", isMobile && "text-base")}>{item.label}</span>
                 </span>
                 <span
                   className={cn(
@@ -398,14 +401,14 @@ export function SettingsDrawer({
     }
 
     return (
-      <section className="bg-red-500/5 p-4 rounded-2xl border border-red-500/20 space-y-3">
+      <section className={cn("bg-red-500/5 p-4 rounded-2xl border border-red-500/20 space-y-3", isMobile && "rounded-3xl p-5")}>
         <button
           onClick={() => {
             triggerHaptic('warning');
             handleLogout();
           }}
           disabled={isLoggingOut}
-          className="w-full h-12 rounded-2xl bg-red-500/10 text-red-400 font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          className={cn("w-full h-12 rounded-2xl bg-red-500/10 text-red-400 font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50", isMobile && "h-14 text-base")}
         >
           {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
           {isLoggingOut ? 'Deconnexion...' : 'Se deconnecter'}
@@ -432,11 +435,11 @@ export function SettingsDrawer({
             exit={isMobile ? { y: '100%' } : { x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
-              'fixed z-[100] bg-[#1b1b1b] shadow-2xl flex flex-col border-white/10',
+              'fixed z-[100] bg-background shadow-2xl flex flex-col border-white/10',
               isMobile ? 'inset-0 h-[100dvh] w-full' : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
             )}
           >
-            <div className="h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0">
+            <div className={cn("h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0", isMobile && "h-20")}>
               <div className="flex items-center gap-2 min-w-0">
                 {activeSection !== 'menu' && (
                   <button
@@ -445,14 +448,14 @@ export function SettingsDrawer({
                       setActiveSection('menu');
                     }}
                     aria-label="Retour"
-                    className="w-9 h-9 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-white/80 border-none"
+                    className={cn("rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-white/80 border-none", isMobile ? "w-11 h-11" : "w-9 h-9")}
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className={cn("w-4 h-4", isMobile && "w-5 h-5")} />
                   </button>
                 )}
                 <div className="flex items-center gap-2">
-                  <Settings2 className="w-4 h-4 text-white/60" />
-                  <h3 className="text-base font-semibold tracking-tight text-white">
+                  <Settings2 className={cn("w-4 h-4 text-white/60", isMobile && "w-5 h-5")} />
+                  <h3 className={cn("text-base font-semibold tracking-tight text-white", isMobile && "text-lg")}>
                     {activeSection === 'menu'
                       ? 'Parametres'
                       : activeSection === 'profile'
@@ -476,7 +479,7 @@ export function SettingsDrawer({
                 className={cn(
                   "flex items-center justify-center rounded-full transition-all text-white border-none",
                   isMobile
-                    ? "w-11 h-11 bg-white/10 hover:bg-white/20 active:scale-95"
+                    ? "w-12 h-12 bg-white/10 hover:bg-white/20 active:scale-95"
                     : "w-10 h-10 bg-white/5 hover:bg-white/10"
                 )}
               >
@@ -504,9 +507,9 @@ export function SettingsDrawer({
                       triggerHaptic('light');
                       onClose();
                     }}
-                    className="w-full h-12 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                    className="w-full h-14 rounded-2xl bg-white/5 text-white font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-base"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                     Fermer
                   </button>
                 </section>

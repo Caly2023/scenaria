@@ -1,5 +1,6 @@
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
 import { geminiService } from './geminiService';
+import type { ScriptGenerationContext } from './ai/prompts';
 
 export const geminiApi = createApi({
   reducerPath: 'geminiApi',
@@ -65,10 +66,10 @@ export const geminiApi = createApi({
         }
       }
     }),
-    generateFullScript: builder.mutation<string, { structure: string; synopsis: string; treatmentText: string; characters: any[] }>({
-      queryFn: async ({ structure, synopsis, treatmentText, characters }) => {
+    generateFullScript: builder.mutation<string, ScriptGenerationContext>({
+      queryFn: async (scriptCtx) => {
         try {
-          const result = await geminiService.generateFullScript(structure, synopsis, treatmentText, characters);
+          const result = await geminiService.generateFullScript(scriptCtx);
           return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };

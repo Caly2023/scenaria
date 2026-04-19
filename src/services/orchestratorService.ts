@@ -271,6 +271,7 @@ export function buildProjectContext(
       tone: typeof metadata?.tone === 'string' ? metadata.tone : '',
       languages: Array.isArray(metadata?.languages) ? (metadata.languages as string[]) : [],
       logline: typeof metadata?.logline === 'string' ? metadata.logline : '',
+      targetDuration: typeof metadata?.targetDuration === 'string' ? metadata.targetDuration : undefined,
     },
     stageContents: stageContentsMap,
     stageAnalyses: stageAnalysesMap,

@@ -928,12 +928,12 @@ export const geminiService = {
     }, MODELS.PRO || MODELS.FLASH);
   },
 
-  async generateFullScript(structure: string, synopsis: string, treatment: string, characters: any[]) {
+  async generateFullScript(scriptCtx: Prompts.ScriptGenerationContext) {
     const MODELS = getModels();
     return resilientRequest(async (model) => {
       const response = await ai.models.generateContent({
         model: model,
-        contents: Prompts.SCRIPT_PROMPT(structure, synopsis, treatment, JSON.stringify(characters.map((c: any) => ({ name: c.name, role: c.role, description: c.description })))),
+        contents: Prompts.SCRIPT_PROMPT(scriptCtx),
         config: {
           responseMimeType: "application/json"
         }

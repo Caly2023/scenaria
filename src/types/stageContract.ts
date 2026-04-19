@@ -74,6 +74,8 @@ export interface ProjectContext {
     tone: string;
     languages: string[];
     logline: string;
+    /** e.g. "90 min", "52 min épisode" — from project metadata when available */
+    targetDuration?: string;
   };
   /** Full content of each already-populated stage, keyed by stage name */
   stageContents: Record<string, ContentPrimitive[]>;

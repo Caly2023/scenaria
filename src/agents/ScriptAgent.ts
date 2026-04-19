@@ -1,18 +1,32 @@
 import { BaseStageAgent } from './BaseStageAgent';
 import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageContract';
 import { geminiService } from '../services/geminiService';
+import type { ScriptGenerationContext } from '../services/ai/prompts';
 
 export class ScriptAgent extends BaseStageAgent {
   readonly stageId = 'Script';
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const structure = this._getStructure(context);
-      const synopsis = this._getSynopsis(context);
-      const treatmentText = this._getTreatmentText(context);
-      const characters = this._getCharacters(context);
+      const scriptCtx: ScriptGenerationContext = {
+        metadata: {
+          title: context.metadata.title,
+          genre: context.metadata.genre,
+          format: context.metadata.format,
+          tone: context.metadata.tone,
+          languages: context.metadata.languages,
+          logline: context.metadata.logline,
+          targetDuration: context.metadata.targetDuration,
+        },
+        structure: this._getStructure(context),
+        synopsis: this._getSynopsis(context),
+        treatment: this._getTreatmentText(context),
+        characterBible: this._serializeCharacterBible(context),
+        locationBible: this._serializeLocationBible(context),
+        stepOutline: this._serializeStepOutline(context),
+      };
 
-      const raw = await this.retryWithBackoff(() => geminiService.generateFullScript(structure, synopsis, treatmentText, characters));
+      const raw = await this.retryWithBackoff(() => geminiService.generateFullScript(scriptCtx));
       const scenes = this.normalizeToJsonArray<any>(raw);
 
       const content: ContentPrimitive[] = scenes.length > 0
@@ -106,9 +120,45 @@ export class ScriptAgent extends BaseStageAgent {
     return (context.stageContents['Treatment'] || []).map(p => `[${p.title}]\n${p.content}`).join('\n\n');
   }
 
-  private _getCharacters(context: ProjectContext): any[] {
-    return (context.stageContents['Character Bible'] || []).map(p => ({
-      name: p.title, role: p.metadata?.role || '', description: p.content.substring(0, 300)
-    }));
+  private _serializeCharacterBible(context: ProjectContext): string {
+    const prims = context.stageContents['Character Bible'] || [];
+    return JSON.stringify(
+      prims.map((p) => ({
+        name: p.title,
+        role: (p.metadata?.role as string) || '',
+        description: p.content,
+        tier: p.metadata?.tier,
+      })),
+      null,
+      2,
+    );
+  }
+
+  private _serializeLocationBible(context: ProjectContext): string {
+    const prims = context.stageContents['Location Bible'] || [];
+    return JSON.stringify(
+      prims.map((p) => ({
+        name: p.title,
+        atmosphere: (p.metadata?.atmosphere as string) || '',
+        description: p.content,
+      })),
+      null,
+      2,
+    );
+  }
+
+  private _serializeStepOutline(context: ProjectContext): string {
+    const prims = [...(context.stageContents['Step Outline'] || [])].sort((a, b) => a.order - b.order);
+    return JSON.stringify(
+      prims.map((p, i) => ({
+        index: i + 1,
+        title_slugline: p.title,
+        beats_and_action: p.content,
+        characterIds: p.metadata?.characterIds,
+        locationIds: p.metadata?.locationIds,
+      })),
+      null,
+      2,
+    );
   }
 }

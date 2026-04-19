@@ -132,6 +132,24 @@ export abstract class BaseStageAgent implements IStageAgent {
   }
 
   /**
+   * Gemini helpers often return already-parsed JSON (see geminiService.safeJsonParse).
+   * This coerces model output into a plain array for scene/block-style stages.
+   */
+  protected normalizeToJsonArray<T extends Record<string, unknown>>(raw: unknown): T[] {
+    if (Array.isArray(raw)) return raw as T[];
+    if (raw && typeof raw === 'object') {
+      const obj = raw as Record<string, unknown>;
+      const nested = obj.scenes ?? obj.blocks ?? obj.items ?? obj.script;
+      if (Array.isArray(nested)) return nested as T[];
+    }
+    if (typeof raw === 'string') {
+      const parsed = this.safeParseJson<T[]>(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+    return [];
+  }
+
+  /**
    * Build a ContentPrimitive from raw data.
    */
   protected buildPrimitive(

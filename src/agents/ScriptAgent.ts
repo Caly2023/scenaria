@@ -13,13 +13,34 @@ export class ScriptAgent extends BaseStageAgent {
       const characters = this._getCharacters(context);
 
       const raw = await this.retryWithBackoff(() => geminiService.generateFullScript(structure, synopsis, treatmentText, characters));
-      const scenes = this.safeParseJson<any[]>(raw) || [];
+      const scenes = this.normalizeToJsonArray<any>(raw);
 
-      const content: ContentPrimitive[] = Array.isArray(scenes) && scenes.length > 0
-        ? scenes.map((scene: any, i: number) =>
-            this.buildPrimitive(`script_${i}`, scene.title || `Scene ${i + 1}`, scene.content || '', 'script_scene', i)
-          )
-        : [this.buildPrimitive('script_0', 'Script', raw, 'script_scene', 0)];
+      const content: ContentPrimitive[] = scenes.length > 0
+        ? scenes.map((scene: any, i: number) => {
+            const body = scene?.content;
+            const text =
+              typeof body === 'string'
+                ? body
+                : body != null
+                  ? String(body)
+                  : '';
+            return this.buildPrimitive(
+              `script_${i}`,
+              scene?.title || `Scene ${i + 1}`,
+              text,
+              'script_scene',
+              i,
+            );
+          })
+        : [
+            this.buildPrimitive(
+              'script_0',
+              'Script',
+              typeof raw === 'string' ? raw : JSON.stringify(raw ?? ''),
+              'script_scene',
+              0,
+            ),
+          ];
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };

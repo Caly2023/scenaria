@@ -18,13 +18,21 @@ export class TreatmentAgent extends BaseStageAgent {
       ].filter(Boolean).join('\n\n');
 
       const raw = await this.retryWithBackoff(() => geminiService.generateTreatment(promptContext));
-      const blocks = this.safeParseJson<any[]>(raw) || [];
+      const blocks = this.normalizeToJsonArray<any>(raw);
 
-      const content: ContentPrimitive[] = Array.isArray(blocks) && blocks.length >= 3
+      const content: ContentPrimitive[] = blocks.length >= 3
         ? blocks.map((block: any, i: number) =>
             this.buildPrimitive(`treatment_${i}`, block.title || `Section ${i + 1}`, block.content || '', 'treatment_section', i)
           )
-        : [this.buildPrimitive('treatment_0', 'Treatment', raw, 'treatment_section', 0)];
+        : [
+            this.buildPrimitive(
+              'treatment_0',
+              'Treatment',
+              typeof raw === 'string' ? raw : JSON.stringify(raw ?? ''),
+              'treatment_section',
+              0,
+            ),
+          ];
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };

@@ -35,6 +35,53 @@ type ToolResult = {
   [key: string]: unknown;
 };
 
+function getTextFromModelResponse(response: unknown): string {
+  if (!response) return "";
+  if (typeof response === "string") return response;
+
+  const asRecord =
+    typeof response === "object" && !Array.isArray(response)
+      ? (response as Record<string, unknown>)
+      : null;
+  if (!asRecord) return "";
+
+  const directText = asRecord.text;
+  if (typeof directText === "string") return directText;
+
+  const candidateParts =
+    Array.isArray(asRecord.candidates) && asRecord.candidates.length > 0
+      ? (
+          asRecord.candidates[0] as Record<string, unknown>
+        )?.content as Record<string, unknown> | undefined
+      : undefined;
+  const contentParts =
+    (candidateParts &&
+      Array.isArray(candidateParts.parts) &&
+      candidateParts.parts) ||
+    (asRecord.content &&
+    typeof asRecord.content === "object" &&
+    !Array.isArray(asRecord.content) &&
+    Array.isArray((asRecord.content as Record<string, unknown>).parts)
+      ? ((asRecord.content as Record<string, unknown>).parts as unknown[])
+      : null) ||
+    (Array.isArray(asRecord.parts) ? asRecord.parts : null);
+
+  if (!contentParts) return "";
+
+  for (const part of contentParts) {
+    if (
+      part &&
+      typeof part === "object" &&
+      !Array.isArray(part) &&
+      typeof (part as Record<string, unknown>).text === "string"
+    ) {
+      return (part as Record<string, unknown>).text as string;
+    }
+  }
+
+  return "";
+}
+
 function getArgString(args: Record<string, unknown>, key: string): string | undefined {
   const value = args[key];
   return typeof value === "string" ? value : undefined;
@@ -1091,12 +1138,7 @@ ${resolvedContent}`;
         );
 
         // Parse the response (degraded mode always returns JSON)
-        const degradedText =
-          degradedResult?.candidates?.[0]?.content?.parts?.find(
-            (p: any) => p.text,
-          )?.text ??
-          degradedResult?.text ??
-          "";
+        const degradedText = getTextFromModelResponse(degradedResult);
 
         let degradedParsed: any;
         try {
@@ -1189,30 +1231,51 @@ ${resolvedContent}`;
         let iterationResult: any = null;
         let accumulatedText = "";
 
-        const stream = geminiService.streamScriptDoctorAgent(
-          conversationHistory,
-          context,
-          activeStage,
-          complexity,
-          idMapContext,
-        );
+        try {
+          const stream = geminiService.streamScriptDoctorAgent(
+            conversationHistory,
+            context,
+            activeStage,
+            complexity,
+            idMapContext,
+          );
 
-        for await (const part of stream) {
-          if (part.chunk) {
-            accumulatedText += part.chunk;
-            const displayContent = extractPartial(accumulatedText);
-            
-            setDoctorMessages((prev) =>
-              prev.map((m) =>
-                m.id === botMsgId
-                  ? { ...m, content: displayContent, status: `🔄 Step ${iteration + 1}...` }
-                  : m
-              )
-            );
+          for await (const part of stream) {
+            if (part.chunk) {
+              accumulatedText += part.chunk;
+              const displayContent = extractPartial(accumulatedText);
+              
+              setDoctorMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMsgId
+                    ? { ...m, content: displayContent, status: `🔄 Step ${iteration + 1}...` }
+                    : m
+                )
+              );
+            }
+            if (part.final) {
+              iterationResult = part.final;
+            }
           }
-          if (part.final) {
-            iterationResult = part.final;
-          }
+        } catch (streamError) {
+          console.warn(
+            "[ScriptDoctor] Streaming failed, falling back to non-stream call:",
+            streamError,
+          );
+          telemetryService.setStatus(
+            "Fallback",
+            "🛟",
+            "Streaming unavailable. Switching to standard response mode...",
+          );
+          setAiStatus("🛟 Streaming unavailable. Switching to standard mode...");
+
+          iterationResult = await geminiService.scriptDoctorAgent(
+            conversationHistory,
+            context,
+            activeStage,
+            complexity,
+            idMapContext,
+          );
         }
 
         const result = iterationResult;

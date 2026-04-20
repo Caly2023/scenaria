@@ -58,8 +58,8 @@ async function* streamGenkitFlow<T>(flowName: string, input: any): AsyncGenerato
     });
   } catch (error: any) {
     console.error(`[GeminiService] Stream connection failed for ${flowName}:`, error);
-    if (error.message === 'Failed to fetch') {
-      throw new Error(`Connection failed: The AI server at ${url} is unreachable.`);
+    if (error?.message === 'Failed to fetch') {
+      throw new Error(`Connection failed: The AI server at ${url} is unreachable (network/CORS/deployment issue).`);
     }
     throw error;
   }

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { flows, FlowName } from '@/services/ai/flows';
 
+// Vercel/Genkit streaming requires Node runtime and a longer max duration.
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 /**
  * GENKIT API ROUTE
  * Dynamically dispatches requests to the appropriate Genkit Flow.
@@ -74,9 +79,8 @@ export async function POST(
         headers: {
           'Content-Type': 'text/event-stream; charset=utf-8',
           'Cache-Control': 'no-cache, no-transform',
-          'Connection': 'keep-alive',
-          // Note: Next.js automatically handles 'Transfer-Encoding: chunked' for streaming responses.
-          // Manually setting it can cause network errors in some environments.
+          // Disables buffering on some proxy layers for better chunk delivery.
+          'X-Accel-Buffering': 'no',
         },
       });
     }

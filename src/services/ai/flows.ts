@@ -51,8 +51,8 @@ export const researchContextTool = ai.defineTool(
   {
     name: 'research_context',
     description: 'Pull full content from any previous stage for coherence checks. Returns data with primitive_ids.',
-    inputSchema: z.object({ stageName: z.string() }) as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.object({ stageName: z.string() }),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -85,10 +85,10 @@ export const executeMultiStageFixTool = ai.defineTool(
       fixes: z.array(z.object({
         id: z.string(),
         stage: z.string(),
-        updates: z.any() as any,
+        updates: z.object({}).passthrough(),
       })),
-    }) as any,
-    outputSchema: z.any() as any,
+    }),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -97,8 +97,8 @@ export const syncMetadataTool = ai.defineTool(
   {
     name: 'sync_metadata',
     description: "Ensure the project's DNA (title, tone, genre, etc.) is always up to date.",
-    inputSchema: z.object({ metadata: z.any() as any }) as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.object({ metadata: z.object({}).passthrough() }),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -109,10 +109,10 @@ export const addPrimitiveTool = ai.defineTool(
     description: 'Adds a new structural element (primitive) to a production stage.',
     inputSchema: z.object({
       stage: z.string(),
-      primitive: z.any() as any,
+      primitive: z.object({}).passthrough(),
       position: z.number().optional(),
-    }) as any,
-    outputSchema: z.any() as any,
+    }),
+    outputSchema: z.object({ status: z.string() }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -124,8 +124,8 @@ export const deletePrimitiveTool = ai.defineTool(
     inputSchema: z.object({
       id: z.string(),
       stage: z.string(),
-    }) as any,
-    outputSchema: z.any() as any,
+    }),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -136,9 +136,9 @@ export const restructureStageTool = ai.defineTool(
     description: 'Replaces all primitives in a stage with a new set. Use with caution.',
     inputSchema: z.object({
       stage: z.string(),
-      primitives: z.array(z.any() as any),
-    }) as any,
-    outputSchema: z.any() as any,
+      primitives: z.array(z.object({}).passthrough()),
+    }),
+    outputSchema: z.object({ status: z.string() }),
   },
   async () => ({ status: "client_execution_required" })
 );

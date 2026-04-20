@@ -1309,7 +1309,16 @@ ${resolvedContent}`;
         }
 
         const result = iterationResult;
-        if (!result) break;
+        if (!result) {
+          // Fallback: If streaming finished but we didn't get a formal 'final' object,
+          // use the accumulated text as the final response.
+          if (accumulatedText) {
+            console.log("[ScriptDoctor] No final result, falling back to accumulated text");
+            finalResponse = accumulatedText;
+            responseParts = [{ text: accumulatedText }];
+          }
+          break;
+        }
 
         // Genkit's CandidateData format:
         //   candidates[0].message.content => Part[]
@@ -1345,14 +1354,20 @@ ${resolvedContent}`;
 
         // If no structured parts at all, fall back to text property or JSON string
         if (!responseParts || responseParts.length === 0) {
-          finalResponse = typeof result === 'string' ? result : (result?.text ?? JSON.stringify(result));
+          finalResponse =
+            typeof result === "string"
+              ? result
+              : result?.text || accumulatedText || JSON.stringify(result);
           break;
         }
 
         // No function calls → this is the final text response
         if (functionCallParts.length === 0) {
           finalResponse =
-            textParts.map((p: any) => p.text).join('') || result?.text || JSON.stringify(result);
+            textParts.map((p: any) => p.text).join("") ||
+            result?.text ||
+            accumulatedText ||
+            JSON.stringify(result);
           break;
         }
 

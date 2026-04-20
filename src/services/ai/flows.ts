@@ -141,6 +141,31 @@ export const updateStageInsightTool = ai.defineTool(
   async () => ({ status: "client_execution_required" })
 );
 
+export const updateAgentStatusTool = ai.defineTool(
+  {
+    name: 'update_agent_status',
+    description: 'Updates the clinical status and internal thinking of the Script Doctor. Use this for high-level status updates or reasoning.',
+    inputSchema: z.object({
+      status: z.string().describe('Emoji + Short status (e.g., "🧠 Analyzing consistency...")'),
+      thinking: z.string().optional().describe('Internal reasoning (hidden from user)'),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const setSuggestedActionsTool = ai.defineTool(
+  {
+    name: 'set_suggested_actions',
+    description: 'Sets the contextual action chips for the user. Use this at the end of your turn.',
+    inputSchema: z.object({
+      actions: z.array(z.string()).describe('List of 2-3 action labels'),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
 const scriptDoctorTools = [
   fetchProjectStateTool,
   getStageStructureTool,
@@ -152,6 +177,8 @@ const scriptDoctorTools = [
   deletePrimitiveTool,
   restructureStageTool,
   updateStageInsightTool,
+  updateAgentStatusTool,
+  setSuggestedActionsTool,
 ];
 
 // 1. Script Doctor Flow

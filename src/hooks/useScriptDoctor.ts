@@ -140,6 +140,7 @@ export function useScriptDoctor({
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
   const [isInDegradedMode, setIsInDegradedMode] = useState(false);
+  const [currentBotMsgId, setCurrentBotMsgId] = useState<string | null>(null);
 
   // Normalize inputs to ensure they are always arrays
   const sequences = propsSequences || [];
@@ -164,7 +165,9 @@ export function useScriptDoctor({
   const executeToolCall = async (
     call: ToolCall,
     retryAttempt: number = 0,
+    botMsgIdParam?: string,
   ): Promise<ToolResult> => {
+    const botMsgId = botMsgIdParam || currentBotMsgId;
     if (!currentProject)
       return { success: false, error: "No active project", error_code: 0 };
     const { name } = call;
@@ -821,6 +824,42 @@ export function useScriptDoctor({
           return { success: true };
         }
 
+        case "update_agent_status": {
+          const status = getArgString(args, "status") ?? "🧠 Thinking...";
+          const thinking = getArgString(args, "thinking");
+          
+          setAiStatus(status);
+          telemetryService.setStatus("Agent Update", "🤖", status);
+          
+          if (botMsgId) {
+            setDoctorMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMsgId
+                  ? { ...m, status, thinking: thinking || m.thinking }
+                  : m
+              )
+            );
+          }
+          
+          return { success: true, status };
+        }
+
+        case "set_suggested_actions": {
+          const actions = (getArgArray(args, "actions") as string[]) ?? [];
+          
+          if (botMsgId) {
+            setDoctorMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMsgId
+                  ? { ...m, suggested_actions: actions }
+                  : m
+              )
+            );
+          }
+          
+          return { success: true, count: actions.length };
+        }
+
         default:
           return {
             success: false,
@@ -1062,7 +1101,7 @@ ${resolvedContent}`;
     }
 
     setIsHeavyThinking(complexity === "complex");
-    let botMsgId = "";
+    // botMsgId is now handled via local variable in handleDoctorMessage and state
 
     try {
       telemetryService.setStatus(
@@ -1218,7 +1257,8 @@ ${resolvedContent}`;
       const allToolsCalled: string[] = [];
 
       // Create a unique ID for the bot message we're about to stream
-      botMsgId = (Date.now() + 1).toString();
+      const botMsgId = (Date.now() + 1).toString();
+      setCurrentBotMsgId(botMsgId);
       const initialBotMsg: ScriptDoctorMessage = {
         id: botMsgId,
         role: "assistant",
@@ -1233,23 +1273,30 @@ ${resolvedContent}`;
        * Handles escaped characters and partial field completion.
        */
       const extractPartial = (text: string): string => {
-        // Fallback: If it doesn't look like JSON yet, it might be the start of thinking or response
-        if (!text.trim().startsWith('{')) return text.trim();
+        const trimmed = text.trim();
+        
+        // If it DOES NOT look like a JSON object, it's likely the new direct Markdown output.
+        // We return it directly for a smoother streaming experience.
+        if (!trimmed.startsWith('{')) {
+          return trimmed;
+        }
 
+        // --- BACKWARD COMPATIBILITY / FALLBACK FOR JSON RESPONSES ---
         // Try to find the "response" field value
         // Match 1: Still being typed (ends with open quote or just text)
         // Match 2: Fully completed field
-        const responseMatch = text.match(/"response"\s*:\s*"([^"]*)$| "response"\s*:\s*"([^"]*)"/);
+        const responseMatch = trimmed.match(/"response"\s*:\s*"([^"]*)$| "response"\s*:\s*"([^"]*)"/);
         if (responseMatch) {
           return responseMatch[1] || responseMatch[2] || "";
         }
         
         // Fallback: If no response yet, show thinking if available
-        const thinkingMatch = text.match(/"thinking"\s*:\s*"([^"]*)$| "thinking"\s*:\s*"([^"]*)"/);
+        const thinkingMatch = trimmed.match(/"thinking"\s*:\s*"([^"]*)$| "thinking"\s*:\s*"([^"]*)"/);
         if (thinkingMatch) {
           return `${t("common.thinking", { defaultValue: "Thinking" })}: ${thinkingMatch[1] || thinkingMatch[2] || ""}`;
         }
         
+        // If it's JSON but we can't find the response field yet, show "..."
         return "...";
       };
 
@@ -1438,7 +1485,7 @@ ${resolvedContent}`;
           telemetryService.setStatus(call.name, emoji, detail, call.args?.id);
           setAiStatus(`${emoji} ${detail} (step ${iteration + 1})`);
 
-          const toolResult = await executeToolCall(call);
+          const toolResult = await executeToolCall(call, 0, botMsgId);
 
           if (toolResult.success) {
             const primitiveId =
@@ -1477,7 +1524,7 @@ ${resolvedContent}`;
               );
               await contextAssembler.hydrateFullIdMap(currentProject.id);
 
-              const retryResult = await executeToolCall(call);
+              const retryResult = await executeToolCall(call, 0, botMsgId);
               toolResults.push({
                 toolResponse: { name: call.name, ref: call.ref ?? call.name, output: retryResult },
               });
@@ -1542,24 +1589,26 @@ ${resolvedContent}`;
         handleStageAnalyze(activeStage);
       }
 
-      let parsedResponse;
-      try {
-        // More robust JSON extraction - handling potential text outside or markdown blocks
-        const cleanedResponse = finalResponse.replace(/```json|```/g, "").trim();
-        const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
-        
-        if (jsonMatch) {
-          parsedResponse = JSON.parse(jsonMatch[0]);
-        } else {
-          parsedResponse = JSON.parse(cleanedResponse);
+      let parsedResponse: any = null;
+      const cleanedResponse = finalResponse.replace(/```json|```/g, "").trim();
+
+      // If it starts with '{', try parsing as JSON (legacy/fallback)
+      if (cleanedResponse.startsWith("{")) {
+        try {
+          const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsedResponse = JSON.parse(jsonMatch[0]);
+          }
+        } catch (e) {
+          console.warn("[ScriptDoctor] JSON parse failed for apparent JSON response:", e);
         }
-      } catch (e) {
-        console.warn("[ScriptDoctor] Parsing failed, using plain text fallback:", e);
+      }
+
+      // If not parsed as JSON, treat it as direct text
+      if (!parsedResponse || typeof parsedResponse !== "object") {
         parsedResponse = {
-          status: "✅ Done",
           response: finalResponse || "I encountered an issue processing the response.",
-          thinking: "The AI returned a non-JSON response which was captured as plain text.",
-          suggested_actions: ["Continue", "Retry"]
+          // Other fields are already handled by tool calls during the agentic loop
         };
       }
 

@@ -84,16 +84,15 @@ function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
     
-    // CRITICAL: Gemini/Genkit reasoning, thought, and thoughtSignature parts are OUTPUT-ONLY.
-    // If we send them back in the history as input parts, the API often returns:
-    // "Unsupported GeminiPart type" or "Function call is missing a thought_signature".
-    // We filter them out here to maintain agentic loop stability during multi-turn calls.
-    if (part.reasoning || part.thought || part.thoughtSignature) {
+    // CRITICAL: Gemini 3 models REQUIRE `thoughtSignature` to accompany function calls.
+    // If we filter it out, the API returns: "Function call is missing a thought_signature".
+    // We filter out only `reasoning` and `thought` blocks because they are purely for display.
+    if (part.reasoning || part.thought) {
       return false;
     }
 
     // Supported input parts: text, toolRequest (Genkit), toolResponse (Genkit), 
-    // functionCall (Gemini), functionResponse (Gemini).
+    // functionCall (Gemini), functionResponse (Gemini), thoughtSignature / thought_signature.
     return (
       part.text !== undefined ||
       part.toolRequest ||
@@ -101,7 +100,9 @@ function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
       part.toolResponse ||
       part.functionResponse ||
       part.inlineData ||
-      part.fileData
+      part.fileData ||
+      part.thoughtSignature !== undefined ||
+      part.thought_signature !== undefined
     );
   });
 }

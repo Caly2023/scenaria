@@ -1010,6 +1010,7 @@ ${resolvedContent}`;
     }
 
     setIsHeavyThinking(complexity === "complex");
+    let botMsgId = "";
 
     try {
       telemetryService.setStatus(
@@ -1036,34 +1037,25 @@ ${resolvedContent}`;
         if (msg.role === "user") {
           history.push({
             role: "user",
-            parts: [
-              {
-                text:
-                  typeof msg.content === "string"
-                    ? msg.content
-                    : JSON.stringify(msg.content),
-              },
-            ],
+            parts: [{ text: msg.content }],
           });
         } else {
-          // Assistant message: ensure we preserve the JSON structure in history
-          // so the model understands its previous state (thinking, actions, etc.)
+          // Assistant message: provide the content as text
+          // If there's structured data (thinking, actions), include it for coherence
+          const assistantText = JSON.stringify({
+            status: msg.status || "✅ Done",
+            thinking: msg.thinking || "",
+            response: msg.content,
+            suggested_actions: msg.suggested_actions || [],
+          });
           history.push({
             role: "model",
-            parts: [
-              {
-                text: JSON.stringify({
-                  status: msg.status || "✅ Done",
-                  thinking: msg.thinking || "",
-                  response: msg.content,
-                  suggested_actions: msg.suggested_actions || [],
-                }),
-              },
-            ],
+            parts: [{ text: assistantText }],
           });
         }
       }
 
+      // Cleanup history (ensure alternating roles and starting with user)
       const cleanedHistory: typeof history = [];
       for (const entry of history) {
         const lastEntry = cleanedHistory[cleanedHistory.length - 1];
@@ -1148,6 +1140,7 @@ ${resolvedContent}`;
       }
       // ── END DEGRADED MODE ────────────────────────────────────────────────────
 
+      // Handle the agentic loop
       const MAX_ITERATIONS = 7;
       let conversationHistory = [...cleanedHistory];
       let contentChanged = false;
@@ -1155,7 +1148,7 @@ ${resolvedContent}`;
       const allToolsCalled: string[] = [];
 
       // Create a unique ID for the bot message we're about to stream
-      const botMsgId = (Date.now() + 1).toString();
+      botMsgId = (Date.now() + 1).toString();
       const initialBotMsg: ScriptDoctorMessage = {
         id: botMsgId,
         role: "assistant",
@@ -1170,6 +1163,9 @@ ${resolvedContent}`;
        * Handles escaped characters and partial field completion.
        */
       const extractPartial = (text: string): string => {
+        // Fallback: If it doesn't look like JSON yet, it might be the start of thinking or response
+        if (!text.trim().startsWith('{')) return text.trim();
+
         // Try to find the "response" field value
         // Match 1: Still being typed (ends with open quote or just text)
         // Match 2: Fully completed field
@@ -1183,9 +1179,6 @@ ${resolvedContent}`;
         if (thinkingMatch) {
           return `${t("common.thinking", { defaultValue: "Thinking" })}: ${thinkingMatch[1] || thinkingMatch[2] || ""}`;
         }
-
-        // Final fallback: show raw text if it doesn't look like JSON yet
-        if (!text.trim().startsWith('{')) return text;
         
         return "...";
       };
@@ -1225,8 +1218,11 @@ ${resolvedContent}`;
         const result = iterationResult;
         if (!result) break;
 
-        // Robust response parsing: prefer candidates[0].content.parts, fall back to result.text
-        const responseParts = result?.candidates?.[0]?.content?.parts ?? null;
+        // Robust response parsing: prefer Genkit structure (candidates[0].content.parts)
+        const responseParts = result?.candidates?.[0]?.content?.parts ?? 
+                             result?.content?.parts ?? 
+                             result?.parts ?? 
+                             null;
 
         let functionCallParts: any[] = [];
         let textParts: any[] = [];
@@ -1236,16 +1232,16 @@ ${resolvedContent}`;
           textParts = responseParts.filter((p: any) => p.text);
         }
 
-        // If no structured parts at all, fall back to result.text (plain-text / quota-degraded mode)
+        // If no structured parts at all, fall back to text property or JSON string
         if (!responseParts || responseParts.length === 0) {
-          finalResponse = result?.text ?? "";
+          finalResponse = typeof result === 'string' ? result : (result?.text ?? JSON.stringify(result));
           break;
         }
 
         // No function calls → this is the final text response
         if (functionCallParts.length === 0) {
           finalResponse =
-            textParts.map((p: any) => p.text).join("") || result?.text || "";
+            textParts.map((p: any) => p.text).join("") || result?.text || JSON.stringify(result);
           break;
         }
 
@@ -1465,15 +1461,34 @@ ${resolvedContent}`;
       const classification = telemetryService.classifyFirebaseError(error);
       telemetryService.setStatus("Error", "❌", classification.message);
 
-      const errorMsg = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant" as const,
-        content: `An error occurred: ${error?.message || "Unknown error"}. Please try again.`,
-        suggested_actions: ["Retry", "Ask something simpler"],
-        status: "❌ Error",
-        timestamp: Date.now(),
-      };
-      setDoctorMessages((prev) => [...prev, errorMsg]);
+      const errorMessage = `An error occurred: ${error?.message || "Unknown error"}. Please try again.`;
+
+      if (botMsgId) {
+        // Update existing message
+        setDoctorMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  content: errorMessage,
+                  status: "❌ Error",
+                  suggested_actions: ["Retry", "Ask something simpler"],
+                }
+              : m
+          )
+        );
+      } else {
+        // Add new message if we failed before initialBotMsg was added
+        const errorMsg = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant" as const,
+          content: errorMessage,
+          suggested_actions: ["Retry", "Ask something simpler"],
+          status: "❌ Error",
+          timestamp: Date.now(),
+        };
+        setDoctorMessages((prev) => [...prev, errorMsg]);
+      }
       addToast(t("common.aiMagicFailed"), "error");
     } finally {
       setIsDoctorTyping(false);

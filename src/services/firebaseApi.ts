@@ -13,8 +13,37 @@ import {
   orderBy,
   serverTimestamp,
   writeBatch,
+  Timestamp,
 } from "firebase/firestore";
 import { Project } from "../types";
+
+/**
+ * Recursively converts Firestore Timestamps to plain numbers (milliseconds).
+ * Ensures Redux state remains serializable.
+ */
+function serializeData(data: any): any {
+  if (data === null || data === undefined) return data;
+
+  if (data instanceof Timestamp) {
+    return data.toMillis();
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(serializeData);
+  }
+
+  if (typeof data === "object") {
+    const serialized: any = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        serialized[key] = serializeData(data[key]);
+      }
+    }
+    return serialized;
+  }
+
+  return data;
+}
 
 export const firebaseApi = createApi({
   reducerPath: "firebaseApi",
@@ -44,7 +73,7 @@ export const firebaseApi = createApi({
             .filter(
               (p) => p.metadata?.title && p.metadata?.title.trim() !== "",
             );
-          return { data: projs };
+          return { data: serializeData(projs) };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -68,7 +97,7 @@ export const firebaseApi = createApi({
               .filter(
                 (p) => p.metadata?.title && p.metadata?.title.trim() !== "",
               );
-            updateCachedData(() => projs);
+            updateCachedData(() => serializeData(projs));
           });
         } catch {}
         await cacheEntryRemoved;
@@ -87,7 +116,7 @@ export const firebaseApi = createApi({
             return { error: { message: "Project not found", status: 404 } };
           }
           const data = { id: snapshot.id, ...snapshot.data() } as Project;
-          return { data };
+          return { data: serializeData(data) };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -105,7 +134,7 @@ export const firebaseApi = createApi({
             (snapshot) => {
               if (snapshot.exists()) {
                 updateCachedData(
-                  () => ({ id: snapshot.id, ...snapshot.data() }) as Project,
+                  () => serializeData(({ id: snapshot.id, ...snapshot.data() }) as Project),
                 );
               } else {
                 updateCachedData(() => null);
@@ -131,7 +160,7 @@ export const firebaseApi = createApi({
           }
           const snapshot = await getDocs(q);
           const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          return { data };
+          return { data: serializeData(data) };
         } catch (error: any) {
           return { error: { message: error.message } };
         }
@@ -150,7 +179,7 @@ export const firebaseApi = createApi({
           }
           unsubscribe = onSnapshot(q, (snapshot) => {
             updateCachedData(() =>
-              snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+              serializeData(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))),
             );
           });
         } catch {}

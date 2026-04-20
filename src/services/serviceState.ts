@@ -36,5 +36,5 @@ export const aiQuotaNoticeConsumed = new ServiceState<boolean>(false);
 
 // AI Flow Mode: 'production' | 'development'
 // DevFlow (development) is ALWAYS the default across the entire application.
-// This ensures only gemini-2.5-flash and gemini-2.5-flash-lite are used by default.
+// This ensures the Gemini 3 suite (3.1 Flash Lite and 3 Flash) are prioritized across the application.
 export const aiFlowMode = new ServiceState<'production' | 'development'>('development');

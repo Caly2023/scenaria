@@ -105,7 +105,13 @@ const resources = {
         helperText: 'Transform your vision into a cinematic masterpiece. What do you want to create today?',
         reasoning: 'Internal Reasoning',
         applied: 'Applied',
-        speak: 'Speak'
+        speak: 'Speak',
+        connectingToAi: 'Connecting to ScénarIA...',
+        multiStageFixApplied: 'Multi-stage fix applied successfully',
+        metadataSynced: 'Project metadata synced',
+        primitiveAdded: 'New element added to project',
+        primitiveDeleted: 'Element removed from project',
+        stageRestructured: 'Stage restructured successfully'
       },
       stages: {
         Brainstorming: {
@@ -289,7 +295,13 @@ const resources = {
         helperText: 'Transformez votre vision en un chef-d\'œuvre cinématographique. Que souhaitez-vous créer aujourd\'hui ?',
         reasoning: 'Raisonnement interne',
         applied: 'Appliqué',
-        speak: 'Écouter'
+        speak: 'Écouter',
+        connectingToAi: 'Connexion à ScénarIA...',
+        multiStageFixApplied: 'Correction multi-étapes appliquée avec succès',
+        metadataSynced: 'Métadonnées du projet synchronisées',
+        primitiveAdded: 'Nouvel élément ajouté au projet',
+        primitiveDeleted: 'Élément supprimé du projet',
+        stageRestructured: 'Étape restructurée avec succès'
       },
       stages: {
         Brainstorming: {

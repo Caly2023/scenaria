@@ -1,11 +1,158 @@
 import { z } from 'zod';
-import { ai, gemini15Flash, gemini15Pro } from '../../lib/genkit';
+import { ai, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite } from '../../lib/genkit';
+import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
 
 /**
  * GENKIT FLOWS
  * Defining server-side AI workflows.
  */
+
+// --- SCRIPT DOCTOR TOOLS ---
+// These are declared in Genkit so the model knows it can call them. 
+// The actual execution is handled by the client-side loop in useScriptDoctor.ts,
+// but declaring them here ensures the model outputs proper functionCall parts.
+
+export const fetchProjectStateTool = ai.defineTool(
+  {
+    name: 'fetch_project_state',
+    description: 'Retrieves the complete list of stages, their primitive counts, and the full ID-MAP.',
+    inputSchema: z.object({}) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const getStageStructureTool = ai.defineTool(
+  {
+    name: 'get_stage_structure',
+    description: 'Retrieve the complete structure of any stage with all primitive IDs, titles, order indices, and content previews.',
+    inputSchema: z.object({ stage_id: z.string() }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const researchContextTool = ai.defineTool(
+  {
+    name: 'research_context',
+    description: 'Pull full content from any previous stage for coherence checks. Returns data with primitive_ids.',
+    inputSchema: z.object({ stageName: z.string() }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const proposePatchTool = ai.defineTool(
+  {
+    name: 'propose_patch',
+    description: 'Submit a modification for a specific primitive. Returns the updated document snapshot or an error object. The ID MUST be a valid primitive_id from the ID-MAP.',
+    inputSchema: z.object({
+      id: z.string(),
+      stage: z.string(),
+      updates: z.any() as any,
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const executeMultiStageFixTool = ai.defineTool(
+  {
+    name: 'execute_multi_stage_fix',
+    description: 'Coordinate changes across multiple related stages using their primitive_ids.',
+    inputSchema: z.object({
+      fixes: z.array(z.object({
+        id: z.string(),
+        stage: z.string(),
+        updates: z.any() as any,
+      })),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const syncMetadataTool = ai.defineTool(
+  {
+    name: 'sync_metadata',
+    description: "Ensure the project's DNA (title, tone, genre, etc.) is always up to date.",
+    inputSchema: z.object({ metadata: z.any() as any }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const addPrimitiveTool = ai.defineTool(
+  {
+    name: 'add_primitive',
+    description: 'Adds a new structural element (primitive) to a production stage.',
+    inputSchema: z.object({
+      stage: z.string(),
+      primitive: z.any() as any,
+      position: z.number().optional(),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const deletePrimitiveTool = ai.defineTool(
+  {
+    name: 'delete_primitive',
+    description: 'Removes a specific element from production using its primitive_id.',
+    inputSchema: z.object({
+      id: z.string(),
+      stage: z.string(),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const restructureStageTool = ai.defineTool(
+  {
+    name: 'restructure_stage',
+    description: 'Replaces all primitives in a stage with a new set. Use with caution.',
+    inputSchema: z.object({
+      stage: z.string(),
+      primitives: z.array(z.any() as any),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const updateStageInsightTool = ai.defineTool(
+  {
+    name: 'update_stage_insight',
+    description: 'Provides a professional analysis (insight) of the current step state and readiness.',
+    inputSchema: z.object({
+      stage: z.string(),
+      insight: z.object({
+        content: z.string(),
+        isReady: z.boolean(),
+        suggestions: z.array(z.string()).optional(),
+        score: z.number().optional(),
+      }),
+    }) as any,
+    outputSchema: z.any() as any,
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+const scriptDoctorTools = [
+  fetchProjectStateTool,
+  getStageStructureTool,
+  researchContextTool,
+  proposePatchTool,
+  executeMultiStageFixTool,
+  syncMetadataTool,
+  addPrimitiveTool,
+  deletePrimitiveTool,
+  restructureStageTool,
+  updateStageInsightTool,
+];
 
 // 1. Script Doctor Flow
 export const scriptDoctorFlow = ai.defineFlow(
@@ -17,25 +164,33 @@ export const scriptDoctorFlow = ai.defineFlow(
       activeStage: z.string(),
       complexity: z.enum(['simple', 'moderate', 'complex']).optional(),
       idMapContext: z.string().optional(),
-    }),
-    outputSchema: z.any(),
+    }) as any,
+    outputSchema: z.any() as any,
   },
   async (input, { sendChunk }) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
     
     // Construct system instruction
-    const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-1.5-flash');
+    const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite');
 
     const response = await ai.generate({
-      model: gemini15Flash,
-      systemPrompt: systemInstruction,
+      model: gemini31FlashLite,
+      system: systemInstruction,
       messages: messages,
+      tools: scriptDoctorTools, // Enable tools for the model
+      use: [
+        retry({ maxRetries: 3 }),
+        fallback(ai, {
+          models: [gemini3Flash, gemini25Flash],
+          statuses: ['RESOURCE_EXHAUSTED', 'UNAVAILABLE', 'DEADLINE_EXCEEDED'],
+        }),
+      ],
       onChunk: (chunk) => {
         if (sendChunk && chunk.text) sendChunk(chunk.text);
       }
     });
 
-    return response.text;
+    return response;
   }
 );
 
@@ -46,15 +201,21 @@ export const generate3ActStructureFlow = ai.defineFlow(
     inputSchema: z.object({
       brainstorming: z.string(),
       logline: z.string(),
-    }),
-    outputSchema: z.any(),
+    }) as any,
+    outputSchema: z.any() as any,
   },
   async (input) => {
     const { brainstorming, logline } = input;
     const response = await ai.generate({
-      model: gemini15Flash,
+      model: gemini31FlashLite,
       prompt: Prompts.THREE_ACT_STRUCTURE_PROMPT(brainstorming, logline),
-      output: { format: 'json' }
+      output: { format: 'json' },
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, {
+          models: [gemini25Flash],
+        }),
+      ],
     });
     return response.output;
   }
@@ -67,14 +228,20 @@ export const generateSynopsisFlow = ai.defineFlow(
     inputSchema: z.object({
       brainstorming: z.string(),
       structure: z.string(),
-    }),
-    outputSchema: z.string(),
+    }) as any,
+    outputSchema: z.string() as any,
   },
   async (input, { sendChunk }) => {
     const { brainstorming, structure } = input;
     const response = await ai.generate({
-      model: gemini15Pro,
+      model: gemini3Flash, // Use regular Flash for depth in Synopsis
       prompt: Prompts.SYNOPSIS_PROMPT(brainstorming, structure),
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, {
+          models: [gemini31FlashLite, gemini25Flash],
+        }),
+      ],
       onChunk: (chunk) => {
         if (sendChunk && chunk.text) sendChunk(chunk.text);
       }
@@ -89,15 +256,21 @@ export const extractCharactersFlow = ai.defineFlow(
     name: 'extractCharactersFlow',
     inputSchema: z.object({
       brainstorming: z.string(),
-    }),
-    outputSchema: z.any(),
+    }) as any,
+    outputSchema: z.any() as any,
   },
   async (input) => {
     const { brainstorming } = input;
     const response = await ai.generate({
-      model: gemini15Flash,
+      model: gemini31FlashLite,
       prompt: Prompts.CHARACTER_EXTRACTION_PROMPT(brainstorming),
-      output: { format: 'json' }
+      output: { format: 'json' },
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, {
+          models: [gemini25FlashLite],
+        }),
+      ],
     });
     return response.output;
   }
@@ -107,14 +280,20 @@ export const extractCharactersFlow = ai.defineFlow(
 export const generateFullScriptFlow = ai.defineFlow(
   {
     name: 'generateFullScriptFlow',
-    inputSchema: z.any(),
-    outputSchema: z.any(),
+    inputSchema: z.any() as any,
+    outputSchema: z.any() as any,
   },
   async (ctx) => {
     const response = await ai.generate({
-      model: gemini15Flash,
+      model: gemini31FlashLite,
       prompt: Prompts.SCRIPT_PROMPT(ctx),
-      output: { format: 'json' }
+      output: { format: 'json' },
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, {
+          models: [gemini3Flash, gemini25Flash],
+        }),
+      ],
     });
     return response.output;
   }
@@ -128,16 +307,22 @@ export const genericGeminiFlow = ai.defineFlow(
       prompt: z.string(),
       jsonMode: z.boolean().optional(),
       systemPrompt: z.string().optional(),
-    }),
-    outputSchema: z.any(),
+    }) as any,
+    outputSchema: z.any() as any,
   },
   async (input, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt } = input;
     const response = await ai.generate({
-      model: gemini15Flash,
+      model: gemini31FlashLite,
       prompt,
-      systemPrompt,
+      system: systemPrompt,
       output: jsonMode ? { format: 'json' } : undefined,
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, {
+          models: [gemini25FlashLite],
+        }),
+      ],
       onChunk: (chunk) => {
         if (sendChunk && chunk.text && !jsonMode) sendChunk(chunk.text);
       }

@@ -6,37 +6,74 @@ import * as Prompts from "./ai/prompts";
  * Calls the server-side Genkit API routes.
  */
 async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
-  const response = await fetch(`/api/genkit/${flowName}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
+  const url = `/api/genkit/${flowName}`;
+  console.log(`[GeminiService] Calling ${url}...`);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || `Failed to call flow ${flowName}`);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+
+    if (!response.ok) {
+      let errorMsg = `API Error (${flowName}): ${response.status} ${response.statusText}`;
+      try {
+        const error = await response.json();
+        errorMsg = error.error || errorMsg;
+      } catch {
+        // Fallback to status text
+      }
+      console.error(`[GeminiService] ${errorMsg}`);
+      throw new Error(errorMsg);
+    }
+
+    return response.json();
+  } catch (error: any) {
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      console.error(`[GeminiService] Network Error: Could not reach ${url}. Ensure the server is running.`);
+      throw new Error(`Failed to connect to the AI service at ${url}. Please check your connection.`);
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 /**
  * STREAMING GENKIT FLOW HELPER
  * Calls a Genkit flow and yields chunks of text as they arrive.
  */
-async function* streamGenkitFlow(flowName: string, input: any): AsyncGenerator<{ chunk?: string, final?: any }> {
-  const response = await fetch(`/api/genkit/${flowName}`, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Accept': 'text/event-stream' 
-    },
-    body: JSON.stringify({ ...input, stream: true }),
-  });
+async function* streamGenkitFlow<T>(flowName: string, input: any): AsyncGenerator<{ chunk?: string, final?: any }> {
+  const url = `/api/genkit/${flowName}`;
+  console.log(`[GeminiService] Streaming ${url}...`);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream' 
+      },
+      body: JSON.stringify({ ...input, stream: true }),
+    });
+  } catch (error: any) {
+    console.error(`[GeminiService] Stream connection failed for ${flowName}:`, error);
+    if (error.message === 'Failed to fetch') {
+      throw new Error(`Connection failed: The AI server at ${url} is unreachable.`);
+    }
+    throw error;
+  }
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || `Failed to stream flow ${flowName}`);
+    let errorMsg = `Stream Error (${flowName}): ${response.status} ${response.statusText}`;
+    try {
+      const error = await response.json();
+      errorMsg = error.error || errorMsg;
+    } catch {
+      // Fallback
+    }
+    console.error(`[GeminiService] ${errorMsg}`);
+    throw new Error(errorMsg);
   }
 
   const reader = response.body?.getReader();
@@ -55,10 +92,10 @@ async function* streamGenkitFlow(flowName: string, input: any): AsyncGenerator<{
 
       if (buffer.includes('[DONE]')) {
         const parts = buffer.split('[DONE]');
-        // Yield the part before [DONE] as a chunk
+        // Yield the part before [DONE] as a chunk if it exists
         if (parts[0]) yield { chunk: parts[0] };
         
-        // Try to parse the final result
+        // Try to parse the final result from what follows [DONE]
         try {
           const finalResult = JSON.parse(parts[1]);
           yield { final: finalResult };
@@ -67,9 +104,15 @@ async function* streamGenkitFlow(flowName: string, input: any): AsyncGenerator<{
         }
         break;
       } else {
-        // Yield the whole text as a chunk and clear buffer (since no [DONE] yet)
+        // Yield the chunk to the UI immediately
         yield { chunk: text };
-        buffer = ''; 
+        // Do NOT clear the buffer here, because [DONE] might be partially in it
+        // and we need to keep appending text until we find [DONE].
+        // However, to avoid memory leaks, let's only keep the last few characters
+        // that could potentially be part of "[DONE]".
+        if (buffer.length > 50) {
+          buffer = buffer.slice(-10); // Keep enough room for "[DONE]" splits
+        }
       }
     }
   } finally {
@@ -81,7 +124,7 @@ async function* streamGenkitFlow(flowName: string, input: any): AsyncGenerator<{
  * GENERIC STREAM HELPER
  */
 function streamGenericGemini(prompt: string, systemPrompt?: string) {
-  return streamGenkitFlow('genericGemini', { prompt, systemPrompt });
+  return streamGenkitFlow<any>('genericGemini', { prompt, systemPrompt });
 }
 
 
@@ -143,7 +186,7 @@ async function extractText(response: any): Promise<string> {
 
 export const geminiService = {
   async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
-    return callGenkitFlow('scriptDoctor', {
+    return callGenkitFlow<any>('scriptDoctor', {
       messages,
       context,
       activeStage,
@@ -153,7 +196,7 @@ export const geminiService = {
   },
 
   streamScriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
-    return streamGenkitFlow('scriptDoctor', {
+    return streamGenkitFlow<any>('scriptDoctor', {
       messages,
       context,
       activeStage,
@@ -164,14 +207,14 @@ export const geminiService = {
 
 
   async analyzeScript(content: string, stage: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Analyze the following content for the "${stage}" stage of screenwriting. Provide expert feedback on structure, dialogue, and character development.\n\nContent:\n${content}`,
       systemPrompt: 'You are a professional script doctor.'
     });
   },
 
   analyzeScriptStream(content: string, stage: string) {
-    return streamGenkitFlow('genericGemini', {
+    return streamGenkitFlow<any>('genericGemini', {
       prompt: `Analyze the following content for the "${stage}" stage of screenwriting. Provide expert feedback on structure, dialogue, and character development.\n\nContent:\n${content}`,
       systemPrompt: 'You are a professional script doctor.'
     });
@@ -179,13 +222,13 @@ export const geminiService = {
 
 
   async rewriteSequence(content: string, instruction: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Rewrite the following script sequence based on this instruction: "${instruction}". Maintain the tone and style of the original.\n\nOriginal:\n${content}`
     });
   },
 
   rewriteSequenceStream(content: string, instruction: string) {
-    return streamGenkitFlow('genericGemini', {
+    return streamGenkitFlow<any>('genericGemini', {
       prompt: `Rewrite the following script sequence based on this instruction: "${instruction}". Maintain the tone and style of the original.\n\nOriginal:\n${content}`
     });
   },
@@ -206,14 +249,14 @@ export const geminiService = {
     Story Dump:
     ${storyDump}`;
 
-    return callGenkitFlow('genericGemini', { prompt, jsonMode: true });
+    return callGenkitFlow<any>('genericGemini', { prompt, jsonMode: true });
   },
 
 
   async brainstormFeedback(content: string) {
     if (!content || content.trim().length < 10) return "Please provide more details for brainstorming analysis.";
     
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Help organize chaotic thoughts, identify core themes, and suggest interesting directions for these ideas:\n\n${content}`,
       systemPrompt: 'You are a professional screenwriting consultant and sounding board.'
     });
@@ -223,7 +266,7 @@ export const geminiService = {
   async generateLoglineDraft(brainstorming: string) {
     if (!brainstorming || brainstorming.trim().length < 20) return "Based on your brainstorming, I will draft a logline here once you provide more details.";
 
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Synthesize a professional 1-2 sentence logline from this brainstorming session:\n\n${brainstorming}`,
       systemPrompt: 'You are a professional screenwriter. Focus on protagonist, goal, and conflict.'
     });
@@ -232,66 +275,66 @@ export const geminiService = {
 
   async generateSynopsis(brainstorming: string, structure: string) {
     if (!brainstorming || brainstorming.trim().length < 20) return "Once the story is more developed, I will generate a full synopsis here.";
-    return callGenkitFlow('generateSynopsis', { brainstorming, structure });
+    return callGenkitFlow<any>('generateSynopsis', { brainstorming, structure });
   },
 
   async extractCharactersAndSettings(brainstorming: string) {
-    return callGenkitFlow('extractCharacters', { brainstorming });
+    return callGenkitFlow<any>('extractCharacters', { brainstorming });
   },
 
   async generate3ActStructure(brainstorming: string, logline: string) {
-    return callGenkitFlow('generate3ActStructure', { brainstorming, logline });
+    return callGenkitFlow<any>('generate3ActStructure', { brainstorming, logline });
   },
 
   async refine3ActStructure(currentStructure: string, feedback: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Refine the following 8-beat 3-Act Structure based on this feedback: "${feedback}". Maintain the 8-beat framework. Output in JSON format.\n\nCurrent Structure:\n${currentStructure}`,
       jsonMode: true
     });
   },
 
   async generateTreatment(context: string) {
-    return callGenkitFlow('genericGemini', { 
+    return callGenkitFlow<any>('genericGemini', { 
       prompt: Prompts.TREATMENT_PROMPT(context),
       jsonMode: true
     });
   },
 
   async generateFullScript(scriptCtx: Prompts.ScriptGenerationContext) {
-    return callGenkitFlow('generateFullScript', scriptCtx);
+    return callGenkitFlow<any>('generateFullScript', scriptCtx);
   },
 
   async generateStepOutline(treatment: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Convert the following treatment into a professional Step Outline (Séquencier). Provide scene-by-scene breakdown including Sluglines (INT/EXT - LOCATION - TIME).\n\nOutput a JSON array:\n\nTreatment:\n${treatment}`,
       jsonMode: true
     });
   },
 
   async rewriteSequenceWithContext(prompt: string) {
-    return callGenkitFlow('genericGemini', { prompt });
+    return callGenkitFlow<any>('genericGemini', { prompt });
   },
 
   async generateScriptWithContext(prompt: string) {
-    return callGenkitFlow('genericGemini', { prompt });
+    return callGenkitFlow<any>('genericGemini', { prompt });
   },
 
   async refineLoglineDraft(currentLogline: string, feedback: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Refine the following logline draft based on this feedback: "${feedback}".\n\nCurrent Logline:\n${currentLogline}`,
       systemPrompt: 'The logline must strictly be a 1-2 sentence description that hooks the audience, focusing on the protagonist, their goal, and the central conflict.'
     });
   },
 
   async extractMetadata(text: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Analyze the following story idea and extract project metadata. If a field is not explicitly mentioned, infer the most likely value based on the context.\n\nStory Idea:\n${text}`,
       jsonMode: true
     });
   },
 
   async initializeProjectAgent(storyDraft: string, format?: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `INITIAL STORY IDEA: ${storyDraft}${format ? `\nSELECTED FORMAT: ${format}` : ''}\n\nAnalyze this idea and generate the core project metadata and initial critique. Evaluate if GOOD TO GO or NEEDS WORK.`,
       jsonMode: true
     });
@@ -299,7 +342,7 @@ export const geminiService = {
 
   async brainstormDual(userInput: string, currentStory: string, currentMetadata: any) {
     const safeInput = userInput.replace(/(ignore\s+(all\s+)?(previous\s+)?(instructions|rules|prompts)|override\s+system|system\s+prompt|bypass\s+rules)/gi, '[REDACTED]');
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `User Input: ${safeInput}\n\nCurrent Story: ${currentStory}\n\nCurrent Metadata: ${JSON.stringify(currentMetadata)}`,
       systemPrompt: 'You are a professional screenwriting consultant and pitch doctor. Provide critique and final pitch.',
       jsonMode: true
@@ -307,34 +350,34 @@ export const geminiService = {
   },
 
   async suggestProjectTitle(storyDump: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Based on this story dump, suggest a short, catchy, professional title. Return ONLY the title.\n\nStory Dump:\n${storyDump}`
     });
   },
 
   async generateCharacterViews(description: string) {
     // Character views might need specialized handling or just generic for now
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Generate 4 consistent views (Front, Profile, Back, Full-shot) of a character based on this description: "${description}".`
     });
   },
 
   async deepDevelopCharacter(character: any, masterStory: string, otherCharacters: any[]) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Deeply develop character ${character.name} based on the Master Story: ${masterStory}. Other characters: ${JSON.stringify(otherCharacters.map(c => c.name))}`,
       jsonMode: true
     });
   },
 
   async deepDevelopLocation(location: any, masterStory: string) {
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Deeply develop location ${location.name} based on the master story: ${masterStory}.`
     });
   },
 
   async generateStageInsight(stage: string, content: string, projectContext: string) {
     if (!content || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
-    return callGenkitFlow('genericGemini', {
+    return callGenkitFlow<any>('genericGemini', {
       prompt: `Analyze the current state of "${stage}". Context: ${projectContext}\n\nContent: ${content}`,
       jsonMode: true
     });

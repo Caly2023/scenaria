@@ -23,8 +23,8 @@ ${idMapContext}
 
 DYNAMIC ROUTING & PERFORMANCE:
 - You are currently running on ${model}.
-- Model Pro: Use for initial A-Z generations and deep structural audits.
-- Model Flash: Use for iterative chat, quick edits, and real-time feedback.
+- Model 3 Flash: Use for deep structural audits and complex narrative synthesis.
+- Model 3.1 Flash Lite: Use for high-frequency iterative chat, quick patches, and real-time guidance.
 - PROMPT CACHING: Treat Project Metadata, Character Bible, and ScénarIA rules as immutable context.
 
 AGENTIC CAPABILITIES & TOOL ACCESS:

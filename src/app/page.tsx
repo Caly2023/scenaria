@@ -104,12 +104,6 @@ function SplashScreen() {
           L&apos;IA au service de votre imagination
         </p>
       </div>
-      <style>{`
-        @keyframes orbit {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

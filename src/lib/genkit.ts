@@ -1,9 +1,18 @@
 import { genkit } from 'genkit';
-import { googleAI, gemini15Flash, gemini15Pro } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/googleai';
+import { retry } from 'genkit/model/middleware';
+
+/**
+ * GEMINI MODEL CONSTANTS (2026 Suite)
+ */
+export const gemini31FlashLite = 'googleai/gemini-3.1-flash-lite-preview';
+export const gemini3Flash = 'googleai/gemini-3-flash-preview';
+export const gemini25Flash = 'googleai/gemini-2.5-flash';
+export const gemini25FlashLite = 'googleai/gemini-2.5-flash-lite';
 
 /**
  * GENKIT CONFIGURATION
- * Initializing Genkit with the Google AI plugin.
+ * Initializing Genkit with the Google AI plugin and global retry logic.
  */
 export const ai = genkit({
   plugins: [
@@ -11,8 +20,8 @@ export const ai = genkit({
       apiKey: process.env.GEMINI_API_KEY,
     }),
   ],
-  model: gemini15Flash, // Default model
+  model: gemini31FlashLite, // Default model
 });
 
-// Export models for use in other files
-export { gemini15Flash, gemini15Pro };
+// Export all models for use in flows
+export { };

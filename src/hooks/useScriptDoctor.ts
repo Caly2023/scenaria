@@ -85,25 +85,10 @@ function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
     if (!part || typeof part !== "object") return false;
     
     // CRITICAL: Gemini 3 models REQUIRE `thoughtSignature` to accompany function calls.
-    // If we filter it out, the API returns: "Function call is missing a thought_signature".
-    // We filter out only `reasoning` and `thought` blocks because they are purely for display.
-    if (part.reasoning || part.thought) {
-      return false;
-    }
-
-    // Supported input parts: text, toolRequest (Genkit), toolResponse (Genkit), 
-    // functionCall (Gemini), functionResponse (Gemini), thoughtSignature / thought_signature.
-    return (
-      part.text !== undefined ||
-      part.toolRequest ||
-      part.functionCall ||
-      part.toolResponse ||
-      part.functionResponse ||
-      part.inlineData ||
-      part.fileData ||
-      part.thoughtSignature !== undefined ||
-      part.thought_signature !== undefined
-    );
+    // If we filter out any parts (like 'reasoning' or 'thought'), we risk extracting
+    // the signature from its expected sequence, leading to: "Function call is missing a thought_signature".
+    // We return true for all valid part objects to preserve Genkit's internal multi-turn context.
+    return true;
   });
 }
 

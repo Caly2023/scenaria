@@ -24,7 +24,7 @@ export const fetchProjectStateTool = ai.defineTool(
       id_map: z.any(),
     }),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ metadata: {}, stages: {}, id_map: {}, status: "client_execution_required" })
 );
 
 export const getStageStructureTool = ai.defineTool(
@@ -41,9 +41,10 @@ export const getStageStructureTool = ai.defineTool(
         content: z.string(),
         order_index: z.number(),
       })),
+      status: z.string().optional(),
     }),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ stage_id: "", total_count: 0, primitives: [], status: "client_execution_required" })
 );
 
 export const researchContextTool = ai.defineTool(
@@ -70,9 +71,10 @@ export const proposePatchTool = ai.defineTool(
       primitive_id: z.string().optional(),
       updated_snapshot: z.any().optional(),
       error: z.string().optional(),
+      status: z.string().optional(),
     }),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ success: true, status: "client_execution_required" })
 );
 
 export const executeMultiStageFixTool = ai.defineTool(

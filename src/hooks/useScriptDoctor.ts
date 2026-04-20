@@ -83,16 +83,23 @@ function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
-    // Supported parts: text, toolRequest (Genkit), functionCall (Gemini), toolResponse, functionResponse
-    // reasoning is now supported in Genkit 1.0+ for multi-turn consistency.
+    
+    // CRITICAL: Gemini/Genkit reasoning, thought, and thoughtSignature parts are OUTPUT-ONLY.
+    // If we send them back in the history as input parts, the API often returns:
+    // "Unsupported GeminiPart type" or "Function call is missing a thought_signature".
+    // We filter them out here to maintain agentic loop stability during multi-turn calls.
+    if (part.reasoning || part.thought || part.thoughtSignature) {
+      return false;
+    }
+
+    // Supported input parts: text, toolRequest (Genkit), toolResponse (Genkit), 
+    // functionCall (Gemini), functionResponse (Gemini).
     return (
       part.text !== undefined ||
       part.toolRequest ||
       part.functionCall ||
       part.toolResponse ||
       part.functionResponse ||
-      part.reasoning ||
-      part.thought || // legacy fallback
       part.inlineData ||
       part.fileData
     );
@@ -332,7 +339,7 @@ export function useScriptDoctor({
 
         case "fetch_character_details": {
           const characterId = getArgString(args, "characterId") ?? "";
-          const char = characters?.find((c) => c.id === characterId);
+          const char = Array.isArray(characters) ? characters.find((c) => c.id === characterId) : null;
           if (!char)
             return {
               success: false,
@@ -956,7 +963,7 @@ export function useScriptDoctor({
         if (msgId) {
           // doctorMessages is the state snapshot captured at render time; we read
           // it directly here since this closure is called after state is set.
-          const referencedMsg = doctorMessages?.find((m) => m.id === msgId);
+          const referencedMsg = Array.isArray(doctorMessages) ? doctorMessages.find((m) => m.id === msgId) : null;
 
           if (referencedMsg) {
             // 1. Surface suggested_actions if present
@@ -1295,16 +1302,15 @@ ${resolvedContent}`;
       const extractPartial = (text: string): string => {
         const trimmed = text.trim();
         
-        // If it DOES NOT look like a JSON object, it's likely the new direct Markdown output.
-        // We return it directly for a smoother streaming experience.
-        if (!trimmed.startsWith('{')) {
+        // Use a more robust check for JSON (allowing leading comments/whitespace)
+        const possibleJson = trimmed.startsWith('{') || trimmed.includes('\n{');
+        
+        if (!possibleJson) {
           return trimmed;
         }
 
         // --- BACKWARD COMPATIBILITY / FALLBACK FOR JSON RESPONSES ---
-        // Try to find the "response" field value
-        // Match 1: Still being typed (ends with open quote or just text)
-        // Match 2: Fully completed field
+        // Try to find the "response" field value using a more flexible regex
         const responseMatch = trimmed.match(/"response"\s*:\s*"([^"]*)$| "response"\s*:\s*"([^"]*)"/);
         if (responseMatch) {
           return responseMatch[1] || responseMatch[2] || "";

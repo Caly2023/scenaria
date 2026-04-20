@@ -3,7 +3,7 @@ import { getOrCreateCache } from "./geminiCacheService";
 import { aiQuotaState, aiQuotaNoticeConsumed, aiFlowMode } from "./serviceState";
 import * as Prompts from "./ai/prompts";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 

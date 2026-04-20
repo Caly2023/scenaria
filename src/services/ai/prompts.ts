@@ -3,7 +3,7 @@
  */
 
 export const SCRIPT_DOCTOR_SYSTEM_PROMPT = (idMapContext: string, context: string, activeStage: string, model: string) => `
-You are the "SCÉNARIA INTELLIGENT ARCHITECT", the Autonomous System Administrator of ScénarIA. 
+You are the "SCÉNARIA SCRIPT DOCTOR", the Autonomous System Administrator of ScénarIA. 
 Your primary directive is to maintain the creative integrity of the project across all stages of production with 100% autonomy.
 
 PROJECT INTELLIGENCE & AUTO-MAPPING:

@@ -50,25 +50,20 @@ function getTextFromModelResponse(response: unknown): string {
   const directText = asRecord.text;
   if (typeof directText === "string") return directText;
 
-  const candidateParts =
+  // Support for both Genkit (message.content) and raw Gemini (content.parts)
+  const candidate =
     Array.isArray(asRecord.candidates) && asRecord.candidates.length > 0
-      ? (
-          asRecord.candidates[0] as Record<string, unknown>
-        )?.content as Record<string, unknown> | undefined
-      : undefined;
+      ? (asRecord.candidates[0] as Record<string, unknown>)
+      : null;
+
   const contentParts =
-    (candidateParts &&
-      Array.isArray(candidateParts.parts) &&
-      candidateParts.parts) ||
-    (asRecord.content &&
-    typeof asRecord.content === "object" &&
-    !Array.isArray(asRecord.content) &&
-    Array.isArray((asRecord.content as Record<string, unknown>).parts)
-      ? ((asRecord.content as Record<string, unknown>).parts as unknown[])
-      : null) ||
+    (candidate as any)?.message?.content ||
+    (candidate as any)?.content?.parts ||
+    (asRecord as any).message?.content ||
+    (asRecord as any).content?.parts ||
     (Array.isArray(asRecord.parts) ? asRecord.parts : null);
 
-  if (!contentParts) return "";
+  if (!Array.isArray(contentParts)) return "";
 
   for (const part of contentParts) {
     if (
@@ -1186,7 +1181,18 @@ ${resolvedContent}`;
         );
         setAiStatus(degradedParsed.status || "💬 Chat-only mode");
 
-          const botMsg = {
+        // Extract parts for conversation history consistency
+        const degGenkitParts =
+          degradedResult?.candidates?.[0]?.message?.content ??
+          degradedResult?.message?.content ??
+          null;
+        const degLegacyParts =
+          degradedResult?.candidates?.[0]?.content?.parts ??
+          degradedResult?.content?.parts ??
+          degradedResult?.parts ??
+          null;
+
+        const botMsg = {
           id: (Date.now() + 1).toString(),
           role: "assistant" as const,
           content: degradedParsed.response,
@@ -1197,7 +1203,7 @@ ${resolvedContent}`;
           ],
           status: degradedParsed.status || "💬 Chat Mode",
           timestamp: Date.now(),
-          content_parts: genkitParts || legacyParts || [{ text: degradedText }], // Preserve parts even in degraded mode
+          content_parts: degGenkitParts || degLegacyParts || [{ text: degradedText }], // Preserve parts even in degraded mode
         };
         setDoctorMessages((prev) => [...prev, botMsg]);
         return; // Early exit — skip the full agentic loop below
@@ -1246,6 +1252,8 @@ ${resolvedContent}`;
         
         return "...";
       };
+
+      let responseParts: any[] | null = null;
 
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
@@ -1322,7 +1330,7 @@ ${resolvedContent}`;
           result?.parts ??
           null;
 
-        const responseParts: any[] | null = genkitParts ?? legacyParts;
+        responseParts = genkitParts ?? legacyParts;
 
         let functionCallParts: any[] = [];
         let textParts: any[] = [];

@@ -103,6 +103,7 @@ export default function App() {
   const telemetryStatus = useTelemetry();
 
 
+  const { isMobile } = useWindowSize();
   const {
     isDoctorOpen, setIsDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage
   } = useScriptDoctor({

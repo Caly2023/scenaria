@@ -123,12 +123,12 @@ interface UseScriptDoctorProps {
 export function useScriptDoctor({
   currentProject,
   activeStage,
-  sequences = [],
-  treatmentSequences = [],
-  scriptScenes = [],
-  pitchPrimitives = [],
-  characters = [],
-  locations = [],
+  sequences: propsSequences = [],
+  treatmentSequences: propsTreatmentSequences = [],
+  scriptScenes: propsScriptScenes = [],
+  pitchPrimitives: propsPitchPrimitives = [],
+  characters: rawCharacters = [],
+  locations: rawLocations = [],
   addToast,
   setRefiningBlockId,
   setLastUpdatedPrimitiveId,
@@ -143,6 +143,14 @@ export function useScriptDoctor({
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
   const [isInDegradedMode, setIsInDegradedMode] = useState(false);
+
+  // Normalize inputs to ensure they are always arrays
+  const sequences = propsSequences || [];
+  const treatmentSequences = propsTreatmentSequences || [];
+  const scriptScenes = propsScriptScenes || [];
+  const pitchPrimitives = propsPitchPrimitives || [];
+  const characters = rawCharacters || [];
+  const locations = rawLocations || [];
 
   const subcollectionMap: Record<string, string> = {
     Brainstorming: "pitch_primitives",
@@ -1088,13 +1096,20 @@ ${resolvedContent}`;
             content: [{ text: msg.content }],
           });
         } else {
-          // Assistant message: serialize as structured JSON so the model remembers context
+          // Assistant message: 
+          // If the message has tool calls, we should ideally reconstruct them for Genkit
+          // However, for simple multi-turn context, the serialized JSON is often used by the agent
+          // as a "memory" of its own previous structured output.
+          // BUT Genkit history works best if model turns match actual parts.
+          
+          // Reconstruct if it looks like it had tools
           const assistantText = JSON.stringify({
             status: msg.status || "✅ Done",
             thinking: msg.thinking || "",
             response: msg.content,
             suggested_actions: msg.suggested_actions || [],
           });
+          
           history.push({
             role: "model",
             content: [{ text: assistantText }],
@@ -1474,7 +1489,7 @@ ${resolvedContent}`;
         conversationHistory = [
           ...conversationHistory,
           { role: "model", content: responseParts },
-          { role: "tool", content: toolResults },
+          { role: "tool", content: toolResults.map(tr => tr.toolResponse ? tr : { toolResponse: tr }) },
         ];
 
         telemetryService.setStatus(

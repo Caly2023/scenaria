@@ -97,35 +97,41 @@ async function* streamGenkitFlow<T>(flowName: string, input: any): AsyncGenerato
       const text = decoder.decode(value, { stream: true });
       pendingBuffer += text;
 
+      // Check if we have a full [DONE] marker
       if (pendingBuffer.includes(DONE_MARKER)) {
-        const markerIndex = pendingBuffer.indexOf(DONE_MARKER);
-        // Everything before [DONE] is a final text chunk
-        const beforeDone = pendingBuffer.slice(0, markerIndex);
-        if (beforeDone) yield { chunk: beforeDone };
-
-        // Everything after [DONE] is the JSON payload for the final result
-        const afterDone = pendingBuffer.slice(markerIndex + DONE_MARKER.length);
-        try {
-          if (afterDone.trim()) {
-            const finalResult = JSON.parse(afterDone.trim());
-            yield { final: finalResult };
-          }
-        } catch (e) {
-          console.warn('[GeminiService] Failed to parse final result after [DONE]:', e, 'Raw:', afterDone);
+        const parts = pendingBuffer.split(DONE_MARKER);
+        
+        // Everything before [DONE] (or multiples if they happen) are chunks
+        for (let i = 0; i < parts.length - 1; i++) {
+          if (parts[i]) yield { chunk: parts[i] };
         }
+
+        // The very last part is the final JSON result
+        const lastPart = parts[parts.length - 1];
+        if (lastPart.trim()) {
+          try {
+            const finalResult = JSON.parse(lastPart.trim());
+            yield { final: finalResult };
+          } catch (e) {
+            console.warn('[GeminiService] Failed to parse final result after [DONE]:', e, 'Raw:', lastPart);
+            // If it's partial JSON, we keep it in buffer in case more arrives (though [DONE] usually means EOF)
+            pendingBuffer = lastPart;
+            continue; 
+          }
+        }
+        pendingBuffer = ''; // Fully processed
         break;
       } else {
-        // [DONE] not yet seen — yield a safe portion, keeping a tail for split detection
+        // [DONE] not yet seen — yield a safe portion
         if (pendingBuffer.length > TAIL_SIZE) {
           const safeChunk = pendingBuffer.slice(0, pendingBuffer.length - TAIL_SIZE);
           yield { chunk: safeChunk };
           pendingBuffer = pendingBuffer.slice(pendingBuffer.length - TAIL_SIZE);
         }
-        // If pendingBuffer is smaller than TAIL_SIZE, wait for more data before yielding
       }
     }
 
-    // Stream ended without a [DONE] marker — flush any remaining buffer as a chunk
+    // Flush any remaining buffer if stream ended unexpectedly
     if (pendingBuffer && !pendingBuffer.includes(DONE_MARKER)) {
       yield { chunk: pendingBuffer };
     }

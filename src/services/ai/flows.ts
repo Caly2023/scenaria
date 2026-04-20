@@ -410,7 +410,9 @@ export const genericGeminiFlow = ai.defineFlow(
       }),
       threeActStructure: threeActStructureSchema,
     } as const;
-    const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput] : undefined;
+    const structuredSchema = (structuredOutput && (structuredOutput in structuredSchemaMap)) 
+      ? (structuredSchemaMap as any)[structuredOutput] 
+      : undefined;
 
     const response = await ai.generate({
       model: gemini31FlashLite,

@@ -80,6 +80,29 @@ function getTextFromModelResponse(response: unknown): string {
   return "";
 }
 
+/**
+ * Sanitizes Gemini/Genkit parts for use in conversation history.
+ * Removes unsupported part types like 'thought' or 'thoughtSignature'
+ * that trigger "Unsupported GeminiPart type" errors in subsequent turns.
+ */
+function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
+  if (!Array.isArray(parts)) return [];
+  return parts.filter((part) => {
+    if (!part || typeof part !== "object") return false;
+    // Supported parts: text, toolRequest (Genkit), functionCall (Gemini), toolResponse, functionResponse
+    // inlineData and fileData are also generally supported in most multimodal contexts.
+    return (
+      part.text !== undefined ||
+      part.toolRequest ||
+      part.functionCall ||
+      part.toolResponse ||
+      part.functionResponse ||
+      part.inlineData ||
+      part.fileData
+    );
+  });
+}
+
 function getArgString(args: Record<string, unknown>, key: string): string | undefined {
   const value = args[key];
   return typeof value === "string" ? value : undefined;
@@ -1102,8 +1125,7 @@ ${resolvedContent}`;
     }
 
     setIsHeavyThinking(complexity === "complex");
-    // botMsgId is now handled via local variable in handleDoctorMessage and state
-
+    let botMsgId: string | null = null;
     try {
       telemetryService.setStatus(
         "Context Assembly",
@@ -1258,7 +1280,7 @@ ${resolvedContent}`;
       const allToolsCalled: string[] = [];
 
       // Create a unique ID for the bot message we're about to stream
-      const botMsgId = (Date.now() + 1).toString();
+      botMsgId = (Date.now() + 1).toString();
       setCurrentBotMsgId(botMsgId);
       const initialBotMsg: ScriptDoctorMessage = {
         id: botMsgId,
@@ -1393,8 +1415,25 @@ ${resolvedContent}`;
         let functionCallParts: any[] = [];
         let textParts: any[] = [];
 
+        // Genkit native: toolRequest; Gemini wire: functionCall
         if (Array.isArray(responseParts) && responseParts.length > 0) {
-          // Genkit native: toolRequest; Gemini wire: functionCall
+          // Extract thinking text from 'thought' parts before they are sanitized for history
+          const thoughtText = responseParts
+            .filter((p: any) => p.thought)
+            .map((p: any) => p.thought)
+            .join("\n")
+            .trim();
+          
+          if (thoughtText) {
+            setDoctorMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMsgId
+                  ? { ...m, thinking: (m.thinking ? m.thinking + "\n" : "") + thoughtText }
+                  : m
+              )
+            );
+          }
+
           functionCallParts = responseParts.filter(
             (p: any) => p.toolRequest || p.functionCall
           );
@@ -1563,11 +1602,11 @@ ${resolvedContent}`;
         }
 
         // Genkit multi-turn history format:
-        // - model turn: role='model', content=Part[] (the responseParts from above)
+        // - model turn: role='model', content=Part[] (the responseParts from above, sanitized)
         // - tool results: role='tool', content=toolResponse Part[] each with a ref
         conversationHistory = [
           ...conversationHistory,
-          { role: "model", content: responseParts },
+          { role: "model", content: sanitizePartsForHistory(responseParts) },
           { role: "tool", content: toolResults.map(tr => tr.toolResponse ? tr : { toolResponse: tr }) },
         ];
 
@@ -1642,8 +1681,9 @@ ${resolvedContent}`;
                 active_tool: parsedResponse.active_tool,
                 status: parsedResponse.status,
                 isStreaming: false,
-                // CRITICAL: Preserve the final turn's parts so the next user message has full history
-                content_parts: responseParts || m.content_parts, 
+                // CRITICAL: Preserve the final turn's parts so the next user message has full history.
+                // We sanitize these here as well to ensure history consistency.
+                content_parts: sanitizePartsForHistory(responseParts) || m.content_parts, 
               }
             : m
         ),

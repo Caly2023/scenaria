@@ -939,7 +939,9 @@ export const geminiService = {
         }
       });
       return safeJsonParse(await extractText(response));
-    }, MODELS.PRO || MODELS.FLASH);
+    // Keep script generation on LITE to align behavior with Script Doctor
+    // and stage verification (same consistency/cost profile across loops).
+    }, MODELS.LITE);
   },
 
   async generateStepOutline(treatment: string) {

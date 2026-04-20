@@ -1,6 +1,7 @@
 import { BaseStageAgent } from './BaseStageAgent';
 import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageContract';
 import { geminiService } from '../services/geminiService';
+import * as Prompts from '../services/ai/prompts';
 import type { ScriptGenerationContext } from '../services/ai/prompts';
 
 export class ScriptAgent extends BaseStageAgent {
@@ -27,21 +28,45 @@ export class ScriptAgent extends BaseStageAgent {
       };
 
       const raw = await this.retryWithBackoff(() => geminiService.generateFullScript(scriptCtx));
-      const scenes = this.normalizeToJsonArray<any>(raw);
+      let scenes = this._normalizeScriptScenes(raw);
+
+      // Align Script generation with the Script Doctor + verification flow:
+      // run one automated verification pass and, if needed, regenerate once
+      // using the verifier's suggestedPrompt.
+      const previewForVerification = scenes
+        .map((s, i) => `[Scene ${i + 1}] ${s.title}\n${s.content.substring(0, 250)}`)
+        .join('\n\n')
+        .trim();
+      const projectSignal = context.metadata.logline || this._getSynopsis(context) || context.metadata.title;
+      const verification = await this.retryWithBackoff(() =>
+        geminiService.generateStageInsight('Script', previewForVerification, projectSignal)
+      );
+
+      if (!verification.isReady && verification.suggestedPrompt) {
+        const revisionPrompt = `${Prompts.SCRIPT_PROMPT(scriptCtx)}
+
+REVISION REQUIRED BY VERIFICATION AGENT:
+${verification.suggestedPrompt}
+
+If the first draft below already satisfies part of the request, keep and improve it instead of replacing blindly.
+FIRST DRAFT:
+${JSON.stringify(scenes, null, 2)}`;
+
+        const revisedRaw = await this.retryWithBackoff(() =>
+          geminiService.generateScriptWithContext(revisionPrompt)
+        );
+        const revisedScenes = this._normalizeScriptScenes(revisedRaw);
+        if (revisedScenes.length > 0) {
+          scenes = revisedScenes;
+        }
+      }
 
       const content: ContentPrimitive[] = scenes.length > 0
-        ? scenes.map((scene: any, i: number) => {
-            const body = scene?.content;
-            const text =
-              typeof body === 'string'
-                ? body
-                : body != null
-                  ? String(body)
-                  : '';
+        ? scenes.map((scene, i: number) => {
             return this.buildPrimitive(
               `script_${i}`,
-              scene?.title || `Scene ${i + 1}`,
-              text,
+              scene.title || `Scene ${i + 1}`,
+              scene.content,
               'script_scene',
               i,
             );
@@ -61,6 +86,30 @@ export class ScriptAgent extends BaseStageAgent {
     } catch (e: any) {
       return this.buildFallbackOutput(e.message);
     }
+  }
+
+  private _normalizeScriptScenes(raw: unknown): Array<{ title: string; content: string }> {
+    const rows = this.normalizeToJsonArray<Record<string, unknown>>(raw);
+    return rows
+      .map((scene, i) => {
+        const titleValue = scene.title;
+        const contentValue =
+          scene.content ??
+          scene.description ??
+          scene.text ??
+          scene.scene ??
+          '';
+        const title = typeof titleValue === 'string' && titleValue.trim()
+          ? titleValue.trim()
+          : `Scene ${i + 1}`;
+        const content = typeof contentValue === 'string'
+          ? contentValue
+          : contentValue != null
+            ? String(contentValue)
+            : '';
+        return { title, content };
+      })
+      .filter((scene) => scene.content.trim().length > 0);
   }
 
   async updatePrimitive(

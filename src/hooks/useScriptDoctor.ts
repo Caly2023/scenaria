@@ -17,6 +17,7 @@ type ScriptDoctorMessage = {
   content: string;
   status?: string;
   thinking?: string;
+  reasoning?: string;
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
@@ -51,7 +52,7 @@ function getTextFromModelResponse(response: unknown): string {
   const directText = asRecord.text;
   if (typeof directText === "string") return directText;
 
-  // Support for both Genkit (message.content) and raw Gemini (content.parts)
+  // Support for standard Genkit (message.content) and raw Gemini (content.parts)
   const candidate =
     Array.isArray(asRecord.candidates) && asRecord.candidates.length > 0
       ? (asRecord.candidates[0] as Record<string, unknown>)
@@ -66,37 +67,32 @@ function getTextFromModelResponse(response: unknown): string {
 
   if (!Array.isArray(contentParts)) return "";
 
+  let aggregatedText = "";
   for (const part of contentParts) {
-    if (
-      part &&
-      typeof part === "object" &&
-      !Array.isArray(part) &&
-      typeof (part as Record<string, unknown>).text === "string"
-    ) {
-      return (part as Record<string, unknown>).text as string;
+    if (part && typeof part === "object" && !Array.isArray(part)) {
+      if (typeof (part as any).text === "string") {
+        aggregatedText += (part as any).text;
+      }
     }
   }
 
-  return "";
+  return aggregatedText;
 }
 
-/**
- * Sanitizes Gemini/Genkit parts for use in conversation history.
- * Removes unsupported part types like 'thought' or 'thoughtSignature'
- * that trigger "Unsupported GeminiPart type" errors in subsequent turns.
- */
 function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
     // Supported parts: text, toolRequest (Genkit), functionCall (Gemini), toolResponse, functionResponse
-    // inlineData and fileData are also generally supported in most multimodal contexts.
+    // reasoning is now supported in Genkit 1.0+ for multi-turn consistency.
     return (
       part.text !== undefined ||
       part.toolRequest ||
       part.functionCall ||
       part.toolResponse ||
       part.functionResponse ||
+      part.reasoning ||
+      part.thought || // legacy fallback
       part.inlineData ||
       part.fileData
     );
@@ -1417,18 +1413,18 @@ ${resolvedContent}`;
 
         // Genkit native: toolRequest; Gemini wire: functionCall
         if (Array.isArray(responseParts) && responseParts.length > 0) {
-          // Extract thinking text from 'thought' parts before they are sanitized for history
-          const thoughtText = responseParts
-            .filter((p: any) => p.thought)
-            .map((p: any) => p.thought)
+          // Extract thinking text from 'reasoning' parts or legacy 'thought' or top-level reasoning
+          const thoughtText = (responseParts
+            .filter((p: any) => p.reasoning || p.thought)
+            .map((p: any) => p.reasoning || p.thought)
             .join("\n")
-            .trim();
+            .trim()) || (typeof result.reasoning === 'string' ? result.reasoning : "");
           
           if (thoughtText) {
             setDoctorMessages((prev) =>
               prev.map((m) =>
                 m.id === botMsgId
-                  ? { ...m, thinking: (m.thinking ? m.thinking + "\n" : "") + thoughtText }
+                  ? { ...m, reasoning: (m.reasoning ? m.reasoning + "\n" : "") + thoughtText, thinking: (m.thinking ? m.thinking + "\n" : "") + thoughtText }
                   : m
               )
             );

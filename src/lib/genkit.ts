@@ -20,7 +20,7 @@ export const ai = genkit({
       apiKey: process.env.GEMINI_API_KEY,
     }),
   ],
-  model: gemini31FlashLite, // Default model
+  model: gemini31FlashLite, // Default model for the suite
 });
 
 // Export all models for use in flows

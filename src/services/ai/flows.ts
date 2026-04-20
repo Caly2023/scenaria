@@ -17,8 +17,12 @@ export const fetchProjectStateTool = ai.defineTool(
   {
     name: 'fetch_project_state',
     description: 'Retrieves the complete list of stages, their primitive counts, and the full ID-MAP.',
-    inputSchema: z.object({}) as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      metadata: z.any(),
+      stages: z.record(z.number()),
+      id_map: z.any(),
+    }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -27,8 +31,17 @@ export const getStageStructureTool = ai.defineTool(
   {
     name: 'get_stage_structure',
     description: 'Retrieve the complete structure of any stage with all primitive IDs, titles, order indices, and content previews.',
-    inputSchema: z.object({ stage_id: z.string() }) as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.object({ stage_id: z.string() }),
+    outputSchema: z.object({
+      stage_id: z.string(),
+      total_count: z.number(),
+      primitives: z.array(z.object({
+        primitive_id: z.string(),
+        title: z.string(),
+        content: z.string(),
+        order_index: z.number(),
+      })),
+    }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -50,9 +63,14 @@ export const proposePatchTool = ai.defineTool(
     inputSchema: z.object({
       id: z.string(),
       stage: z.string(),
-      updates: z.any() as any,
-    }) as any,
-    outputSchema: z.any() as any,
+      updates: z.record(z.any()),
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+      primitive_id: z.string().optional(),
+      updated_snapshot: z.any().optional(),
+      error: z.string().optional(),
+    }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -135,8 +153,8 @@ export const updateStageInsightTool = ai.defineTool(
         suggestions: z.array(z.string()).optional(),
         score: z.number().optional(),
       }),
-    }) as any,
-    outputSchema: z.any() as any,
+    }),
+    outputSchema: z.object({ status: z.string() }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -144,12 +162,12 @@ export const updateStageInsightTool = ai.defineTool(
 export const updateAgentStatusTool = ai.defineTool(
   {
     name: 'update_agent_status',
-    description: 'Updates the clinical status and internal thinking of the Script Doctor. Use this for high-level status updates or reasoning.',
+    description: 'Updates the clinical status and internal thinking of the Script Doctor.',
     inputSchema: z.object({
-      status: z.string().describe('Emoji + Short status (e.g., "🧠 Analyzing consistency...")'),
-      thinking: z.string().optional().describe('Internal reasoning (hidden from user)'),
-    }) as any,
-    outputSchema: z.any() as any,
+      status: z.string().describe('Emoji + Short status (e.g., "🧠 Analyzing...")'),
+      thinking: z.string().optional().describe('Internal reasoning'),
+    }),
+    outputSchema: z.object({ status: z.string() }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -157,11 +175,11 @@ export const updateAgentStatusTool = ai.defineTool(
 export const setSuggestedActionsTool = ai.defineTool(
   {
     name: 'set_suggested_actions',
-    description: 'Sets the contextual action chips for the user. Use this at the end of your turn.',
+    description: 'Sets the contextual action chips for the user.',
     inputSchema: z.object({
       actions: z.array(z.string()).describe('List of 2-3 action labels'),
-    }) as any,
-    outputSchema: z.any() as any,
+    }),
+    outputSchema: z.object({ status: z.string() }),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -191,8 +209,8 @@ export const scriptDoctorFlow = ai.defineFlow(
       activeStage: z.string(),
       complexity: z.enum(['simple', 'moderate', 'complex']).optional(),
       idMapContext: z.string().optional(),
-    }) as any,
-    outputSchema: z.any() as any,
+    }),
+    outputSchema: z.any(),
   },
   async (input, { sendChunk }) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
@@ -217,17 +235,14 @@ export const scriptDoctorFlow = ai.defineFlow(
       }
     });
 
-    // Return a plain, serializable object.
-    // We use response.message.toJSON() but specifically ensure the content array
-    // is preserved as it contains the critical parts (text, toolRequest, thoughts, etc.)
-    const messageData = response.message?.toJSON?.() ?? null;
+    // Return the standard Genkit response JSON.
+    const jsonResponse = response.toJSON();
     
     return {
-      // Wrap in candidates array for client compatibility
-      candidates: messageData ? [{ index: 0, message: messageData }] : [],
-      text: response.text ?? '',
-      // Explicitly expose message data
-      message: messageData,
+      ...jsonResponse,
+      reasoning: response.reasoning,
+      message: response.message,
+      text: response.text,
     };
   }
 );
@@ -430,9 +445,10 @@ export const genericGeminiFlow = ai.defineFlow(
         relationshipMap: z.string(),
       }),
       threeActStructure: threeActStructureSchema,
-    } as const;
-    const structuredSchema = (structuredOutput && (structuredOutput in structuredSchemaMap)) 
-      ? (structuredSchemaMap as any)[structuredOutput] 
+    };
+
+    const structuredSchema = structuredOutput 
+      ? (structuredSchemaMap as Record<string, z.ZodTypeAny>)[structuredOutput] 
       : undefined;
 
     const response = await ai.generate({
@@ -454,7 +470,8 @@ export const genericGeminiFlow = ai.defineFlow(
         if (sendChunk && chunk.text && !jsonMode) sendChunk(chunk.text);
       }
     });
-    return jsonMode ? response.output : response.text;
+
+    return jsonMode || structuredSchema ? response.output : response.text;
   }
 );
 

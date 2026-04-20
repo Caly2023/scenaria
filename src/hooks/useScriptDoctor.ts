@@ -20,6 +20,7 @@ type ScriptDoctorMessage = {
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
+  isStreaming?: boolean;
   /** Preserves Genkit/Gemini raw parts for multi-turn consistency (including thoughts and signatures) */
   content_parts?: any[];
 };
@@ -1265,6 +1266,7 @@ ${resolvedContent}`;
         content: t("common.connectingToAi", { defaultValue: "Connecting to ScénarIA..." }),
         status: "📡 Connecting...",
         timestamp: Date.now(),
+        isStreaming: true,
       };
       setDoctorMessages((prev) => [...prev, initialBotMsg]);
 
@@ -1325,7 +1327,7 @@ ${resolvedContent}`;
               setDoctorMessages((prev) =>
                 prev.map((m) =>
                   m.id === botMsgId
-                    ? { ...m, content: displayContent, status: `🔄 Step ${iteration + 1}...` }
+                    ? { ...m, content: displayContent, status: `🔄 Step ${iteration + 1}...`, isStreaming: true }
                     : m
                 )
               );
@@ -1581,6 +1583,7 @@ ${resolvedContent}`;
             status: "✅ Done",
             response: `I completed ${allToolsCalled.length} operations: ${[...new Set(allToolsCalled)].join(", ")}. The changes have been applied.`,
             suggested_actions: ["Review changes", "Continue editing"],
+            isStreaming: false,
           });
         }
       }
@@ -1638,6 +1641,7 @@ ${resolvedContent}`;
                 suggested_actions: parsedResponse.suggested_actions,
                 active_tool: parsedResponse.active_tool,
                 status: parsedResponse.status,
+                isStreaming: false,
                 // CRITICAL: Preserve the final turn's parts so the next user message has full history
                 content_parts: responseParts || m.content_parts, 
               }
@@ -1660,6 +1664,7 @@ ${resolvedContent}`;
                   ...m,
                   content: errorMessage,
                   status: "❌ Error",
+                  isStreaming: false,
                   suggested_actions: ["Retry", "Ask something simpler"],
                 }
               : m

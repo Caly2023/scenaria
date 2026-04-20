@@ -20,6 +20,70 @@ async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
   return response.json();
 }
 
+/**
+ * STREAMING GENKIT FLOW HELPER
+ * Calls a Genkit flow and yields chunks of text as they arrive.
+ */
+async function* streamGenkitFlow(flowName: string, input: any): AsyncGenerator<{ chunk?: string, final?: any }> {
+  const response = await fetch(`/api/genkit/${flowName}`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream' 
+    },
+    body: JSON.stringify({ ...input, stream: true }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Failed to stream flow ${flowName}`);
+  }
+
+  const reader = response.body?.getReader();
+  const decoder = new TextDecoder();
+
+  if (!reader) throw new Error('No body in response');
+
+  let buffer = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const text = decoder.decode(value, { stream: true });
+      buffer += text;
+
+      if (buffer.includes('[DONE]')) {
+        const parts = buffer.split('[DONE]');
+        // Yield the part before [DONE] as a chunk
+        if (parts[0]) yield { chunk: parts[0] };
+        
+        // Try to parse the final result
+        try {
+          const finalResult = JSON.parse(parts[1]);
+          yield { final: finalResult };
+        } catch (e) {
+          console.warn("[GeminiService] Failed to parse final result:", e);
+        }
+        break;
+      } else {
+        // Yield the whole text as a chunk and clear buffer (since no [DONE] yet)
+        yield { chunk: text };
+        buffer = ''; 
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+/**
+ * GENERIC STREAM HELPER
+ */
+function streamGenericGemini(prompt: string, systemPrompt?: string) {
+  return streamGenkitFlow('genericGemini', { prompt, systemPrompt });
+}
+
 
 
 /** Reset quota state at the start of a new session. */
@@ -78,7 +142,7 @@ async function extractText(response: any): Promise<string> {
 
 
 export const geminiService = {
-// eslint-disable-next-line @typesc  async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
+  async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
     return callGenkitFlow('scriptDoctor', {
       messages,
       context,
@@ -87,10 +151,15 @@ export const geminiService = {
       idMapContext
     });
   },
-    }
-    }
 
-    return responseObj;
+  streamScriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
+    return streamGenkitFlow('scriptDoctor', {
+      messages,
+      context,
+      activeStage,
+      complexity,
+      idMapContext
+    });
   },
 
 
@@ -101,9 +170,22 @@ export const geminiService = {
     });
   },
 
+  analyzeScriptStream(content: string, stage: string) {
+    return streamGenkitFlow('genericGemini', {
+      prompt: `Analyze the following content for the "${stage}" stage of screenwriting. Provide expert feedback on structure, dialogue, and character development.\n\nContent:\n${content}`,
+      systemPrompt: 'You are a professional script doctor.'
+    });
+  },
+
 
   async rewriteSequence(content: string, instruction: string) {
     return callGenkitFlow('genericGemini', {
+      prompt: `Rewrite the following script sequence based on this instruction: "${instruction}". Maintain the tone and style of the original.\n\nOriginal:\n${content}`
+    });
+  },
+
+  rewriteSequenceStream(content: string, instruction: string) {
+    return streamGenkitFlow('genericGemini', {
       prompt: `Rewrite the following script sequence based on this instruction: "${instruction}". Maintain the tone and style of the original.\n\nOriginal:\n${content}`
     });
   },

@@ -20,7 +20,7 @@ export const scriptDoctorFlow = ai.defineFlow(
     }),
     outputSchema: z.any(),
   },
-  async (input) => {
+  async (input, { sendChunk }) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
     
     // Construct system instruction
@@ -30,6 +30,9 @@ export const scriptDoctorFlow = ai.defineFlow(
       model: gemini15Flash,
       systemPrompt: systemInstruction,
       messages: messages,
+      onChunk: (chunk) => {
+        if (sendChunk && chunk.text) sendChunk(chunk.text);
+      }
     });
 
     return response.text;
@@ -67,11 +70,14 @@ export const generateSynopsisFlow = ai.defineFlow(
     }),
     outputSchema: z.string(),
   },
-  async (input) => {
+  async (input, { sendChunk }) => {
     const { brainstorming, structure } = input;
     const response = await ai.generate({
       model: gemini15Pro,
       prompt: Prompts.SYNOPSIS_PROMPT(brainstorming, structure),
+      onChunk: (chunk) => {
+        if (sendChunk && chunk.text) sendChunk(chunk.text);
+      }
     });
     return response.text;
   }
@@ -125,13 +131,16 @@ export const genericGeminiFlow = ai.defineFlow(
     }),
     outputSchema: z.any(),
   },
-  async (input) => {
+  async (input, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt } = input;
     const response = await ai.generate({
       model: gemini15Flash,
       prompt,
       systemPrompt,
       output: jsonMode ? { format: 'json' } : undefined,
+      onChunk: (chunk) => {
+        if (sendChunk && chunk.text && !jsonMode) sendChunk(chunk.text);
+      }
     });
     return jsonMode ? response.output : response.text;
   }

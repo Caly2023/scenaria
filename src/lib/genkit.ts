@@ -1,5 +1,5 @@
 import { genkit } from 'genkit';
-import { googleAI, gemini15Flash, gemini15Pro } from '@genkit-ai/google-genai';
+import { googleAI, gemini15Flash, gemini15Pro } from '@genkit-ai/googleai';
 
 /**
  * GENKIT CONFIGURATION

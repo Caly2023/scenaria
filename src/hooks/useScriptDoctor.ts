@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Project,
@@ -1154,16 +1154,76 @@ ${resolvedContent}`;
       let finalResponse = "";
       const allToolsCalled: string[] = [];
 
-      telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
+      // Create a unique ID for the bot message we're about to stream
+      const botMsgId = (Date.now() + 1).toString();
+      const initialBotMsg: ScriptDoctorMessage = {
+        id: botMsgId,
+        role: "assistant",
+        content: t("common.connectingToAi", { defaultValue: "Connecting to ScénarIA..." }),
+        status: "📡 Connecting...",
+        timestamp: Date.now(),
+      };
+      setDoctorMessages((prev) => [...prev, initialBotMsg]);
+
+      /**
+       * Helper to extract partial response from a raw JSON stream.
+       * Handles escaped characters and partial field completion.
+       */
+      const extractPartial = (text: string): string => {
+        // Try to find the "response" field value
+        // Match 1: Still being typed (ends with open quote or just text)
+        // Match 2: Fully completed field
+        const responseMatch = text.match(/"response"\s*:\s*"([^"]*)$| "response"\s*:\s*"([^"]*)"/);
+        if (responseMatch) {
+          return responseMatch[1] || responseMatch[2] || "";
+        }
+        
+        // Fallback: If no response yet, show thinking if available
+        const thinkingMatch = text.match(/"thinking"\s*:\s*"([^"]*)$| "thinking"\s*:\s*"([^"]*)"/);
+        if (thinkingMatch) {
+          return `${t("common.thinking", { defaultValue: "Thinking" })}: ${thinkingMatch[1] || thinkingMatch[2] || ""}`;
+        }
+
+        // Final fallback: show raw text if it doesn't look like JSON yet
+        if (!text.trim().startsWith('{')) return text;
+        
+        return "...";
+      };
 
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-        const result = await geminiService.scriptDoctorAgent(
+        telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
+        
+        let iterationResult: any = null;
+        let accumulatedText = "";
+
+        const stream = geminiService.streamScriptDoctorAgent(
           conversationHistory,
           context,
           activeStage,
           complexity,
           idMapContext,
         );
+
+        for await (const part of stream) {
+          if (part.chunk) {
+            accumulatedText += part.chunk;
+            const displayContent = extractPartial(accumulatedText);
+            
+            setDoctorMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMsgId
+                  ? { ...m, content: displayContent, status: `🔄 Step ${iteration + 1}...` }
+                  : m
+              )
+            );
+          }
+          if (part.final) {
+            iterationResult = part.final;
+          }
+        }
+
+        const result = iterationResult;
+        if (!result) break;
 
         // Robust response parsing: prefer candidates[0].content.parts, fall back to result.text
         const responseParts = result?.candidates?.[0]?.content?.parts ?? null;
@@ -1383,19 +1443,23 @@ ${resolvedContent}`;
       );
       setAiStatus(parsedResponse.status || "✅ Done");
 
-      const botMsg = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant" as const,
-        content: typeof parsedResponse.response === 'string' 
-          ? parsedResponse.response 
-          : JSON.stringify(parsedResponse.response, null, 2),
-        thinking: parsedResponse.thinking,
-        suggested_actions: parsedResponse.suggested_actions,
-        active_tool: parsedResponse.active_tool,
-        status: parsedResponse.status,
-        timestamp: Date.now(),
-      };
-      setDoctorMessages((prev) => [...prev, botMsg]);
+      setDoctorMessages((prev) =>
+        prev.map((m) =>
+          m.id === botMsgId
+            ? {
+                ...m,
+                content:
+                  typeof parsedResponse.response === "string"
+                    ? parsedResponse.response
+                    : JSON.stringify(parsedResponse.response, null, 2),
+                thinking: parsedResponse.thinking,
+                suggested_actions: parsedResponse.suggested_actions,
+                active_tool: parsedResponse.active_tool,
+                status: parsedResponse.status,
+              }
+            : m
+        ),
+      );
     } catch (error: any) {
       console.error("[ScriptDoctor] Doctor message failed:", error);
       const classification = telemetryService.classifyFirebaseError(error);

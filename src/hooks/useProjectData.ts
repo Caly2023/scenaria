@@ -70,10 +70,12 @@ export function useProjectData(user: User | null): ProjectDataState {
 
   // Run migration if needed when the project loads
   useEffect(() => {
-    if (currentProject) {
+    if (currentProject?.id) {
+      // Small optimization: only run migration when the actual project ID changes
+      // or if it hasn't been migrated in this session.
       import('../services/migrationService').then(m => m.migrateProjectIfNeeded(currentProject));
     }
-  }, [currentProject]);
+  }, [currentProject?.id]);
 
   // ── Stage-gated subcollection fetches ─────────────────────────────────────
   // Each large sequence collection is only subscribed when its stage is active.

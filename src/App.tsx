@@ -6,6 +6,7 @@ import { useScriptDoctor } from "./hooks/useScriptDoctor";
 import { useAppCallbacks } from "./hooks/useAppCallbacks";
 import { useAutoHydration } from "./hooks/useAutoHydration";
 import { useTelemetry } from "./hooks/useTelemetry";
+import { useWindowSize } from "./hooks/useWindowSize";
 import { WorkflowStage } from "./types";
 import { FocusMode } from "./components/FocusMode";
 import { LoadingPage } from "./components/LoadingPage";
@@ -315,7 +316,7 @@ export default function App() {
           providerId: user.providerData[0]?.providerId,
         }}
         activeStage={activeStage}
-        isMobile={window.innerWidth < 768}
+        isMobile={isMobile}
         isDoctorOpen={isDoctorOpen}
         isFocusMode={isFocusMode}
         isTyping={isTyping}

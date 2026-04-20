@@ -80,12 +80,13 @@ export const firebaseApi = createApi({
       async queryFn(projectId) {
         if (!projectId) return { data: null };
         try {
+          const { getDoc } = await import("firebase/firestore");
           const docRef = doc(db, "projects", projectId);
-          const snapshot = await getDocs(query(docRef.parent, where("__name__", "==", docRef.id)));
-          if (snapshot.empty) {
+          const snapshot = await getDoc(docRef);
+          if (!snapshot.exists()) {
             return { error: { message: "Project not found", status: 404 } };
           }
-          const data = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Project;
+          const data = { id: snapshot.id, ...snapshot.data() } as Project;
           return { data };
         } catch (error: any) {
           return { error: { message: error.message } };
@@ -390,7 +391,12 @@ export const firebaseApi = createApi({
           const snap = await getDocs(
             collection(db, "projects", projectId, collectionName),
           );
-          await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+          if (snap.empty) return { data: undefined };
+          
+          const batch = writeBatch(db);
+          snap.docs.forEach((d) => batch.delete(d.ref));
+          await batch.commit();
+          
           return { data: undefined };
         } catch (error: any) {
           return { error: { message: error.message } };

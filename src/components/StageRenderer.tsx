@@ -136,7 +136,7 @@ interface StageRendererProps {
   CanvasErrorBoundary: React.ComponentType<CanvasErrorBoundaryProps>;
 }
 
-export function StageRenderer({
+const StageRendererComponent = ({
   activeStage,
   currentProject,
   pitchPrimitives,
@@ -201,7 +201,7 @@ export function StageRenderer({
   onApplyFix,
 
   CanvasErrorBoundary
-}: StageRendererProps) {
+}: StageRendererProps) => {
   const { t } = useTranslation();
 
   switch (activeStage) {
@@ -418,4 +418,6 @@ export function StageRenderer({
         </div>
       );
   }
-}
+};
+
+export const StageRenderer = React.memo(StageRendererComponent);

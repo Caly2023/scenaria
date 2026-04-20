@@ -125,7 +125,7 @@ interface MainLayoutProps {
   ScriptDoctor: React.ComponentType<ScriptDoctorProps>;
 }
 
-export function MainLayout({
+const MainLayoutComponent = ({
   currentProject,
   projectHistory,
   user,
@@ -181,7 +181,7 @@ export function MainLayout({
   
   renderStage,
   ScriptDoctor
-}: MainLayoutProps) {
+}: MainLayoutProps) => {
   
   const [showDoctorBubble, setShowDoctorBubble] = useState(true);
   const lastScrollY = useRef(0);
@@ -517,7 +517,7 @@ export function MainLayout({
       </AnimatePresence>
     </div>
   );
-}
+};
 
 // Missing component from layout
 function DeleteProjectModal({
@@ -560,3 +560,5 @@ function DeleteProjectModal({
     </motion.div>
   );
 }
+
+export const MainLayout = React.memo(MainLayoutComponent);

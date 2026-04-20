@@ -20,6 +20,8 @@ type ScriptDoctorMessage = {
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
+  /** Preserves Genkit/Gemini raw parts for multi-turn consistency (including thoughts and signatures) */
+  content_parts?: any[];
 };
 
 type ToolCall = {
@@ -1097,23 +1099,27 @@ ${resolvedContent}`;
           });
         } else {
           // Assistant message: 
-          // If the message has tool calls, we should ideally reconstruct them for Genkit
-          // However, for simple multi-turn context, the serialized JSON is often used by the agent
-          // as a "memory" of its own previous structured output.
-          // BUT Genkit history works best if model turns match actual parts.
-          
-          // Reconstruct if it looks like it had tools
-          const assistantText = JSON.stringify({
-            status: msg.status || "✅ Done",
-            thinking: msg.thinking || "",
-            response: msg.content,
-            suggested_actions: msg.suggested_actions || [],
-          });
-          
-          history.push({
-            role: "model",
-            content: [{ text: assistantText }],
-          });
+          // If we have preserved raw parts (content_parts), use them exactly as they were 
+          // to maintain strict tool-call/thinking states required by Gemini 2.0/3.1.
+          if (msg.content_parts && msg.content_parts.length > 0) {
+            history.push({
+              role: "model",
+              content: msg.content_parts,
+            });
+          } else {
+            // Fallback for legacy messages or manually injected responses
+            const assistantText = JSON.stringify({
+              status: msg.status || "✅ Done",
+              thinking: msg.thinking || "",
+              response: msg.content,
+              suggested_actions: msg.suggested_actions || [],
+            });
+            
+            history.push({
+              role: "model",
+              content: [{ text: assistantText }],
+            });
+          }
         }
       }
 
@@ -1180,7 +1186,7 @@ ${resolvedContent}`;
         );
         setAiStatus(degradedParsed.status || "💬 Chat-only mode");
 
-        const botMsg = {
+          const botMsg = {
           id: (Date.now() + 1).toString(),
           role: "assistant" as const,
           content: degradedParsed.response,
@@ -1191,6 +1197,7 @@ ${resolvedContent}`;
           ],
           status: degradedParsed.status || "💬 Chat Mode",
           timestamp: Date.now(),
+          content_parts: genkitParts || legacyParts || [{ text: degradedText }], // Preserve parts even in degraded mode
         };
         setDoctorMessages((prev) => [...prev, botMsg]);
         return; // Early exit — skip the full agentic loop below
@@ -1559,6 +1566,8 @@ ${resolvedContent}`;
                 suggested_actions: parsedResponse.suggested_actions,
                 active_tool: parsedResponse.active_tool,
                 status: parsedResponse.status,
+                // CRITICAL: Preserve the final turn's parts so the next user message has full history
+                content_parts: responseParts || m.content_parts, 
               }
             : m
         ),

@@ -81,39 +81,53 @@ async function* streamGenkitFlow<T>(flowName: string, input: any): AsyncGenerato
 
   if (!reader) throw new Error('No body in response');
 
-  let buffer = '';
+  // pendingBuffer: only keeps a small tail to detect [DONE] split across network chunks.
+  // This is intentionally separate from the yielded chunks — the caller accumulates those.
+  let pendingBuffer = '';
+  // The max length of '[DONE]' is 6 chars, so keeping the last 10 chars is always enough
+  // to detect a split across two reads.
+  const DONE_MARKER = '[DONE]';
+  const TAIL_SIZE = DONE_MARKER.length + 4; // safe margin
+
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
-      const text = decoder.decode(value, { stream: true });
-      buffer += text;
 
-      if (buffer.includes('[DONE]')) {
-        const parts = buffer.split('[DONE]');
-        // Yield the part before [DONE] as a chunk if it exists
-        if (parts[0]) yield { chunk: parts[0] };
-        
-        // Try to parse the final result from what follows [DONE]
+      const text = decoder.decode(value, { stream: true });
+      pendingBuffer += text;
+
+      if (pendingBuffer.includes(DONE_MARKER)) {
+        const markerIndex = pendingBuffer.indexOf(DONE_MARKER);
+        // Everything before [DONE] is a final text chunk
+        const beforeDone = pendingBuffer.slice(0, markerIndex);
+        if (beforeDone) yield { chunk: beforeDone };
+
+        // Everything after [DONE] is the JSON payload for the final result
+        const afterDone = pendingBuffer.slice(markerIndex + DONE_MARKER.length);
         try {
-          const finalResult = JSON.parse(parts[1]);
-          yield { final: finalResult };
+          if (afterDone.trim()) {
+            const finalResult = JSON.parse(afterDone.trim());
+            yield { final: finalResult };
+          }
         } catch (e) {
-          console.warn("[GeminiService] Failed to parse final result:", e);
+          console.warn('[GeminiService] Failed to parse final result after [DONE]:', e, 'Raw:', afterDone);
         }
         break;
       } else {
-        // Yield the chunk to the UI immediately
-        yield { chunk: text };
-        // Do NOT clear the buffer here, because [DONE] might be partially in it
-        // and we need to keep appending text until we find [DONE].
-        // However, to avoid memory leaks, let's only keep the last few characters
-        // that could potentially be part of "[DONE]".
-        if (buffer.length > 50) {
-          buffer = buffer.slice(-10); // Keep enough room for "[DONE]" splits
+        // [DONE] not yet seen — yield a safe portion, keeping a tail for split detection
+        if (pendingBuffer.length > TAIL_SIZE) {
+          const safeChunk = pendingBuffer.slice(0, pendingBuffer.length - TAIL_SIZE);
+          yield { chunk: safeChunk };
+          pendingBuffer = pendingBuffer.slice(pendingBuffer.length - TAIL_SIZE);
         }
+        // If pendingBuffer is smaller than TAIL_SIZE, wait for more data before yielding
       }
+    }
+
+    // Stream ended without a [DONE] marker — flush any remaining buffer as a chunk
+    if (pendingBuffer && !pendingBuffer.includes(DONE_MARKER)) {
+      yield { chunk: pendingBuffer };
     }
   } finally {
     reader.releaseLock();

@@ -190,7 +190,24 @@ export const scriptDoctorFlow = ai.defineFlow(
       }
     });
 
-    return response;
+    // Return a plain, serializable object.
+    // Genkit v1.x `GenerateResponse` is a class instance — `response.candidates` does NOT
+    // exist as a direct property. The model output is in `response.message` (a `Message`
+    // class instance). We call `.toJSON()` to get plain `MessageData`:
+    //   { role: 'model', content: Part[] }
+    // where Part is { text } | { toolRequest: { name, input, ref } } | ...
+    //
+    // The client reads: result?.candidates?.[0]?.message?.content (genkitParts)
+    // OR: result?.message?.content (also checked).
+    const messageData = response.message?.toJSON?.() ?? null;
+    return {
+      // Wrap in candidates array so the client's primary lookup path works:
+      // result?.candidates?.[0]?.message?.content
+      candidates: messageData ? [{ index: 0, message: messageData }] : [],
+      text: response.text ?? '',
+      // Also expose directly so result?.message?.content works as a fallback
+      message: messageData,
+    };
   }
 );
 

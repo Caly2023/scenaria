@@ -49,17 +49,19 @@ export async function POST(
           try {
             console.log(`[Genkit API][${requestId}] Stream connected, sending chunks...`);
             for await (const chunk of responseStream.stream) {
-              const text = typeof chunk === 'string' ? chunk : (chunk as any).text || JSON.stringify(chunk);
+              // Genkit sendChunk yields strings directly; handle both string and object chunks
+              const text = typeof chunk === 'string' ? chunk : (chunk as any)?.text ?? '';
               if (text) {
                 controller.enqueue(encoder.encode(text));
               }
             }
             
-            // Send final structured result for agentic loops (Script Doctor)
+            // Send final structured result for agentic loops (Script Doctor).
+            // The flow now returns a plain serializable object, so JSON.stringify is safe.
             try {
               console.log(`[Genkit API][${requestId}] Stream finished, awaiting final output...`);
               const finalResult = await responseStream.output;
-              if (finalResult) {
+              if (finalResult != null) {
                 controller.enqueue(encoder.encode(`\n\n[DONE]${JSON.stringify(finalResult)}`));
               }
             } catch (e) {

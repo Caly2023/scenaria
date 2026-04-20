@@ -1073,8 +1073,9 @@ ${resolvedContent}`;
       const idMapContext = telemetryService.getIdMapContext();
 
       const currentMessages = [...doctorMessages, userMsg];
-      const history: Array<{ role: string; parts: Array<{ text: string }> }> =
-        [];
+      // Genkit MessageData format: { role, content: Part[] }
+      // Note: NOT 'parts' — Genkit uses 'content' internally, while the Gemini wire API uses 'parts'.
+      const history: Array<{ role: string; content: Array<{ text: string }> }> = [];
 
       const { geminiService } = await import("../services/geminiService");
       const { aiQuotaState } = await import("../services/serviceState");
@@ -1084,11 +1085,10 @@ ${resolvedContent}`;
         if (msg.role === "user") {
           history.push({
             role: "user",
-            parts: [{ text: msg.content }],
+            content: [{ text: msg.content }],
           });
         } else {
-          // Assistant message: provide the content as text
-          // If there's structured data (thinking, actions), include it for coherence
+          // Assistant message: serialize as structured JSON so the model remembers context
           const assistantText = JSON.stringify({
             status: msg.status || "✅ Done",
             thinking: msg.thinking || "",
@@ -1097,7 +1097,7 @@ ${resolvedContent}`;
           });
           history.push({
             role: "model",
-            parts: [{ text: assistantText }],
+            content: [{ text: assistantText }],
           });
         }
       }
@@ -1107,7 +1107,7 @@ ${resolvedContent}`;
       for (const entry of history) {
         const lastEntry = cleanedHistory[cleanedHistory.length - 1];
         if (lastEntry && lastEntry.role === entry.role) {
-          lastEntry.parts.push(...entry.parts);
+          lastEntry.content.push(...entry.content);
         } else {
           cleanedHistory.push(entry);
         }
@@ -1281,18 +1281,36 @@ ${resolvedContent}`;
         const result = iterationResult;
         if (!result) break;
 
-        // Robust response parsing: prefer Genkit structure (candidates[0].content.parts)
-        const responseParts = result?.candidates?.[0]?.content?.parts ?? 
-                             result?.content?.parts ?? 
-                             result?.parts ?? 
-                             null;
+        // Genkit's CandidateData format:
+        //   candidates[0].message.content => Part[]
+        // where Part is { text } | { toolRequest: { name, input, ref } } | { toolResponse } etc.
+        //
+        // Note: this is DIFFERENT from the raw Gemini API wire format which uses
+        // candidates[0].content.parts and functionCall/functionResponse.
+        // We must handle both for defensive robustness (non-streaming fallback may differ).
+        const genkitParts: any[] | null =
+          result?.candidates?.[0]?.message?.content ??
+          result?.message?.content ??
+          null;
+
+        // Legacy Gemini-wire-format fallback (non-streaming fallback path)
+        const legacyParts: any[] | null =
+          result?.candidates?.[0]?.content?.parts ??
+          result?.content?.parts ??
+          result?.parts ??
+          null;
+
+        const responseParts: any[] | null = genkitParts ?? legacyParts;
 
         let functionCallParts: any[] = [];
         let textParts: any[] = [];
 
         if (Array.isArray(responseParts) && responseParts.length > 0) {
-          functionCallParts = responseParts.filter((p: any) => p.functionCall);
-          textParts = responseParts.filter((p: any) => p.text);
+          // Genkit native: toolRequest; Gemini wire: functionCall
+          functionCallParts = responseParts.filter(
+            (p: any) => p.toolRequest || p.functionCall
+          );
+          textParts = responseParts.filter((p: any) => p.text !== undefined);
         }
 
         // If no structured parts at all, fall back to text property or JSON string
@@ -1304,7 +1322,7 @@ ${resolvedContent}`;
         // No function calls → this is the final text response
         if (functionCallParts.length === 0) {
           finalResponse =
-            textParts.map((p: any) => p.text).join("") || result?.text || JSON.stringify(result);
+            textParts.map((p: any) => p.text).join('') || result?.text || JSON.stringify(result);
           break;
         }
 
@@ -1332,7 +1350,12 @@ ${resolvedContent}`;
         const toolResults: any[] = [];
 
         for (const part of functionCallParts) {
-          const call = part.functionCall;
+          // Support both Genkit native format (toolRequest) and Gemini wire format (functionCall)
+          const call = part.toolRequest
+            ? { name: part.toolRequest.name, args: part.toolRequest.input, ref: part.toolRequest.ref }
+            : part.functionCall
+              ? { name: part.functionCall.name, args: part.functionCall.args, ref: undefined }
+              : null;
           if (!call) continue;
 
           allToolsCalled.push(call.name);
@@ -1411,7 +1434,7 @@ ${resolvedContent}`;
 
               const retryResult = await executeToolCall(call);
               toolResults.push({
-                functionResponse: { name: call.name, response: retryResult },
+                toolResponse: { name: call.name, ref: call.ref ?? call.name, output: retryResult },
               });
               if (
                 retryResult.success &&
@@ -1429,10 +1452,13 @@ ${resolvedContent}`;
             }
           }
 
+          // Genkit multi-turn format: role='tool', parts contain toolResponse objects.
+          // The ref must match the toolRequest ref so Genkit can correlate them.
           toolResults.push({
-            functionResponse: {
+            toolResponse: {
               name: call.name,
-              response: toolResult,
+              ref: call.ref ?? call.name,
+              output: toolResult,
             },
           });
         }
@@ -1442,10 +1468,13 @@ ${resolvedContent}`;
           break;
         }
 
+        // Genkit multi-turn history format:
+        // - model turn: role='model', content=Part[] (the responseParts from above)
+        // - tool results: role='tool', content=toolResponse Part[] each with a ref
         conversationHistory = [
           ...conversationHistory,
-          { role: "model", parts: responseParts },
-          { role: "user", parts: toolResults },
+          { role: "model", content: responseParts },
+          { role: "tool", content: toolResults },
         ];
 
         telemetryService.setStatus(

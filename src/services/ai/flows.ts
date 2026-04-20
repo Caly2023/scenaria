@@ -307,16 +307,35 @@ export const genericGeminiFlow = ai.defineFlow(
       prompt: z.string(),
       jsonMode: z.boolean().optional(),
       systemPrompt: z.string().optional(),
+      structuredOutput: z.enum(['object', 'array', 'stageInsight']).optional(),
     }) as any,
     outputSchema: z.any() as any,
   },
   async (input, { sendChunk }) => {
-    const { prompt, jsonMode = false, systemPrompt } = input;
+    const { prompt, jsonMode = false, systemPrompt, structuredOutput } = input;
+    const structuredSchema =
+      structuredOutput === 'array'
+        ? z.array(z.any())
+        : structuredOutput === 'stageInsight'
+          ? z.object({
+              content: z.string(),
+              isReady: z.boolean(),
+              suggestions: z.array(z.string()).optional(),
+              score: z.number().optional(),
+            })
+          : structuredOutput === 'object'
+            ? z.object({}).passthrough()
+            : undefined;
+
     const response = await ai.generate({
       model: gemini31FlashLite,
       prompt,
       system: systemPrompt,
-      output: jsonMode ? { format: 'json' } : undefined,
+      output: structuredSchema
+        ? { schema: structuredSchema }
+        : jsonMode
+          ? { format: 'json' }
+          : undefined,
       use: [
         retry({ maxRetries: 2 }),
         fallback(ai, {

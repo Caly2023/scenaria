@@ -8,6 +8,27 @@ import * as Prompts from './prompts';
  * Defining server-side AI workflows.
  */
 
+// Shared schema for story elements (primitives) to ensure Gemini API compliance
+const PrimitiveSchema = z.object({
+  primitive_id: z.string().optional(),
+  title: z.string().optional(),
+  content: z.string().optional(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+  order: z.number().optional(),
+  type: z.string().optional(),
+}).passthrough();
+
+const MetadataSchema = z.object({
+  title: z.string().optional(),
+  format: z.string().optional(),
+  genre: z.string().optional(),
+  tone: z.string().optional(),
+  logline: z.string().optional(),
+  languages: z.array(z.string()).optional(),
+  targetDuration: z.string().optional(),
+}).passthrough();
+
 // --- SCRIPT DOCTOR TOOLS ---
 // These are declared in Genkit so the model knows it can call them. 
 // The actual execution is handled by the client-side loop in useScriptDoctor.ts,
@@ -64,7 +85,7 @@ export const proposePatchTool = ai.defineTool(
     inputSchema: z.object({
       id: z.string(),
       stage: z.string(),
-      updates: z.record(z.any()),
+      updates: z.record(z.any()), // Still using record but restricted to object type
     }),
     outputSchema: z.object({
       success: z.boolean(),
@@ -85,7 +106,7 @@ export const executeMultiStageFixTool = ai.defineTool(
       fixes: z.array(z.object({
         id: z.string(),
         stage: z.string(),
-        updates: z.object({}).passthrough(),
+        updates: PrimitiveSchema.partial(),
       })),
     }),
     outputSchema: z.any(),
@@ -97,7 +118,7 @@ export const syncMetadataTool = ai.defineTool(
   {
     name: 'sync_metadata',
     description: "Ensure the project's DNA (title, tone, genre, etc.) is always up to date.",
-    inputSchema: z.object({ metadata: z.object({}).passthrough() }),
+    inputSchema: z.object({ metadata: MetadataSchema }),
     outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
@@ -109,7 +130,7 @@ export const addPrimitiveTool = ai.defineTool(
     description: 'Adds a new structural element (primitive) to a production stage.',
     inputSchema: z.object({
       stage: z.string(),
-      primitive: z.object({}).passthrough(),
+      primitive: PrimitiveSchema,
       position: z.number().optional(),
     }),
     outputSchema: z.object({ status: z.string() }),
@@ -136,7 +157,7 @@ export const restructureStageTool = ai.defineTool(
     description: 'Replaces all primitives in a stage with a new set. Use with caution.',
     inputSchema: z.object({
       stage: z.string(),
-      primitives: z.array(z.object({}).passthrough()),
+      primitives: z.array(PrimitiveSchema),
     }),
     outputSchema: z.object({ status: z.string() }),
   },
@@ -392,15 +413,7 @@ export const genericGeminiFlow = ai.defineFlow(
       locationIds: z.array(z.string()).optional(),
       type: z.string().optional(),
     });
-    const metadataSchema = z.object({
-      title: z.string().optional(),
-      format: z.string().optional(),
-      genre: z.string().optional(),
-      tone: z.string().optional(),
-      logline: z.string().optional(),
-      languages: z.array(z.string()).optional(),
-      targetDuration: z.string().optional(),
-    });
+    
     const threeActStructureSchema = z.object({
       stage: z.string().optional(),
       blocks: z.array(
@@ -419,9 +432,9 @@ export const genericGeminiFlow = ai.defineFlow(
       array: z.array(z.any()),
       stageInsight: stageInsightSchema,
       sequenceArray: z.array(sequenceItemSchema),
-      metadata: metadataSchema,
+      metadata: MetadataSchema,
       initialProject: z.object({
-        metadata: metadataSchema,
+        metadata: MetadataSchema,
         pitch: z.string(),
         critique: z.string().optional(),
         validation: z.object({
@@ -432,7 +445,7 @@ export const genericGeminiFlow = ai.defineFlow(
       }),
       brainstormDual: z.object({
         pitch: z.string(),
-        metadataUpdates: metadataSchema.partial().optional(),
+        metadataUpdates: MetadataSchema.partial().optional(),
         critique: z.string().optional(),
         suggestedActions: z.array(z.string()).optional(),
       }),

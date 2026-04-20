@@ -252,7 +252,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', {
       prompt,
       jsonMode: true,
-      structuredOutput: 'array',
+      structuredOutput: 'sequenceArray',
     });
   },
 
@@ -294,7 +294,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', {
       prompt: `Refine the following 8-beat 3-Act Structure based on this feedback: "${feedback}". Maintain the 8-beat framework. Output in JSON format.\n\nCurrent Structure:\n${currentStructure}`,
       jsonMode: true,
-      structuredOutput: 'object',
+      structuredOutput: 'threeActStructure',
     });
   },
 
@@ -302,7 +302,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', { 
       prompt: Prompts.TREATMENT_PROMPT(context),
       jsonMode: true,
-      structuredOutput: 'array',
+      structuredOutput: 'sequenceArray',
     });
   },
 
@@ -314,7 +314,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', {
       prompt: `Convert the following treatment into a professional Step Outline (Séquencier). Provide scene-by-scene breakdown including Sluglines (INT/EXT - LOCATION - TIME).\n\nOutput a JSON array:\n\nTreatment:\n${treatment}`,
       jsonMode: true,
-      structuredOutput: 'array',
+      structuredOutput: 'sequenceArray',
     });
   },
 
@@ -337,7 +337,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', {
       prompt: `Analyze the following story idea and extract project metadata. If a field is not explicitly mentioned, infer the most likely value based on the context.\n\nStory Idea:\n${text}`,
       jsonMode: true,
-      structuredOutput: 'object',
+      structuredOutput: 'metadata',
     });
   },
 
@@ -345,7 +345,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', {
       prompt: `INITIAL STORY IDEA: ${storyDraft}${format ? `\nSELECTED FORMAT: ${format}` : ''}\n\nAnalyze this idea and generate the core project metadata and initial critique. Evaluate if GOOD TO GO or NEEDS WORK.`,
       jsonMode: true,
-      structuredOutput: 'object',
+      structuredOutput: 'initialProject',
     });
   },
 
@@ -355,7 +355,7 @@ export const geminiService = {
       prompt: `User Input: ${safeInput}\n\nCurrent Story: ${currentStory}\n\nCurrent Metadata: ${JSON.stringify(currentMetadata)}`,
       systemPrompt: 'You are a professional screenwriting consultant and pitch doctor. Provide critique and final pitch.',
       jsonMode: true,
-      structuredOutput: 'object',
+      structuredOutput: 'brainstormDual',
     });
   },
 
@@ -376,7 +376,7 @@ export const geminiService = {
     return callGenkitFlow<any>('genericGemini', {
       prompt: `Deeply develop character ${character.name} based on the Master Story: ${masterStory}. Other characters: ${JSON.stringify(otherCharacters.map(c => c.name))}`,
       jsonMode: true,
-      structuredOutput: 'object',
+      structuredOutput: 'deepCharacter',
     });
   },
 

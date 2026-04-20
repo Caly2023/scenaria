@@ -307,25 +307,93 @@ export const genericGeminiFlow = ai.defineFlow(
       prompt: z.string(),
       jsonMode: z.boolean().optional(),
       systemPrompt: z.string().optional(),
-      structuredOutput: z.enum(['object', 'array', 'stageInsight']).optional(),
+      structuredOutput: z.enum([
+        'object',
+        'array',
+        'stageInsight',
+        'sequenceArray',
+        'metadata',
+        'initialProject',
+        'brainstormDual',
+        'deepCharacter',
+        'threeActStructure',
+      ]).optional(),
     }) as any,
     outputSchema: z.any() as any,
   },
   async (input, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt, structuredOutput } = input;
-    const structuredSchema =
-      structuredOutput === 'array'
-        ? z.array(z.any())
-        : structuredOutput === 'stageInsight'
-          ? z.object({
-              content: z.string(),
-              isReady: z.boolean(),
-              suggestions: z.array(z.string()).optional(),
-              score: z.number().optional(),
-            })
-          : structuredOutput === 'object'
-            ? z.object({}).passthrough()
-            : undefined;
+    const stageInsightSchema = z.object({
+      content: z.string(),
+      isReady: z.boolean(),
+      suggestions: z.array(z.string()).optional(),
+      suggestedPrompt: z.string().optional(),
+      score: z.number().optional(),
+    });
+    const sequenceItemSchema = z.object({
+      title: z.string(),
+      content: z.string(),
+      characterIds: z.array(z.string()).optional(),
+      locationIds: z.array(z.string()).optional(),
+      type: z.string().optional(),
+    });
+    const metadataSchema = z.object({
+      title: z.string().optional(),
+      format: z.string().optional(),
+      genre: z.string().optional(),
+      tone: z.string().optional(),
+      logline: z.string().optional(),
+      languages: z.array(z.string()).optional(),
+      targetDuration: z.string().optional(),
+    });
+    const threeActStructureSchema = z.object({
+      stage: z.string().optional(),
+      blocks: z.array(
+        z.object({
+          id: z.string().optional(),
+          title: z.string(),
+          content: z.string(),
+          visualPrompt: z.string().optional(),
+        })
+      ),
+      next_step_ready: z.boolean().optional(),
+    });
+
+    const structuredSchemaMap = {
+      object: z.object({}).passthrough(),
+      array: z.array(z.any()),
+      stageInsight: stageInsightSchema,
+      sequenceArray: z.array(sequenceItemSchema),
+      metadata: metadataSchema,
+      initialProject: z.object({
+        metadata: metadataSchema,
+        pitch: z.string(),
+        critique: z.string().optional(),
+        validation: z.object({
+          status: z.enum(['GOOD TO GO', 'NEEDS WORK']),
+          feedback: z.string().optional(),
+        }).optional(),
+        suggestedPrompt: z.string().optional(),
+      }),
+      brainstormDual: z.object({
+        pitch: z.string(),
+        metadataUpdates: metadataSchema.partial().optional(),
+        critique: z.string().optional(),
+        suggestedActions: z.array(z.string()).optional(),
+      }),
+      deepCharacter: z.object({
+        nowStory: z.object({
+          tags: z.array(z.string()),
+          physical: z.string(),
+          wantsNeeds: z.string(),
+        }),
+        backStory: z.string(),
+        forwardStory: z.string(),
+        relationshipMap: z.string(),
+      }),
+      threeActStructure: threeActStructureSchema,
+    } as const;
+    const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput] : undefined;
 
     const response = await ai.generate({
       model: gemini31FlashLite,

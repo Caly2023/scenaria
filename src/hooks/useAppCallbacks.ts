@@ -35,8 +35,8 @@ export function useAppCallbacks({
   handleSubcollectionUpdate,
   handleContentUpdate,
   handleStageValidate,
-  pitchPrimitives,
-  loglinePrimitives,
+  pitchPrimitives = [],
+  loglinePrimitives = [],
 }: UseAppCallbacksProps) {
   const { t } = useTranslation();
   

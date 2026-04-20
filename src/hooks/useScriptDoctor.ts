@@ -123,12 +123,12 @@ interface UseScriptDoctorProps {
 export function useScriptDoctor({
   currentProject,
   activeStage,
-  sequences,
-  treatmentSequences,
-  scriptScenes,
+  sequences = [],
+  treatmentSequences = [],
+  scriptScenes = [],
   pitchPrimitives = [],
-  characters,
-  locations,
+  characters = [],
+  locations = [],
   addToast,
   setRefiningBlockId,
   setLastUpdatedPrimitiveId,
@@ -304,7 +304,7 @@ export function useScriptDoctor({
 
         case "fetch_character_details": {
           const characterId = getArgString(args, "characterId") ?? "";
-          const char = characters.find((c) => c.id === characterId);
+          const char = characters?.find((c) => c.id === characterId);
           if (!char)
             return {
               success: false,
@@ -892,7 +892,7 @@ export function useScriptDoctor({
         if (msgId) {
           // doctorMessages is the state snapshot captured at render time; we read
           // it directly here since this closure is called after state is set.
-          const referencedMsg = doctorMessages.find((m) => m.id === msgId);
+          const referencedMsg = doctorMessages?.find((m) => m.id === msgId);
 
           if (referencedMsg) {
             // 1. Surface suggested_actions if present

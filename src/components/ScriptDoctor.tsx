@@ -312,7 +312,7 @@ function ScriptDoctorContent({
                               if (isApply) {
                                 handleApply(msg.id, action);
                               } else if (action === 'Retry') {
-                                const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+                                const lastUserMsg = [...(messages || [])].reverse().find(m => m.role === 'user');
                                 if (lastUserMsg) {
                                   onSendMessage(lastUserMsg.content);
                                 }

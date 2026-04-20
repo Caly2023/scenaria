@@ -1403,6 +1403,42 @@ ${resolvedContent}`;
         let functionCallParts: any[] = [];
         let textParts: any[] = [];
 
+        // --- NEW FIX: Force thoughtSignature onto all tool/function parts ---
+        // Genkit 1.32+ extracts the signature into a 'reasoning' part's metadata, leaving the 'toolRequest'
+        // part without it. When Gemini receives the history again, it throws "Function call is missing a thought_signature".
+        if (Array.isArray(responseParts) && responseParts.length > 0) {
+          let globalSignature: string | undefined = undefined;
+          
+          // 1. Locate the signature anywhere in the currently returned parts
+          for (const p of responseParts) {
+            if (p?.metadata?.thoughtSignature) globalSignature = p.metadata.thoughtSignature;
+            else if (p?.custom?.thought?.signature) globalSignature = p.custom.thought.signature;
+            else if (p?.thought_signature) globalSignature = p.thought_signature;
+            else if (p?.thoughtSignature) globalSignature = p.thoughtSignature;
+            else if (p?.functionCall?.thought_signature) globalSignature = p.functionCall.thought_signature;
+            else if (p?.functionCall?.thoughtSignature) globalSignature = p.functionCall.thoughtSignature;
+            
+            if (globalSignature) break;
+          }
+
+          // 2. Explicitly map the signature onto EVERY function/tool part so Genkit has it when sending back
+          if (globalSignature) {
+            for (const p of responseParts) {
+              if (p?.toolRequest || p?.functionCall) {
+                if (!p.metadata) p.metadata = {};
+                p.metadata.thoughtSignature = globalSignature;
+                // Also assign standard properties for raw fallback compatibility
+                p.thoughtSignature = globalSignature;
+                p.thought_signature = globalSignature;
+                if (p.functionCall) {
+                  p.functionCall.thoughtSignature = globalSignature;
+                  p.functionCall.thought_signature = globalSignature;
+                }
+              }
+            }
+          }
+        }
+
         // Genkit native: toolRequest; Gemini wire: functionCall
         if (Array.isArray(responseParts) && responseParts.length > 0) {
           // Extract thinking text from 'reasoning' parts or legacy 'thought' or top-level reasoning

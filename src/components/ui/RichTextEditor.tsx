@@ -12,8 +12,19 @@ export interface RichTextEditorProps {
   className?: string;
 }
 
+type MarkdownStorage = {
+  markdown?: {
+    getMarkdown: () => string;
+  };
+};
+
 export function RichTextEditor({ content, onChange, placeholder = 'Commencez à écrire...', className }: RichTextEditorProps) {
   const [mounted, setMounted] = useState(false);
+
+  const getEditorMarkdown = (editorInstance: { storage: unknown; getText: () => string }) => {
+    const markdownStorage = editorInstance.storage as MarkdownStorage;
+    return markdownStorage.markdown?.getMarkdown() ?? editorInstance.getText();
+  };
 
   const editor = useEditor({
     extensions: [
@@ -42,7 +53,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Commencez à 
     },
     onUpdate: ({ editor }) => {
       // Extract markdown from internal storage provided by tiptap-markdown
-      const markdown = editor.storage.markdown.getMarkdown();
+      const markdown = getEditorMarkdown(editor);
       onChange(markdown);
     }
   });
@@ -54,10 +65,10 @@ export function RichTextEditor({ content, onChange, placeholder = 'Commencez à 
 
   // Update editor content if it changes externally (e.g., AI generating more content)
   useEffect(() => {
-    if (editor && content !== editor.storage.markdown.getMarkdown()) {
+    if (editor && content !== getEditorMarkdown(editor)) {
       // Keep cursor position when updating content externally
       const { from, to } = editor.state.selection;
-      editor.commands.setContent(content, false, { preserveWhitespace: 'full' });
+      editor.commands.setContent(content);
       // Minor guard: if the new content is much shorter, restore selection safely
       try {
         editor.commands.setTextSelection({ from, to });

@@ -426,7 +426,7 @@ export function SettingsDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
           />
 
           <motion.aside
@@ -435,8 +435,10 @@ export function SettingsDrawer({
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
-              'fixed z-[100] bg-background shadow-2xl flex flex-col border-white/10',
-              isMobile ? 'top-0 right-0 bottom-0 w-[90vw] max-w-[420px] border-l' : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
+              'fixed z-[1010] bg-background shadow-2xl flex flex-col border-white/10',
+              isMobile
+                ? 'top-0 right-0 bottom-0 w-screen max-w-none border-l'
+                : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
             )}
           >
             <div

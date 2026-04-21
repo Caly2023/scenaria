@@ -183,11 +183,11 @@ export const Primitive = memo(function Primitive({
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent border-none text-xl md:text-xl font-semibold tracking-tight w-full text-white/90 focus:outline-none truncate"
+              className="bg-transparent border-none text-lg md:text-lg font-semibold tracking-tight w-full text-white/90 focus:outline-none truncate"
               placeholder={t('common.untitled')}
             />
           ) : (
-            <h3 className="text-xl md:text-xl font-semibold tracking-tight text-white/90 truncate">{title}</h3>
+            <h3 className="text-lg md:text-lg font-semibold tracking-tight text-white/90 truncate">{title}</h3>
           )}
         </div>
 
@@ -407,12 +407,12 @@ export const Primitive = memo(function Primitive({
                       content={content}
                       onChange={onContentChange}
                       placeholder={placeholder}
-                      className="text-xl md:text-xl"
+                      className="text-lg md:text-lg"
                     />
                   ) : (
                     <MarkdownDisplay
                       content={safeContent}
-                      className="text-xl md:text-xl"
+                      className="text-lg md:text-lg"
                     />
                   )}
                 </div>

@@ -87,8 +87,8 @@ export function Header({
           className="flex items-center justify-center w-11 h-11 md:w-10 md:h-10 rounded-xl hover:bg-white/10 transition-all flex-shrink-0 border-none group/menu"
         >
           <div className="flex flex-col items-start gap-1.5">
-            <span className="h-[1.5px] w-5 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
-            <span className="h-[1.5px] w-3 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
+            <span className="h-[2.5px] md:h-[2px] w-5.5 md:w-5 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
+            <span className="h-[2.5px] md:h-[2px] w-3.5 md:w-3 rounded-full bg-white/70 md:bg-white/40 group-hover/menu:bg-white transition-colors" />
           </div>
         </button>
 
@@ -283,14 +283,14 @@ export function Header({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsHistoryOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[5000]"
           />
           <motion.aside
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-            className="fixed left-0 top-0 bottom-0 z-[1010] w-screen max-w-none md:w-[340px] md:max-w-[360px] bg-[#121212] border-r border-white/10 shadow-2xl flex flex-col"
+            className="fixed left-0 top-0 bottom-0 z-[5010] w-screen max-w-none md:w-[340px] md:max-w-[360px] bg-[#121212] border-r border-white/10 shadow-2xl flex flex-col"
             style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 10px)' }}
           >
             <div className="px-4 pt-2 pb-4 border-b border-white/10">

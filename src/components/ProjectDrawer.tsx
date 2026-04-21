@@ -326,7 +326,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[5000]"
           />
 
           <motion.aside
@@ -335,7 +335,7 @@ export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }:
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn(
-              'fixed z-[1010] bg-background shadow-2xl flex flex-col border-white/10',
+              'fixed z-[5010] bg-background shadow-2xl flex flex-col border-white/10',
               isMobile
                 ? 'top-0 right-0 bottom-0 w-screen max-w-none border-l'
                 : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l'

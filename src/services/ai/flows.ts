@@ -38,12 +38,8 @@ export const fetchProjectStateTool = ai.defineTool(
   {
     name: 'fetch_project_state',
     description: 'Retrieves the complete list of stages, their primitive counts, and the full ID-MAP.',
-    inputSchema: z.object({}),
-    outputSchema: z.object({
-      metadata: z.any(),
-      stages: z.record(z.number()),
-      id_map: z.any(),
-    }),
+    inputSchema: z.object({}).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ metadata: {}, stages: {}, id_map: {}, status: "client_execution_required" })
 );
@@ -52,18 +48,8 @@ export const getStageStructureTool = ai.defineTool(
   {
     name: 'get_stage_structure',
     description: 'Retrieve the complete structure of any stage with all primitive IDs, titles, order indices, and content previews.',
-    inputSchema: z.object({ stage_id: z.string() }),
-    outputSchema: z.object({
-      stage_id: z.string(),
-      total_count: z.number(),
-      primitives: z.array(z.object({
-        primitive_id: z.string(),
-        title: z.string(),
-        content: z.string(),
-        order_index: z.number(),
-      })),
-      status: z.string().optional(),
-    }),
+    inputSchema: z.object({ stage_id: z.string() }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ stage_id: "", total_count: 0, primitives: [], status: "client_execution_required" })
 );
@@ -72,7 +58,27 @@ export const researchContextTool = ai.defineTool(
   {
     name: 'research_context',
     description: 'Pull full content from any previous stage for coherence checks. Returns data with primitive_ids.',
-    inputSchema: z.object({ stageName: z.string() }),
+    inputSchema: z.object({ stageName: z.string() }).passthrough(),
+    outputSchema: z.any(),
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const fetchCharacterDetailsTool = ai.defineTool(
+  {
+    name: 'fetch_character_details',
+    description: 'Retrieve full details for a specific character using its primitive_id.',
+    inputSchema: z.object({ characterId: z.string() }).passthrough(),
+    outputSchema: z.any(),
+  },
+  async () => ({ status: "client_execution_required" })
+);
+
+export const searchProjectContentTool = ai.defineTool(
+  {
+    name: 'search_project_content',
+    description: 'Search across all project primitives and stages for a specific keyword or query.',
+    inputSchema: z.object({ query: z.string() }).passthrough(),
     outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
@@ -85,15 +91,9 @@ export const proposePatchTool = ai.defineTool(
     inputSchema: z.object({
       id: z.string(),
       stage: z.string(),
-      updates: z.record(z.any()), // Still using record but restricted to object type
-    }),
-    outputSchema: z.object({
-      success: z.boolean(),
-      primitive_id: z.string().optional(),
-      updated_snapshot: z.any().optional(),
-      error: z.string().optional(),
-      status: z.string().optional(),
-    }),
+      updates: z.record(z.any()),
+    }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ success: true, status: "client_execution_required" })
 );
@@ -107,8 +107,8 @@ export const executeMultiStageFixTool = ai.defineTool(
         id: z.string(),
         stage: z.string(),
         updates: PrimitiveSchema.partial(),
-      })),
-    }),
+      }).passthrough()),
+    }).passthrough(),
     outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
@@ -118,7 +118,7 @@ export const syncMetadataTool = ai.defineTool(
   {
     name: 'sync_metadata',
     description: "Ensure the project's DNA (title, tone, genre, etc.) is always up to date.",
-    inputSchema: z.object({ metadata: MetadataSchema }),
+    inputSchema: z.object({ metadata: MetadataSchema }).passthrough(),
     outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
@@ -132,8 +132,8 @@ export const addPrimitiveTool = ai.defineTool(
       stage: z.string(),
       primitive: PrimitiveSchema,
       position: z.number().optional(),
-    }),
-    outputSchema: z.object({ status: z.string() }),
+    }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -145,7 +145,7 @@ export const deletePrimitiveTool = ai.defineTool(
     inputSchema: z.object({
       id: z.string(),
       stage: z.string(),
-    }),
+    }).passthrough(),
     outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
@@ -158,8 +158,8 @@ export const restructureStageTool = ai.defineTool(
     inputSchema: z.object({
       stage: z.string(),
       primitives: z.array(PrimitiveSchema),
-    }),
-    outputSchema: z.object({ status: z.string() }),
+    }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -175,9 +175,9 @@ export const updateStageInsightTool = ai.defineTool(
         isReady: z.boolean(),
         suggestions: z.array(z.string()).optional(),
         score: z.number().optional(),
-      }),
-    }),
-    outputSchema: z.object({ status: z.string() }),
+      }).passthrough(),
+    }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -189,8 +189,8 @@ export const updateAgentStatusTool = ai.defineTool(
     inputSchema: z.object({
       status: z.string().describe('Emoji + Short status (e.g., "🧠 Analyzing...")'),
       thinking: z.string().optional().describe('Internal reasoning'),
-    }),
-    outputSchema: z.object({ status: z.string() }),
+    }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -201,8 +201,8 @@ export const setSuggestedActionsTool = ai.defineTool(
     description: 'Sets the contextual action chips for the user.',
     inputSchema: z.object({
       actions: z.array(z.string()).describe('List of 2-3 action labels'),
-    }),
-    outputSchema: z.object({ status: z.string() }),
+    }).passthrough(),
+    outputSchema: z.any(),
   },
   async () => ({ status: "client_execution_required" })
 );
@@ -211,6 +211,8 @@ const scriptDoctorTools = [
   fetchProjectStateTool,
   getStageStructureTool,
   researchContextTool,
+  fetchCharacterDetailsTool,
+  searchProjectContentTool,
   proposePatchTool,
   executeMultiStageFixTool,
   syncMetadataTool,

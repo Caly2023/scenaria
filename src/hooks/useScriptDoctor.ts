@@ -92,6 +92,17 @@ function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
   });
 }
 
+function sanitizeFinalParts(parts: any[] | null | undefined): any[] {
+  if (!Array.isArray(parts)) return [];
+  return parts.filter((part) => {
+    if (!part || typeof part !== "object") return false;
+    // Strip tool requests from final UI state to prevent orphaned function calls
+    // in subsequent messages that would trigger Gemini 400 Bad Request errors.
+    if (part.toolRequest || part.functionCall) return false;
+    return true;
+  });
+}
+
 function getArgString(args: Record<string, unknown>, key: string): string | undefined {
   const value = args[key];
   return typeof value === "string" ? value : undefined;
@@ -1706,8 +1717,8 @@ ${resolvedContent}`;
                 status: parsedResponse.status,
                 isStreaming: false,
                 // CRITICAL: Preserve the final turn's parts so the next user message has full history.
-                // We sanitize these here as well to ensure history consistency.
-                content_parts: sanitizePartsForHistory(responseParts) || m.content_parts, 
+                // We sanitize these here to strip unresolved tool requests (preventing orphaned functionCall errors).
+                content_parts: sanitizeFinalParts(responseParts) || m.content_parts, 
               }
             : m
         ),

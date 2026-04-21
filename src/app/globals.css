@@ -251,4 +251,56 @@
   .pb-safe-nav {
     padding-bottom: var(--bottom-nav-height);
   }
+
+  /* Scenaria Shared Typography for Primitives and Chat */
+  .scenaria-markdown {
+    @apply text-lg leading-relaxed text-white/90;
+  }
+  .scenaria-markdown h1 {
+    font-size: 2.75em;
+    line-height: 1.1;
+    font-weight: 800;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    letter-spacing: -0.02em;
+  }
+  .scenaria-markdown h2 {
+    font-size: 2.25em;
+    line-height: 1.2;
+    font-weight: 700;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    letter-spacing: -0.01em;
+  }
+  .scenaria-markdown h3 {
+    font-size: 1.75em;
+    line-height: 1.3;
+    font-weight: 600;
+    margin-top: 1.2em;
+    margin-bottom: 0.4em;
+  }
+  .scenaria-markdown p {
+    margin-bottom: 1em;
+  }
+  .scenaria-markdown ul, .scenaria-markdown ol {
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+  }
+  .scenaria-markdown li {
+    margin-bottom: 0.25em;
+  }
+  .scenaria-markdown strong {
+    font-weight: 700;
+    color: white;
+  }
+
+  /* TipTap Placeholder Extension Styles */
+  .scenaria-markdown p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+    height: 0;
+  }
 }

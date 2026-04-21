@@ -358,7 +358,7 @@ function ScriptDoctorContent({
                   content={String(displayContent)} 
                   isStreaming={msg.role === 'assistant' && msg.isStreaming} 
                   className={cn(
-                    "prose prose-invert prose-sm max-w-none",
+                    "scenaria-markdown",
                     msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5" : ""
                   )}
                 />

@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import ReactMarkdown from 'react-markdown';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { MarkdownDisplay } from '@/components/ui/MarkdownDisplay';
 
 export type PrimitiveType =
   | 'text'
@@ -109,14 +110,10 @@ export const Primitive = memo(function Primitive({
     }
   }, [content]);
 
-  // Defer content updates for markdown to prevent lag on every keystroke
+  // Defer content updates to prevent lag
   const deferredContent = useDeferredValue(content);
 
-  const renderedMarkdown = useMemo(() => (
-    <ReactMarkdown>
-      {typeof deferredContent === 'string' ? deferredContent : JSON.stringify(deferredContent, null, 2)}
-    </ReactMarkdown>
-  ), [deferredContent]);
+  const safeContent = typeof deferredContent === 'string' ? deferredContent : JSON.stringify(deferredContent, null, 2);
 
   const handleTts = useCallback(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) {
@@ -406,23 +403,17 @@ export const Primitive = memo(function Primitive({
               <div className="p-5 md:p-12 space-y-6 md:space-y-12">
                 <div className="relative group/text">
                   {onContentChange ? (
-                    <textarea
-                      ref={textareaRef}
-                      value={content}
-                      onChange={(e) => onContentChange(e.target.value)}
+                    <RichTextEditor
+                      content={content}
+                      onChange={onContentChange}
                       placeholder={placeholder}
-                      className="w-full bg-transparent border-none text-white font-sans text-lg md:text-lg leading-relaxed resize-none no-scrollbar placeholder:text-white/30 min-h-[120px]"
+                      className="text-xl md:text-xl"
                     />
                   ) : (
-                    <div className="prose prose-invert max-w-none font-sans text-xl md:text-xl leading-[1.6] text-white/90">
-                      {renderedMarkdown}
-                    </div>
-                  )}
-                  
-                  {onContentChange && content && (
-                    <div className="mt-6 md:mt-12 pt-6 md:pt-12 border-t border-white/5 prose prose-invert max-w-none text-lg md:text-lg opacity-80">
-                      {renderedMarkdown}
-                    </div>
+                    <MarkdownDisplay
+                      content={safeContent}
+                      className="text-xl md:text-xl"
+                    />
                   )}
                 </div>
 

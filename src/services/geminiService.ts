@@ -1,4 +1,3 @@
-import { aiQuotaState, aiQuotaNoticeConsumed } from "./serviceState";
 import * as Prompts from "./ai/prompts";
 
 /**
@@ -42,20 +41,6 @@ async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
 
 
 
-/** Reset quota state at the start of a new session. */
-export function resetQuotaState() {
-  aiQuotaState.set(false);
-  aiQuotaNoticeConsumed.set(false);
-}
-
-/** Returns true only once — lets the UI show the notice exactly one time. */
-export function consumeQuotaNotice(): boolean {
-  if (aiQuotaState.get() && !aiQuotaNoticeConsumed.get()) {
-    aiQuotaNoticeConsumed.set(true);
-    return true;
-  }
-  return false;
-}
 
 // Unused resiliency helpers and model definitions removed in favor of Genkit server-side handling.
 

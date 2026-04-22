@@ -28,6 +28,7 @@ type ScriptDoctorMessage = {
 type ToolCall = {
   name: string;
   args?: Record<string, unknown>;
+  ref?: string;
 };
 
 type ToolResult = {
@@ -37,6 +38,8 @@ type ToolResult = {
   error_code?: number;
   [key: string]: unknown;
 };
+
+// --- STATIC HELPERS ---
 
 function getTextFromModelResponse(response: unknown): string {
   if (!response) return "";
@@ -51,7 +54,6 @@ function getTextFromModelResponse(response: unknown): string {
   const directText = asRecord.text;
   if (typeof directText === "string") return directText;
 
-  // Support for standard Genkit (message.content) and raw Gemini (content.parts)
   const candidate =
     Array.isArray(asRecord.candidates) && asRecord.candidates.length > 0
       ? (asRecord.candidates[0] as Record<string, unknown>)
@@ -80,15 +82,8 @@ function getTextFromModelResponse(response: unknown): string {
 
 function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
   if (!Array.isArray(parts)) return [];
-  return parts.filter((part) => {
-    if (!part || typeof part !== "object") return false;
-    
-    // CRITICAL: Gemini 3 models REQUIRE `thoughtSignature` to accompany function calls.
-    // If we filter out any parts (like 'reasoning' or 'thought'), we risk extracting
-    // the signature from its expected sequence, leading to: "Function call is missing a thought_signature".
-    // We return true for all valid part objects to preserve Genkit's internal multi-turn context.
-    return true;
-  });
+  // CRITICAL: Preserve all parts (including reasoning/thought) for Gemini multi-turn consistency.
+  return parts.filter((part) => part && typeof part === "object");
 }
 
 function sanitizeFinalParts(parts: any[] | null | undefined): any[] {
@@ -96,7 +91,6 @@ function sanitizeFinalParts(parts: any[] | null | undefined): any[] {
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
     // Strip tool requests from final UI state to prevent orphaned function calls
-    // in subsequent messages that would trigger Gemini 400 Bad Request errors.
     if (part.toolRequest || part.functionCall) return false;
     return true;
   });
@@ -123,19 +117,84 @@ function getArgArray(args: Record<string, unknown>, key: string): unknown[] | un
   return Array.isArray(value) ? value : undefined;
 }
 
+function classifyComplexity(content: string): "simple" | "moderate" | "complex" {
+  const lower = content.toLowerCase();
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+
+  const complexKeywords = [
+    "generate", "break down", "rewrite", "fix", "restructure", "create", "write", "develop", 
+    "analyze all", "full audit", "refaire", "modifier", "change", "delete", "remove", "add", "update"
+  ];
+
+  if (complexKeywords.some((kw) => lower.includes(kw)) || wordCount > 30) {
+    return "complex";
+  }
+  if (lower.includes("?") || wordCount > 10) {
+    return "moderate";
+  }
+  return "simple";
+}
+
+function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; content: any[] }> {
+  const history: Array<{ role: string; content: any[] }> = [];
+
+  for (const msg of messages) {
+    if (msg.role === "user") {
+      history.push({
+        role: "user",
+        content: [{ text: msg.content }],
+      });
+    } else {
+      if (msg.content_parts && msg.content_parts.length > 0) {
+        history.push({
+          role: "model",
+          content: msg.content_parts,
+        });
+      } else {
+        const assistantText = JSON.stringify({
+          status: msg.status || "✅ Done",
+          thinking: msg.thinking || "",
+          response: msg.content,
+          suggested_actions: msg.suggested_actions || [],
+        });
+        history.push({
+          role: "model",
+          content: [{ text: assistantText }],
+        });
+      }
+    }
+  }
+
+  const cleaned: typeof history = [];
+  for (const entry of history) {
+    const last = cleaned[cleaned.length - 1];
+    if (last && last.role === entry.role) {
+      last.content.push(...entry.content);
+    } else {
+      cleaned.push(entry);
+    }
+  }
+
+  while (cleaned.length > 0 && cleaned[0].role !== "user") {
+    cleaned.shift();
+  }
+
+  return cleaned;
+}
+
+// --- HOOK ---
+
 interface UseScriptDoctorProps {
   currentProject: Project | null;
   activeStage: WorkflowStage;
   sequences: Sequence[];
   treatmentSequences: Sequence[];
   scriptScenes: Sequence[];
-  /** Brainstorming/pitch primitives — used by research_context tool */
   pitchPrimitives?: Sequence[];
   characters: Character[];
   locations: Location[];
   addToast: (msg: string, type: "error" | "info" | "success") => void;
   setRefiningBlockId: (id: string | null) => void;
-  /** Optional: signals the UI which primitive was last updated by the agent */
   setLastUpdatedPrimitiveId?: (id: string | null) => void;
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
 }
@@ -162,10 +221,8 @@ export function useScriptDoctor({
   const [isHeavyThinking, setIsHeavyThinking] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
-  const [isInDegradedMode, setIsInDegradedMode] = useState(false);
   const [currentBotMsgId, setCurrentBotMsgId] = useState<string | null>(null);
 
-  // Normalize inputs to ensure they are always arrays
   const sequences = propsSequences || [];
   const treatmentSequences = propsTreatmentSequences || [];
   const scriptScenes = propsScriptScenes || [];
@@ -185,17 +242,21 @@ export function useScriptDoctor({
     Script: "script_scenes",
   };
 
+  /**
+   * Internal tool execution logic.
+   */
   const executeToolCall = async (
     call: ToolCall,
     retryAttempt: number = 0,
     botMsgIdParam?: string,
   ): Promise<ToolResult> => {
+    const { name, args = {} } = call;
     const botMsgId = botMsgIdParam || currentBotMsgId;
-    if (!currentProject)
-      return { success: false, error: "No active project", error_code: 0 };
-    const { name } = call;
-    const args = call.args ?? {};
     setActiveTool(name);
+
+    if (!currentProject) {
+      return { success: false, error: "No active project", error_code: 0 };
+    }
 
     try {
       const { db } = await import("../lib/firebase");
@@ -211,54 +272,34 @@ export function useScriptDoctor({
         writeBatch,
       } = await import("firebase/firestore");
 
-      switch (name) {
-        case "fetch_project_state": {
-          telemetryService.setStatus(
-            "fetch_project_state",
-            "🧠",
-            "Loading full project state + ID-Map...",
-          );
+      const handlers: Record<string, () => Promise<ToolResult>> = {
+        fetch_project_state: async () => {
+          telemetryService.setStatus("fetch_project_state", "🧠", "Loading full project state...");
           const idMapSnapshot = telemetryService.getIdMapSnapshot();
-          const state = {
-            metadata: currentProject.metadata,
-            stages: {
-              Logline:
-                currentProject.stageStates?.["Logline"] !== "empty" ? 1 : 0,
-              Brainstorming:
-                currentProject.stageStates?.["Brainstorming"] !== "empty"
-                  ? 1
-                  : 0,
-              "3-Act Structure":
-                currentProject.stageStates?.["3-Act Structure"] !== "empty"
-                  ? 1
-                  : 0,
-              Synopsis:
-                currentProject.stageStates?.["Synopsis"] !== "empty" ? 1 : 0,
-              "Character Bible": characters.length,
-              "Location Bible": locations.length,
-              "Step Outline": sequences.length,
-              Treatment: treatmentSequences.length,
-              Script: scriptScenes.length,
+          return {
+            success: true,
+            data: {
+              metadata: currentProject.metadata,
+              stages: {
+                Logline: currentProject.stageStates?.["Logline"] !== "empty" ? 1 : 0,
+                Brainstorming: currentProject.stageStates?.["Brainstorming"] !== "empty" ? 1 : 0,
+                "3-Act Structure": currentProject.stageStates?.["3-Act Structure"] !== "empty" ? 1 : 0,
+                Synopsis: currentProject.stageStates?.["Synopsis"] !== "empty" ? 1 : 0,
+                "Character Bible": characters.length,
+                "Location Bible": locations.length,
+                "Step Outline": sequences.length,
+                Treatment: treatmentSequences.length,
+                Script: scriptScenes.length,
+              },
+              id_map: idMapSnapshot,
             },
-            id_map: idMapSnapshot,
           };
-          return { success: true, data: state };
-        }
+        },
 
-        case "get_stage_structure": {
+        get_stage_structure: async () => {
           const stage_id = getArgString(args, "stage_id") ?? "";
-          telemetryService.setStatus(
-            "get_stage_structure",
-            "🧠",
-            `Mapping Primitive IDs for ${stage_id}...`,
-          );
-
-          const structure = await contextAssembler.getStageStructure(
-            currentProject.id,
-            stage_id,
-          );
-          const stageEntry = telemetryService.getStageStructure(stage_id);
-
+          telemetryService.setStatus("get_stage_structure", "🧠", `Mapping IDs for ${stage_id}...`);
+          const structure = await contextAssembler.getStageStructure(currentProject.id, stage_id);
           return {
             success: true,
             data: {
@@ -266,1418 +307,300 @@ export function useScriptDoctor({
               total_count: structure.length,
               primitives: structure.map((p) => ({
                 primitive_id: p.id,
-                title: p.title,
-                content: p.content,
+                title: p.title || p.name,
+                content: p.content || p.description,
                 order_index: p.order,
               })),
-              last_fetched: stageEntry?.last_fetched || Date.now(),
             },
           };
-        }
+        },
 
-        case "research_context": {
+        research_context: async () => {
           const stageName = getArgString(args, "stageName") ?? "";
-          telemetryService.setStatus(
-            "research_context",
-            "🔍",
-            `Retrieving ${stageName} with primitive IDs...`,
-          );
-
-          const enrichWithIds = (items: Array<Record<string, unknown>>) =>
-            items.map((item) => {
-              const id = typeof item.id === "string" ? item.id : "";
-              const title =
-                (typeof item.title === "string" && item.title) ||
-                (typeof item.name === "string" && item.name) ||
-                "";
-              const content =
-                (typeof item.content === "string" && item.content) ||
-                (typeof item.description === "string" && item.description) ||
-                "";
-              const order_index = typeof item.order === "number" ? item.order : 0;
-
-              return {
-                primitive_id: id,
-                title,
-                content,
-                order_index,
-                ...item,
-              };
-            });
-
-          // Use already-loaded props data where available to avoid redundant fetches
-          if (stageName === "Brainstorming")
-            return { success: true, data: enrichWithIds(pitchPrimitives as unknown as Array<Record<string, unknown>>) };
-          if (stageName === "Character Bible")
-            return { success: true, data: enrichWithIds(characters as unknown as Array<Record<string, unknown>>) };
-          if (stageName === "Location Bible")
-            return { success: true, data: enrichWithIds(locations as unknown as Array<Record<string, unknown>>) };
-          if (stageName === "Step Outline")
-            return { success: true, data: enrichWithIds(sequences as unknown as Array<Record<string, unknown>>) };
-          if (stageName === "Treatment")
-            return { success: true, data: enrichWithIds(treatmentSequences as unknown as Array<Record<string, unknown>>) };
-          if (stageName === "Script")
-            return { success: true, data: enrichWithIds(scriptScenes as unknown as Array<Record<string, unknown>>) };
-
-          const structure = await contextAssembler.getStageStructure(
-            currentProject.id,
-            stageName,
-          );
-          if (structure && structure.length > 0) {
-            return { success: true, data: enrichWithIds(structure) };
-          }
+          telemetryService.setStatus("research_context", "🔍", `Context search: ${stageName}...`);
+          const localDataMap: Record<string, any[]> = {
+            Brainstorming: pitchPrimitives,
+            "Character Bible": characters,
+            "Location Bible": locations,
+            "Step Outline": sequences,
+            Treatment: treatmentSequences,
+            Script: scriptScenes,
+          };
+          const items = localDataMap[stageName] || (await contextAssembler.getStageStructure(currentProject.id, stageName));
           return {
-            success: false,
-            error: `No content found for stage: ${stageName}`,
-            error_code: 404,
+            success: true,
+            data: items.map((item: any) => ({
+              primitive_id: item.id || "",
+              title: item.title || item.name || "",
+              content: item.content || item.description || "",
+              order_index: item.order || 0,
+              ...item,
+            })),
           };
-        }
+        },
 
-        case "fetch_character_details": {
+        fetch_character_details: async () => {
           const characterId = getArgString(args, "characterId") ?? "";
-          const char = Array.isArray(characters) ? characters.find((c) => c.id === characterId) : null;
-          if (!char)
-            return {
-              success: false,
-              error: `Character with primitive_id '${characterId}' not found`,
-              error_code: 404,
-            };
-          return { success: true, data: { primitive_id: char.id, ...char } };
-        }
+          const char = characters.find((c) => c.id === characterId);
+          if (!char) return { success: false, error: `Character ${characterId} not found` };
+          return { success: true, data: char };
+        },
 
-        case "search_project_content": {
-          const searchQuery = getArgString(args, "query") ?? "";
-          const q = searchQuery.toLowerCase();
-          const results = {
-            characters: characters
-              .filter(
-                (c) =>
-                  c.name.toLowerCase().includes(q) ||
-                  c.description.toLowerCase().includes(q),
-              )
-              .map((c) => ({ primitive_id: c.id, ...c })),
-            locations: locations
-              .filter(
-                (l) =>
-                  l.name.toLowerCase().includes(q) ||
-                  l.description.toLowerCase().includes(q),
-              )
-              .map((l) => ({ primitive_id: l.id, ...l })),
-            sequences: sequences
-              .filter(
-                (s) =>
-                  s.title.toLowerCase().includes(q) ||
-                  s.content.toLowerCase().includes(q),
-              )
-              .map((s) => ({ primitive_id: s.id, ...s })),
-            treatment: treatmentSequences
-              .filter(
-                (s) =>
-                  s.title.toLowerCase().includes(q) ||
-                  s.content.toLowerCase().includes(q),
-              )
-              .map((s) => ({ primitive_id: s.id, ...s })),
-            script: scriptScenes
-              .filter(
-                (s) =>
-                  s.title.toLowerCase().includes(q) ||
-                  s.content.toLowerCase().includes(q),
-              )
-              .map((s) => ({ primitive_id: s.id, ...s })),
-            metadata: currentProject.metadata?.title?.toLowerCase().includes(q),
+        search_project_content: async () => {
+          const q = (getArgString(args, "query") ?? "").toLowerCase();
+          return {
+            success: true,
+            data: {
+              characters: characters.filter(c => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q)),
+              locations: locations.filter(l => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q)),
+            }
           };
-          return { success: true, data: results };
-        }
+        },
 
-        case "propose_patch": {
+        propose_patch: async () => {
           const id = getArgString(args, "id") ?? "";
           const stage = getArgString(args, "stage") ?? "";
-          const updates = getArgRecord(args, "updates");
-          telemetryService.setStatus(
-            "propose_patch",
-            "📡",
-            `Sending update to Firebase (ID: ${id})...`,
-            id,
-          );
+          const updates = getArgRecord(args, "updates") ?? {};
+          telemetryService.setStatus("propose_patch", "📡", `Patching ID: ${id}...`, id);
           setRefiningBlockId(id);
-
-          if (!updates || Object.keys(updates).length === 0) {
-            setRefiningBlockId(null);
-            return {
-              success: false,
-              error: "Empty content update",
-              error_code: 400,
-            };
+          const sub = subcollectionMap[stage];
+          if (!sub) return { success: false, error: `Invalid stage: ${stage}` };
+          const docRef = doc(db, "projects", currentProject.id, sub, id);
+          const safeUpdates: any = { ...updates };
+          if (stage === "Character Bible" || stage === "Location Bible") {
+            if (updates.title) safeUpdates.name = updates.title;
+            if (updates.content) safeUpdates.description = updates.content;
           }
+          await updateDoc(docRef, { ...safeUpdates, updatedAt: serverTimestamp() });
+          await handleStageAnalyze(stage as WorkflowStage);
+          setLastUpdatedPrimitiveId?.(id);
+          setRefiningBlockId(null);
+          addToast(t("common.primitiveUpdated"), "success");
+          return { success: true, primitive_id: id };
+        },
 
-          const subcollection = subcollectionMap[stage];
-
-          if (subcollection) {
-            const docRef = doc(
-              db,
-              "projects",
-              currentProject.id,
-              subcollection,
-              id,
-            );
-
-            const existingDoc = await getDoc(docRef);
-            if (!existingDoc.exists()) {
-              setRefiningBlockId(null);
-              telemetryService.recordFailure(id);
-              return {
-                success: false,
-                error: `Document with primitive_id '${id}' not found in ${subcollection}`,
-                error_code: 404,
-                primitive_id: id,
-              };
+        execute_multi_stage_fix: async () => {
+          const fixes = getArgArray(args, "fixes") ?? [];
+          for (const fix of fixes as any[]) {
+            const sub = subcollectionMap[fix.stage];
+            if (!sub) continue;
+            const safe = { ...fix.updates };
+            if (fix.stage === "Character Bible" || fix.stage === "Location Bible") {
+              if (safe.title) safe.name = safe.title;
+              if (safe.content) safe.description = safe.content;
             }
-
-            // ── Field aliasing for character/location documents ──────────────
-            // Firestore character docs use 'name' + 'description'.
-            // AI agents always send 'title' + 'content'.
-            // We map both directions so both field names are updated correctly.
-            const safeUpdates: Record<string, unknown> = { ...updates };
-            if (stage === "Character Bible" || stage === "Location Bible") {
-              if (typeof updates.title === "string") {
-                safeUpdates.name = updates.title;
-              }
-              if (typeof updates.content === "string") {
-                safeUpdates.description = updates.content;
-              }
-            }
-
-
-
-            await updateDoc(docRef, {
-              ...safeUpdates,
-              updatedAt: serverTimestamp(),
-            });
-
-            const updatedDoc = await getDoc(docRef);
-            const snapshot = updatedDoc.exists()
-              ? { id: updatedDoc.id, ...updatedDoc.data() }
-              : null;
-
-            await handleStageAnalyze(stage as WorkflowStage);
-
-            // Signal the UI that this primitive was last updated
-            setLastUpdatedPrimitiveId?.(id);
-            setRefiningBlockId(null);
-
-            addToast(
-              t("common.primitiveUpdated", {
-                defaultValue: `Primitive ${String(id).substring(0, 8)}... updated by Architect`,
-              }),
-              "success",
-            );
-            return {
-              success: true,
-              primitive_id: id,
-              updated_snapshot: snapshot,
-            };
-          } else {
-            return {
-              success: false,
-              error: `Invalid stage: ${stage}`,
-              error_code: 404,
-            };
+            await updateDoc(doc(db, "projects", currentProject.id, sub, fix.id), { ...safe, updatedAt: serverTimestamp() });
           }
-        }
+          const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
+          await Promise.all(uniqueStages.map(s => handleStageAnalyze(s)));
+          addToast(t("common.multiStageFixApplied"), "success");
+          return { success: true };
+        },
 
-        case "execute_multi_stage_fix": {
-          const fixes = getArgArray(args, "fixes");
-          if (!fixes || !Array.isArray(fixes))
-            return {
-              success: false,
-              error: "Invalid fixes array",
-              error_code: 400,
-            };
-
-          const results: Array<{
-            primitive_id: string;
-            success: boolean;
-            error?: string;
-          }> = [];
-
-          for (const fix of fixes) {
-            if (!fix || typeof fix !== "object" || Array.isArray(fix)) {
-              results.push({
-                primitive_id: "",
-                success: false,
-                error: "Invalid fix entry",
-              });
-              continue;
-            }
-            const fixObj = fix as Record<string, unknown>;
-            const id = getArgString(fixObj, "id") ?? "";
-            const stage = getArgString(fixObj, "stage") ?? "";
-            const updates = getArgRecord(fixObj, "updates") ?? {};
-            telemetryService.setStatus(
-              "multi_stage_fix",
-              "📡",
-              `Sending update to Firebase (ID: ${id})...`,
-              id,
-            );
-
-            try {
-              const subcollection = subcollectionMap[stage];
-              if (subcollection) {
-                const safeUpdates: Record<string, unknown> = { ...updates };
-
-                // Firestore character/location docs use 'name' + 'description'.
-                // Script Doctor sometimes sends 'title' + 'content' instead.
-                if (stage === "Character Bible" || stage === "Location Bible") {
-                  if (typeof safeUpdates.title === "string") safeUpdates.name = safeUpdates.title;
-                  if (typeof safeUpdates.content === "string") {
-                    safeUpdates.description = safeUpdates.content;
-                  }
-                }
-
-                await updateDoc(
-                  doc(db, "projects", currentProject.id, subcollection, id),
-                  {
-                    ...safeUpdates,
-                    updatedAt: serverTimestamp(),
-                  },
-                );
-                telemetryService.invalidateStage(stage);
-              }
-              results.push({ primitive_id: id, success: true });
-            } catch (fixError) {
-              const classification =
-                telemetryService.classifyFirebaseError(fixError);
-              results.push({
-                primitive_id: id,
-                success: false,
-                error: classification.message,
-              });
-            }
-          }
-
-          const allSuccess = results.every((r) => r.success);
-          telemetryService.setStatus(
-            "Confirmed",
-            "✅",
-            `Multi-stage fix: ${results.filter((r) => r.success).length}/${results.length} updated.`,
-          );
-
-          // Enforce Agent Contract for all uniquely touched stages
-          const uniqueStages = [
-            ...new Set(fixes.map((f: any) => f.stage)),
-          ] as WorkflowStage[];
-          await Promise.all(uniqueStages.map((s) => handleStageAnalyze(s)));
-
-          addToast(
-            t("common.multiStageFixApplied", {
-              defaultValue: "Multi-stage fix applied successfully",
-            }),
-            "success",
-          );
-          return { success: allSuccess, updated_ids: results };
-        }
-
-        case "sync_metadata": {
+        sync_metadata: async () => {
           const metadata = getArgRecord(args, "metadata") ?? {};
           await updateDoc(doc(db, "projects", currentProject.id), {
-            metadata: {
-              ...currentProject.metadata,
-              ...metadata,
-            },
+            metadata: { ...currentProject.metadata, ...metadata },
             updatedAt: serverTimestamp(),
           });
-          telemetryService.setStatus(
-            "Confirmed",
-            "✅",
-            "Project metadata synced.",
-          );
-          addToast(
-            t("common.metadataSynced", {
-              defaultValue: "Project metadata synced",
-            }),
-            "success",
-          );
+          addToast(t("common.metadataSynced"), "success");
           return { success: true };
-        }
+        },
 
-        case "add_primitive": {
+        add_primitive: async () => {
           const stage = getArgString(args, "stage") ?? "";
           const primitive = getArgRecord(args, "primitive") ?? {};
-          const position = getArgNumber(args, "position");
-          const subcollection = subcollectionMap[stage];
-
-          if (subcollection) {
-            // ── Required-field guard ────────────────────────────────────────
-            // AI agents don't always provide every required field.
-            // We normalise here so the Firestore write never fails validation.
-            const safeTitle =
-              (typeof primitive.title === "string" && primitive.title) ||
-              (typeof primitive.name === "string" && primitive.name) ||
-              "Untitled";
-            const safeContent =
-              (typeof primitive.content === "string" && primitive.content) ||
-              (typeof primitive.description === "string" && primitive.description) ||
-              "";
-
-            const safeData: Record<string, unknown> = {
-              // Standard fields — provide safe defaults before AI spread
-              title: safeTitle,
-              content: safeContent,
-              order: position ?? (typeof primitive.order === "number" ? primitive.order : 0),
-              projectId: currentProject.id,
-              createdAt: serverTimestamp(),
-              // Spread remaining AI-provided fields (may override above if better)
-              ...primitive,
-              // Field aliasing for character/location collections
-              // Firestore character/location docs use 'name' + 'description'.
-              ...(stage === 'Character Bible' || stage === 'Location Bible'
-                ? {
-                    name:
-                      (typeof primitive.name === "string" && primitive.name) || safeTitle,
-                    description:
-                      (typeof primitive.description === "string" && primitive.description) ||
-                      safeContent,
-                  }
-                : {}),
-            };
-            // Ensure projectId is always correct (spread from primitive could override it)
-            safeData.projectId = currentProject.id;
-
-
-
-            const newDocRef = await addDoc(
-              collection(db, "projects", currentProject.id, subcollection),
-              safeData,
-            );
-            telemetryService.invalidateStage(stage);
-            telemetryService.setStatus(
-              "Confirmed",
-              "✅",
-              `New primitive created (ID: ${newDocRef.id}).`,
-            );
-
-            // Enforce Agent Contract
-            await handleStageAnalyze(stage as WorkflowStage);
-
-            addToast(
-              t("common.primitiveAdded", {
-                defaultValue: "New element added to project",
-              }),
-              "success",
-            );
-            return { success: true, primitive_id: newDocRef.id };
-          } else {
-            return {
-              success: false,
-              error: `Adding primitives not supported for stage: ${stage}`,
-              error_code: 400,
-            };
+          const sub = subcollectionMap[stage];
+          if (!sub) return { success: false, error: "Unsupported stage" };
+          const safeData: any = {
+            title: primitive.title || primitive.name || "Untitled",
+            content: primitive.content || primitive.description || "",
+            order: getArgNumber(args, "position") ?? primitive.order ?? 0,
+            projectId: currentProject.id,
+            createdAt: serverTimestamp(),
+            ...primitive,
+          };
+          if (stage === "Character Bible" || stage === "Location Bible") {
+            safeData.name = safeData.title;
+            safeData.description = safeData.content;
           }
-        }
+          const newDoc = await addDoc(collection(db, "projects", currentProject.id, sub), safeData);
+          await handleStageAnalyze(stage as WorkflowStage);
+          addToast(t("common.primitiveAdded"), "success");
+          return { success: true, primitive_id: newDoc.id };
+        },
 
-        case "delete_primitive": {
+        delete_primitive: async () => {
           const id = getArgString(args, "id") ?? "";
           const stage = getArgString(args, "stage") ?? "";
-          const subcollection = subcollectionMap[stage];
+          const sub = subcollectionMap[stage];
+          if (!sub) return { success: false, error: "Unsupported stage" };
+          await deleteDoc(doc(db, "projects", currentProject.id, sub, id));
+          await handleStageAnalyze(stage as WorkflowStage);
+          addToast(t("common.primitiveDeleted"), "info");
+          return { success: true };
+        },
 
-          if (subcollection) {
-            await deleteDoc(
-              doc(db, "projects", currentProject.id, subcollection, id),
-            );
-            telemetryService.invalidateStage(stage);
-            telemetryService.setStatus(
-              "Confirmed",
-              "✅",
-              `Primitive ${id} removed.`,
-              id,
-            );
-
-            // Enforce Agent Contract
-            await handleStageAnalyze(stage as WorkflowStage);
-
-            addToast(
-              t("common.primitiveDeleted", {
-                defaultValue: "Element removed from project",
-              }),
-              "info",
-            );
-            return { success: true, deleted_primitive_id: id };
-          } else {
-            return {
-              success: false,
-              error: `Deleting primitives not supported for stage: ${stage}`,
-              error_code: 400,
-            };
-          }
-        }
-
-        case "restructure_stage": {
+        restructure_stage: async () => {
           const stage = getArgString(args, "stage") ?? "";
-          const primitives = getArgArray(args, "primitives");
-          if (!primitives || !Array.isArray(primitives))
-            return {
-              success: false,
-              error: "Invalid primitives array",
-              error_code: 400,
+          const primitives = getArgArray(args, "primitives") ?? [];
+          const sub = subcollectionMap[stage];
+          if (!sub) return { success: false, error: "Unsupported stage" };
+          const stageRef = collection(db, "projects", currentProject.id, sub);
+          const existing = await getDocs(stageRef);
+          const batch = writeBatch(db);
+          existing.docs.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          for (let i = 0; i < primitives.length; i++) {
+            const p = primitives[i] as any;
+            const safe = {
+              title: p.title || p.name || "Untitled",
+              content: p.content || p.description || "",
+              order: i,
+              projectId: currentProject.id,
+              createdAt: serverTimestamp(),
+              ...p,
             };
-
-          const subcollection = subcollectionMap[stage];
-
-          if (subcollection) {
-            const stageRef = collection(
-              db,
-              "projects",
-              currentProject.id,
-              subcollection,
-            );
-
-            // Tool contract: "replaces all primitives in a stage".
-            // We fully clear the subcollection before re-inserting.
-            const existingSnapshot = await getDocs(stageRef);
-            if (!existingSnapshot.empty) {
-              const batch = writeBatch(db);
-              existingSnapshot.docs.forEach((docSnap) => batch.delete(docSnap.ref));
-              await batch.commit();
+            if (stage === "Character Bible" || stage === "Location Bible") {
+              safe.name = safe.title;
+              safe.description = safe.content;
             }
-
-            const newIds: string[] = [];
-            for (let i = 0; i < primitives.length; i++) {
-              const raw = primitives[i];
-              if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
-                continue;
-              }
-              const p = raw as Record<string, unknown>;
-
-              const safeTitle =
-                typeof p.title === "string" && p.title.trim() !== ""
-                  ? p.title
-                  : typeof p.name === "string" && p.name.trim() !== ""
-                    ? p.name
-                    : "Untitled";
-
-              const safeContent =
-                typeof p.content === "string"
-                  ? p.content
-                  : typeof p.description === "string"
-                    ? p.description
-                    : "";
-
-              const safeData: Record<string, unknown> = {
-                // Keep any extra fields the model may have provided.
-                ...p,
-                title: safeTitle,
-                content: safeContent,
-                order: typeof p.order === "number" ? p.order : i,
-                projectId: currentProject.id,
-                createdAt: serverTimestamp(),
-                // Firestore character/location docs use 'name' + 'description'.
-                ...(stage === "Character Bible" || stage === "Location Bible"
-                  ? {
-                      name:
-                        typeof p.name === "string" && p.name.trim() !== ""
-                          ? p.name
-                          : safeTitle,
-                      description:
-                        typeof p.description === "string"
-                          ? p.description
-                          : safeContent,
-                    }
-                  : {}),
-              };
-
-              // Prevent Firestore schema issues from undefined values.
-              Object.keys(safeData).forEach((key) => {
-                if (safeData[key] === undefined) delete safeData[key];
-              });
-
-              const newRef = await addDoc(stageRef, safeData);
-              newIds.push(newRef.id);
-            }
-
-            telemetryService.invalidateStage(stage);
-            // Enforce Agent Contract (analysis + stage readiness state)
-            await handleStageAnalyze(stage as WorkflowStage);
-            addToast(
-              t("common.stageRestructured", {
-                defaultValue: "Stage restructured successfully",
-              }),
-              "success",
-            );
-            return { success: true, new_primitive_ids: newIds };
-          } else {
-            return {
-              success: false,
-              error: `Restructuring not supported for stage: ${stage}`,
-              error_code: 400,
-            };
+            await addDoc(stageRef, safe);
           }
-        }
+          await handleStageAnalyze(stage as WorkflowStage);
+          addToast(t("common.stageRestructured"), "success");
+          return { success: true };
+        },
 
-        case "update_stage_insight": {
+        update_stage_insight: async () => {
           const stage = getArgString(args, "stage") ?? "";
           const insight = getArgRecord(args, "insight") ?? {};
-          const hasContent =
-            typeof insight.content === "string" && insight.content.trim().length > 0;
-          const isReady =
-            typeof insight.isReady === "boolean" ? (insight.isReady as boolean) : false;
-
-          const nextStageState: StageState = hasContent
-            ? isReady
-              ? "excellent"
-              : "needs_improvement"
-            : "empty";
-
+          const hasContent = !!insight.content;
+          const status: StageState = hasContent ? (insight.isReady ? "excellent" : "needs_improvement") : "empty";
           await updateDoc(doc(db, "projects", currentProject.id), {
-            [`stageAnalyses.${stage}`]: {
-              ...insight,
-              updatedAt: Date.now(),
-            },
-            [`stageStates.${stage}`]: nextStageState,
+            [`stageAnalyses.${stage}`]: { ...insight, updatedAt: Date.now() },
+            [`stageStates.${stage}`]: status,
             updatedAt: serverTimestamp(),
           });
-          telemetryService.setStatus(
-            "Confirmed",
-            "✅",
-            `Stage Analysis for ${stage} updated.`,
-          );
-          addToast(
-            t("common.insightUpdated", { defaultValue: "AI Analysis updated" }),
-            "success",
-          );
+          addToast(t("common.insightUpdated"), "success");
+          return { success: true };
+        },
+
+        update_agent_status: async () => {
+          const status = getArgString(args, "status") ?? "Thinking...";
+          setAiStatus(status);
+          if (botMsgId) {
+            setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, status } : m));
+          }
+          return { success: true };
+        },
+
+        set_suggested_actions: async () => {
+          const actions = (getArgArray(args, "actions") as string[]) ?? [];
+          if (botMsgId) {
+            setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, suggested_actions: actions } : m));
+          }
           return { success: true };
         }
-
-        case "update_agent_status": {
-          const status = getArgString(args, "status") ?? "🧠 Thinking...";
-          const thinking = getArgString(args, "thinking");
-          
-          setAiStatus(status);
-          telemetryService.setStatus("Agent Update", "🤖", status);
-          
-          if (botMsgId) {
-            setDoctorMessages((prev) =>
-              prev.map((m) =>
-                m.id === botMsgId
-                  ? { ...m, status, thinking: thinking || m.thinking }
-                  : m
-              )
-            );
-          }
-          
-          return { success: true, status };
-        }
-
-        case "set_suggested_actions": {
-          const actions = (getArgArray(args, "actions") as string[]) ?? [];
-          
-          if (botMsgId) {
-            setDoctorMessages((prev) =>
-              prev.map((m) =>
-                m.id === botMsgId
-                  ? { ...m, suggested_actions: actions }
-                  : m
-              )
-            );
-          }
-          
-          return { success: true, count: actions.length };
-        }
-
-        default:
-          return {
-            success: false,
-            error: `Unknown tool: ${name}`,
-            error_code: 400,
-          };
-      }
-    } catch (error) {
-      console.error("Tool execution failed:", error);
-
-      const classification = telemetryService.classifyFirebaseError(error);
-      const targetId = getArgString(args, "id") ?? name;
-      const failureCount = telemetryService.recordFailure(targetId);
-
-      telemetryService.setStatus(
-        "Error",
-        "❌",
-        `${classification.type}: ${classification.message}`,
-        targetId,
-      );
-
-      if (failureCount >= 2 && retryAttempt < 2) {
-        telemetryService.setStatus(
-          "Recovery",
-          "🔄",
-          "Double failure detected. Full ID-Map resync...",
-        );
-        await contextAssembler.hydrateFullIdMap(currentProject.id);
-        return executeToolCall(call, retryAttempt + 1);
-      }
-
-      const errorResult: ToolResult = {
-        success: false,
-        error: classification.message,
-        error_code: classification.code,
-        error_type: classification.type,
-        failed_tool: name,
-        failed_primitive_id:
-          args && typeof (args as Record<string, unknown>).id === "string"
-            ? ((args as Record<string, unknown>).id as string)
-            : null,
-        retry_count: retryAttempt,
-        recovery_attempted: failureCount >= 2,
       };
 
-      if (classification.type === "PERMISSION_DENIED") {
-        addToast(
-          `🔒 Security block on ${name}: ${classification.message}`,
-          "error",
-        );
+      if (handlers[name]) return await handlers[name]();
+      return { success: false, error: `Unknown tool: ${name}` };
+    } catch (error: any) {
+      console.error(`[ScriptDoctor] Tool ${name} failed:`, error);
+      const classification = telemetryService.classifyFirebaseError(error);
+      if (retryAttempt < 1 && classification.action === "RESYNC_AND_RETRY") {
+        await contextAssembler.hydrateFullIdMap(currentProject.id);
+        return executeToolCall(call, retryAttempt + 1, botMsgIdParam);
       }
-
-      return errorResult;
+      return { success: false, error: classification.message, error_code: classification.code };
     }
   };
 
   const handleDoctorMessage = async (content: string) => {
     if (!currentProject) return;
 
-    // --- Detect structured apply_suggestion events from the UI ---
     let resolvedContent = content;
     try {
       const parsed = JSON.parse(content);
       if (parsed?.type === "apply_suggestion") {
-        const { msgId, action } = parsed as {
-          type: string;
-          msgId?: string;
-          action?: string;
-        };
-
-        // Attempt to look up the referenced assistant message for richer context
-        const detailLines: string[] = [];
-
-        if (msgId) {
-          // doctorMessages is the state snapshot captured at render time; we read
-          // it directly here since this closure is called after state is set.
-          const referencedMsg = Array.isArray(doctorMessages) ? doctorMessages.find((m) => m.id === msgId) : null;
-
-          if (referencedMsg) {
-            // 1. Surface suggested_actions if present
-            if (
-              Array.isArray(referencedMsg.suggested_actions) &&
-              referencedMsg.suggested_actions.length > 0
-            ) {
-              detailLines.push(
-                `Suggested actions from the message: ${referencedMsg.suggested_actions.map((a: string) => `"${a}"`).join(", ")}.`,
-              );
-            }
-
-            // 2. Surface any embedded patch / structured content blocks from the content string
-            const rawContent: string =
-              typeof referencedMsg.content === "string"
-                ? referencedMsg.content
-                : JSON.stringify(referencedMsg.content ?? "");
-
-            // Extract fenced JSON/patch blocks if present
-            const patchBlockMatch = rawContent.match(
-              /```(?:json)?\s*(\{[\s\S]*?\})\s*```/,
-            );
-            if (patchBlockMatch?.[1]) {
-              detailLines.push(
-                `Patch details extracted from the message:\n${patchBlockMatch[1]}`,
-              );
-            } else if (rawContent.length > 0) {
-              // Include a trimmed version of the full response as context
-              detailLines.push(
-                `Full context from the message:\n${rawContent.substring(0, 2000)}`,
-              );
-            }
-          }
-        }
-
-        // Build a precise, tool-aware instruction for the agentic loop
-        const actionDescription = action
-          ? `"${action}"`
-          : "the suggestion described in the referenced message";
-        const extraContext =
-          detailLines.length > 0
-            ? `\n\nAdditional context:\n${detailLines.join("\n")}`
-            : "";
-
-        resolvedContent = `Please apply the following suggested change to the project: ${actionDescription}. Use the appropriate tool (propose_patch, execute_multi_stage_fix, add_primitive, delete_primitive, restructure_stage, etc.) to make this change directly in the project data. Do not ask for confirmation — proceed immediately with the edit.${extraContext}`;
+        const referencedMsg = doctorMessages.find((m) => m.id === parsed.msgId);
+        const extra = referencedMsg ? `\nContext: ${referencedMsg.content}` : "";
+        resolvedContent = `Apply suggestion: ${parsed.action}${extra}. Use tools directly.`;
       }
-    } catch {
-      // Not JSON — treat as plain text (normal user message)
-    }
+    } catch { /* plain text */ }
 
-    // Stage-aware guardrails for the Architect.
-    // Brainstorming stage is special: the Source of Truth is a single content primitive:
-    // - brainstorming_result => the refined 1-2 paragraph brainstorming/pitch
     if (activeStage === "Brainstorming" && !resolvedContent.includes("[BRAINSTORMING_DOCTOR_SCHEMA]")) {
-      resolvedContent = `You are fixing the "Brainstorming" stage of this ScénarIA project.
-
-[BRAINSTORMING_DOCTOR_SCHEMA]
-Hard requirements (must follow):
-1. Use tools to patch the existing primitives in the Brainstorming stage (preferred).
-2. Ensure the single content primitive is updated:
-   - Use the existing content primitive in this stage (prefer primitiveType: "brainstorming_result").
-   - If only legacy "pitch_result" exists, patch that primitive and set primitiveType to "brainstorming_result".
-   - Update its 'content' with an improved 1-2 paragraph brainstorming result (the retained story/pitch).
-3. Enforce the contract: delete any other Brainstorming primitives that are NOT "brainstorming_result" (e.g. legacy "pitch_result" or "analysis_block"), using delete_primitive and real IDs from get_stage_structure.
-4. Preserve ordering when writing:
-   - brainstorming_result should have order = 1
-5. If IDs are needed, call get_stage_structure for stage_id "Brainstorming" first, then patch with propose_patch using the real primitive IDs.
-6. After patching/deleting, the UI will re-evaluate the stage readiness from the updated content.
-
-User request:
-${resolvedContent}`;
+      resolvedContent = `You are fixing "Brainstorming". Update the brainstorming_result primitive. Delete others.\nUser: ${resolvedContent}`;
     }
 
-    const userMsg = {
-      id: Date.now().toString(),
-      role: "user",
-      content: resolvedContent,
-      timestamp: Date.now(),
-    } satisfies ScriptDoctorMessage;
-    setDoctorMessages((prev) => [...prev, userMsg]);
+    const complexity = classifyComplexity(resolvedContent);
+    setIsHeavyThinking(complexity === "complex");
     setIsDoctorTyping(true);
 
-    // Complexity Classification
-    const contentLower = resolvedContent.toLowerCase();
-    const wordCount = resolvedContent.split(/\s+/).filter(Boolean).length;
-    let complexity: "simple" | "moderate" | "complex" = "moderate";
+    let botMsgId = (Date.now() + 1).toString();
+    setCurrentBotMsgId(botMsgId);
+    setDoctorMessages(prev => [...prev, { id: Date.now().toString(), role: "user", content: resolvedContent, timestamp: Date.now() }]);
+    setDoctorMessages(prev => [...prev, { id: botMsgId, role: "assistant", content: "...", status: "📡 Connecting...", timestamp: Date.now() }]);
 
-    const complexKeywords = [
-      "generate",
-      "break down",
-      "rewrite",
-      "fix",
-      "restructure",
-      "create",
-      "write",
-      "develop",
-      "analyze all",
-      "full audit",
-      "génère",
-      "générer",
-      "réécrire",
-      "réécris",
-      "corriger",
-      "corrige",
-      "restructurer",
-      "créer",
-      "crée",
-      "écrire",
-      "écris",
-      "développer",
-      "développe",
-      "analyser",
-      "analyse tout",
-      "audit complet",
-      "refaire",
-      "refais",
-      "modifier",
-      "modifie",
-      "changer",
-      "change",
-      "supprimer",
-      "supprime",
-      "ajouter",
-      "ajoute",
-      "delete",
-      "remove",
-      "add",
-      "update",
-      "modify",
-      "apply",
-    ];
-    const isComplex = complexKeywords.some((kw) => contentLower.includes(kw));
-
-    const actionKeywords = [
-      "supprimer",
-      "supprime",
-      "delete",
-      "remove",
-      "ajouter",
-      "ajoute",
-      "add",
-      "modifier",
-      "modifie",
-      "modify",
-      "change",
-      "update",
-      "apply",
-      "fix",
-      "corriger",
-      "corrige",
-    ];
-    const isActionRequest = actionKeywords.some((kw) =>
-      contentLower.includes(kw),
-    );
-
-    if (isComplex) {
-      complexity = "complex";
-    } else if (isActionRequest) {
-      complexity = "moderate";
-    } else if (wordCount <= 5 && !contentLower.includes("?")) {
-      complexity = "simple";
-    }
-
-    setIsHeavyThinking(complexity === "complex");
-    let botMsgId: string | null = null;
     try {
-      telemetryService.setStatus(
-        "Context Assembly",
-        "🧠",
-        "Mapping Primitive IDs...",
-      );
-      const payload = await contextAssembler.buildPromptPayload(
-        currentProject.id,
-        activeStage,
-      );
-      const context = contextAssembler.formatPrompt(payload, "");
-      const idMapContext = telemetryService.getIdMapContext();
-
-      const currentMessages = [...doctorMessages, userMsg];
-      // Genkit MessageData format: { role, content: Part[] }
-      // Note: NOT 'parts' — Genkit uses 'content' internally, while the Gemini wire API uses 'parts'.
-      const history: Array<{ role: string; content: Array<{ text: string }> }> = [];
-
       const { geminiService } = await import("../services/geminiService");
-      const { aiQuotaState } = await import("../services/serviceState");
-      setIsInDegradedMode(aiQuotaState.get());
-
-      for (const msg of currentMessages) {
-        if (msg.role === "user") {
-          history.push({
-            role: "user",
-            content: [{ text: msg.content }],
-          });
-        } else {
-          // Assistant message: 
-          // If we have preserved raw parts (content_parts), use them exactly as they were 
-          // to maintain strict tool-call/thinking states required by Gemini 2.0/3.1.
-          if (msg.content_parts && msg.content_parts.length > 0) {
-            history.push({
-              role: "model",
-              content: msg.content_parts,
-            });
-          } else {
-            // Fallback for legacy messages or manually injected responses
-            const assistantText = JSON.stringify({
-              status: msg.status || "✅ Done",
-              thinking: msg.thinking || "",
-              response: msg.content,
-              suggested_actions: msg.suggested_actions || [],
-            });
-            
-            history.push({
-              role: "model",
-              content: [{ text: assistantText }],
-            });
-          }
-        }
-      }
-
-      // Cleanup history (ensure alternating roles and starting with user)
-      const cleanedHistory: typeof history = [];
-      for (const entry of history) {
-        const lastEntry = cleanedHistory[cleanedHistory.length - 1];
-        if (lastEntry && lastEntry.role === entry.role) {
-          lastEntry.content.push(...entry.content);
-        } else {
-          cleanedHistory.push(entry);
-        }
-      }
-      while (cleanedHistory.length > 0 && cleanedHistory[0].role !== "user") {
-        cleanedHistory.shift();
-      }
-
-      // ── DEGRADED MODE: Quota exhausted — skip agentic loop entirely ──────────
-      const { aiQuotaState: currentQuotaState } = await import("../services/serviceState");
-      if (currentQuotaState.get()) {
-        telemetryService.setStatus(
-          "Degraded Mode",
-          "💬",
-          "Gemini 3 quota exhausted. Using chat-only mode...",
-        );
-        setAiStatus("💬 Chat-only mode (Gemini 2.5)");
-
-        // Build a minimal history (last 4 exchanges max to keep tokens low)
-        const trimmedHistory = cleanedHistory.slice(-4);
-
-        const degradedResult = await geminiService.scriptDoctorAgent(
-          trimmedHistory,
-          context,
-          activeStage,
-          "simple", // Force simple complexity in degraded mode
-          "", // No idMap needed — tools are disabled
-        );
-
-        // Parse the response (degraded mode always returns JSON)
-        const degradedText = getTextFromModelResponse(degradedResult);
-
-        let degradedParsed: any;
-        try {
-          const cleaned = degradedText.replace(/```json|```/g, "").trim();
-          degradedParsed = JSON.parse(cleaned);
-        } catch {
-          degradedParsed = {
-            status: "💬 Chat Mode",
-            response:
-              degradedText || "I'm in chat-only mode. How can I help you?",
-            suggested_actions: ["Ask a question", "Continue"],
-          };
-        }
-
-        if (!degradedParsed.response || degradedParsed.response.trim() === "") {
-          degradedParsed.response =
-            "I'm in chat-only mode due to quota limits. Ask me anything about your project — I'll do my best to help!";
-        }
-
-        telemetryService.setStatus(
-          "Complete",
-          "💬",
-          degradedParsed.status || "Chat Mode",
-        );
-        setAiStatus(degradedParsed.status || "💬 Chat-only mode");
-
-        // Extract parts for conversation history consistency
-        const degGenkitParts =
-          degradedResult?.candidates?.[0]?.message?.content ??
-          degradedResult?.message?.content ??
-          null;
-        const degLegacyParts =
-          degradedResult?.candidates?.[0]?.content?.parts ??
-          degradedResult?.content?.parts ??
-          degradedResult?.parts ??
-          null;
-
-        const botMsg = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant" as const,
-          content: degradedParsed.response,
-          thinking: degradedParsed.thinking,
-          suggested_actions: degradedParsed.suggested_actions || [
-            "Continue",
-            "Ask something else",
-          ],
-          status: degradedParsed.status || "💬 Chat Mode",
-          timestamp: Date.now(),
-          content_parts: degGenkitParts || degLegacyParts || [{ text: degradedText }], // Preserve parts even in degraded mode
-        };
-        setDoctorMessages((prev) => [...prev, botMsg]);
-        return; // Early exit — skip the full agentic loop below
-      }
-      // ── END DEGRADED MODE ────────────────────────────────────────────────────
-
-      // Handle the agentic loop
+      const payload = await contextAssembler.buildPromptPayload(currentProject.id, activeStage);
+      const context = contextAssembler.formatPrompt(payload, "");
+      const history = normalizeHistory([...doctorMessages, { role: "user", content: resolvedContent, id: "tmp", timestamp: Date.now() }]);
+      
       const MAX_ITERATIONS = 7;
-      let conversationHistory = [...cleanedHistory];
-      let contentChanged = false;
+      let conversationHistory = [...history];
+      let lastParts: any[] = [];
       let finalResponse = "";
-      const allToolsCalled: string[] = [];
-
-      // Create a unique ID for the bot message we're about to stream
-      botMsgId = (Date.now() + 1).toString();
-      setCurrentBotMsgId(botMsgId);
-      const initialBotMsg: ScriptDoctorMessage = {
-        id: botMsgId,
-        role: "assistant",
-        content: t("common.connectingToAi", { defaultValue: "Connecting to ScénarIA..." }),
-        status: "📡 Connecting...",
-        timestamp: Date.now(),
-      };
-      setDoctorMessages((prev) => [...prev, initialBotMsg]);
-
-
-
-      let responseParts: any[] | null = null;
 
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-        telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
-        
-        const result = await geminiService.scriptDoctorAgent(
-          conversationHistory,
-          context,
-          activeStage,
-          complexity,
-          idMapContext,
-        );
+        const result = await geminiService.scriptDoctorAgent(conversationHistory, context, activeStage, complexity, telemetryService.getIdMapContext());
+        const responseParts = result?.candidates?.[0]?.message?.content || result?.parts || [];
+        lastParts = responseParts;
 
-        // Genkit's CandidateData format:
-        //   candidates[0].message.content => Part[]
-        // where Part is { text } | { toolRequest: { name, input, ref } } | { toolResponse } etc.
-        //
-        // Note: this is DIFFERENT from the raw Gemini API wire format which uses
-        // candidates[0].content.parts and functionCall/functionResponse.
-        // We must handle both for defensive robustness (non-streaming fallback may differ).
-        const genkitParts: any[] | null =
-          result?.candidates?.[0]?.message?.content ??
-          result?.message?.content ??
-          null;
-
-        // Legacy Gemini-wire-format fallback (non-streaming fallback path)
-        const legacyParts: any[] | null =
-          result?.candidates?.[0]?.content?.parts ??
-          result?.content?.parts ??
-          result?.parts ??
-          null;
-
-        responseParts = genkitParts ?? legacyParts;
-
-        let functionCallParts: any[] = [];
-        let textParts: any[] = [];
-
-        // --- NEW FIX: Force thoughtSignature onto all tool/function parts ---
-        // Genkit 1.32+ extracts the signature into a 'reasoning' part's metadata, leaving the 'toolRequest'
-        // part without it. When Gemini receives the history again, it throws "Function call is missing a thought_signature".
-        if (Array.isArray(responseParts) && responseParts.length > 0) {
-          let globalSignature: string | undefined = undefined;
-          
-          // 1. Locate the signature anywhere in the currently returned parts
-          for (const p of responseParts) {
-            if (p?.metadata?.thoughtSignature) globalSignature = p.metadata.thoughtSignature;
-            else if (p?.custom?.thought?.signature) globalSignature = p.custom.thought.signature;
-            else if (p?.thought_signature) globalSignature = p.thought_signature;
-            else if (p?.thoughtSignature) globalSignature = p.thoughtSignature;
-            else if (p?.functionCall?.thought_signature) globalSignature = p.functionCall.thought_signature;
-            else if (p?.functionCall?.thoughtSignature) globalSignature = p.functionCall.thoughtSignature;
-            
-            if (globalSignature) break;
-          }
-
-          // 2. Explicitly map the signature onto EVERY function/tool part so Genkit has it when sending back
-          if (globalSignature) {
-            for (const p of responseParts) {
-              if (p?.toolRequest || p?.functionCall) {
-                if (!p.metadata) p.metadata = {};
-                p.metadata.thoughtSignature = globalSignature;
-                // Also assign standard properties for raw fallback compatibility
-                p.thoughtSignature = globalSignature;
-                p.thought_signature = globalSignature;
-                if (p.functionCall) {
-                  p.functionCall.thoughtSignature = globalSignature;
-                  p.functionCall.thought_signature = globalSignature;
-                }
-              }
-            }
-          }
+        // Handle thinking/reasoning
+        const thought = responseParts.find((p: any) => p.reasoning || p.thought)?.reasoning || result.reasoning;
+        if (thought) {
+          setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, reasoning: (m.reasoning ? m.reasoning + "\n" : "") + thought } : m));
         }
 
-        // Genkit native: toolRequest; Gemini wire: functionCall
-        if (Array.isArray(responseParts) && responseParts.length > 0) {
-          // Extract thinking text from 'reasoning' parts or legacy 'thought' or top-level reasoning
-          const thoughtText = (responseParts
-            .filter((p: any) => p.reasoning || p.thought)
-            .map((p: any) => p.reasoning || p.thought)
-            .join("\n")
-            .trim()) || (typeof result.reasoning === 'string' ? result.reasoning : "");
-          
-          if (thoughtText) {
-            setDoctorMessages((prev) =>
-              prev.map((m) =>
-                m.id === botMsgId
-                  ? { ...m, reasoning: (m.reasoning ? m.reasoning + "\n" : "") + thoughtText, thinking: (m.thinking ? m.thinking + "\n" : "") + thoughtText }
-                  : m
-              )
-            );
-          }
-
-          functionCallParts = responseParts.filter(
-            (p: any) => p.toolRequest || p.functionCall
-          );
-          textParts = responseParts.filter((p: any) => p.text !== undefined);
-        }
-
-        // If no structured parts at all, fall back to text property or JSON string
-        if (!responseParts || responseParts.length === 0) {
-          finalResponse =
-            typeof result === "string"
-              ? result
-              : result?.text || JSON.stringify(result);
+        const toolCalls = responseParts.filter((p: any) => p.toolRequest || p.functionCall);
+        if (toolCalls.length === 0) {
+          finalResponse = responseParts.map((p: any) => p.text).join("") || result.text || JSON.stringify(result);
           break;
         }
-
-        // No function calls → this is the final text response
-        if (functionCallParts.length === 0) {
-          finalResponse =
-            textParts.map((p: any) => p.text).join("") ||
-            result?.text ||
-            JSON.stringify(result);
-          break;
-        }
-
-        // If the model already returned a structured "final JSON" in text parts,
-        // we can finalize after executing the tool calls (skip an extra Gemini round).
-        const textCandidate = (textParts || [])
-          .map((p: any) => p.text)
-          .join("")
-          .trim();
-        let earlyParsedFinal: any = null;
-        if (textCandidate) {
-          try {
-            const cleaned = textCandidate.replace(/```json|```/g, "").trim();
-            const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-            earlyParsedFinal = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);
-          } catch {
-            // Ignore parse errors; we only use it as an optimization.
-          }
-        }
-        const statusStr = String(earlyParsedFinal?.status || "");
-        const shouldFinalizeAfterTools =
-          Boolean(earlyParsedFinal?.response) &&
-          (statusStr.toLowerCase().includes("done") || statusStr.includes("✅"));
 
         const toolResults: any[] = [];
-
-        for (const part of functionCallParts) {
-          // Support both Genkit native format (toolRequest) and Gemini wire format (functionCall)
-          const call = part.toolRequest
-            ? { name: part.toolRequest.name, args: part.toolRequest.input, ref: part.toolRequest.ref }
-            : part.functionCall
-              ? { name: part.functionCall.name, args: part.functionCall.args, ref: undefined }
-              : null;
-          if (!call) continue;
-
-          allToolsCalled.push(call.name);
-
-          const toolStatusMap: Record<string, [string, string]> = {
-            research_context: ["🔍", "Retrieving project context..."],
-            get_stage_structure: [
-              "🧠",
-              `Mapping Primitive IDs for ${call.args?.stage_id || "stage"}...`,
-            ],
-            fetch_character_details: ["🔍", "Analyzing character profiles..."],
-            search_project_content: ["🔍", "Searching narrative threads..."],
-            propose_patch: [
-              "📡",
-              `Sending update to Firebase (ID: ${call.args?.id || "..."})...`,
-            ],
-            execute_multi_stage_fix: ["🔗", "Coordinating multi-stage fix..."],
-            sync_metadata: ["🧬", "Synchronizing project DNA..."],
-            add_primitive: ["➕", "Inserting new structural element..."],
-            delete_primitive: [
-              "🗑️",
-              `Removing element (ID: ${call.args?.id || "..."})...`,
-            ],
-            fetch_project_state: [
-              "🧠",
-              "Loading full project state + ID-Map...",
-            ],
-            update_stage_insight: ["📊", `Updating stage insight...`],
-            restructure_stage: ["🔄", `Restructuring stage...`],
-          };
-          const [emoji, detail] = toolStatusMap[call.name] || [
-            "⚡",
-            `Executing ${call.name}...`,
-          ];
-          telemetryService.setStatus(call.name, emoji, detail, call.args?.id);
-          setAiStatus(`${emoji} ${detail} (step ${iteration + 1})`);
-
-          const toolResult = await executeToolCall(call, 0, botMsgId);
-
-          if (toolResult.success) {
-            const primitiveId =
-              typeof toolResult.primitive_id === "string" ? toolResult.primitive_id : undefined;
-            telemetryService.setStatus(
-              "Confirmed",
-              "✅",
-              `Confirmation received. Syncing UI...`,
-              primitiveId,
-            );
-            if (
-              [
-                "propose_patch",
-                "execute_multi_stage_fix",
-                "add_primitive",
-                "delete_primitive",
-                "restructure_stage",
-              ].includes(call.name)
-            ) {
-              contentChanged = true;
-            }
-            if (primitiveId) {
-              telemetryService.clearFailure(primitiveId);
-            }
-          } else if (toolResult.error_code) {
-            const classification = telemetryService.classifyFirebaseError({
-              code: toolResult.error_code,
-              message: toolResult.error,
-            });
-
-            if (classification.action === "RESYNC_AND_RETRY" && call.args?.id) {
-              telemetryService.setStatus(
-                "Resync",
-                "🔄",
-                "ID not found. Re-syncing Primitive IDs...",
-              );
-              await contextAssembler.hydrateFullIdMap(currentProject.id);
-
-              const retryResult = await executeToolCall(call, 0, botMsgId);
-              toolResults.push({
-                toolResponse: { name: call.name, ref: call.ref ?? call.name, output: retryResult },
-              });
-              if (
-                retryResult.success &&
-                [
-                  "propose_patch",
-                  "execute_multi_stage_fix",
-                  "add_primitive",
-                  "delete_primitive",
-                  "restructure_stage",
-                ].includes(call.name)
-              ) {
-                contentChanged = true;
-              }
-              continue;
-            }
-          }
-
-          // Genkit multi-turn format: role='tool', parts contain toolResponse objects.
-          // The ref must match the toolRequest ref so Genkit can correlate them.
-          toolResults.push({
-            toolResponse: {
-              name: call.name,
-              ref: call.ref ?? call.name,
-              output: toolResult,
-            },
-          });
+        for (const part of toolCalls) {
+          const call = part.toolRequest ? { name: part.toolRequest.name, args: part.toolRequest.input, ref: part.toolRequest.ref } : { name: part.functionCall.name, args: part.functionCall.args };
+          const res = await executeToolCall(call, 0, botMsgId);
+          toolResults.push({ toolResponse: { name: call.name, ref: call.ref || call.name, output: res } });
         }
 
-        if (shouldFinalizeAfterTools && textCandidate) {
-          finalResponse = textCandidate;
-          break;
-        }
-
-        // Genkit multi-turn history format:
-        // - model turn: role='model', content=Part[] (the responseParts from above, sanitized)
-        // - tool results: role='tool', content=toolResponse Part[] each with a ref
         conversationHistory = [
           ...conversationHistory,
           { role: "model", content: sanitizePartsForHistory(responseParts) },
-          { role: "tool", content: toolResults.map(tr => tr.toolResponse ? tr : { toolResponse: tr }) },
+          { role: "tool", content: toolResults }
         ];
 
-        telemetryService.setStatus(
-          "Continuing",
-          "🔄",
-          `Processing step ${iteration + 2}...`,
-        );
-        setAiStatus(`🔄 Processing step ${iteration + 2}...`);
-
-        if (iteration === MAX_ITERATIONS - 1) {
-          finalResponse = JSON.stringify({
-            status: "✅ Done",
-            response: `I completed ${allToolsCalled.length} operations: ${[...new Set(allToolsCalled)].join(", ")}. The changes have been applied.`,
-            suggested_actions: ["Review changes", "Continue editing"],
-          });
-        }
+        if (iteration === MAX_ITERATIONS - 1) finalResponse = "Max iterations reached.";
       }
 
-      if (contentChanged && !allToolsCalled.includes("update_stage_insight")) {
-        handleStageAnalyze(activeStage);
-      }
+      setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { 
+        ...m, 
+        content: finalResponse, 
+        status: "✅ Done", 
+        content_parts: sanitizeFinalParts(lastParts) 
+      } : m));
 
-      let parsedResponse: any = null;
-      const cleanedResponse = finalResponse.replace(/```json|```/g, "").trim();
-
-      // If it starts with '{', try parsing as JSON (legacy/fallback)
-      if (cleanedResponse.startsWith("{")) {
-        try {
-          const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            parsedResponse = JSON.parse(jsonMatch[0]);
-          }
-        } catch (e) {
-          console.warn("[ScriptDoctor] JSON parse failed for apparent JSON response:", e);
-        }
-      }
-
-      // If not parsed as JSON, treat it as direct text
-      if (!parsedResponse || typeof parsedResponse !== "object") {
-        parsedResponse = {
-          response: finalResponse || "I encountered an issue processing the response.",
-          // Other fields are already handled by tool calls during the agentic loop
-        };
-      }
-
-      if (!parsedResponse.response || parsedResponse.response.trim() === "") {
-        parsedResponse.response =
-          "I processed your request but the response was empty. Could you rephrase?";
-        parsedResponse.suggested_actions = ["Try again", "Ask differently"];
-      }
-
-      telemetryService.setStatus(
-        "Complete",
-        "✅",
-        parsedResponse.status || "Done",
-      );
-      setAiStatus(parsedResponse.status || "✅ Done");
-
-      setDoctorMessages((prev) =>
-        prev.map((m) =>
-          m.id === botMsgId
-            ? {
-                ...m,
-                content:
-                  typeof parsedResponse.response === "string"
-                    ? parsedResponse.response
-                    : JSON.stringify(parsedResponse.response, null, 2),
-                thinking: parsedResponse.thinking,
-                suggested_actions: parsedResponse.suggested_actions,
-                active_tool: parsedResponse.active_tool,
-                status: parsedResponse.status,
-
-                // CRITICAL: Preserve the final turn's parts so the next user message has full history.
-                // We sanitize these here to strip unresolved tool requests (preventing orphaned functionCall errors).
-                content_parts: sanitizeFinalParts(responseParts) || m.content_parts, 
-              }
-            : m
-        ),
-      );
     } catch (error: any) {
-      console.error("[ScriptDoctor] Doctor message failed:", error);
-      const classification = telemetryService.classifyFirebaseError(error);
-      telemetryService.setStatus("Error", "❌", classification.message);
-
-      const errorMessage = `An error occurred: ${error?.message || "Unknown error"}. Please try again.`;
-
-      if (botMsgId) {
-        // Update existing message
-        setDoctorMessages((prev) =>
-          prev.map((m) =>
-            m.id === botMsgId
-              ? {
-                  ...m,
-                  content: errorMessage,
-                  status: "❌ Error",
-                  suggested_actions: ["Retry", "Ask something simpler"],
-                }
-              : m
-          )
-        );
-      } else {
-        // Add new message if we failed before initialBotMsg was added
-        const errorMsg = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant" as const,
-          content: errorMessage,
-          suggested_actions: ["Retry", "Ask something simpler"],
-          status: "❌ Error",
-          timestamp: Date.now(),
-        };
-        setDoctorMessages((prev) => [...prev, errorMsg]);
-      }
-      addToast(t("common.aiMagicFailed"), "error");
+      console.error("[ScriptDoctor] Agent failed:", error);
+      setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, content: `Error: ${error.message}`, status: "❌ Error" } : m));
     } finally {
       setIsDoctorTyping(false);
       setIsHeavyThinking(false);
-      setTimeout(() => {
-        setAiStatus(null);
-        setActiveTool(null);
-        telemetryService.clearStatus();
-      }, 3000);
+      setAiStatus(null);
     }
   };
 
@@ -1691,13 +614,5 @@ ${resolvedContent}`;
     activeTool,
     aiStatus,
     handleDoctorMessage,
-    /** Whether the system is currently in degraded chat-only mode (Gemini 3 quota exhausted). */
-    isInDegradedMode,
-    /** Resets degraded mode — call this when starting a new session so the user can retry Gemini 3. */
-    resetDegradedMode: async () => {
-      const { resetQuotaState } = await import("../services/geminiService");
-      resetQuotaState();
-      setIsInDegradedMode(false);
-    },
   };
 }

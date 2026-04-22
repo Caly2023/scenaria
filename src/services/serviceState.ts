@@ -27,12 +27,6 @@ class ServiceState<T> {
   }
 }
 
-/**
- * Global reactive states for services.
- * Using a simple observable pattern to avoid Redux overhead for these specific flags.
- */
-export const aiQuotaState = new ServiceState<boolean>(false);
-export const aiQuotaNoticeConsumed = new ServiceState<boolean>(false);
 
 // AI Flow Mode: 'production' | 'development'
 // DevFlow (development) is ALWAYS the default across the entire application.

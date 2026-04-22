@@ -8,8 +8,11 @@ export interface PromptPayload {
   metadata: {
     title: string;
     genre: string;
+    format: string;
+    tone: string;
     languages: string[];
     logline: string;
+    targetDuration?: string;
   };
   sectionalContext?: string;
   characters: Character[];
@@ -100,8 +103,11 @@ class ContextAssembler {
       metadata: {
         title: project.metadata?.title || 'Untitled',
         genre: project.metadata?.genre || 'N/A',
+        format: project.metadata?.format || 'Feature',
+        tone: project.metadata?.tone || 'N/A',
         languages: project.metadata?.languages || [],
-        logline: project.metadata?.logline || ''
+        logline: project.metadata?.logline || '',
+        targetDuration: project.metadata?.targetDuration
       },
       characters: [],
       locations: []
@@ -113,38 +119,69 @@ class ContextAssembler {
       return primitives.map(p => p.content).join('\n\n');
     };
 
+    // Helper to check if a stage is unlocked
+    const isUnlocked = (sName: string) => {
+      const state = project.stageStates?.[sName];
+      return state && state !== 'empty';
+    };
+
+    const currentOrder = stageRegistry.get(currentStage).order;
     let cascadingContext = '';
-    
-    if (currentStage === 'Character Bible' || currentStage === 'Location Bible') {
+
+    // Helpers for specific content blocks
+    const getCharacterBibleText = () => `[CHARACTER BIBLE]\n${JSON.stringify(allCharacters.map(c => ({ 
+      name: c.name, 
+      role: c.role, 
+      description: c.description,
+      wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || ''
+    })), null, 2)}\n\n`;
+
+    const getLocationBibleText = () => `[LOCATION BIBLE]\n${JSON.stringify(allLocations.map(l => ({ 
+      name: l.name, 
+      atmosphere: l.atmosphere, 
+      description: l.description 
+    })), null, 2)}\n\n`;
+
+    if (currentOrder >= 2 && currentOrder <= 4) {
+      // --- STEPS 2, 3, 4: BRAINSTORMING + PREVIOUS (NO LOGLINE) ---
       const bStory = await getStageText('Brainstorming');
-      cascadingContext += `[BRAINSTORMING MASTER STORY]\n${bStory || 'N/A'}\n\n`;
-    } else if (currentStage === '3-Act Structure') {
+      if (bStory) cascadingContext += `[BRAINSTORMING]\n${bStory}\n\n`;
+
+      const allStages = stageRegistry.getAll();
+      for (let i = 0; i < currentOrder; i++) {
+        const s = allStages[i];
+        if (s.id === 'Logline' || s.id === 'Brainstorming') continue;
+        const text = await getStageText(s.id);
+        if (text) cascadingContext += `[${s.name.toUpperCase()}]\n${text}\n\n`;
+      }
+    } else if (currentOrder > 4) {
+      // --- NEXT STAGES: LOGLINE + SYNOPSIS + BIBLES ---
+      if (isUnlocked('Synopsis')) {
+        const logline = await getStageText('Logline');
+        if (logline) cascadingContext += `[LOGLINE]\n${logline}\n\n`;
+
+        const synopsis = await getStageText('Synopsis');
+        if (synopsis) cascadingContext += `[SYNOPSIS]\n${synopsis}\n\n`;
+
+        if (isUnlocked('Character Bible') && currentStage !== 'Character Bible') cascadingContext += getCharacterBibleText();
+        if (isUnlocked('Location Bible') && currentStage !== 'Location Bible') cascadingContext += getLocationBibleText();
+      } else {
+        // Fallback if synopsis not unlocked: Basic foundation
+        const bStory = await getStageText('Brainstorming');
+        if (bStory) cascadingContext += `[BRAINSTORMING]\n${bStory}\n\n`;
+        const logline = await getStageText('Logline');
+        if (logline) cascadingContext += `[LOGLINE]\n${logline}\n\n`;
+      }
+    } else {
+      // --- STEPS 0, 1 (BRAINSTORMING, LOGLINE) ---
       const bStory = await getStageText('Brainstorming');
-      cascadingContext += `[BRAINSTORMING MASTER STORY]\n${bStory || 'N/A'}\n\n`;
-      cascadingContext += `[CHARACTER PROFILES]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role, description: c.description })), null, 2)}\n\n`;
-    } else if (currentStage === 'Synopsis') {
-      cascadingContext += `[CHARACTERS]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role })), null, 2)}\n\n`;
-      const struct = await getStageText('3-Act Structure');
-      cascadingContext += `[3-ACT STRUCTURE]\n${struct || 'N/A'}\n\n`;
-    } else if (currentStage === 'Treatment') {
-      cascadingContext += `[CHARACTERS]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role })), null, 2)}\n\n`;
-      const struct = await getStageText('3-Act Structure');
-      cascadingContext += `[3-ACT STRUCTURE]\n${struct || 'N/A'}\n\n`;
-      const synopsis = await getStageText('Synopsis');
-      cascadingContext += `[FULL SYNOPSIS]\n${synopsis || 'N/A'}\n\n`;
-    } else if (currentStage === 'Step Outline' || currentStage === 'Script') {
-      const struct = await getStageText('3-Act Structure');
-      cascadingContext += `[3-ACT STRUCTURE]\n${struct || 'N/A'}\n\n`;
-      const synopsis = await getStageText('Synopsis');
-      cascadingContext += `[FULL SYNOPSIS]\n${synopsis || 'N/A'}\n\n`;
-      const treatment = await getStageText('Treatment');
-      cascadingContext += `[TREATMENT]\n${treatment || 'N/A'}\n\n`;
+      if (bStory) cascadingContext += `[BRAINSTORMING]\n${bStory}\n\n`;
     }
 
     const primitives = await this.getStageStructure(projectId, currentStage);
     const sectionalContent = JSON.stringify(primitives, null, 2);
     
-    payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT]\n${sectionalContent}`;
+    payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${sectionalContent}`;
     payload.idMapContext = telemetryService.getIdMapContext();
 
     if (activePrimitiveId && (currentStage === 'Step Outline' || currentStage === 'Script' || currentStage === 'Treatment')) {
@@ -185,18 +222,21 @@ You are a professional screenwriter. Use the provided context to maintain contin
 
 [GLOBAL CONSTANTS]
 Project Title: ${payload.metadata.title}
+Format: ${payload.metadata.format}
 Genre: ${payload.metadata.genre}
+Tone: ${payload.metadata.tone}
 Languages: ${payload.metadata.languages.join(', ')}
 Logline: ${payload.metadata.logline}
+${payload.metadata.targetDuration ? `Target Duration: ${payload.metadata.targetDuration}` : ''}
 
-[SECTIONAL CONTEXT - FULL STAGE CONTENT]
+[FOUNDATION & CURRENT CONTEXT]
 ${payload.sectionalContext || 'N/A'}
 
 ${payload.idMapContext || ''}
 
-[SCENE ENTITIES]
-Characters present: ${JSON.stringify(payload.characters.map(c => ({ name: c.name, role: c.role, description: c.description })), null, 2)}
-Location details: ${JSON.stringify(payload.locations.map(l => ({ name: l.name, atmosphere: l.atmosphere, description: l.description })), null, 2)}
+[SCENE-SPECIFIC ENTITIES]
+${payload.characters.length > 0 ? `Characters present: ${JSON.stringify(payload.characters.map(c => ({ name: c.name, role: c.role, description: c.description })), null, 2)}` : ''}
+${payload.locations.length > 0 ? `Location details: ${JSON.stringify(payload.locations.map(l => ({ name: l.name, atmosphere: l.atmosphere, description: l.description })), null, 2)}` : ''}
 
 [SLIDING WINDOW]
 ${payload.previousSequence ? `Previous Scene Text: ${payload.previousSequence.content}` : 'Previous Scene: [Start of Story]'}

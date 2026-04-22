@@ -1297,7 +1297,7 @@ ${resolvedContent}`;
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
         
-        const iterationResult = await geminiService.scriptDoctorAgent(
+        const result = await geminiService.scriptDoctorAgent(
           conversationHistory,
           context,
           activeStage,

@@ -27,6 +27,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Commencez à 
   };
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
@@ -60,6 +61,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Commencez à 
 
   // Ensure hydration matches client rendering
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

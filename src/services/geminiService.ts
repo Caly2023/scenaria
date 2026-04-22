@@ -69,7 +69,7 @@ function safeJsonParse(text: string | null | undefined): any {
  * - Legacy: `.text` could be a function.
  * - Always falls back to digging into candidates for robustness.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 /**
  * Safely extract text from a model response.
  * (Now simpler as the server returns strings or parsed JSON)

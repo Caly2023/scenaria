@@ -1,7 +1,7 @@
 export type ProjectFormat = 'Short Film' | 'Feature' | 'Series';
 
 // Re-export from stageContract for convenience
-export type { StageState, StageAnalysis, ContentPrimitive } from './types/stageContract';
+export type { StageState, StageAnalysis, ContentPrimitive } from './stageContract';
 
 export type WorkflowStage = 
   | 'Brainstorming'
@@ -80,9 +80,9 @@ export interface Project {
   validatedStages: WorkflowStage[];
   // ── NEW: Multi-agent architecture fields ──────────────────────────────────
   /** Stage quality state enum, keyed by stage name */
-  stageStates?: Record<string, import('./types/stageContract').StageState>;
+  stageStates?: Record<string, import('./stageContract').StageState>;
   /** Structured AI analysis for each stage, keyed by stage name */
-  stageAnalyses?: Record<string, import('./types/stageContract').StageAnalysis>;
+  stageAnalyses?: Record<string, import('./stageContract').StageAnalysis>;
   // ── End new fields ────────────────────────────────────────────────────────
   collaborators: string[];
   activeStage: WorkflowStage;

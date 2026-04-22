@@ -73,7 +73,7 @@ function SplashScreen() {
             boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
           }}
         >
-          {/* eslint-disable-next-line */}
+          { }
           <img src="/logo.png" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} alt="ScénarIA" />
         </div>
       </div>

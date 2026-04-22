@@ -7,7 +7,7 @@ import { useAppCallbacks } from "./hooks/useAppCallbacks";
 import { useAutoHydration } from "./hooks/useAutoHydration";
 import { useTelemetry } from "./hooks/useTelemetry";
 import { useWindowSize } from "./hooks/useWindowSize";
-import { WorkflowStage } from "./types";
+import { WorkflowStage, Project } from "./types";
 import { FocusMode } from "./components/FocusMode";
 import { LoadingPage } from "./components/LoadingPage";
 import { OfflinePage, ConnectionErrorPage, NotFoundPage } from "./components/ErrorPages";
@@ -225,9 +225,9 @@ export default function App() {
     return (
       <HomePage
         projects={projects}
-        onProjectSelect={handleProjectSelect}
+        onProjectSelect={(project: Project) => handleProjectSelect(project.id, project)}
         onProjectCreate={handleProjectCreate}
-        onProjectDelete={(id) => setProjectToDelete(id)}
+        onProjectDelete={(id: string) => setProjectToDelete(id)}
       />
     );
   }

@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { MarkdownDisplay } from '@/components/ui/MarkdownDisplay';
+import { ttsService } from '@/services/ttsService';
 
 export type PrimitiveType =
   | 'text'
@@ -116,39 +117,28 @@ export const Primitive = memo(function Primitive({
   const safeContent = typeof deferredContent === 'string' ? deferredContent : JSON.stringify(deferredContent, null, 2);
 
   const handleTts = useCallback(() => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) {
-      return;
-    }
-
     if (onSpeaker) {
       setIsSpeaking(prev => !prev);
       onSpeaker();
       return;
     }
 
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
+    const msgId = `primitive-${title}-${content.slice(0, 20)}`;
+    
+    if (ttsService.isSpeaking(msgId)) {
+      ttsService.cancel();
       setIsSpeaking(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(content);
-    const isFrench = /[éàèùâêîôûëïü]/.test(content.toLowerCase());
-    const lang = isFrench ? 'fr-FR' : 'en-US';
-    
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.lang === lang && v.name.includes('Premium')) || 
-                  voices.find(v => v.lang === lang && v.name.includes('Google')) ||
-                  voices.find(v => v.lang === lang);
-    
-    if (voice) utterance.voice = voice;
-    utterance.lang = lang;
-    utterance.rate = 0.9;
-
-    utterance.onend = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    ttsService.speak(
+      content,
+      msgId,
+      [], // No project languages available here, falls back to content detection
+      () => setIsSpeaking(false)
+    );
     setIsSpeaking(true);
-  }, [content, isSpeaking, onSpeaker]);
+  }, [content, title, onSpeaker]);
 
   const handleToggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
 

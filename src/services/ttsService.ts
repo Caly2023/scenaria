@@ -65,19 +65,69 @@ class TTSService {
   }
 
   /**
-   * Determine the target language code based on project languages.
+   * Determine the target language code based on project languages or content analysis.
    * Focuses on French and English.
    */
-  private determineLanguageInfo(projectLanguages: string[] = []): { prefix: string, preferred: string } {
-    const primaryStr = (projectLanguages[0] || 'English').toLowerCase();
+  private determineLanguageInfo(text: string, projectLanguages: string[] = []): { prefix: string, preferred: string } {
+    const primaryStr = (projectLanguages[0] || '').toLowerCase();
     
     if (primaryStr.includes('french') || primaryStr.includes('français')) {
-      // Default to French
+      return { prefix: 'fr', preferred: 'fr-FR' };
+    }
+
+    if (primaryStr.includes('english')) {
+      return { prefix: 'en', preferred: 'en-US' };
+    }
+
+    // Fallback: Detect based on common French characters
+    const isFrench = /[éàèùâêîôûëïü]/.test(text.toLowerCase());
+    if (isFrench) {
       return { prefix: 'fr', preferred: 'fr-FR' };
     }
     
     // Default to English
     return { prefix: 'en', preferred: 'en-US' };
+  }
+
+  /**
+   * Clean text for TTS by removing Markdown symbols and other characters that should not be read.
+   */
+  private cleanText(text: string): string {
+    if (!text) return "";
+    
+    let cleaned = text;
+
+    // 1. Remove Markdown Bold/Italic (**text**, *text*, __text__, _text_)
+    cleaned = cleaned.replace(/(\*\*|__)(.*?)\1/g, "$2");
+    cleaned = cleaned.replace(/(\*|_)(.*?)\1/g, "$2");
+
+    // 2. Remove Markdown Headers (### Header)
+    cleaned = cleaned.replace(/^#+\s+/gm, "");
+
+    // 3. Remove Markdown Links ([label](url)) -> keeps only label
+    cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+
+    // 4. Remove Markdown Code blocks and inline code
+    cleaned = cleaned.replace(/```[\s\S]*?```/g, "");
+    cleaned = cleaned.replace(/`([^`]+)`/g, "$1");
+
+    // 5. Remove HTML tags
+    cleaned = cleaned.replace(/<[^>]*>?/gm, "");
+
+    // 6. Remove excessive asterisks/symbols that might be left over or used as separators
+    // We keep basic punctuation like . , ? ! : ; ( )
+    cleaned = cleaned.replace(/\*+/g, "");
+    cleaned = cleaned.replace(/_+/g, "");
+    cleaned = cleaned.replace(/#+/g, "");
+    
+    // Remove list markers at start of lines (e.g., "- ", "* ", "1. ")
+    cleaned = cleaned.replace(/^\s*[-*]\s+/gm, "");
+    cleaned = cleaned.replace(/^\s*\d+\.\s+/gm, "");
+
+    // 7. Clean up whitespace
+    cleaned = cleaned.replace(/\s+/g, " ").trim();
+
+    return cleaned;
   }
 
   /**
@@ -107,8 +157,15 @@ class TTSService {
     
     // Allow short delay for cancel to fully flush
     setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      const langInfo = this.determineLanguageInfo(projectLanguages);
+      const cleanedText = this.cleanText(text);
+      if (!cleanedText) {
+        onEnd();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(cleanedText);
+      utterance.rate = 0.9;
+      const langInfo = this.determineLanguageInfo(text, projectLanguages);
       const bestVoice = this.getBestVoice(langInfo.prefix, langInfo.preferred);
 
       if (bestVoice) {

@@ -27,7 +27,6 @@ interface Message {
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
-  isStreaming?: boolean;
 }
 
 interface ScriptDoctorProps {
@@ -102,73 +101,7 @@ function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean
   );
 }
 
-// ── Streaming components ───────────────────────────────────────────────────
 
-function Cursor() {
-  return (
-    <motion.span
-      initial={{ opacity: 0 }}
-      animate={{ opacity: [0, 1, 0] }}
-      transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-      className="inline-block w-[6px] h-[15px] bg-white ml-0.5 translate-y-[2px] rounded-sm shadow-[0_0_8px_rgba(255,255,255,0.5)]"
-    />
-  );
-}
-
-function StreamingMarkdown({ content, isStreaming, className }: { content: string; isStreaming?: boolean; className?: string }) {
-  const [displayedContent, setDisplayedContent] = useState(content);
-  const targetContentRef = useRef(content);
-  const animationRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!isStreaming) {
-      setDisplayedContent(content);
-      targetContentRef.current = content;
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-      return;
-    }
-
-    targetContentRef.current = content;
-
-    const animate = () => {
-      setDisplayedContent(prev => {
-        if (prev.length < targetContentRef.current.length) {
-          const gap = targetContentRef.current.length - prev.length;
-          // Faster catch-up if gap is large, but minimum 1 char per frame
-          const step = Math.max(1, Math.min(gap, Math.ceil(gap / 5)));
-          return targetContentRef.current.slice(0, prev.length + step);
-        }
-        return prev;
-      });
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    if (animationRef.current === null) {
-      animationRef.current = requestAnimationFrame(animate);
-    }
-
-    return () => {
-      if (animationRef.current !== null) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-    };
-  }, [content, isStreaming]);
-
-  return (
-    <div className={cn(className, "[&_p:last-child]:inline")}>
-      <ReactMarkdown>
-        {displayedContent}
-      </ReactMarkdown>
-      {isStreaming && (
-        <Cursor />
-      )}
-    </div>
-  );
-}
 
 // ── Script Doctor inner content ───────────────────────────────────────────────
 function ScriptDoctorContent({
@@ -354,14 +287,14 @@ function ScriptDoctorContent({
                   </details>
                 )}
 
-                <StreamingMarkdown 
-                  content={String(displayContent)} 
-                  isStreaming={msg.role === 'assistant' && msg.isStreaming} 
-                  className={cn(
-                    "scenaria-markdown",
-                    msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5" : ""
-                  )}
-                />
+                <div className={cn(
+                  "scenaria-markdown",
+                  msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5" : ""
+                )}>
+                  <ReactMarkdown>
+                    {String(displayContent)}
+                  </ReactMarkdown>
+                </div>
 
                 {msg.role === 'assistant' && (
                   <div className="mt-6 flex flex-col gap-4">

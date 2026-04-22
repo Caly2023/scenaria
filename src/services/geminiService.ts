@@ -38,126 +38,7 @@ async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
   }
 }
 
-/**
- * STREAMING GENKIT FLOW HELPER
- * Calls a Genkit flow and yields chunks of text as they arrive.
- */
-async function* streamGenkitFlow<T>(flowName: string, input: any): AsyncGenerator<{ chunk?: string, final?: any }> {
-  const url = `/api/genkit/${flowName}`;
-  console.log(`[GeminiService] Streaming ${url}...`);
 
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream' 
-      },
-      body: JSON.stringify({ ...input, stream: true }),
-    });
-  } catch (error: any) {
-    console.error(`[GeminiService] Stream connection failed for ${flowName}:`, error);
-    if (error?.message === 'Failed to fetch') {
-      throw new Error(`Connection failed: The AI server at ${url} is unreachable (network/CORS/deployment issue).`);
-    }
-    throw error;
-  }
-
-  if (!response.ok) {
-    let errorMsg = `Stream Error (${flowName}): ${response.status} ${response.statusText}`;
-    try {
-      const error = await response.json();
-      errorMsg = error.error || errorMsg;
-    } catch {
-      // Fallback
-    }
-    console.error(`[GeminiService] ${errorMsg}`);
-    throw new Error(errorMsg);
-  }
-
-  const reader = response.body?.getReader();
-  const decoder = new TextDecoder();
-
-  if (!reader) throw new Error('No body in response');
-
-  // pendingBuffer: only keeps a small tail to detect [DONE] split across network chunks.
-  // This is intentionally separate from the yielded chunks — the caller accumulates those.
-  let pendingBuffer = '';
-  // The max length of '[DONE]' is 6 chars, so keeping the last 10 chars is always enough
-  // to detect a split across two reads.
-  const DONE_MARKER = '[DONE]';
-  const TAIL_SIZE = DONE_MARKER.length + 4; // safe margin
-  let isDoneSeen = false;
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const text = decoder.decode(value, { stream: true });
-      pendingBuffer += text;
-
-      if (!isDoneSeen) {
-        // Check if we have a full [DONE] marker
-        if (pendingBuffer.includes(DONE_MARKER)) {
-          isDoneSeen = true;
-          const parts = pendingBuffer.split(DONE_MARKER);
-          
-          // Everything before [DONE] (or multiples if they happen) are chunks
-          for (let i = 0; i < parts.length - 1; i++) {
-            if (parts[i]) yield { chunk: parts[i] };
-          }
-          // The remainder is the JSON that follows [DONE]
-          pendingBuffer = parts[parts.length - 1];
-        } else {
-          // [DONE] not yet seen — yield a safe portion
-          if (pendingBuffer.length > TAIL_SIZE) {
-            const safeChunk = pendingBuffer.slice(0, pendingBuffer.length - TAIL_SIZE);
-            yield { chunk: safeChunk };
-            pendingBuffer = pendingBuffer.slice(pendingBuffer.length - TAIL_SIZE);
-          }
-        }
-      }
-
-      // If we've seen [DONE], everything now is part of the final JSON payload
-      if (isDoneSeen) {
-        if (pendingBuffer.trim()) {
-          try {
-            const finalResult = JSON.parse(pendingBuffer.trim());
-            yield { final: finalResult };
-            pendingBuffer = ''; // Fully processed
-            break;
-          } catch (e) {
-            // It's partial JSON, keep it in buffer in case more network chunks arrive
-            continue; 
-          }
-        }
-      }
-    }
-
-    // Flush any remaining buffer if stream ended unexpectedly
-    if (!isDoneSeen && pendingBuffer && !pendingBuffer.includes(DONE_MARKER)) {
-      yield { chunk: pendingBuffer };
-    } else if (isDoneSeen && pendingBuffer.trim()) {
-      try {
-        const finalResult = JSON.parse(pendingBuffer.trim());
-        yield { final: finalResult };
-      } catch (e) {
-        console.warn('[GeminiService] Failed to parse final result after stream ended:', e, 'Raw:', pendingBuffer);
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
-
-/**
- * GENERIC STREAM HELPER
- */
-function streamGenericGemini(prompt: string, systemPrompt?: string) {
-  return streamGenkitFlow<any>('genericGemini', { prompt, systemPrompt });
-}
 
 
 
@@ -227,15 +108,7 @@ export const geminiService = {
     });
   },
 
-  streamScriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
-    return streamGenkitFlow<any>('scriptDoctor', {
-      messages,
-      context,
-      activeStage,
-      complexity,
-      idMapContext
-    });
-  },
+
 
 
   async analyzeScript(content: string, stage: string) {
@@ -245,12 +118,7 @@ export const geminiService = {
     });
   },
 
-  analyzeScriptStream(content: string, stage: string) {
-    return streamGenkitFlow<any>('genericGemini', {
-      prompt: `Analyze the following content for the "${stage}" stage of screenwriting. Provide expert feedback on structure, dialogue, and character development.\n\nContent:\n${content}`,
-      systemPrompt: 'You are a professional script doctor.'
-    });
-  },
+
 
 
   async rewriteSequence(content: string, instruction: string) {
@@ -259,11 +127,7 @@ export const geminiService = {
     });
   },
 
-  rewriteSequenceStream(content: string, instruction: string) {
-    return streamGenkitFlow<any>('genericGemini', {
-      prompt: `Rewrite the following script sequence based on this instruction: "${instruction}". Maintain the tone and style of the original.\n\nOriginal:\n${content}`
-    });
-  },
+
 
 
   async generateInitialSequences(storyDump: string, format: string, availableCharacters: any[], availableLocations: any[]) {

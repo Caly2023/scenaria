@@ -142,17 +142,8 @@ export function useProjectActions({
       const payload = await contextAssembler.buildPromptPayload(currentProject.id, 'Step Outline', id);
       const instruction = "Rewrite this scene to be more dramatic and cinematic. Maintain continuity with the previous and next scenes.";
       
-      const stream = geminiService.rewriteSequenceStream(seq.content || '', instruction);
-      
-      let accumulated = "";
-      for await (const part of stream) {
-        if (part.chunk) {
-          accumulated += part.chunk;
-          // Update the sequence content in real-time. 
-          // handleSequenceUpdate uses a debounced sync to Firestore, so this is efficient.
-          handleSequenceUpdate(id, { content: accumulated });
-        }
-      }
+      const improvedContent = await geminiService.rewriteSequence(seq.content || '', instruction);
+      handleSequenceUpdate(id, { content: improvedContent as string });
     } catch (error) {
       const classified = classifyError(error);
       addToast(classified.userMessage, 'error');

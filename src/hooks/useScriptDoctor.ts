@@ -21,7 +21,6 @@ type ScriptDoctorMessage = {
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
-  isStreaming?: boolean;
   /** Preserves Genkit/Gemini raw parts for multi-turn consistency (including thoughts and signatures) */
   content_parts?: any[];
 };
@@ -1288,107 +1287,23 @@ ${resolvedContent}`;
         content: t("common.connectingToAi", { defaultValue: "Connecting to ScénarIA..." }),
         status: "📡 Connecting...",
         timestamp: Date.now(),
-        isStreaming: true,
       };
       setDoctorMessages((prev) => [...prev, initialBotMsg]);
 
-      /**
-       * Helper to extract partial response from a raw JSON stream.
-       * Handles escaped characters and partial field completion.
-       */
-      const extractPartial = (text: string): string => {
-        const trimmed = text.trim();
-        
-        // Use a more robust check for JSON (allowing leading comments/whitespace)
-        const possibleJson = trimmed.startsWith('{') || trimmed.includes('\n{');
-        
-        if (!possibleJson) {
-          return trimmed;
-        }
 
-        // --- BACKWARD COMPATIBILITY / FALLBACK FOR JSON RESPONSES ---
-        // Try to find the "response" field value using a more flexible regex
-        const responseMatch = trimmed.match(/"response"\s*:\s*"([^"]*)$| "response"\s*:\s*"([^"]*)"/);
-        if (responseMatch) {
-          return responseMatch[1] || responseMatch[2] || "";
-        }
-        
-        // Fallback: If no response yet, show thinking if available
-        const thinkingMatch = trimmed.match(/"thinking"\s*:\s*"([^"]*)$| "thinking"\s*:\s*"([^"]*)"/);
-        if (thinkingMatch) {
-          return `${t("common.thinking", { defaultValue: "Thinking" })}: ${thinkingMatch[1] || thinkingMatch[2] || ""}`;
-        }
-        
-        // If it's JSON but we can't find the response field yet, show "..."
-        return "...";
-      };
 
       let responseParts: any[] | null = null;
 
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         telemetryService.setStatus("AI Call", "📡", "Sending to AI engine...");
         
-        let iterationResult: any = null;
-        let accumulatedText = "";
-
-        try {
-          const stream = geminiService.streamScriptDoctorAgent(
-            conversationHistory,
-            context,
-            activeStage,
-            complexity,
-            idMapContext,
-          );
-
-          for await (const part of stream) {
-            if (part.chunk) {
-              accumulatedText += part.chunk;
-              const displayContent = extractPartial(accumulatedText);
-              
-              setDoctorMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId
-                    ? { ...m, content: displayContent, status: `🔄 Step ${iteration + 1}...`, isStreaming: true }
-                    : m
-                )
-              );
-            }
-            if (part.final) {
-              iterationResult = part.final;
-            }
-          }
-        } catch (streamError) {
-          console.warn(
-            "[ScriptDoctor] Streaming failed, falling back to non-stream call:",
-            streamError,
-          );
-          telemetryService.setStatus(
-            "Fallback",
-            "🛟",
-            "Streaming unavailable. Switching to standard response mode...",
-          );
-          setAiStatus("🛟 Streaming unavailable. Switching to standard mode...");
-
-          iterationResult = await geminiService.scriptDoctorAgent(
-            conversationHistory,
-            context,
-            activeStage,
-            complexity,
-            idMapContext,
-          );
-        }
-
-        const result = iterationResult;
-        if (!result) {
-          // Fallback: If streaming finished but we didn't get a formal 'final' object,
-          // use the accumulated text as the final response.
-          if (accumulatedText) {
-            console.log("[ScriptDoctor] No final result, falling back to accumulated text");
-            finalResponse = accumulatedText;
-            responseParts = [{ text: accumulatedText }];
-          }
-          break;
-        }
+        const iterationResult = await geminiService.scriptDoctorAgent(
+          conversationHistory,
+          context,
+          activeStage,
+          complexity,
+          idMapContext,
+        );
 
         // Genkit's CandidateData format:
         //   candidates[0].message.content => Part[]
@@ -1480,7 +1395,7 @@ ${resolvedContent}`;
           finalResponse =
             typeof result === "string"
               ? result
-              : result?.text || accumulatedText || JSON.stringify(result);
+              : result?.text || JSON.stringify(result);
           break;
         }
 
@@ -1489,7 +1404,6 @@ ${resolvedContent}`;
           finalResponse =
             textParts.map((p: any) => p.text).join("") ||
             result?.text ||
-            accumulatedText ||
             JSON.stringify(result);
           break;
         }
@@ -1657,7 +1571,6 @@ ${resolvedContent}`;
             status: "✅ Done",
             response: `I completed ${allToolsCalled.length} operations: ${[...new Set(allToolsCalled)].join(", ")}. The changes have been applied.`,
             suggested_actions: ["Review changes", "Continue editing"],
-            isStreaming: false,
           });
         }
       }
@@ -1715,7 +1628,7 @@ ${resolvedContent}`;
                 suggested_actions: parsedResponse.suggested_actions,
                 active_tool: parsedResponse.active_tool,
                 status: parsedResponse.status,
-                isStreaming: false,
+
                 // CRITICAL: Preserve the final turn's parts so the next user message has full history.
                 // We sanitize these here to strip unresolved tool requests (preventing orphaned functionCall errors).
                 content_parts: sanitizeFinalParts(responseParts) || m.content_parts, 
@@ -1739,7 +1652,6 @@ ${resolvedContent}`;
                   ...m,
                   content: errorMessage,
                   status: "❌ Error",
-                  isStreaming: false,
                   suggested_actions: ["Retry", "Ask something simpler"],
                 }
               : m

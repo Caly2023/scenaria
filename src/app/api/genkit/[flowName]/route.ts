@@ -35,58 +35,6 @@ export async function POST(
 
     const flow = flows[flowName as FlowName];
 
-    // Check if the request explicitly asks for a stream
-    const isStreamRequested = request.headers.get('accept') === 'text/event-stream' || body.stream === true;
-    console.log(`[Genkit API][${requestId}] Stream Requested:`, isStreamRequested);
-
-    if (isStreamRequested) {
-      console.log(`[Genkit API][${requestId}] Starting flow stream...`);
-      const responseStream = await flow.stream(body);
-      
-      const encoder = new TextEncoder();
-      const readableStream = new ReadableStream({
-        async start(controller) {
-          try {
-            console.log(`[Genkit API][${requestId}] Stream connected, sending chunks...`);
-            for await (const chunk of responseStream.stream) {
-              // Genkit sendChunk yields strings directly; handle both string and object chunks
-              const text = typeof chunk === 'string' ? chunk : (chunk as any)?.text ?? '';
-              if (text) {
-                controller.enqueue(encoder.encode(text));
-              }
-            }
-            
-            // Send final structured result for agentic loops (Script Doctor).
-            // The flow now returns a plain serializable object, so JSON.stringify is safe.
-            try {
-              console.log(`[Genkit API][${requestId}] Stream finished, awaiting final output...`);
-              const finalResult = await responseStream.output;
-              if (finalResult != null) {
-                controller.enqueue(encoder.encode(`\n\n[DONE]${JSON.stringify(finalResult)}`));
-              }
-            } catch (e) {
-              console.warn(`[Genkit API][${requestId}] Could not get final output for stream:`, e);
-            }
-
-            console.log(`[Genkit API][${requestId}] Closing stream.`);
-            controller.close();
-          } catch (err) {
-            console.error(`[Genkit API][${requestId}] Stream Error:`, err);
-            controller.error(err);
-          }
-        },
-      });
-
-      return new Response(readableStream, {
-        headers: {
-          'Content-Type': 'text/event-stream; charset=utf-8',
-          'Cache-Control': 'no-cache, no-transform',
-          // Disables buffering on some proxy layers for better chunk delivery.
-          'X-Accel-Buffering': 'no',
-        },
-      });
-    }
-
     // Standard non-streaming execution
     console.log(`[Genkit API][${requestId}] Executing flow "${flowName}" (non-stream)...`);
     const result = await flow(body);

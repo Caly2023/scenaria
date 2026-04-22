@@ -7,10 +7,8 @@ export class CharacterBibleAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const brainstorming = this._getBrainstorming(context);
-      if (!brainstorming) return this.buildFallbackOutput('Brainstorming content required');
-
-      const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(brainstorming));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
       const content: ContentPrimitive[] = extraction.characters.map((char: any, i: number) =>
         this.buildPrimitive(
           `char_gen_${i}`,
@@ -58,7 +56,8 @@ export class CharacterBibleAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `**${p.title}**: ${p.content.substring(0, 200)}`).join('\n');
     try {
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Character Bible', fullText, context.metadata.logline));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Character Bible', fullText, unifiedCtx));
       const hasTier1 = content.some(p => p.metadata?.tier === 1);
       const issues = raw.isReady && hasTier1 ? [] : ['No Tier-1 (main) character defined'];
       const analysis = this.buildAnalysis(
@@ -79,11 +78,5 @@ export class CharacterBibleAgent extends BaseStageAgent {
     }
   }
 
-  private _getBrainstorming(context: ProjectContext): string {
-    const p = context.stageContents['Brainstorming'] || [];
-    return p.find(x => x.primitiveType === 'brainstorming_result')?.content
-      || p.find(x => x.primitiveType === 'pitch_result')?.content // backward compat
-      || p[0]?.content
-      || '';
   }
 }

@@ -89,15 +89,11 @@ ${context}
 ACTIVE STAGE: ${activeStage}`;
 
 
-export const SYNOPSIS_PROMPT = (brainstorming: string, structure: string) => `
-You are a professional screenwriter. Based on the following validated brainstorming session (the Source of Truth) and the 8-beat 3-Act Structure, write a full narrative synopsis (approx. 500 words). 
-Focus on the emotional arc, key plot points, and the overall journey of the characters as defined in the structure.
+export const SYNOPSIS_PROMPT = (context: string) => `
+You are a professional screenwriter. Based on the provided project context, write a full narrative synopsis (approx. 500 words). 
+Focus on the emotional arc, key plot points, and the overall journey of the characters as defined in the brainstorming and structure.
 
-Source of Truth (Brainstorming):
-${brainstorming}
-
-3-Act Structure:
-${structure}`;
+${context}`;
 
 export const CHARACTER_EXTRACTION_PROMPT = (brainstorming: string) => `
 You are a professional script analyst. Based on the following validated brainstorming session (the Source of Truth), extract the core characters and settings. 
@@ -107,14 +103,13 @@ For each setting, provide: Location, Atmosphere, Description, and a Visual Descr
 Source of Truth (Brainstorming):
 ${brainstorming}`;
 
-export const THREE_ACT_STRUCTURE_PROMPT = (brainstorming: string, logline: string) => `
+export const THREE_ACT_STRUCTURE_PROMPT = (context: string) => `
 # PROMPT: THE 8-BEAT STORY ARCHITECT (BASED ON STUDIOBINDER)
 
 Act as a world-class Script Architect. Your goal is to transform a raw story idea into a professional 3-Act Structure using the exact 8-beat framework from K.M. Weiland. 
 
 ## CONTEXT:
-- Source of Truth (Brainstorming): ${brainstorming}
-- Logline: ${logline}
+${context}
 
 ## THE 8-BEAT FRAMEWORK TO APPLY:
 1. The Hook (0%)
@@ -136,9 +131,7 @@ Act as a world-class Script Architect. Your goal is to transform a raw story ide
   ],
   "next_step_ready": true
 }
-
-Logline:
-${logline}`;
+`;
 
 export const TREATMENT_PROMPT = (context: string) => `
 You are an Elite Screenwriter and Cinematic Architect. Your task is to generate the CORE NARRATIVE SEQUENCES of a professional CINEMATIC TREATMENT based on the provided project context.

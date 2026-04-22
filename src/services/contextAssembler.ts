@@ -227,6 +227,92 @@ class ContextAssembler {
     return payload;
   }
 
+  /**
+   * High-level entry point for ANY AI component (Script Doctor, Step Agents, Verification).
+   * Fetches the "most complete" project context from Firebase and formats it.
+   */
+  async getContextForStage(
+    projectId: string, 
+    currentStage: WorkflowStage, 
+    activePrimitiveId?: string
+  ): Promise<string> {
+    const payload = await this.buildPromptPayload(projectId, currentStage, activePrimitiveId);
+    return this.formatPrompt(payload, "");
+  }
+
+  /**
+   * Helper to convert a ProjectContext (raw data dump) into a PromptPayload.
+   * Useful when we already have the data in memory and don't want to re-fetch from Firebase.
+   */
+  buildPayloadFromProjectContext(
+    context: any, // ProjectContext from stageContract
+    currentStage: WorkflowStage
+  ): PromptPayload {
+    const { metadata, stageContents } = context;
+    
+    const payload: PromptPayload = {
+      metadata: {
+        title: metadata.title || 'Untitled',
+        genre: metadata.genre || 'N/A',
+        format: metadata.format || 'Feature',
+        tone: metadata.tone || 'N/A',
+        languages: metadata.languages || [],
+        logline: metadata.logline || '',
+        targetDuration: metadata.targetDuration
+      },
+      characters: (stageContents['Character Bible'] || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        role: c.role,
+        description: c.description,
+        deepDevelopment: c.deepDevelopment
+      })),
+      locations: (stageContents['Location Bible'] || []).map((l: any) => ({
+        id: l.id,
+        name: l.name,
+        atmosphere: l.atmosphere,
+        description: l.description
+      })),
+    };
+
+    // Build sectional context (simplified version of the buildPromptPayload logic but using provided data)
+    let sectionalContext = '';
+    const currentOrder = stageRegistry.get(currentStage).order;
+
+    const getStageText = (sName: string) => {
+      const items = stageContents[sName] || [];
+      return items.map((p: any) => p.content).join('\n\n');
+    };
+
+    if (currentOrder >= 2 && currentOrder <= 4) {
+      const bStory = getStageText('Brainstorming');
+      if (bStory) sectionalContext += `[BRAINSTORMING]\n${bStory}\n\n`;
+
+      const allStages = stageRegistry.getAll();
+      for (let i = 0; i < currentOrder; i++) {
+        const s = allStages[i];
+        if (s.id === 'Logline' || s.id === 'Brainstorming') continue;
+        const text = getStageText(s.id);
+        if (text) sectionalContext += `[${s.name.toUpperCase()}]\n${text}\n\n`;
+      }
+    } else if (currentOrder > 4) {
+      const logline = getStageText('Logline');
+      if (logline) sectionalContext += `[LOGLINE]\n${logline}\n\n`;
+      
+      const synopsis = getStageText('Synopsis');
+      if (synopsis) sectionalContext += `[SYNOPSIS]\n${synopsis}\n\n`;
+    } else {
+      const bStory = getStageText('Brainstorming');
+      if (bStory) sectionalContext += `[BRAINSTORMING]\n${bStory}\n\n`;
+    }
+
+    const currentItems = stageContents[currentStage] || [];
+    sectionalContext += `\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
+    
+    payload.sectionalContext = sectionalContext;
+    return payload;
+  }
+
   formatPrompt(payload: PromptPayload, task: string): string {
     return `
 [SYSTEM INSTRUCTIONS]

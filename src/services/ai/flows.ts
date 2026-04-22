@@ -320,16 +320,15 @@ export const generate3ActStructureFlow = ai.defineFlow(
   {
     name: 'generate3ActStructureFlow',
     inputSchema: z.object({
-      brainstorming: z.string(),
-      logline: z.string(),
+      context: z.string(),
     }) as any,
     outputSchema: z.any() as any,
   },
   async (input) => {
-    const { brainstorming, logline } = input;
+    const { context } = input;
     const response = await ai.generate({
       model: gemini31FlashLite,
-      prompt: Prompts.THREE_ACT_STRUCTURE_PROMPT(brainstorming, logline),
+      prompt: Prompts.THREE_ACT_STRUCTURE_PROMPT(context),
       output: { format: 'json' },
       use: [
         retry({ maxRetries: 2 }),
@@ -347,16 +346,15 @@ export const generateSynopsisFlow = ai.defineFlow(
   {
     name: 'generateSynopsisFlow',
     inputSchema: z.object({
-      brainstorming: z.string(),
-      structure: z.string(),
+      context: z.string(),
     }) as any,
     outputSchema: z.string() as any,
   },
   async (input, { sendChunk }) => {
-    const { brainstorming, structure } = input;
+    const { context } = input;
     const response = await ai.generate({
       model: gemini3Flash, // Use regular Flash for depth in Synopsis
-      prompt: Prompts.SYNOPSIS_PROMPT(brainstorming, structure),
+      prompt: Prompts.SYNOPSIS_PROMPT(context),
       use: [
         retry({ maxRetries: 2 }),
         fallback(ai, {

@@ -7,11 +7,8 @@ export class SynopsisAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const brainstorming = this._getBrainstorming(context);
-      const structure = this._getStructure(context);
-      if (!brainstorming) return this.buildFallbackOutput('Brainstorming content required');
-
-      const synopsis = await this.retryWithBackoff(() => geminiService.generateSynopsis(brainstorming, structure));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const synopsis = await this.retryWithBackoff(() => geminiService.generateSynopsis(unifiedCtx));
       const content: ContentPrimitive[] = [
         this.buildPrimitive('synopsis_0', 'Synopsis', synopsis, 'synopsis', 0),
       ];
@@ -56,7 +53,8 @@ export class SynopsisAgent extends BaseStageAgent {
       };
     }
     try {
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Synopsis', text, context.metadata.logline));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Synopsis', text, unifiedCtx));
       const wordCount = text.split(/\s+/).length;
       const issues = raw.isReady && wordCount >= 200 ? [] : ['Synopsis may be too brief'];
       const analysis = this.buildAnalysis(
@@ -78,15 +76,5 @@ export class SynopsisAgent extends BaseStageAgent {
     }
   }
 
-  private _getBrainstorming(context: ProjectContext): string {
-    const p = context.stageContents['Brainstorming'] || [];
-    return p.find(x => x.primitiveType === 'brainstorming_result')?.content
-      || p.find(x => x.primitiveType === 'pitch_result')?.content // backward compat
-      || p[0]?.content
-      || '';
-  }
-
-  private _getStructure(context: ProjectContext): string {
-    return context.stageContents['3-Act Structure']?.map(p => `[${p.title}]\n${p.content}`).join('\n\n') || '';
   }
 }

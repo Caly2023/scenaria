@@ -9,13 +9,10 @@
  */
 
 import {
-  IStageAgent,
-  AgentOutput,
-  StageAnalysis,
-  StageState,
   ContentPrimitive,
   ProjectContext,
 } from '../types/stageContract';
+import { contextAssembler } from '../services/contextAssembler';
 
 export abstract class BaseStageAgent implements IStageAgent {
   abstract readonly stageId: string;
@@ -170,5 +167,13 @@ export abstract class BaseStageAgent implements IStageAgent {
       agentVersion: '2.0',
       ...extra,
     };
+  }
+
+  /**
+   * Helper to get the unified, formatted context string for the current stage.
+   */
+  protected getUnifiedContext(context: ProjectContext): string {
+    const payload = contextAssembler.buildPayloadFromProjectContext(context, this.stageId as any);
+    return contextAssembler.formatPrompt(payload, "");
   }
 }

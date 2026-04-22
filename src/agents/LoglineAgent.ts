@@ -7,10 +7,8 @@ export class LoglineAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const brainstorming = this._getBrainstorming(context);
-      if (!brainstorming) return this.buildFallbackOutput('Brainstorming content required');
-
-      const logline = await this.retryWithBackoff(() => geminiService.generateLoglineDraft(brainstorming));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const logline = await this.retryWithBackoff(() => geminiService.generateLoglineDraft(unifiedCtx));
       const content: ContentPrimitive[] = [
         this.buildPrimitive('logline_0', 'Logline', logline, 'logline', 0),
       ];
@@ -53,7 +51,8 @@ export class LoglineAgent extends BaseStageAgent {
       return { analysis, state: 'empty' };
     }
     try {
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Logline', loglineText, context.metadata.logline || loglineText));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Logline', loglineText, unifiedCtx));
       const issues = raw.isReady ? [] : ['Logline may lack a clear protagonist or conflict'];
       const analysis = this.buildAnalysis(
         raw.content, 
@@ -74,11 +73,5 @@ export class LoglineAgent extends BaseStageAgent {
     }
   }
 
-  private _getBrainstorming(context: ProjectContext): string {
-    const pitchPrimitives = context.stageContents['Brainstorming'] || [];
-    return pitchPrimitives.find(p => p.primitiveType === 'brainstorming_result')?.content
-      || pitchPrimitives.find(p => p.primitiveType === 'pitch_result')?.content // backward compat
-      || pitchPrimitives[0]?.content
-      || '';
   }
 }

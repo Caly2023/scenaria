@@ -7,17 +7,8 @@ export class TreatmentAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const structure = this._getStructure(context);
-      const synopsis = this._getSynopsis(context);
-      const brainstorming = this._getBrainstorming(context);
-
-      const promptContext = [
-        structure && `[3-ACT STRUCTURE]\n${structure}`,
-        synopsis && `[SYNOPSIS]\n${synopsis}`,
-        brainstorming && `[BRAINSTORMING]\n${brainstorming}`,
-      ].filter(Boolean).join('\n\n');
-
-      const raw = await this.retryWithBackoff(() => geminiService.generateTreatment(promptContext));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateTreatment(unifiedCtx));
       const blocks = this.normalizeToJsonArray<any>(raw);
 
       const content: ContentPrimitive[] = blocks.length >= 3
@@ -71,7 +62,8 @@ export class TreatmentAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
     try {
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Treatment', fullText, context.metadata.logline));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Treatment', fullText, unifiedCtx));
       const issues = raw.isReady && content.length >= 5 ? [] : [`Only ${content.length} sections (minimum 5 recommended)`];
       const analysis = this.buildAnalysis(
         raw.content, 
@@ -91,19 +83,5 @@ export class TreatmentAgent extends BaseStageAgent {
     }
   }
 
-  private _getBrainstorming(context: ProjectContext): string {
-    const p = context.stageContents['Brainstorming'] || [];
-    return p.find(x => x.primitiveType === 'brainstorming_result')?.content
-      || p.find(x => x.primitiveType === 'pitch_result')?.content // backward compat
-      || p[0]?.content
-      || '';
-  }
-
-  private _getStructure(context: ProjectContext): string {
-    return context.stageContents['3-Act Structure']?.map(p => `[${p.title}]\n${p.content}`).join('\n\n') || '';
-  }
-
-  private _getSynopsis(context: ProjectContext): string {
-    return context.stageContents['Synopsis']?.[0]?.content || '';
   }
 }

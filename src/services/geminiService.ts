@@ -148,27 +148,27 @@ export const geminiService = {
   },
 
 
-  async generateLoglineDraft(brainstorming: string) {
-    if (!brainstorming || brainstorming.trim().length < 20) return "Based on your brainstorming, I will draft a logline here once you provide more details.";
+  async generateLoglineDraft(context: string) {
+    if (!context || context.trim().length < 20) return "Based on your brainstorming, I will draft a logline here once you provide more details.";
 
     return callGenkitFlow<any>('genericGemini', {
-      prompt: `Synthesize a professional 1-2 sentence logline from this brainstorming session:\n\n${brainstorming}`,
+      prompt: `Synthesize a professional 1-2 sentence logline from this project context:\n\n${context}`,
       systemPrompt: 'You are a professional screenwriter. Focus on protagonist, goal, and conflict.'
     });
   },
 
 
-  async generateSynopsis(brainstorming: string, structure: string) {
-    if (!brainstorming || brainstorming.trim().length < 20) return "Once the story is more developed, I will generate a full synopsis here.";
-    return callGenkitFlow<any>('generateSynopsis', { brainstorming, structure });
+  async generateSynopsis(context: string) {
+    if (!context || context.trim().length < 50) return "Once the story is more developed, I will generate a full synopsis here.";
+    return callGenkitFlow<any>('generateSynopsis', { context });
   },
 
-  async extractCharactersAndSettings(brainstorming: string) {
-    return callGenkitFlow<any>('extractCharacters', { brainstorming });
+  async extractCharactersAndSettings(context: string) {
+    return callGenkitFlow<any>('extractCharacters', { brainstorming: context });
   },
 
-  async generate3ActStructure(brainstorming: string, logline: string) {
-    return callGenkitFlow<any>('generate3ActStructure', { brainstorming, logline });
+  async generate3ActStructure(context: string) {
+    return callGenkitFlow<any>('generate3ActStructure', { context });
   },
 
   async refine3ActStructure(currentStructure: string, feedback: string) {
@@ -267,10 +267,10 @@ export const geminiService = {
     });
   },
 
-  async generateStageInsight(stage: string, content: string, projectContext: string) {
+  async generateStageInsight(stage: string, content: string, context: string) {
     if (!content || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
     return callGenkitFlow<any>('genericGemini', {
-      prompt: `Analyze the current state of "${stage}". Context: ${projectContext}\n\nContent: ${content}`,
+      prompt: `Analyze the current state of "${stage}".\n\nFull Project Context:\n${context}\n\nContent to Analyze:\n${content}`,
       jsonMode: true,
       structuredOutput: 'stageInsight',
     });

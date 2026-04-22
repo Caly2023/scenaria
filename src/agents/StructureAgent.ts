@@ -18,11 +18,8 @@ export class StructureAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const brainstorming = this._getBrainstorming(context);
-      const logline = this._getLogline(context);
-      if (!brainstorming) return this.buildFallbackOutput('Brainstorming content required');
-
-      const raw = await this.retryWithBackoff(() => geminiService.generate3ActStructure(brainstorming, logline));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generate3ActStructure(unifiedCtx));
       const parsed = this.safeParseJson<{ blocks?: any[]; [k: string]: any }>(raw);
       const blocks = parsed?.blocks || (Array.isArray(parsed) ? parsed : []);
 
@@ -89,7 +86,8 @@ export class StructureAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
     try {
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('3-Act Structure', fullText, context.metadata.logline));
+      const unifiedCtx = this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('3-Act Structure', fullText, unifiedCtx));
       const beatCount = content.filter(p => p.primitiveType === 'beat').length;
       const issues = raw.isReady && beatCount >= 8 ? [] : [`Only ${beatCount}/8 beats defined`];
       const analysis = this.buildAnalysis(
@@ -110,16 +108,6 @@ export class StructureAgent extends BaseStageAgent {
     }
   }
 
-  private _getBrainstorming(context: ProjectContext): string {
-    const p = context.stageContents['Brainstorming'] || [];
-    return p.find(x => x.primitiveType === 'brainstorming_result')?.content
-      || p.find(x => x.primitiveType === 'pitch_result')?.content // backward compat
-      || p[0]?.content
-      || '';
-  }
-
-  private _getLogline(context: ProjectContext): string {
-    return context.stageContents['Logline']?.[0]?.content || context.metadata.logline || '';
   }
 
   private _parseLegacyText(raw: string): ContentPrimitive[] {

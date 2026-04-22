@@ -11,6 +11,10 @@
 import {
   ContentPrimitive,
   ProjectContext,
+  IStageAgent,
+  AgentOutput,
+  StageAnalysis,
+  StageState
 } from '../types/stageContract';
 import { contextAssembler } from '../services/contextAssembler';
 

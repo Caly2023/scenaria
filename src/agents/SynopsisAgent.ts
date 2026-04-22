@@ -75,6 +75,4 @@ export class SynopsisAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-
   }
-}

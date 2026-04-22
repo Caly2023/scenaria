@@ -75,6 +75,4 @@ export class LocationBibleAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-
   }
-}

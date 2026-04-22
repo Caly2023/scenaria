@@ -82,6 +82,4 @@ export class TreatmentAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-
   }
-}

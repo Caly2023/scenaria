@@ -28,12 +28,15 @@ type AccessibilitySettings = {
 
 type ScriptDoctorMessage = {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant" | "tool" | "model";
   content: string;
+  status?: string;
   thinking?: string;
+  reasoning?: string;
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
+  content_parts?: any[];
 };
 
 type ScriptDoctorProps = {

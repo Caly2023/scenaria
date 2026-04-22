@@ -19,7 +19,8 @@ export const geminiApi = createApi({
     generate3ActStructure: builder.mutation<string, { brainstorming: string; logline: string }>({
       queryFn: async ({ brainstorming, logline }) => {
         try {
-          const result = await geminiService.generate3ActStructure(brainstorming, logline);
+          const context = `Brainstorming:\n${brainstorming}\n\nLogline:\n${logline}`;
+          const result = await geminiService.generate3ActStructure(context);
           return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };
@@ -29,7 +30,8 @@ export const geminiApi = createApi({
     generateSynopsis: builder.mutation<string, { brainstorming: string; structure: string }>({
       queryFn: async ({ brainstorming, structure }) => {
         try {
-          const result = await geminiService.generateSynopsis(brainstorming, structure);
+          const context = `Brainstorming:\n${brainstorming}\n\n3-Act Structure:\n${structure}`;
+          const result = await geminiService.generateSynopsis(context);
           return { data: result as string };
         } catch (error: any) {
           return { error: { message: error.message } };

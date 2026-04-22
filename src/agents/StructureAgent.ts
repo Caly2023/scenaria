@@ -107,9 +107,6 @@ export class StructureAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-
-  }
-
   private _parseLegacyText(raw: string): ContentPrimitive[] {
     return [this.buildPrimitive('structure_root', '3-Act Structure', raw, 'beat', 0)];
   }

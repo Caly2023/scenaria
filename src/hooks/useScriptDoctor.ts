@@ -14,7 +14,7 @@ import { telemetryService } from "../services/telemetryService";
 
 type ScriptDoctorMessage = {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "tool" | "model";
   content: string;
   status?: string;
   thinking?: string;
@@ -641,8 +641,8 @@ export function useScriptDoctor({
         // We preserve these in the conversation history for subsequent iterations.
         conversationHistory = [
           ...conversationHistory,
-          { role: "model", content_parts: sanitizePartsForHistory(responseParts) },
-          { role: "tool", content_parts: toolResults }
+          { role: "model", content: sanitizePartsForHistory(responseParts) },
+          { role: "tool", content: toolResults }
         ];
 
         // Also update the UI message state to include these parts for multi-turn persistence across hook re-renders

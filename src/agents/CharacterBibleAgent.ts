@@ -77,6 +77,4 @@ export class CharacterBibleAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-
   }
-}

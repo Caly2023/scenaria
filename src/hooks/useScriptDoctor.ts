@@ -8,6 +8,7 @@ import {
   Location,
   StageState,
 } from "../types";
+import { stageRegistry } from "../config/stageRegistry";
 import { contextAssembler } from "../services/contextAssembler";
 import { telemetryService } from "../services/telemetryService";
 
@@ -145,36 +146,49 @@ function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string
         content: [{ text: msg.content }],
       });
     } else {
+      // If we have preserved content_parts (which includes tool calls/responses), use them.
       if (msg.content_parts && msg.content_parts.length > 0) {
         history.push({
-          role: "model",
+          role: msg.role === "assistant" ? "model" : msg.role,
           content: msg.content_parts,
         });
       } else {
-        const assistantText = JSON.stringify({
-          status: msg.status || "✅ Done",
-          thinking: msg.thinking || "",
-          response: msg.content,
-          suggested_actions: msg.suggested_actions || [],
-        });
-        history.push({
-          role: "model",
-          content: [{ text: assistantText }],
-        });
+        const role = msg.role === "assistant" ? "model" : msg.role;
+        
+        // Handle tool role separately if it's a simple string (though usually it's in content_parts)
+        if (role === "tool") {
+          history.push({
+            role: "tool",
+            content: [{ text: msg.content }]
+          });
+        } else {
+          const assistantText = JSON.stringify({
+            status: msg.status || "✅ Done",
+            thinking: msg.thinking || "",
+            response: msg.content,
+            suggested_actions: msg.suggested_actions || [],
+          });
+          history.push({
+            role: "model",
+            content: [{ text: assistantText }],
+          });
+        }
       }
     }
   }
 
+  // Merge consecutive messages of the same role
   const cleaned: typeof history = [];
   for (const entry of history) {
     const last = cleaned[cleaned.length - 1];
-    if (last && last.role === entry.role) {
+    if (last && last.role === entry.role && entry.role !== "tool") { // Don't merge tools usually, but Gemini might allow it
       last.content.push(...entry.content);
     } else {
       cleaned.push(entry);
     }
   }
 
+  // Gemini requires history to start with 'user'
   while (cleaned.length > 0 && cleaned[0].role !== "user") {
     cleaned.shift();
   }
@@ -230,17 +244,7 @@ export function useScriptDoctor({
   const characters = rawCharacters || [];
   const locations = rawLocations || [];
 
-  const subcollectionMap: Record<string, string> = {
-    Brainstorming: "pitch_primitives",
-    Logline: "logline_primitives",
-    "3-Act Structure": "structure_primitives",
-    Synopsis: "synopsis_primitives",
-    "Character Bible": "characters",
-    "Location Bible": "locations",
-    Treatment: "treatment_sequences",
-    "Step Outline": "sequences",
-    Script: "script_scenes",
-  };
+  const subcollectionMap = stageRegistry.getSubcollectionMap();
 
   /**
    * Internal tool execution logic.
@@ -318,6 +322,8 @@ export function useScriptDoctor({
         research_context: async () => {
           const stageName = getArgString(args, "stageName") ?? "";
           telemetryService.setStatus("research_context", "🔍", `Context search: ${stageName}...`);
+          
+          let items: any[] = [];
           const localDataMap: Record<string, any[]> = {
             Brainstorming: pitchPrimitives,
             "Character Bible": characters,
@@ -326,7 +332,14 @@ export function useScriptDoctor({
             Treatment: treatmentSequences,
             Script: scriptScenes,
           };
-          const items = localDataMap[stageName] || (await contextAssembler.getStageStructure(currentProject.id, stageName));
+
+          if (localDataMap[stageName] && localDataMap[stageName].length > 0) {
+            items = localDataMap[stageName];
+          } else {
+            // Fallback to direct fetch if local data is missing or empty
+            items = await contextAssembler.getStageStructure(currentProject.id, stageName);
+          }
+
           return {
             success: true,
             data: items.map((item: any) => ({
@@ -446,27 +459,54 @@ export function useScriptDoctor({
           const primitives = getArgArray(args, "primitives") ?? [];
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: "Unsupported stage" };
+
+          telemetryService.setStatus("restructure_stage", "🧠", `Re-organizing ${stage}...`);
+
           const stageRef = collection(db, "projects", currentProject.id, sub);
-          const existing = await getDocs(stageRef);
+          const existingSnap = await getDocs(stageRef);
+          const existingDocs = existingSnap.docs;
+          
           const batch = writeBatch(db);
-          existing.docs.forEach(d => batch.delete(d.ref));
-          await batch.commit();
+          
+          // Non-destructive approach:
+          // 1. Identify which ones to keep/update and which to delete
+          const newIds = new Set(primitives.map((p: any) => p.id).filter(Boolean));
+          
+          // Delete docs that are NOT in the new list
+          existingDocs.forEach(d => {
+            if (!newIds.has(d.id)) {
+              batch.delete(d.ref);
+            }
+          });
+
+          // Create or update
           for (let i = 0; i < primitives.length; i++) {
             const p = primitives[i] as any;
-            const safe = {
+            const id = p.id || p.primitive_id;
+            
+            const safe: any = {
               title: p.title || p.name || "Untitled",
               content: p.content || p.description || "",
               order: i,
               projectId: currentProject.id,
-              createdAt: serverTimestamp(),
-              ...p,
+              updatedAt: serverTimestamp(),
             };
+            
             if (stage === "Character Bible" || stage === "Location Bible") {
               safe.name = safe.title;
               safe.description = safe.content;
             }
-            await addDoc(stageRef, safe);
+
+            if (id) {
+              const docRef = doc(db, "projects", currentProject.id, sub, id);
+              batch.set(docRef, safe, { merge: true });
+            } else {
+              const newDocRef = doc(collection(db, "projects", currentProject.id, sub));
+              batch.set(newDocRef, { ...safe, createdAt: serverTimestamp() });
+            }
           }
+
+          await batch.commit();
           await handleStageAnalyze(stage as WorkflowStage);
           addToast(t("common.stageRestructured"), "success");
           return { success: true };
@@ -573,16 +613,37 @@ export function useScriptDoctor({
 
         const toolResults: any[] = [];
         for (const part of toolCalls) {
-          const call = part.toolRequest ? { name: part.toolRequest.name, args: part.toolRequest.input, ref: part.toolRequest.ref } : { name: part.functionCall.name, args: part.functionCall.args };
+          const call = part.toolRequest 
+            ? { name: part.toolRequest.name, args: part.toolRequest.input, ref: part.toolRequest.ref } 
+            : { name: part.functionCall.name, args: part.functionCall.args };
+          
           const res = await executeToolCall(call, 0, botMsgId);
-          toolResults.push({ toolResponse: { name: call.name, ref: call.ref || call.name, output: res } });
+          toolResults.push({ 
+            toolResponse: { 
+              name: call.name, 
+              ref: call.ref || call.name, 
+              output: res 
+            } 
+          });
         }
 
+        // CRITICAL: Gemini requires the model's tool calls to be followed by tool responses.
+        // We preserve these in the conversation history for subsequent iterations.
         conversationHistory = [
           ...conversationHistory,
-          { role: "model", content: sanitizePartsForHistory(responseParts) },
-          { role: "tool", content: toolResults }
+          { role: "assistant", content_parts: sanitizePartsForHistory(responseParts) },
+          { role: "tool", content_parts: toolResults }
         ];
+
+        // Also update the UI message state to include these parts for multi-turn persistence across hook re-renders
+        setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { 
+          ...m, 
+          content_parts: [
+            ...(m.content_parts || []),
+            ...sanitizePartsForHistory(responseParts),
+            ...toolResults.map(tr => ({ toolResponse: tr.toolResponse }))
+          ] 
+        } : m));
 
         if (iteration === MAX_ITERATIONS - 1) finalResponse = "Max iterations reached.";
       }

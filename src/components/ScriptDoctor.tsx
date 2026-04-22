@@ -20,12 +20,15 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'tool';
   content: string;
+  status?: string;
   thinking?: string;
+  reasoning?: string;
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
+  content_parts?: any[];
 }
 
 interface ScriptDoctorProps {
@@ -252,7 +255,7 @@ function ScriptDoctorContent({
                   ? "p-4 rounded-xl bg-white text-black font-medium shadow-sm" 
                   : "text-white/90"
               )}>
-                {msg.role === 'assistant' && msg.thinking && (
+                {msg.role === 'assistant' && (msg.reasoning || msg.thinking) && (
                   <details className="mb-4 group/thinking">
                     <summary className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 cursor-pointer hover:text-white/50 transition-colors list-none select-none">
                       <BrainCircuit className="w-3 h-3" />
@@ -261,7 +264,7 @@ function ScriptDoctorContent({
                     </summary>
                     <div className="mt-2 pl-4 border-l border-white/10 text-xs text-white/40 italic leading-relaxed">
                       <ReactMarkdown>
-                        {msg.thinking}
+                        {msg.reasoning || msg.thinking || ""}
                       </ReactMarkdown>
                     </div>
                   </details>

@@ -41,7 +41,10 @@ export const fetchProjectStateTool = ai.defineTool(
     inputSchema: z.object({}).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ metadata: {}, stages: {}, id_map: {}, status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const getStageStructureTool = ai.defineTool(
@@ -51,7 +54,10 @@ export const getStageStructureTool = ai.defineTool(
     inputSchema: z.object({ stage_id: z.string() }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ stage_id: "", total_count: 0, primitives: [], status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const researchContextTool = ai.defineTool(
@@ -61,7 +67,10 @@ export const researchContextTool = ai.defineTool(
     inputSchema: z.object({ stageName: z.string() }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const fetchCharacterDetailsTool = ai.defineTool(
@@ -71,7 +80,10 @@ export const fetchCharacterDetailsTool = ai.defineTool(
     inputSchema: z.object({ characterId: z.string() }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const searchProjectContentTool = ai.defineTool(
@@ -81,7 +93,10 @@ export const searchProjectContentTool = ai.defineTool(
     inputSchema: z.object({ query: z.string() }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const proposePatchTool = ai.defineTool(
@@ -95,7 +110,10 @@ export const proposePatchTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ success: true, status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const executeMultiStageFixTool = ai.defineTool(
@@ -111,7 +129,10 @@ export const executeMultiStageFixTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const syncMetadataTool = ai.defineTool(
@@ -121,7 +142,10 @@ export const syncMetadataTool = ai.defineTool(
     inputSchema: z.object({ metadata: MetadataSchema }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const addPrimitiveTool = ai.defineTool(
@@ -135,7 +159,10 @@ export const addPrimitiveTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const deletePrimitiveTool = ai.defineTool(
@@ -148,7 +175,10 @@ export const deletePrimitiveTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const restructureStageTool = ai.defineTool(
@@ -161,7 +191,10 @@ export const restructureStageTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const updateStageInsightTool = ai.defineTool(
@@ -179,7 +212,10 @@ export const updateStageInsightTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const updateAgentStatusTool = ai.defineTool(
@@ -192,7 +228,10 @@ export const updateAgentStatusTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 export const setSuggestedActionsTool = ai.defineTool(
@@ -204,7 +243,10 @@ export const setSuggestedActionsTool = ai.defineTool(
     }).passthrough(),
     outputSchema: z.any(),
   },
-  async () => ({ status: "client_execution_required" })
+  async () => ({ 
+    status: "client_execution_required",
+    message: "This tool must be executed on the client. Please stop and wait for the client result."
+  })
 );
 
 const scriptDoctorTools = [
@@ -257,7 +299,8 @@ export const scriptDoctorFlow = ai.defineFlow(
       ],
       onChunk: (chunk) => {
         if (sendChunk && chunk.text) sendChunk(chunk.text);
-      }
+      },
+      maxSteps: 10,
     });
 
     // Return the standard Genkit response JSON.
@@ -322,7 +365,8 @@ export const generateSynopsisFlow = ai.defineFlow(
       ],
       onChunk: (chunk) => {
         if (sendChunk && chunk.text) sendChunk(chunk.text);
-      }
+      },
+      maxSteps: 10,
     });
     return response.text;
   }

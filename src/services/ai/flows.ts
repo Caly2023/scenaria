@@ -300,7 +300,7 @@ export const scriptDoctorFlow = ai.defineFlow(
       onChunk: (chunk) => {
         if (sendChunk && chunk.text) sendChunk(chunk.text);
       },
-      maxSteps: 10,
+      maxSteps: 1,
     });
 
     // Return the standard Genkit response JSON.

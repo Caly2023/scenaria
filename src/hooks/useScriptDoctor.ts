@@ -385,6 +385,8 @@ export function useScriptDoctor({
             if (updates.content) safeUpdates.description = updates.content;
           }
           await updateDoc(docRef, { ...safeUpdates, updatedAt: serverTimestamp() });
+          // Ensure ID-Map is refreshed after modification
+          await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
           setLastUpdatedPrimitiveId?.(id);
           setRefiningBlockId(null);
@@ -405,6 +407,8 @@ export function useScriptDoctor({
             await updateDoc(doc(db, "projects", currentProject.id, sub, fix.id), { ...safe, updatedAt: serverTimestamp() });
           }
           const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
+          // Ensure ID-Map is refreshed for all affected stages
+          await Promise.all(uniqueStages.map(s => contextAssembler.getStageStructure(currentProject.id, s)));
           await Promise.all(uniqueStages.map(s => handleStageAnalyze(s)));
           addToast(t("common.multiStageFixApplied"), "success");
           return { success: true };
@@ -438,6 +442,8 @@ export function useScriptDoctor({
             safeData.description = safeData.content;
           }
           const newDoc = await addDoc(collection(db, "projects", currentProject.id, sub), safeData);
+          // Ensure ID-Map is refreshed after addition
+          await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
           addToast(t("common.primitiveAdded"), "success");
           return { success: true, primitive_id: newDoc.id };
@@ -449,6 +455,8 @@ export function useScriptDoctor({
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: "Unsupported stage" };
           await deleteDoc(doc(db, "projects", currentProject.id, sub, id));
+          // Ensure ID-Map is refreshed after deletion
+          await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
           addToast(t("common.primitiveDeleted"), "info");
           return { success: true };
@@ -507,6 +515,8 @@ export function useScriptDoctor({
           }
 
           await batch.commit();
+          // Ensure ID-Map is refreshed after restructuring
+          await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
           addToast(t("common.stageRestructured"), "success");
           return { success: true };
@@ -631,7 +641,7 @@ export function useScriptDoctor({
         // We preserve these in the conversation history for subsequent iterations.
         conversationHistory = [
           ...conversationHistory,
-          { role: "assistant", content_parts: sanitizePartsForHistory(responseParts) },
+          { role: "model", content_parts: sanitizePartsForHistory(responseParts) },
           { role: "tool", content_parts: toolResults }
         ];
 

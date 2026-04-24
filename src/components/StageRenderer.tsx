@@ -27,13 +27,27 @@ type SequenceUpdate = Partial<Sequence>;
 
 function getBrainstormStory(primitives: Sequence[]): string {
   const typedPrimitives = primitives as BrainstormPrimitive[];
+  // Skip analysis primitive (order 0) for the story content
   return typedPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.content
     // Backward compatibility for older projects
     || typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.content
-    || primitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.content
+    || primitives.find((p) => /pitch|story|input/i.test(p.title || '') && p.order !== 0)?.content
     || primitives.find((p) => p.order === 1)?.content
-    || primitives[0]?.content
+    || primitives.find((p) => p.order !== 0)?.content
     || "";
+}
+
+function getStageInsight(stage: WorkflowStage, project: Project, primitives: Sequence[]): any {
+  const analysisPrim = primitives.find(p => p.order === 0 || (p as any).primitiveType === 'analysis');
+  if (analysisPrim) {
+    return {
+      content: analysisPrim.content,
+      isReady: (analysisPrim as any).isReady ?? project.stageAnalyses?.[stage]?.isReady,
+      suggestions: (analysisPrim as any).suggestions || project.stageAnalyses?.[stage]?.suggestions,
+      updatedAt: (analysisPrim as any).updatedAt || project.stageAnalyses?.[stage]?.updatedAt,
+    };
+  }
+  return project.stageAnalyses?.[stage];
 }
 
 // Lazy-loaded stage components
@@ -206,6 +220,7 @@ const StageRendererComponent = ({
 
   switch (activeStage) {
     case "Brainstorming":
+      const filteredPitch = pitchPrimitives.filter(p => p.order !== 0);
       return (
         <BrainstormingStage
           story={getBrainstormStory(pitchPrimitives)}
@@ -215,31 +230,33 @@ const StageRendererComponent = ({
           onAnalyze={() => onAnalyzeStage("Brainstorming")}
           onApplyFix={onApplyFix}
           isGenerating={isTyping}
-          insight={currentProject.stageAnalyses?.["Brainstorming"]}
+          insight={getStageInsight("Brainstorming", currentProject, pitchPrimitives)}
         />
       );
     case "Logline":
+      const filteredLogline = loglinePrimitives.filter(p => p.order !== 0);
       return (
         <LoglineStage
-          content={loglinePrimitives[0]?.content || ""}
+          content={filteredLogline[0]?.content || ""}
           onContentChange={onLoglineChange}
           onValidate={onValidateLogline}
           onRefine={onRefineLogline}
           onAnalyze={() => onAnalyzeStage("Logline")}
           onApplyFix={onApplyFix}
           isGenerating={isTyping}
-          insight={currentProject.stageAnalyses?.["Logline"]}
+          insight={getStageInsight("Logline", currentProject, loglinePrimitives)}
         />
       );
     case "3-Act Structure":
+      const structureContentItems = structurePrimitives.filter(p => p.order !== 0);
       return (
         <WorkflowStageComponent
           stage="3-Act Structure"
           step={3}
           title={t("stages.3-Act Structure.title")}
           subtitle={t("stages.3-Act Structure.subtitle")}
-          content={structurePrimitives.length === 1 ? structurePrimitives[0].content : ""}
-          items={structurePrimitives.length > 1 ? structurePrimitives : undefined}
+          content={structureContentItems.length === 1 ? structureContentItems[0].content : ""}
+          items={structureContentItems.length > 1 ? structureContentItems : undefined}
           onContentChange={onContentChange3Act}
           onItemChange={(id, content) => handleSubcollectionUpdate("structure_primitives", id, content)}
           onValidate={onValidate3Act}
@@ -253,7 +270,7 @@ const StageRendererComponent = ({
           refiningBlockId={refiningBlockId}
           validateLabel={t("stages.3-Act Structure.validateLabel")}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-          insight={currentProject.stageAnalyses?.["3-Act Structure"]}
+          insight={getStageInsight("3-Act Structure", currentProject, structurePrimitives)}
         />
       );
     case "Synopsis":
@@ -263,7 +280,7 @@ const StageRendererComponent = ({
           step={4}
           title={t("stages.Synopsis.title")}
           subtitle={t("stages.Synopsis.subtitle")}
-          content={synopsisPrimitives[0]?.content || ""}
+          content={synopsisPrimitives.find(p => p.order !== 0)?.content || ""}
           onContentChange={onContentChangeSynopsis}
           onValidate={onValidateSynopsis}
           onRefine={onRefineSynopsis}
@@ -276,13 +293,14 @@ const StageRendererComponent = ({
           refiningBlockId={refiningBlockId}
           validateLabel={t("stages.Synopsis.validateLabel")}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-          insight={currentProject.stageAnalyses?.["Synopsis"]}
+          insight={getStageInsight("Synopsis", currentProject, synopsisPrimitives)}
         />
       );
     case "Character Bible":
+      const filteredCharacters = characters.filter(p => p.order !== 0);
       return (
         <CharacterBible
-          characters={characters}
+          characters={filteredCharacters}
           onCharacterAdd={handleCharacterAdd}
           onCharacterUpdate={handleCharacterUpdate}
           onCharacterDelete={handleCharacterDelete}
@@ -294,13 +312,14 @@ const StageRendererComponent = ({
           onAnalyze={() => onAnalyzeStage("Character Bible")}
           onApplyFix={onApplyFix}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-          insight={currentProject.stageAnalyses?.["Character Bible"]}
+          insight={getStageInsight("Character Bible", currentProject, (characters as unknown as Sequence[]))}
         />
       );
     case "Location Bible":
+      const filteredLocations = locations.filter(p => p.order !== 0);
       return (
         <LocationBible
-          locations={locations}
+          locations={filteredLocations}
           onLocationAdd={handleLocationAdd}
           onLocationUpdate={handleLocationUpdate}
           onLocationDelete={handleLocationDelete}
@@ -312,7 +331,7 @@ const StageRendererComponent = ({
           onAnalyze={() => onAnalyzeStage("Location Bible")}
           onApplyFix={onApplyFix}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-          insight={currentProject.stageAnalyses?.["Location Bible"]}
+          insight={getStageInsight("Location Bible", currentProject, (locations as unknown as Sequence[]))}
         />
       );
     case "Treatment":
@@ -337,7 +356,7 @@ const StageRendererComponent = ({
           refiningBlockId={refiningBlockId}
           validateLabel={t("stages.Treatment.validateLabel")}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-          insight={currentProject.stageAnalyses?.["Treatment"]}
+          insight={getStageInsight("Treatment", currentProject, treatmentSequences)}
         />
       );
     case "Step Outline":
@@ -354,7 +373,7 @@ const StageRendererComponent = ({
             onApplyFix={onApplyFix}
             isGenerating={isTyping}
             refiningBlockId={refiningBlockId}
-            insight={currentProject.stageAnalyses?.["Step Outline"]}
+            insight={getStageInsight("Step Outline", currentProject, sequences)}
           />
         </CanvasErrorBoundary>
       );
@@ -380,7 +399,7 @@ const StageRendererComponent = ({
           refiningBlockId={refiningBlockId}
           validateLabel={t("stages.Script.validateLabel")}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-          insight={currentProject.stageAnalyses?.["Script"]}
+          insight={getStageInsight("Script", currentProject, scriptScenes)}
         />
       );
     case "Storyboard":

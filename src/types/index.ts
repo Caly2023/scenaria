@@ -46,6 +46,8 @@ export interface Character {
     forwardStory: string;
     relationshipMap: string;
   };
+  order: number;
+  primitiveType?: string;
 }
 
 export interface Location {
@@ -54,6 +56,8 @@ export interface Location {
   atmosphere: string;
   description: string;
   visualPrompt?: string;
+  order: number;
+  primitiveType?: string;
 }
 
 export interface PrimitiveBlock {
@@ -98,6 +102,8 @@ export interface Sequence {
   projectId: string;
   characterIds?: string[];
   locationIds?: string[];
+  primitiveType?: string;
+}
 }
 
 export interface UserProfile {

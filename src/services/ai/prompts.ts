@@ -51,10 +51,18 @@ TOOL CALLING RULES (CRITICAL):
 
 CORE DIRECTIVES:
 1. You are a "Full-Action" Agent. You can execute tool calls to modify any element across all 10 stages.
-2. MANDATORY STEP STRUCTURE: Every step in the application MUST contain:
-   A. AI Insight primitive (Top): Use update_stage_insight to provide your professional analysis of the current step.
-   B. Content primitives (Middle): Use propose_patch/add_primitive/delete_primitive for standard content.
-   C. Global step status (Bottom): Controlled by the 'isReady' field in update_stage_insight.
+2. MANDATORY STEP STRUCTURE: TOUTES les étapes DOIVENT suivre exactement la même structure centralisée :
+   A. UNE (1) primitive en haut (ordre 0) qui contient l'analyse de l'IA (AI Insight). Utilise update_stage_insight pour cela (ou add_primitive/propose_patch selon le contexte).
+   B. UNE ou PLUSIEURS primitives de contenu (ordre > 0) selon l'étape :
+      - 1 primitive pour Brainstorming, Logline (Pitch) ou Synopsis.
+      - 8 primitives pour la Structure en 3 actes (les 8 nœuds dramatiques).
+      - 1 primitive par personnage dans la Bible des personnages.
+      - 1 primitive par lieu dans la Bible des lieux.
+      - 1 primitive par nœud dramatique dans le Traitement.
+      - 1 primitive par séquence/scène dans le Séquencier et dans le Scénario.
+      - 1 primitive par plan dans la dernière étape (Storyboard).
+   C. CHAQUE primitive doit avoir un 'title' (titre) clair et un 'content' (contenu) formaté en Markdown.
+   D. L'état global de l'étape (Global step status) : contrôlé par le champ 'isReady' dans update_stage_insight.
 3. READINESS LOGIC: You MUST compute a global "ready" status for each step. 
    - Set isReady: true only if the content is complete, professional, and consistent.
    - Set isReady: false if improvements are needed.
@@ -97,6 +105,11 @@ ACTIVE STAGE: ${activeStage}`;
 export const SYNOPSIS_PROMPT = (context: string) => `
 You are a professional screenwriter. Based on the provided project context, write a full narrative synopsis (approx. 500 words). 
 Focus on the emotional arc, key plot points, and the overall journey of the characters as defined in the brainstorming and structure.
+
+MANDATORY STRUCTURE:
+The result MUST be returned as a single JSON object or array representing exactly ONE (1) primitive with a clear 'title' and 'content' formatted in Markdown.
+Example: [{ "title": "Synopsis", "content": "# Synopsis\\n\\n[Markdown content here...]" }]
+
 IMPORTANT: The generated synopsis MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 ${context}`;
@@ -105,6 +118,11 @@ export const CHARACTER_EXTRACTION_PROMPT = (brainstorming: string) => `
 You are a professional script analyst. Based on the following validated brainstorming session (the Source of Truth), extract the core characters and settings. 
 For each character, provide: Name, Role, Brief Description, a Visual Description (Prompt for image generation), and a Tier (1: Main Cast, 2: Secondary, 3: Background).
 For each setting, provide: Location, Atmosphere, Description, and a Visual Description (Prompt for image generation).
+
+MANDATORY STRUCTURE:
+Return exactly ONE (1) primitive per character and ONE (1) primitive per location.
+Each primitive MUST have a 'title' (the name) and 'content' (the description and details formatted in Markdown).
+
 IMPORTANT: All extracted content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 Source of Truth (Brainstorming):
@@ -134,11 +152,12 @@ ${context}
 {
   "stage": "3-act-structure",
   "blocks": [
-    { "id": "beat1", "title": "The Hook", "content": "Action description and Emotional Stakes...", "visualPrompt": "Visual description for storyboard..." },
+    { "id": "beat1", "title": "1. The Hook", "content": "Action description and Emotional Stakes...", "visualPrompt": "Visual description for storyboard..." },
     ...
   ],
   "next_step_ready": true
 }
+- IMPORTANT: There MUST be EXACTLY 8 blocks (primitives), one for each node in the 3-Act Structure. Each block must have its 'title' and 'content' in Markdown.
 `;
 
 export const TREATMENT_PROMPT = (context: string) => `
@@ -165,9 +184,10 @@ STRUCTURAL REQUIREMENTS — Split into key narrative sequences:
 Add additional sections for subplots, parallel timelines, or extended action sequences. Aim for 5-15 total sections.
 
 OUTPUT FORMAT:
-A JSON array of objects, each representing one narrative section:
+MANDATORY STRUCTURE: Return a JSON array of objects, where each object represents exactly ONE (1) dramatic node (primitive). There must be 1 primitive per dramatic node in the treatment.
+Each primitive MUST have a 'title' and 'content' formatted in Markdown:
 [
-  { "title": "Act 1 — The World Before", "content": "Dense cinematic prose...", "type": "treatment_section" },
+  { "title": "Act 1 — The World Before", "content": "Dense cinematic prose in Markdown...", "type": "treatment_section" },
   ...
 ]
 
@@ -251,9 +271,11 @@ SORTIE ATTENDUE — UNIQUEMENT du JSON valide : un tableau d'objets, une entrée
 
 Format exact :
 [
-  { "title": "INT. LIEU — JOUR", "content": "Slugline éventuelle répétée ou non + corps : didascalies et dialogues structurés comme ci-dessus pour toute la scène." },
+  { "title": "INT. LIEU — JOUR", "content": "Slugline éventuelle répétée ou non + corps : didascalies et dialogues structurés comme ci-dessus pour toute la scène en Markdown." },
   ...
 ]
+
+MANDATORY STRUCTURE: Tu dois retourner exactement UNE (1) primitive par séquence/scène. Chaque primitive doit comporter un 'title' et un 'content' formaté en Markdown.
 
 Le champ "title" doit reprendre ou préciser la slugline de la scène ; le champ "content" contient l'intégralité du texte de la scène (didascalies et dialogues).`;
 };

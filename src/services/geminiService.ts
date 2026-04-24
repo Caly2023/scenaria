@@ -121,6 +121,8 @@ export const geminiService = {
     
     For each sequence, identify which characters and locations from the provided lists are present.
     
+    MANDATORY STRUCTURE: Return a JSON array representing exactly ONE (1) primitive per sequence. Each primitive MUST have a 'title' and 'content' formatted in Markdown.
+
     Available Characters:
     ${JSON.stringify(availableCharacters.map(c => ({ id: c.id, name: c.name })), null, 2)}
     
@@ -193,7 +195,12 @@ export const geminiService = {
 
   async generateStepOutline(treatment: string) {
     return callGenkitFlow<any>('genericGemini', {
-      prompt: `Convert the following treatment into a professional Step Outline (Séquencier). Provide scene-by-scene breakdown including Sluglines (INT/EXT - LOCATION - TIME).\n\nOutput a JSON array:\n\nTreatment:\n${treatment}`,
+      prompt: `Convert the following treatment into a professional Step Outline (Séquencier). Provide scene-by-scene breakdown including Sluglines (INT/EXT - LOCATION - TIME).
+
+MANDATORY STRUCTURE: Output a JSON array representing exactly ONE (1) primitive per scene. Each primitive MUST have a 'title' and 'content' formatted in Markdown.
+
+Treatment:
+${treatment}`,
       jsonMode: true,
       structuredOutput: 'sequenceArray',
     });
@@ -270,7 +277,19 @@ export const geminiService = {
   async generateStageInsight(stage: string, content: string, context: string) {
     if (!content || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
     return callGenkitFlow<any>('genericGemini', {
-      prompt: `Analyze the current state of "${stage}".\n\nFull Project Context:\n${context}\n\nContent to Analyze:\n${content}`,
+      prompt: `Tu es un Script Doctor expert. Analyse l'état actuel de l'étape "${stage}". 
+Cette analyse sera placée en haut de l'étape (primitive d'ordre 0) pour guider l'utilisateur.
+
+Contexte complet du projet :
+${context}
+
+Contenu à analyser :
+${content}
+
+RÈGLES :
+1. Ton analyse doit être constructive, professionnelle et rédigée en Markdown.
+2. Identifie les points forts et les points faibles.
+3. Détermine si l'étape est prête (isReady: true/false).`,
       jsonMode: true,
       structuredOutput: 'stageInsight',
     });

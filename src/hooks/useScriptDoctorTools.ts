@@ -319,11 +319,41 @@ export function useScriptDoctorTools({
           const insight = getArgRecord(args, "insight") ?? {};
           const hasContent = !!insight.content;
           const status: StageState = hasContent ? (insight.isReady ? "excellent" : "needs_improvement") : "empty";
+          
+          // 1. Update root project document (for quick state access)
           await updateDoc(doc(db, "projects", currentProject.id), {
             [`stageAnalyses.${stage}`]: { ...insight, updatedAt: Date.now() },
             [`stageStates.${stage}`]: status,
             updatedAt: serverTimestamp(),
           });
+
+          // 2. Also store as a PRIMITIVE with order 0 (Unified Structure)
+          const sub = subcollectionMap[stage];
+          if (sub && hasContent) {
+            const stageRef = collection(db, "projects", currentProject.id, sub);
+            const q = await getDocs(stageRef);
+            const analysisPrim = q.docs.find(d => d.data().primitiveType === 'analysis' || d.data().order === 0);
+            
+            const analysisData = {
+              title: "AI Analysis",
+              content: insight.content,
+              primitiveType: "analysis",
+              order: 0,
+              isReady: insight.isReady,
+              suggestions: insight.suggestions || [],
+              updatedAt: serverTimestamp(),
+            };
+
+            if (analysisPrim) {
+              await updateDoc(doc(db, "projects", currentProject.id, sub, analysisPrim.id), analysisData);
+            } else {
+              await addDoc(collection(db, "projects", currentProject.id, sub), {
+                ...analysisData,
+                createdAt: serverTimestamp(),
+              });
+            }
+          }
+
           addToast(t("common.insightUpdated"), "success");
           return { success: true };
         },

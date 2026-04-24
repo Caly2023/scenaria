@@ -199,6 +199,8 @@ export default function App() {
   const onItemChangeScript = useCallback((id: string, content: string) => handleSubcollectionUpdate("script_scenes", id, content), [handleSubcollectionUpdate]);
   const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f || "Refine Script", id), [handleStageRefine]);
   const onRegenerateScript = useCallback(() => handleRegenerate("Script"), [handleRegenerate]);
+  const onRefineCharacter = useCallback((f?: string, id?: string) => handleStageRefine("Character Bible", f || "Refine Character", id), [handleStageRefine]);
+  const onRefineLocation = useCallback((f?: string, id?: string) => handleStageRefine("Location Bible", f || "Refine Location", id), [handleStageRefine]);
   const onApplyFix = useCallback((prompt: string) => {
     handleOpenDoctor();
     handleDoctorMessage(prompt);
@@ -270,9 +272,11 @@ export default function App() {
       handleCharacterAdd={handleCharacterAdd}
       handleCharacterUpdate={handleCharacterUpdate}
       handleCharacterDelete={handleCharacterDelete}
+      onRefineCharacter={onRefineCharacter}
       handleLocationAdd={handleLocationAdd}
       handleLocationUpdate={handleLocationUpdate}
       handleLocationDelete={handleLocationDelete}
+      onRefineLocation={onRefineLocation}
       handleGenerateViews={handleGenerateViews}
       handleCharacterDeepDevelop={handleCharacterDeepDevelop}
       handleLocationDeepDevelop={handleLocationDeepDevelop}

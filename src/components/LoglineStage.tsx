@@ -44,7 +44,10 @@ export function LoglineStage({
         title={t('stages.Logline.label')}
         content={content}
         onContentChange={onContentChange}
-        onAiRefine={onRefine}
+        onAiRefine={() => {
+          const action = (!content || content.trim() === '' || content === '...') ? 'Generate' : 'Refine';
+          onRefine(`${action} logline`);
+        }}
         isGenerating={isGenerating}
         placeholder={t('stages.Logline.placeholder')}
         mode="single"

@@ -118,9 +118,11 @@ interface StageRendererProps {
   handleCharacterAdd: (name: string, description: string, tier: Character['tier']) => void;
   handleCharacterUpdate: (id: string, updates: CharacterUpdate) => void;
   handleCharacterDelete: (id: string) => void;
+  onRefineCharacter: (f?: string, id?: string) => void;
   handleLocationAdd: (name: string, description: string) => void;
   handleLocationUpdate: (id: string, updates: LocationUpdate) => void;
   handleLocationDelete: (id: string) => void;
+  onRefineLocation: (f?: string, id?: string) => void;
   handleGenerateViews: (id: string) => void;
   handleCharacterDeepDevelop: (id: string, stage: WorkflowStage) => void;
   handleLocationDeepDevelop: (id: string, stage: WorkflowStage) => void;
@@ -187,9 +189,11 @@ const StageRendererComponent = ({
   handleCharacterAdd,
   handleCharacterUpdate,
   handleCharacterDelete,
+  onRefineCharacter,
   handleLocationAdd,
   handleLocationUpdate,
   handleLocationDelete,
+  onRefineLocation,
   handleGenerateViews,
   handleCharacterDeepDevelop,
   handleLocationDeepDevelop,
@@ -304,6 +308,7 @@ const StageRendererComponent = ({
           onCharacterAdd={handleCharacterAdd}
           onCharacterUpdate={handleCharacterUpdate}
           onCharacterDelete={handleCharacterDelete}
+          onRefine={onRefineCharacter}
           onGenerateViews={handleGenerateViews}
           onDeepDevelop={(id) => handleCharacterDeepDevelop(id, "Character Bible")}
           isGenerating={isTyping}
@@ -323,6 +328,7 @@ const StageRendererComponent = ({
           onLocationAdd={handleLocationAdd}
           onLocationUpdate={handleLocationUpdate}
           onLocationDelete={handleLocationDelete}
+          onRefine={onRefineLocation}
           onGenerateViews={handleGenerateViews}
           onDeepDevelop={(id) => handleLocationDeepDevelop(id, "Location Bible")}
           isGenerating={isTyping}

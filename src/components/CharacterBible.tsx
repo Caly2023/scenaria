@@ -12,6 +12,7 @@ interface CharacterBibleProps {
   onCharacterAdd: (name: string, description: string, tier: 1 | 2 | 3) => void;
   onCharacterUpdate: (id: string, updates: Partial<Character>) => void;
   onCharacterDelete: (id: string) => void;
+  onRefine: (feedback: string, blockId?: string) => void;
   onGenerateViews: (id: string) => void;
   onDeepDevelop: (id: string) => void;
   isGenerating?: boolean;
@@ -28,6 +29,7 @@ export function CharacterBible({
   onCharacterAdd, 
   onCharacterUpdate, 
   onCharacterDelete, 
+  onRefine,
   onGenerateViews,
   onDeepDevelop,
   isGenerating = false,
@@ -98,6 +100,10 @@ export function CharacterBible({
                   content={char.description}
                   onContentChange={(description) => onCharacterUpdate(char.id, { description })}
                   onTitleChange={(name) => onCharacterUpdate(char.id, { name })}
+                  onAiRefine={() => {
+                    const action = (!char.description || char.description.trim() === '' || char.description === '...') ? 'Generate' : 'Refine';
+                    onRefine(`${action} description for character: ${char.name}`, char.id);
+                  }}
                   onGenerateImage={() => handleGenerateClick(char.id)}
                   onDeepDevelop={() => onDeepDevelop(char.id)}
                   onDelete={() => onCharacterDelete(char.id)}

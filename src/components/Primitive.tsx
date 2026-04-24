@@ -11,7 +11,8 @@ import {
   Trash2,
   RefreshCw,
   Target,
-  Plus
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ interface PrimitiveProps {
   onFocus?: () => void;
   onSpeaker?: () => void;
   onDelete?: () => void;
+  onRegenerate?: () => void;
   images?: string[];
   onImageClick?: (url: string) => void;
   isGenerating?: boolean;
@@ -61,6 +63,7 @@ export const Primitive = memo(function Primitive({
   onFocus,
   onSpeaker,
   onDelete,
+  onRegenerate,
   onTitleChange,
   images = [],
   onImageClick,
@@ -140,6 +143,12 @@ export const Primitive = memo(function Primitive({
     setIsSpeaking(true);
   }, [content, title, onSpeaker]);
 
+  const isEmpty = useMemo(() => {
+    if (!content) return true;
+    const trimmed = content.trim();
+    return trimmed === '' || trimmed === '...' || trimmed === '[]' || trimmed === '{}';
+  }, [content]);
+
   const handleToggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
 
   return (
@@ -148,14 +157,18 @@ export const Primitive = memo(function Primitive({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "group w-full rounded-[32px] overflow-hidden transition-all duration-500",
+        "group w-full rounded-[32px] overflow-hidden transition-all duration-500 relative",
         type === 'ai_insight' ? "bg-white/5 border border-white/10 shadow-none" : "bg-[#212121] shadow-2xl border border-white/5",
         (type === 'analysis' || type === 'analysis_block') && "border-white/20 bg-white/5",
         (type === 'pitch_result' || type === 'brainstorming_result') && "border-white/10 bg-[#252525]",
+        isEmpty && type !== 'ai_insight' && "border-amber-500/30 bg-amber-500/[0.02]",
         showGlow && "ring-2 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]",
         mode === 'single' ? "min-h-[400px] md:min-h-[600px] flex flex-col" : "mb-4 md:mb-6"
       )}
     >
+      {isEmpty && type !== 'ai_insight' && (
+        <div className="absolute top-0 left-0 w-full h-1 bg-amber-500/50 z-10" />
+      )}
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 md:px-12 md:py-10 border-b border-white/5">
         <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
@@ -178,6 +191,12 @@ export const Primitive = memo(function Primitive({
             />
           ) : (
             <h3 className="text-lg md:text-lg font-semibold tracking-tight text-white/90 truncate">{title}</h3>
+          )}
+          {isEmpty && type !== 'ai_insight' && (
+            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 ml-2 shrink-0">
+              <AlertCircle className="w-3 h-3 text-amber-500" />
+              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">{t('common.empty', { defaultValue: 'Empty' })}</span>
+            </div>
           )}
         </div>
 
@@ -406,6 +425,34 @@ export const Primitive = memo(function Primitive({
                     />
                   )}
                 </div>
+
+                {/* Empty State Action */}
+                {isEmpty && (onRegenerate || onAiRefine) && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center justify-center py-12 md:py-24 border-2 border-dashed border-white/5 rounded-[24px] bg-white/[0.02]"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-6">
+                      <Sparkles className="w-8 h-8 text-amber-500/50" />
+                    </div>
+                    <h4 className="text-xl font-semibold text-white/90 mb-2">{t('common.emptyPrimitive', { defaultValue: 'This section is empty' })}</h4>
+                    <p className="text-secondary text-center max-w-md mb-8">
+                      {t('common.emptyPrimitiveDesc', { defaultValue: 'Launch a generation to let the AI create content for this section based on your project context.' })}
+                    </p>
+                    <button
+                      onClick={() => (onRegenerate || onAiRefine)?.()}
+                      disabled={isGenerating}
+                      className="group relative px-8 py-4 bg-white text-black rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 overflow-hidden"
+                    >
+                      <div className="relative z-10 flex items-center gap-3">
+                        {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                        <span>{t('common.generateContent', { defaultValue: 'Generate Content' })}</span>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-10 transition-opacity" />
+                    </button>
+                  </motion.div>
+                )}
 
                 {/* Deep Develop Button (Gray style) */}
                 {type === 'gallery' && onDeepDevelop && (

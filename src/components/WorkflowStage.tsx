@@ -45,6 +45,7 @@ export function WorkflowStage({
   onItemChange,
   onValidate, 
   onRefine,
+  onRegenerate,
   isGenerating = false,
   isHydrating = false,
   hydrationLabel = null,
@@ -130,7 +131,11 @@ export function WorkflowStage({
             content={block.content}
             type={block.type}
             onContentChange={(c) => handleBlockChange(block.id, c)}
-            onAiRefine={() => onRefine(`Refine block: ${block.title}`, block.id)}
+            onAiRefine={() => {
+              const action = (!block.content || block.content.trim() === '' || block.content === '...') ? 'Generate' : 'Refine';
+              onRefine(`${action} content for block: ${block.title}`, block.id);
+            }}
+            onRegenerate={onRegenerate}
             isGenerating={isGenerating && (refiningBlockId === block.id || refiningBlockId === null)}
             placeholder={placeholder}
             mode={isJson ? "stacked" : "single"}

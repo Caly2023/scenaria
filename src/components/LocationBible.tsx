@@ -12,6 +12,7 @@ interface LocationBibleProps {
   onLocationAdd: (name: string, description: string) => void;
   onLocationUpdate: (id: string, updates: Partial<Location>) => void;
   onLocationDelete: (id: string) => void;
+  onRefine: (feedback: string, blockId?: string) => void;
   onGenerateViews: (id: string) => void;
   onDeepDevelop: (id: string) => void;
   onValidate: () => void;
@@ -28,6 +29,7 @@ export function LocationBible({
   onLocationAdd, 
   onLocationUpdate, 
   onLocationDelete, 
+  onRefine,
   onGenerateViews,
   onDeepDevelop,
   onValidate,
@@ -94,6 +96,10 @@ export function LocationBible({
                   content={loc.description}
                   onContentChange={(description) => onLocationUpdate(loc.id, { description })}
                   onTitleChange={(name) => onLocationUpdate(loc.id, { name })}
+                  onAiRefine={() => {
+                    const action = (!loc.description || loc.description.trim() === '' || loc.description === '...') ? 'Generate' : 'Refine';
+                    onRefine(`${action} description for location: ${loc.name}`, loc.id);
+                  }}
                   onGenerateImage={() => handleGenerateClick(loc.id)}
                   onDeepDevelop={() => onDeepDevelop(loc.id)}
                   onDelete={() => onLocationDelete(loc.id)}

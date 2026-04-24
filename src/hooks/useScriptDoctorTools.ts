@@ -176,7 +176,7 @@ export function useScriptDoctorTools({
           const id = getArgString(args, "id") ?? "";
           const stage = getArgString(args, "stage") ?? "";
           const updates = getArgRecord(args, "updates") ?? {};
-          telemetryService.setStatus("propose_patch", "📡", `Patching ID: ${id}...`, id);
+          telemetryService.setStatus("propose_patch", "📡", `Synchronizing structural updates for ${stage}...`, id);
           setRefiningBlockId(id);
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: `Invalid stage: ${stage}` };
@@ -192,11 +192,13 @@ export function useScriptDoctorTools({
           setLastUpdatedPrimitiveId?.(id);
           setRefiningBlockId(null);
           addToast(t("common.primitiveUpdated"), "success");
+          telemetryService.setStatus("propose_patch", "✅", `Update confirmed for ${stage}.`, id);
           return { success: true, primitive_id: id };
         },
 
         execute_multi_stage_fix: async () => {
           const fixes = getArgArray(args, "fixes") ?? [];
+          telemetryService.setStatus("execute_multi_stage_fix", "🔗", `Coordinating multi-stage architectural fix...`);
           for (const fix of fixes as any[]) {
             const sub = subcollectionMap[fix.stage];
             if (!sub) continue;
@@ -211,22 +213,26 @@ export function useScriptDoctorTools({
           await Promise.all(uniqueStages.map(s => contextAssembler.getStageStructure(currentProject.id, s)));
           await Promise.all(uniqueStages.map(s => handleStageAnalyze(s)));
           addToast(t("common.multiStageFixApplied"), "success");
+          telemetryService.setStatus("execute_multi_stage_fix", "✅", `Multi-stage fix successfully propagated.`);
           return { success: true };
         },
 
         sync_metadata: async () => {
           const metadata = getArgRecord(args, "metadata") ?? {};
+          telemetryService.setStatus("sync_metadata", "🧬", `Recalibrating project DNA...`);
           await updateDoc(doc(db, "projects", currentProject.id), {
             metadata: { ...currentProject.metadata, ...metadata },
             updatedAt: serverTimestamp(),
           });
           addToast(t("common.metadataSynced"), "success");
+          telemetryService.setStatus("sync_metadata", "✅", `Metadata synchronization complete.`);
           return { success: true };
         },
 
         add_primitive: async () => {
           const stage = getArgString(args, "stage") ?? "";
           const primitive = getArgRecord(args, "primitive") ?? {};
+          telemetryService.setStatus("add_primitive", "➕", `Injecting new structural element into ${stage}...`);
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: "Unsupported stage" };
           const safeData: any = {
@@ -245,20 +251,24 @@ export function useScriptDoctorTools({
           await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
           addToast(t("common.primitiveAdded"), "success");
+          telemetryService.setStatus("add_primitive", "✅", `New element successfully integrated.`);
           return { success: true, primitive_id: newDoc.id };
         },
 
         delete_primitive: async () => {
           const id = getArgString(args, "id") ?? "";
           const stage = getArgString(args, "stage") ?? "";
+          telemetryService.setStatus("delete_primitive", "🗑️", `Excising element from ${stage}...`, id);
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: "Unsupported stage" };
           await deleteDoc(doc(db, "projects", currentProject.id, sub, id));
           await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
           addToast(t("common.primitiveDeleted"), "info");
+          telemetryService.setStatus("delete_primitive", "✅", `Element removed from production.`);
           return { success: true };
         },
+
 
         restructure_stage: async () => {
           const stage = getArgString(args, "stage") ?? "";

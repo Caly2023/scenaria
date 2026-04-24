@@ -318,17 +318,19 @@ function ScriptDoctorContent({
               <div className={cn(
                 "text-sm leading-relaxed font-sans relative group w-full transition-all duration-300",
                 msg.role === 'user' 
-                  ? "p-4 rounded-xl bg-white text-black font-medium shadow-sm" 
+                  ? "p-4 rounded-2xl bg-gradient-to-br from-white to-[#f0f0f0] text-black font-medium shadow-[0_4px_12px_rgba(255,255,255,0.1)]" 
                   : "text-white/90"
               )}>
                 {msg.role === 'assistant' && (msg.reasoning || msg.thinking) && (
-                  <details className="mb-4 group/thinking">
-                    <summary className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/30 cursor-pointer hover:text-white/50 transition-colors list-none select-none">
-                      <BrainCircuit className="w-3 h-3" />
-                      <span>{t('common.reasoning', { defaultValue: 'Internal Reasoning' })}</span>
-                      <ChevronDown className="w-3 h-3 transition-transform group-open/thinking:rotate-180" />
+                  <details className="mb-5 group/thinking bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                    <summary className="flex items-center gap-2 p-3 text-[10px] font-bold uppercase tracking-widest text-white/50 cursor-pointer hover:bg-white/5 transition-all list-none select-none">
+                      <div className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                        <BrainCircuit className="w-3.5 h-3.5" />
+                      </div>
+                      <span>{t('common.reasoning', { defaultValue: 'Cognitive Process' })}</span>
+                      <ChevronDown className="w-3.5 h-3.5 ml-auto transition-transform group-open/thinking:rotate-180" />
                     </summary>
-                    <div className="mt-2 pl-4 border-l border-white/10 text-xs text-white/40 italic leading-relaxed">
+                    <div className="p-4 pt-0 text-xs text-white/40 italic leading-relaxed font-mono border-t border-white/5 bg-black/20">
                       <ReactMarkdown>
                         {msg.reasoning || msg.thinking || ""}
                       </ReactMarkdown>
@@ -338,7 +340,7 @@ function ScriptDoctorContent({
 
                 <div className={cn(
                   "scenaria-markdown",
-                  msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5" : ""
+                  msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5 prose-headings:text-white prose-strong:text-white prose-em:text-white/70" : ""
                 )}>
                   <ReactMarkdown>
                     {String(displayContent)}
@@ -354,7 +356,7 @@ function ScriptDoctorContent({
                 )}
 
                 {msg.role === 'assistant' && !isPendingForThis && (
-                  <div className="mt-6 flex flex-col gap-4">
+                  <div className="mt-8 flex flex-col gap-5">
                     {/* Minimal Action Buttons */}
                     <div className="flex flex-wrap gap-2">
                       {msg.suggested_actions?.map((action, idx) => {
@@ -381,16 +383,16 @@ function ScriptDoctorContent({
                             }}
                             disabled={isApplyingThis}
                             className={cn(
-                              "h-8 px-4 rounded-full text-[10px] font-bold transition-all border flex items-center gap-2",
+                              "h-9 px-5 rounded-full text-[10px] font-bold transition-all border flex items-center gap-2",
                               isApply 
-                                ? "bg-white text-black border-white hover:bg-white/90" 
-                                : "bg-transparent border-white/20 text-white/60 hover:bg-white/5 hover:border-white/40"
+                                ? "bg-white text-black border-white hover:bg-[#e5e5e5] shadow-lg shadow-white/5" 
+                                : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30"
                             )}
                           >
                             {isApply && isApplyingThis ? (
-                              <RefreshCw className="w-3 h-3 animate-spin" />
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                             ) : isApply ? (
-                              <Sparkles className="w-3 h-3" />
+                              <Sparkles className="w-3.5 h-3.5" />
                             ) : null}
                             {action}
                           </button>
@@ -398,59 +400,71 @@ function ScriptDoctorContent({
                       })}
 
                       {isApplied && (
-                        <div className="flex items-center gap-2 h-8 px-4 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold border border-green-500/20">
-                          <CheckCircle2 className="w-3 h-3" />
+                        <motion.div 
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="flex items-center gap-2 h-9 px-5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold border border-green-500/20 shadow-lg shadow-green-500/5"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                           {t('common.applied', { defaultValue: 'Applied' })}
-                        </div>
+                        </motion.div>
                       )}
                     </div>
 
                     {/* TTS Button - Floating/Minimal */}
-                    <button 
-                      onClick={() => handleTts(displayContent, msg.id)}
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-none bg-white/5 text-white/20 hover:text-white/60 hover:bg-white/10",
-                        isSpeaking === msg.id && "bg-white text-black animate-pulse opacity-100 text-black"
-                      )}
-                      title={t('common.speak', { defaultValue: 'Speak' })}
-                    >
-                      <Volume2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center justify-end">
+                      <button 
+                        onClick={() => handleTts(displayContent, msg.id)}
+                        className={cn(
+                          "w-9 h-9 rounded-full flex items-center justify-center transition-all border border-white/5 bg-white/5 text-white/20 hover:text-white/80 hover:bg-white/10",
+                          isSpeaking === msg.id && "bg-white text-black animate-pulse opacity-100 shadow-xl border-white"
+                        )}
+                        title={t('common.speak', { defaultValue: 'Speak' })}
+                      >
+                        <Volume2 className={cn("w-4 h-4", isSpeaking === msg.id && "text-black")} />
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
-              <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold px-1 mt-1">
-                {msg.role === 'user' ? t('common.you') : t('common.doctor')} • {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold px-1 mt-1 flex items-center gap-2">
+                {msg.role === 'user' ? (
+                  <span className="text-white/40">{t('common.you')}</span>
+                ) : (
+                  <span className="text-white/60 flex items-center gap-1.5">
+                    <Bot className="w-2.5 h-2.5" />
+                    {t('common.doctor')}
+                  </span>
+                )} 
+                <span className="w-1 h-1 bg-white/10 rounded-full" />
+                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
           );
         })}
 
+
         {isTyping && (
           <div className="flex flex-col gap-3 mr-auto items-start max-w-[90%]">
-            <div className="bg-surface p-4 rounded-xl flex flex-col gap-3 min-w-[200px] border border-white/5 shadow-sm">
+            <div className="bg-surface/50 backdrop-blur-xl p-5 rounded-2xl flex flex-col gap-4 min-w-[240px] border border-white/10 shadow-2xl relative overflow-hidden group">
+              {/* Animated Background Pulse */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 animate-pulse" />
+              
               {/* Live Status Indicator */}
-              <div className="flex items-center gap-3 text-white/60">
-                <div className="flex gap-1">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="w-1.5 h-1.5 rounded-full bg-white"
-                  />
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-                    transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}
-                    className="w-1.5 h-1.5 rounded-full bg-white"
-                  />
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-                    transition={{ repeat: Infinity, duration: 1.5, delay: 0.4 }}
-                    className="w-1.5 h-1.5 rounded-full bg-white"
-                  />
+              <div className="flex items-center gap-4 text-white relative z-10">
+                <div className="relative w-10 h-10 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping opacity-20" />
+                  <div className="absolute inset-0 border-2 border-white/20 rounded-full animate-spin [animation-duration:3s]" />
+                  <Sparkles className="w-5 h-5 text-blue-400 animate-pulse" />
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest">
-                  {aiStatus || (isHeavyThinking ? "Deep thinking..." : t('common.thinking'))}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">
+                    {activeTool ? "Executing Tool" : "Thinking"}
+                  </span>
+                  <span className="text-sm font-bold text-white/90 truncate max-w-[150px]">
+                    {aiStatus || (isHeavyThinking ? "Deep structural analysis..." : t('common.thinking'))}
+                  </span>
+                </div>
               </div>
               
               {/* Telemetry-Driven Technical Status */}
@@ -458,25 +472,28 @@ function ScriptDoctorContent({
                 <motion.div 
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col gap-1.5"
+                  className="flex flex-col gap-3 relative z-10"
                 >
-                  <div className="flex items-center gap-2 text-white/30">
-                    <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                    <span className="text-[9px] font-medium italic">
+                  <div className="flex items-center gap-2.5 text-white/40 bg-white/5 p-2.5 rounded-lg border border-white/5">
+                    <div className="w-5 h-5 rounded-md bg-white/5 flex items-center justify-center shrink-0">
+                      <RefreshCw className="w-3 h-3 animate-spin text-white/30" />
+                    </div>
+                    <span className="text-[10px] font-medium italic leading-tight">
                       {telemetryStatus
                         ? `${telemetryStatus.emoji} ${telemetryStatus.detail}`
                         : (
                           <>
-                            {activeTool === 'research_context' && "🔍 Scanning narrative threads for coherence..."}
-                            {activeTool === 'get_stage_structure' && "🧠 Mapping Primitive IDs..."}
-                            {activeTool === 'fetch_character_details' && "👤 Analyzing character psychological profiles..."}
-                            {activeTool === 'search_project_content' && "🔎 Searching across all production stages..."}
-                            {activeTool === 'propose_patch' && "📡 Sending update to Firebase..."}
-                            {activeTool === 'execute_multi_stage_fix' && "🔗 Coordinating multi-stage structural fix..."}
-                            {activeTool === 'sync_metadata' && "🧬 Synchronizing project DNA..."}
-                            {activeTool === 'add_primitive' && "➕ Inserting new structural element..."}
-                            {activeTool === 'delete_primitive' && "🗑️ Removing element from production..."}
-                            {activeTool === 'fetch_project_state' && "🧠 Loading full project state + ID-Map..."}
+                            {activeTool === 'research_context' && "Scanning narrative threads for coherence..."}
+                            {activeTool === 'get_stage_structure' && "Mapping system primitives..."}
+                            {activeTool === 'fetch_character_details' && "Analyzing psychological profiles..."}
+                            {activeTool === 'search_project_content' && "Searching across production stages..."}
+                            {activeTool === 'propose_patch' && "Syncing updates to Firebase..."}
+                            {activeTool === 'execute_multi_stage_fix' && "Coordinating structural fixes..."}
+                            {activeTool === 'sync_metadata' && "Synchronizing project DNA..."}
+                            {activeTool === 'add_primitive' && "Inserting structural element..."}
+                            {activeTool === 'delete_primitive' && "Removing element from production..."}
+                            {activeTool === 'fetch_project_state' && "Loading full state-map..."}
+                            {activeTool === 'update_agent_status' && "Updating cognitive state..."}
                           </>
                         )
                       }
@@ -484,35 +501,37 @@ function ScriptDoctorContent({
                   </div>
                   
                   {telemetryStatus?.primitiveId && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-[8px] font-mono text-white/15 tracking-wider pl-4"
-                    >
-                      ID: {String(telemetryStatus.primitiveId).substring(0, 12)}...
-                    </motion.div>
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" />
+                      <span className="text-[9px] font-mono text-white/20 tracking-wider">
+                        TARGET_ID: {String(telemetryStatus.primitiveId).substring(0, 8)}...
+                      </span>
+                    </div>
                   )}
                   
                   {/* Progress Bar */}
-                  <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
                     <motion.div 
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                       className={cn(
-                        "h-full",
-                        telemetryStatus?.phase === 'Confirmed' ? 'bg-green-500/40' :
-                        telemetryStatus?.phase === 'Error' ? 'bg-red-500/40' :
-                        telemetryStatus?.phase === 'Recovery' ? 'bg-amber-500/40' :
-                        'bg-white/20'
+                        "h-full relative",
+                        telemetryStatus?.phase === 'Confirmed' ? 'bg-green-500' :
+                        telemetryStatus?.phase === 'Error' ? 'bg-red-500' :
+                        telemetryStatus?.phase === 'Recovery' ? 'bg-amber-500' :
+                        'bg-gradient-to-r from-blue-500 to-purple-500'
                       )}
-                    />
+                    >
+                      <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                    </motion.div>
                   </div>
                 </motion.div>
               )}
             </div>
           </div>
         )}
+
 
       </div>
 

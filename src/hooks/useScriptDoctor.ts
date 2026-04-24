@@ -283,6 +283,7 @@ export function useScriptDoctor({
     try {
       const parsed = JSON.parse(content);
       if (parsed?.type === "apply_suggestion") {
+        setDoctorMessages(prev => prev.map(m => m.id === parsed.msgId ? { ...m, status: "Applying..." } : m));
         const referencedMsg = doctorMessages.find((m) => m.id === parsed.msgId);
         const extra = referencedMsg ? `\nContext: ${referencedMsg.content}` : "";
         resolvedContent = `Apply suggestion: ${parsed.action}${extra}. Use tools directly.`;
@@ -312,17 +313,13 @@ export function useScriptDoctor({
       timestamp: Date.now(),
     };
 
-    setDoctorMessages((prev) => [...prev, newUserMsg]);
-    setDoctorMessages((prev) => [
-      ...prev,
-      {
-        id: botMsgId,
-        role: "assistant",
-        content: "...",
-        status: "📡 Connecting...",
-        timestamp: Date.now(),
-      },
-    ]);
+    setDoctorMessages((prev) => [...prev, newUserMsg, {
+      id: botMsgId,
+      role: "assistant",
+      content: "...",
+      status: complexity === "complex" ? "🧠 Initializing Deep Analysis..." : "📡 Connecting...",
+      timestamp: Date.now(),
+    }]);
 
     // Build Gemini-format history (excludes the new bot placeholder)
     const history = normalizeHistory([...doctorMessages, newUserMsg]);
@@ -343,16 +340,26 @@ export function useScriptDoctor({
       // Build the functionResponse part in Gemini format
       const fnResponsePart = buildFunctionResponsePart(call.name, res);
 
-      // Read current messages SYNCHRONOUSLY (before any setState)
-      // to get the model's content_parts (the functionCall turn)
-      const currentBotMsg = doctorMessages.find((m) => m.id === botMsgId);
-      const modelParts = (currentBotMsg?.content_parts || []).filter(
-        (p: any) => p?.functionCall || p?.text
-      );
+      let updatedHistory: Array<{ role: string; parts: any[] }> = [];
 
-      // Update the message state
-      setDoctorMessages((prev) =>
-        prev.map((m) =>
+      // Use functional update to get latest state and build history
+      setDoctorMessages((prev) => {
+        const currentBotMsg = prev.find((m) => m.id === botMsgId);
+        const modelParts = (currentBotMsg?.content_parts || []).filter(
+          (p: any) => p?.functionCall || p?.text
+        );
+
+        const historyWithoutBot = normalizeHistory(
+          prev.filter((m) => m.id !== botMsgId)
+        );
+
+        updatedHistory = [
+          ...historyWithoutBot,
+          { role: "model", parts: modelParts.length > 0 ? modelParts : [{ text: "..." }] },
+          { role: "user", parts: [fnResponsePart] },
+        ];
+
+        return prev.map((m) =>
           m.id === botMsgId
             ? {
                 ...m,
@@ -360,22 +367,11 @@ export function useScriptDoctor({
                 content_parts: [...(m.content_parts || []), fnResponsePart],
               }
             : m
-        )
-      );
+        );
+      });
 
-      // Build history from the synchronous (pre-setState) snapshot
-      const historyWithoutBot = normalizeHistory(
-        doctorMessages.filter((m) => m.id !== botMsgId)
-      );
-
-      const updatedHistory: Array<{ role: string; parts: any[] }> = [
-        ...historyWithoutBot,
-        // The model's function call turn
-        { role: "model", parts: modelParts.length > 0 ? modelParts : [{ text: "..." }] },
-        // The tool result — role:"user" per Gemini REST spec
-        { role: "user", parts: [fnResponsePart] },
-      ];
-
+      // Wait a tick for history to be populated from the functional update side-effect
+      // In React, we should probably just use the result of the calculation
       await runAgentLoop(updatedHistory, botMsgId, "moderate", 1);
     } catch (error: any) {
       console.error("[ScriptDoctor] Tool execution failed:", error);
@@ -406,6 +402,7 @@ export function useScriptDoctor({
       )
     );
   };
+
 
   return {
     isDoctorOpen,

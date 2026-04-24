@@ -317,29 +317,60 @@ export const scriptDoctorFlow = ai.defineFlow(
   },
   async (input) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
-
-    const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-2.5-flash-lite');
     const apiKey = process.env.GEMINI_API_KEY;
-    const modelName = getModelRestName(gemini31FlashLite);
 
-    const requestBody = {
-      system_instruction: { parts: [{ text: systemInstruction }] },
-      contents: messages,
-      tools: [{ function_declarations: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
-    };
+    // Fallback order as requested: default 3-flash-lite-preview fallback 2.5-flash
+    const modelsToTry = [
+      'gemini-3.0-flash-lite-preview',
+      'gemini-2.5-flash',
+      getModelRestName(gemini31FlashLite)
+    ];
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }
-    );
+    let lastError: Error | null = null;
+    let data: any = null;
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Gemini API error ${res.status}: ${errText}`);
+    // Deduplicate models to try
+    const uniqueModels = Array.from(new Set(modelsToTry));
+
+    for (const currentModel of uniqueModels) {
+      try {
+        const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, currentModel);
+        
+        const requestBody = {
+          system_instruction: { parts: [{ text: systemInstruction }] },
+          contents: messages,
+          tools: [{ function_declarations: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+        };
+
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }
+        );
+
+        if (!res.ok) {
+          const errText = await res.text();
+          // Fallback on quota (429) or server errors (500, 503)
+          if (res.status === 429 || res.status >= 500) {
+            console.warn(`[scriptDoctorFlow] Model ${currentModel} failed with ${res.status}. Falling back...`);
+            lastError = new Error(`Gemini API error ${res.status}: ${errText}`);
+            continue;
+          }
+          // Do not fallback for bad request (e.g. 400 structure errors)
+          throw new Error(`Gemini API error ${res.status}: ${errText}`);
+        }
+
+        data = await res.json();
+        break; // Success! Break out of fallback loop
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`[scriptDoctorFlow] Fetch error with model ${currentModel}:`, err.message);
+      }
     }
 
-    const data = await res.json();
+    if (!data) {
+      throw lastError || new Error("All fallback models failed.");
+    }
     const parts: any[] = data?.candidates?.[0]?.content?.parts || [];
     const textPart = parts.find((p: any) => p.text)?.text || '';
 

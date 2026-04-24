@@ -51,6 +51,9 @@ type ScriptDoctorProps = {
   activeTool?: string | null;
   projectLanguages?: string[];
   telemetryStatus?: TelemetryStatus | null;
+  pendingToolCall?: { call: any; botMsgId: string } | null;
+  onConfirmTool?: () => void;
+  onCancelTool?: () => void;
 };
 
 interface MainLayoutProps {
@@ -91,6 +94,9 @@ interface MainLayoutProps {
   isDoctorTyping: boolean;
   aiStatus: string | null;
   activeTool: string | null;
+  pendingToolCall: { call: any; botMsgId: string } | null;
+  onConfirmTool: () => void;
+  onCancelTool: () => void;
   
   // Callbacks
   handleStageChange: (stage: WorkflowStage) => void;
@@ -155,6 +161,9 @@ const MainLayoutComponent = ({
   isDoctorTyping,
   aiStatus,
   activeTool,
+  pendingToolCall,
+  onConfirmTool,
+  onCancelTool,
   
   handleStageChange,
   handleProjectSelect,
@@ -353,6 +362,9 @@ const MainLayoutComponent = ({
                 activeTool={activeTool}
                 projectLanguages={currentProject.metadata?.languages}
                 telemetryStatus={telemetryStatus}
+                pendingToolCall={pendingToolCall}
+                onConfirmTool={onConfirmTool}
+                onCancelTool={onCancelTool}
               />
             </Suspense>
           </div>
@@ -374,6 +386,9 @@ const MainLayoutComponent = ({
             activeTool={activeTool}
             projectLanguages={currentProject.metadata?.languages}
             telemetryStatus={telemetryStatus}
+            pendingToolCall={pendingToolCall}
+            onConfirmTool={onConfirmTool}
+            onCancelTool={onCancelTool}
           />
         </Suspense>
       )}

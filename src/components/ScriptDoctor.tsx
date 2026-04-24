@@ -178,7 +178,10 @@ function ScriptDoctorContent({
   activeStage,
   activeTool,
   projectLanguages = ['English'],
-  telemetryStatus
+  telemetryStatus,
+  pendingToolCall,
+  onConfirmTool,
+  onCancelTool
 }: ScriptDoctorProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');

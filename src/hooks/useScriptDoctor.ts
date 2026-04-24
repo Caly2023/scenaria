@@ -340,26 +340,11 @@ export function useScriptDoctor({
       // Build the functionResponse part in Gemini format
       const fnResponsePart = buildFunctionResponsePart(call.name, res);
 
-      let updatedHistory: Array<{ role: string; parts: any[] }> = [];
+      let historyToUse: Array<{ role: string; parts: any[] }> = [];
 
       // Use functional update to get latest state and build history
       setDoctorMessages((prev) => {
-        const currentBotMsg = prev.find((m) => m.id === botMsgId);
-        const modelParts = (currentBotMsg?.content_parts || []).filter(
-          (p: any) => p?.functionCall || p?.text
-        );
-
-        const historyWithoutBot = normalizeHistory(
-          prev.filter((m) => m.id !== botMsgId)
-        );
-
-        updatedHistory = [
-          ...historyWithoutBot,
-          { role: "model", parts: modelParts.length > 0 ? modelParts : [{ text: "..." }] },
-          { role: "user", parts: [fnResponsePart] },
-        ];
-
-        return prev.map((m) =>
+        const nextMessages = prev.map((m) =>
           m.id === botMsgId
             ? {
                 ...m,
@@ -368,11 +353,17 @@ export function useScriptDoctor({
               }
             : m
         );
+
+        // Normalize the ENTIRE updated message history
+        // This ensures the sequence is correct (User -> Model -> User Tool Result -> ...)
+        historyToUse = normalizeHistory(nextMessages);
+
+        return nextMessages;
       });
 
-      // Wait a tick for history to be populated from the functional update side-effect
-      // In React, we should probably just use the result of the calculation
-      await runAgentLoop(updatedHistory, botMsgId, "moderate", 1);
+      // Resume the loop with the freshly normalized history
+      // startIteration remains 1 because we already did the first turn
+      await runAgentLoop(historyToUse, botMsgId, "moderate", 1);
     } catch (error: any) {
       console.error("[ScriptDoctor] Tool execution failed:", error);
       setDoctorMessages((prev) =>

@@ -336,12 +336,20 @@ export const scriptDoctorFlow = ai.defineFlow(
       try {
         const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, currentModel);
         
+        // Safety check: Gemini requires at least one message in contents
+        if (!messages || messages.length === 0) {
+          console.error("[scriptDoctorFlow] Error: messages array is empty or undefined");
+          throw new Error("Message history is empty. Please provide a prompt.");
+        }
+
         const requestBody = {
           system_instruction: { parts: [{ text: systemInstruction }] },
           contents: messages,
           tools: [{ function_declarations: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
         };
+
+        console.log(`[scriptDoctorFlow] Calling ${currentModel} with ${messages.length} turns`);
 
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`,

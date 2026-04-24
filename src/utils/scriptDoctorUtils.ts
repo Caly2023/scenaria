@@ -120,6 +120,8 @@ export function buildFunctionResponsePart(name: string, output: unknown): any {
  * NOT a "tool" role turn. This function handles the conversion automatically.
  */
 export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; parts: any[] }> {
+  if (!messages || messages.length === 0) return [];
+
   const history: Array<{ role: string; parts: any[] }> = [];
 
   for (const msg of messages) {
@@ -137,13 +139,10 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
         if (!p || typeof p !== "object") continue;
 
         if (p.functionCall) {
-          // Model part — the function call request
           modelParts.push(p);
         } else if (p.functionResponse) {
-          // Already in Gemini format
           toolResultParts.push(p);
         } else if (p.toolResponse) {
-          // Legacy Genkit format → convert
           toolResultParts.push(
             buildFunctionResponsePart(p.toolResponse.name, p.toolResponse.output)
           );
@@ -153,7 +152,6 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
       }
 
       if (modelParts.length > 0) history.push({ role: "model", parts: modelParts });
-      // Tool results MUST be role:"user" per Gemini REST API spec
       if (toolResultParts.length > 0) history.push({ role: "user", parts: toolResultParts });
       continue;
     }
@@ -162,7 +160,7 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
     history.push({ role: "model", parts: [{ text: msg.content || "" }] });
   }
 
-  // Merge consecutive same-role entries (Gemini doesn't allow adjacent same-role turns)
+  // Merge consecutive same-role entries
   const merged: Array<{ role: string; parts: any[] }> = [];
   for (const entry of history) {
     const last = merged[merged.length - 1];
@@ -176,6 +174,11 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
   // Gemini requires the first message to be "user"
   while (merged.length > 0 && merged[0].role !== "user") {
     merged.shift();
+  }
+
+  // If we ended up with nothing but had messages, add a fallback user message
+  if (merged.length === 0 && messages.length > 0) {
+    merged.push({ role: "user", parts: [{ text: "Continue" }] });
   }
 
   return merged;

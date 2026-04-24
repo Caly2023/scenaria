@@ -64,6 +64,7 @@ CORE DIRECTIVES:
    - Use the tool 'update_agent_status' to provide your logic, thinking, and step-by-step status while working.
    - Use the tool 'set_suggested_actions' at the VERY END of your turn to provide contextual action chips for the user.
 6. TOOL CALL vs TEXT: Use tool calls to perform actions. Only respond with pure Markdown text when you have finished all technical operations. Use get_stage_structure or fetch_project_state if you are unsure of what to do or what IDs to use.
+7. LANGUAGE REQUIREMENT: You MUST communicate with the user and generate all content in the user's input language or the project's primary language. If in doubt, use French.
 
 INTELLIGENT MODIFICATION RULES:
 - NO RAW DATA DUMPS: Every modification must be returned and saved as a structured Primitive.
@@ -96,6 +97,7 @@ ACTIVE STAGE: ${activeStage}`;
 export const SYNOPSIS_PROMPT = (context: string) => `
 You are a professional screenwriter. Based on the provided project context, write a full narrative synopsis (approx. 500 words). 
 Focus on the emotional arc, key plot points, and the overall journey of the characters as defined in the brainstorming and structure.
+IMPORTANT: The generated synopsis MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 ${context}`;
 
@@ -103,6 +105,7 @@ export const CHARACTER_EXTRACTION_PROMPT = (brainstorming: string) => `
 You are a professional script analyst. Based on the following validated brainstorming session (the Source of Truth), extract the core characters and settings. 
 For each character, provide: Name, Role, Brief Description, a Visual Description (Prompt for image generation), and a Tier (1: Main Cast, 2: Secondary, 3: Background).
 For each setting, provide: Location, Atmosphere, Description, and a Visual Description (Prompt for image generation).
+IMPORTANT: All extracted content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 Source of Truth (Brainstorming):
 ${brainstorming}`;
@@ -111,6 +114,7 @@ export const THREE_ACT_STRUCTURE_PROMPT = (context: string) => `
 # PROMPT: THE 8-BEAT STORY ARCHITECT (BASED ON STUDIOBINDER)
 
 Act as a world-class Script Architect. Your goal is to transform a raw story idea into a professional 3-Act Structure using the exact 8-beat framework from K.M. Weiland. 
+IMPORTANT: All generated content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 ## CONTEXT:
 ${context}
@@ -139,6 +143,7 @@ ${context}
 
 export const TREATMENT_PROMPT = (context: string) => `
 You are an Elite Screenwriter and Cinematic Architect. Your task is to generate the CORE NARRATIVE SEQUENCES of a professional CINEMATIC TREATMENT based on the provided project context.
+IMPORTANT: The treatment MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 CINEMATIC TREATMENT STANDARDS:
 1. Write a dense, high-impact narrative for all the provided structural beats. Aim for powerful, concise execution. Do NOT attempt to write 15 exhaustive pages at once. Focus on emotional arcs, sensory immersion, and dramatic tension.

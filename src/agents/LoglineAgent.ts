@@ -10,7 +10,7 @@ export class LoglineAgent extends BaseStageAgent {
       const unifiedCtx = this.getUnifiedContext(context);
       const logline = await this.retryWithBackoff(() => geminiService.generateLoglineDraft(unifiedCtx));
       const content: ContentPrimitive[] = [
-        this.buildPrimitive('logline_0', 'Logline', logline, 'logline', 0),
+        this.buildPrimitive('logline_1', 'Logline', logline, 'logline', 1),
       ];
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
@@ -32,7 +32,7 @@ export class LoglineAgent extends BaseStageAgent {
         p.id === primitiveId ? { ...p, content: refined, agentGenerated: true } : p
       );
       if (!updated.find(p => p.id === primitiveId)) {
-        updated.push(this.buildPrimitive(primitiveId, 'Logline', refined, 'logline', 0));
+        updated.push(this.buildPrimitive(primitiveId, 'Logline', refined, 'logline', 1));
       }
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };

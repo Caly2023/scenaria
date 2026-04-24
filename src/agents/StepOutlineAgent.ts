@@ -24,7 +24,7 @@ export class StepOutlineAgent extends BaseStageAgent {
           scene.title,
           scene.content,
           'scene_outline',
-          i,
+          i + 1,
           { metadata: { characterIds: scene.characterIds || [], locationIds: scene.locationIds || [] } }
         )
       );

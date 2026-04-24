@@ -30,7 +30,7 @@ export class StructureAgent extends BaseStageAgent {
               beat.title || BEAT_TITLES[i] || `Beat ${i + 1}`,
               beat.content || '',
               'beat',
-              i,
+              i + 1,
               { visualPrompt: beat.visualPrompt }
             )
           )
@@ -64,7 +64,7 @@ export class StructureAgent extends BaseStageAgent {
               beat.title || BEAT_TITLES[i] || `Beat ${i + 1}`,
               beat.content || '',
               'beat',
-              i
+              i + 1
             )
           )
         : currentContent;
@@ -108,6 +108,6 @@ export class StructureAgent extends BaseStageAgent {
     }
   }
   private _parseLegacyText(raw: string): ContentPrimitive[] {
-    return [this.buildPrimitive('structure_root', '3-Act Structure', raw, 'beat', 0)];
+    return [this.buildPrimitive('structure_root', '3-Act Structure', raw, 'beat', 1)];
   }
 }

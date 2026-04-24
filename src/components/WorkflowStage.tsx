@@ -21,6 +21,7 @@ interface WorkflowStageProps {
   onItemChange?: (id: string, content: string) => void;
   onValidate: () => void;
   onRefine: (feedback: string, blockId?: string) => void;
+  primitiveId?: string;
   onRegenerate?: () => void;
   isGenerating?: boolean;
   isHydrating?: boolean;
@@ -81,7 +82,7 @@ export function WorkflowStage({
       }
     } catch {
       // Not JSON, fallback to single block
-      blocks = [{ id: 'main', title: stage, content: content }];
+      blocks = [{ id: primitiveId || 'main', title: stage, content: content }];
     }
   }
 

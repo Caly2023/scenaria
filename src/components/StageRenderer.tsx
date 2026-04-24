@@ -239,9 +239,11 @@ const StageRendererComponent = ({
       );
     case "Logline":
       const filteredLogline = loglinePrimitives.filter(p => p.order !== 0);
+      const loglinePrim = filteredLogline[0];
       return (
         <LoglineStage
-          content={filteredLogline[0]?.content || ""}
+          content={loglinePrim?.content || ""}
+          primitiveId={loglinePrim?.id}
           onContentChange={onLoglineChange}
           onValidate={onValidateLogline}
           onRefine={onRefineLogline}
@@ -261,6 +263,7 @@ const StageRendererComponent = ({
           subtitle={t("stages.3-Act Structure.subtitle")}
           content={structureContentItems.length === 1 ? structureContentItems[0].content : ""}
           items={structureContentItems.length > 1 ? structureContentItems : undefined}
+          primitiveId={structureContentItems.length === 1 ? structureContentItems[0].id : undefined}
           onContentChange={onContentChange3Act}
           onItemChange={(id, content) => handleSubcollectionUpdate("structure_primitives", id, content)}
           onValidate={onValidate3Act}
@@ -285,6 +288,7 @@ const StageRendererComponent = ({
           title={t("stages.Synopsis.title")}
           subtitle={t("stages.Synopsis.subtitle")}
           content={synopsisPrimitives.find(p => p.order !== 0)?.content || ""}
+          primitiveId={synopsisPrimitives.find(p => p.order !== 0)?.id}
           onContentChange={onContentChangeSynopsis}
           onValidate={onValidateSynopsis}
           onRefine={onRefineSynopsis}

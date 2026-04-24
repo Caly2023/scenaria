@@ -13,15 +13,15 @@ export class TreatmentAgent extends BaseStageAgent {
 
       const content: ContentPrimitive[] = blocks.length >= 3
         ? blocks.map((block: any, i: number) =>
-            this.buildPrimitive(`treatment_${i}`, block.title || `Section ${i + 1}`, block.content || '', 'treatment_section', i)
+            this.buildPrimitive(`treatment_${i + 1}`, block.title || `Section ${i + 1}`, block.content || '', 'treatment_section', i + 1)
           )
         : [
             this.buildPrimitive(
-              'treatment_0',
+              'treatment_1',
               'Treatment',
               typeof raw === 'string' ? raw : JSON.stringify(raw ?? ''),
               'treatment_section',
-              0,
+              1,
             ),
           ];
 

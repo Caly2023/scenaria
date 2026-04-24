@@ -10,7 +10,7 @@ export class SynopsisAgent extends BaseStageAgent {
       const unifiedCtx = this.getUnifiedContext(context);
       const synopsis = await this.retryWithBackoff(() => geminiService.generateSynopsis(unifiedCtx));
       const content: ContentPrimitive[] = [
-        this.buildPrimitive('synopsis_0', 'Synopsis', synopsis, 'synopsis', 0),
+        this.buildPrimitive('synopsis_1', 'Synopsis', synopsis, 'synopsis', 1),
       ];
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
@@ -32,7 +32,7 @@ export class SynopsisAgent extends BaseStageAgent {
         p.id === primitiveId ? { ...p, content: refined } : p
       );
       if (!updated.find(p => p.id === primitiveId)) {
-        updated.push(this.buildPrimitive(primitiveId, 'Synopsis', refined, 'synopsis', 0));
+        updated.push(this.buildPrimitive(primitiveId, 'Synopsis', refined, 'synopsis', 1));
       }
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };

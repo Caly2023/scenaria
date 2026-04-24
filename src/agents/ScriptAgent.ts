@@ -69,7 +69,7 @@ ${JSON.stringify(scenes, null, 2)}`;
               scene.title || `Scene ${i + 1}`,
               scene.content,
               'script_scene',
-              i,
+              i + 1,
             );
           })
         : [
@@ -78,7 +78,7 @@ ${JSON.stringify(scenes, null, 2)}`;
               'Script',
               typeof raw === 'string' ? raw : JSON.stringify(raw ?? ''),
               'script_scene',
-              0,
+              1,
             ),
           ];
 

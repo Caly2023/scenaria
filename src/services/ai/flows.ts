@@ -291,7 +291,7 @@ const SCRIPT_DOCTOR_FUNCTION_DECLARATIONS = [
 // Helper: pick the right model name for the REST API
 function getModelRestName(modelId: string): string {
   const map: Record<string, string> = {
-    'googleai/gemini-3.1-flash-lite-preview': 'gemini-2.5-flash-lite',
+    'googleai/gemini-3.1-flash-lite-preview': 'gemini-3.1-flash-lite-preview',
     'googleai/gemini-3-flash-preview': 'gemini-2.5-flash',
     'googleai/gemini-2.5-flash': 'gemini-2.5-flash',
     'googleai/gemini-2.5-flash-lite': 'gemini-2.5-flash-lite',
@@ -319,9 +319,9 @@ export const scriptDoctorFlow = ai.defineFlow(
     const { messages, context, activeStage, idMapContext = '' } = input;
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Fallback order as requested: default 3-flash-lite-preview fallback 2.5-flash
+    // Fallback order as requested: default 3.1-flash-lite-preview fallback 2.5-flash
     const modelsToTry = [
-      'gemini-3.0-flash-lite-preview',
+      'gemini-3.1-flash-lite-preview',
       'gemini-2.5-flash',
       getModelRestName(gemini31FlashLite)
     ];

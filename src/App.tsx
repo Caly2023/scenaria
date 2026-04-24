@@ -105,7 +105,8 @@ export default function App() {
 
   const { isMobile } = useWindowSize();
   const {
-    isDoctorOpen, setIsDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage
+    isDoctorOpen, setIsDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage,
+    pendingToolCall, handleConfirmTool, handleCancelTool
   } = useScriptDoctor({
     currentProject, activeStage, sequences, treatmentSequences, scriptScenes, pitchPrimitives, characters, locations, addToast, setRefiningBlockId, setLastUpdatedPrimitiveId, handleStageAnalyze
   });
@@ -340,6 +341,9 @@ export default function App() {
         isDoctorTyping={isDoctorTyping}
         aiStatus={aiStatus}
         activeTool={activeTool}
+        pendingToolCall={pendingToolCall}
+        onConfirmTool={handleConfirmTool}
+        onCancelTool={handleCancelTool}
         handleStageChange={handleStageChange}
         handleProjectSelect={handleProjectSelect}
         handleProjectExit={handleProjectExit}

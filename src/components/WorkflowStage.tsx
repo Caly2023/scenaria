@@ -47,6 +47,7 @@ export function WorkflowStage({
   onValidate, 
   onRefine,
   onRegenerate,
+  primitiveId,
   isGenerating = false,
   isHydrating = false,
   hydrationLabel = null,

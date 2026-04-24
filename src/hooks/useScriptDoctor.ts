@@ -27,6 +27,7 @@ import {
   getArgArray,
   classifyComplexity,
   normalizeHistory,
+  buildFunctionResponsePart,
 } from "../utils/scriptDoctorUtils";
 
 import { useScriptDoctorTools } from "./useScriptDoctorTools";
@@ -63,13 +64,14 @@ export function useScriptDoctor({
   const characters = rawCharacters || [];
   const locations = rawLocations || [];
 
+  // Tools that require user confirmation before execution
   const SENSITIVE_TOOLS = [
     "propose_patch",
     "execute_multi_stage_fix",
     "add_primitive",
     "delete_primitive",
     "restructure_stage",
-    "sync_metadata"
+    "sync_metadata",
   ];
 
   const { executeToolCall } = useScriptDoctorTools({
@@ -89,10 +91,32 @@ export function useScriptDoctor({
     setDoctorMessages,
   });
 
+  /**
+   * Extract parts from the Gemini REST API response.
+   * The flow returns: { candidates, parts, text, message: { content: parts } }
+   */
+  const extractResponseParts = (result: any): any[] => {
+    // Direct parts array (our normalized return)
+    if (Array.isArray(result?.parts) && result.parts.length > 0) return result.parts;
+    // From candidates[0].content.parts (Gemini REST native)
+    const candidateParts = result?.candidates?.[0]?.content?.parts;
+    if (Array.isArray(candidateParts)) return candidateParts;
+    // From message.content (our normalized return)
+    if (Array.isArray(result?.message?.content)) return result.message.content;
+    // Fallback
+    return [];
+  };
+
+  /**
+   * Main agentic loop.
+   * Uses Gemini REST API format throughout:
+   *   { role: "user" | "model", parts: [...] }
+   * Tool results are sent as role:"user" with functionResponse parts.
+   */
   const runAgentLoop = async (
-    history: any[], 
-    botMsgId: string, 
-    complexity: 'simple' | 'moderate' | 'complex',
+    history: Array<{ role: string; parts: any[] }>,
+    botMsgId: string,
+    complexity: "simple" | "moderate" | "complex",
     startIteration: number = 0
   ) => {
     if (!currentProject) return;
@@ -101,100 +125,153 @@ export function useScriptDoctor({
       const { geminiService } = await import("../services/geminiService");
       const payload = await contextAssembler.buildPromptPayload(currentProject.id, activeStage);
       const context = contextAssembler.formatPrompt(payload, "");
-      
+
       const MAX_ITERATIONS = 10;
       let conversationHistory = [...history];
-      let lastParts: any[] = [];
       let finalResponse = "";
+      let lastParts: any[] = [];
 
       for (let iteration = startIteration; iteration < MAX_ITERATIONS; iteration++) {
-        const result = await geminiService.scriptDoctorAgent(conversationHistory, context, activeStage, complexity, telemetryService.getIdMapContext());
-        const responseParts = result?.candidates?.[0]?.message?.content || result?.parts || [];
+        const result = await geminiService.scriptDoctorAgent(
+          conversationHistory,
+          context,
+          activeStage,
+          complexity,
+          telemetryService.getIdMapContext()
+        );
+
+        const responseParts = extractResponseParts(result);
         lastParts = responseParts;
 
-        const thought = responseParts.find((p: any) => p.reasoning || p.thought)?.reasoning || result.reasoning;
+        // Extract reasoning/thinking if present
+        const thought = responseParts.find((p: any) => p.reasoning || p.thought)?.reasoning
+          || result?.reasoning;
         if (thought) {
-          setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, reasoning: (m.reasoning ? m.reasoning + "\n" : "") + thought } : m));
+          setDoctorMessages((prev) =>
+            prev.map((m) =>
+              m.id === botMsgId
+                ? { ...m, reasoning: (m.reasoning ? m.reasoning + "\n" : "") + thought }
+                : m
+            )
+          );
         }
 
-        const toolCalls = responseParts.filter((p: any) => p.toolRequest || p.functionCall);
-        if (toolCalls.length === 0) {
-          finalResponse = responseParts.map((p: any) => p.text).join("") || result.text || JSON.stringify(result);
+        // Detect function calls (Gemini REST native format: p.functionCall)
+        const toolCallParts = responseParts.filter(
+          (p: any) => p?.functionCall || p?.toolRequest
+        );
+
+        if (toolCallParts.length === 0) {
+          // No more tool calls — extract final text
+          finalResponse = responseParts
+            .filter((p: any) => p?.text)
+            .map((p: any) => p.text)
+            .join("")
+            || result?.text
+            || "";
           break;
         }
 
-        const toolResults: any[] = [];
+        // Process tool calls
+        const modelTurnParts = sanitizePartsForHistory(responseParts);
+        const toolResponseParts: any[] = [];
         let pausedForConfirmation = false;
 
-        for (const part of toolCalls) {
-          const call = part.toolRequest 
-            ? { name: part.toolRequest.name, args: part.toolRequest.input, ref: part.toolRequest.ref } 
-            : { name: part.functionCall.name, args: part.functionCall.args };
-          
+        for (const part of toolCallParts) {
+          // Normalize to a unified ToolCall object
+          const call: ToolCall = part.functionCall
+            ? { name: part.functionCall.name, args: part.functionCall.args }
+            : {
+                name: part.toolRequest.name,
+                args: part.toolRequest.input,
+                ref: part.toolRequest.ref,
+              };
+
           if (SENSITIVE_TOOLS.includes(call.name)) {
+            // Pause for user confirmation — store model turn parts so far
+            setDoctorMessages((prev) =>
+              prev.map((m) =>
+                m.id === botMsgId
+                  ? {
+                      ...m,
+                      status: "⏳ Awaiting Approval...",
+                      content_parts: [...(m.content_parts || []), ...modelTurnParts],
+                    }
+                  : m
+              )
+            );
             setPendingToolCall({ call, botMsgId });
             setAiStatus(`Waiting for approval: ${call.name}`);
-            
-            // Update message to show we are waiting
-            setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { 
-              ...m, 
-              status: "⏳ Awaiting Approval...",
-              content_parts: [
-                ...(m.content_parts || []),
-                ...sanitizePartsForHistory(responseParts)
-              ]
-            } : m));
-
             pausedForConfirmation = true;
-            break; 
+            break;
           }
 
+          // Execute non-sensitive tool immediately
           const res = await executeToolCall(call, 0, botMsgId);
-          toolResults.push({ 
-            toolResponse: { 
-              name: call.name, 
-              ref: call.ref || call.name, 
-              output: res 
-            } 
-          });
+          // Gemini REST format: tool results go as functionResponse in a "user" turn
+          toolResponseParts.push(buildFunctionResponsePart(call.name, res));
         }
 
-        if (pausedForConfirmation) return; // Exit loop, will resume via handleConfirmTool
+        if (pausedForConfirmation) return;
 
+        // Append model turn + tool results to conversation history
         conversationHistory = [
           ...conversationHistory,
-          { role: "model", content: sanitizePartsForHistory(responseParts) },
-          { role: "tool", content: toolResults }
+          { role: "model", parts: modelTurnParts },
+          { role: "user", parts: toolResponseParts },
         ];
 
-        setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { 
-          ...m, 
-          content_parts: [
-            ...(m.content_parts || []),
-            ...sanitizePartsForHistory(responseParts),
-            ...toolResults.map(tr => ({ toolResponse: tr.toolResponse }))
-          ] 
-        } : m));
+        // Update message's content_parts for potential history reconstruction
+        setDoctorMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  content_parts: [
+                    ...(m.content_parts || []),
+                    ...modelTurnParts,
+                    ...toolResponseParts,
+                  ],
+                }
+              : m
+          )
+        );
 
-        if (iteration === MAX_ITERATIONS - 1) finalResponse = "Max iterations reached.";
+        if (iteration === MAX_ITERATIONS - 1) {
+          finalResponse = "Max iterations reached.";
+        }
       }
 
-      setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { 
-        ...m, 
-        content: finalResponse, 
-        status: "✅ Done", 
-        content_parts: sanitizeFinalParts(lastParts) 
-      } : m));
+      // Finalize the message
+      setDoctorMessages((prev) =>
+        prev.map((m) =>
+          m.id === botMsgId
+            ? {
+                ...m,
+                content: finalResponse,
+                status: "✅ Done",
+                content_parts: sanitizeFinalParts(lastParts),
+              }
+            : m
+        )
+      );
 
       setIsDoctorTyping(false);
       setIsHeavyThinking(false);
+      setActiveTool(null);
       setAiStatus(null);
-
     } catch (error: any) {
       console.error("[ScriptDoctor] Agent failed:", error);
-      setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, content: `Error: ${error.message}`, status: "❌ Error" } : m));
+      setDoctorMessages((prev) =>
+        prev.map((m) =>
+          m.id === botMsgId
+            ? { ...m, content: `Error: ${error.message}`, status: "❌ Error" }
+            : m
+        )
+      );
       setIsDoctorTyping(false);
       setIsHeavyThinking(false);
+      setActiveTool(null);
       setAiStatus(null);
     }
   };
@@ -210,9 +287,14 @@ export function useScriptDoctor({
         const extra = referencedMsg ? `\nContext: ${referencedMsg.content}` : "";
         resolvedContent = `Apply suggestion: ${parsed.action}${extra}. Use tools directly.`;
       }
-    } catch { /* plain text */ }
+    } catch {
+      /* plain text */
+    }
 
-    if (activeStage === "Brainstorming" && !resolvedContent.includes("[BRAINSTORMING_DOCTOR_SCHEMA]")) {
+    if (
+      activeStage === "Brainstorming" &&
+      !resolvedContent.includes("[BRAINSTORMING_DOCTOR_SCHEMA]")
+    ) {
       resolvedContent = `You are fixing "Brainstorming". Update the brainstorming_result primitive. Delete others.\nUser: ${resolvedContent}`;
     }
 
@@ -222,18 +304,34 @@ export function useScriptDoctor({
 
     const botMsgId = (Date.now() + 1).toString();
     setCurrentBotMsgId(botMsgId);
-    
-    const newUserMsg = { id: Date.now().toString(), role: "user" as const, content: resolvedContent, timestamp: Date.now() };
-    setDoctorMessages(prev => [...prev, newUserMsg]);
-    setDoctorMessages(prev => [...prev, { id: botMsgId, role: "assistant", content: "...", status: "📡 Connecting...", timestamp: Date.now() }]);
 
+    const newUserMsg: ScriptDoctorMessage = {
+      id: Date.now().toString(),
+      role: "user",
+      content: resolvedContent,
+      timestamp: Date.now(),
+    };
+
+    setDoctorMessages((prev) => [...prev, newUserMsg]);
+    setDoctorMessages((prev) => [
+      ...prev,
+      {
+        id: botMsgId,
+        role: "assistant",
+        content: "...",
+        status: "📡 Connecting...",
+        timestamp: Date.now(),
+      },
+    ]);
+
+    // Build Gemini-format history (excludes the new bot placeholder)
     const history = normalizeHistory([...doctorMessages, newUserMsg]);
     await runAgentLoop(history, botMsgId, complexity);
   };
 
   const handleConfirmTool = async () => {
     if (!pendingToolCall || !currentProject) return;
-    
+
     const { call, botMsgId } = pendingToolCall;
     setPendingToolCall(null);
     setIsDoctorTyping(true);
@@ -241,49 +339,55 @@ export function useScriptDoctor({
 
     try {
       const res = await executeToolCall(call, 0, botMsgId);
-      const toolResultPart = { 
-        toolResponse: { 
-          name: call.name, 
-          ref: call.ref || call.name, 
-          output: res 
-        } 
-      };
 
-      // Find the message and update its content_parts with the tool result
-      setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { 
-        ...m, 
-        status: "⚙️ Resuming...",
-        content_parts: [
-          ...(m.content_parts || []),
-          toolResultPart
-        ] 
-      } : m));
+      // Build the functionResponse part in Gemini format
+      const fnResponsePart = buildFunctionResponsePart(call.name, res);
 
-      // Resume the loop
-      const updatedMsg = doctorMessages.find(m => m.id === botMsgId);
-      const history = normalizeHistory(doctorMessages);
-      // We need to inject the tool result into the history for the NEXT call
-      // Actually, normalizeHistory should handle content_parts if they exist.
-      
-      // Since we already updated doctorMessages state, let's use the updated history
-      const updatedHistory = [
-        ...history.slice(0, -1), // everything except the current assistant message
-        { 
-          role: "model", 
-          content: updatedMsg?.content_parts?.filter(p => !p.toolResponse) || [] 
-        },
-        {
-          role: "tool",
-          content: [toolResultPart]
-        }
+      // Read current messages SYNCHRONOUSLY (before any setState)
+      // to get the model's content_parts (the functionCall turn)
+      const currentBotMsg = doctorMessages.find((m) => m.id === botMsgId);
+      const modelParts = (currentBotMsg?.content_parts || []).filter(
+        (p: any) => p?.functionCall || p?.text
+      );
+
+      // Update the message state
+      setDoctorMessages((prev) =>
+        prev.map((m) =>
+          m.id === botMsgId
+            ? {
+                ...m,
+                status: "⚙️ Resuming...",
+                content_parts: [...(m.content_parts || []), fnResponsePart],
+              }
+            : m
+        )
+      );
+
+      // Build history from the synchronous (pre-setState) snapshot
+      const historyWithoutBot = normalizeHistory(
+        doctorMessages.filter((m) => m.id !== botMsgId)
+      );
+
+      const updatedHistory: Array<{ role: string; parts: any[] }> = [
+        ...historyWithoutBot,
+        // The model's function call turn
+        { role: "model", parts: modelParts.length > 0 ? modelParts : [{ text: "..." }] },
+        // The tool result — role:"user" per Gemini REST spec
+        { role: "user", parts: [fnResponsePart] },
       ];
 
-      await runAgentLoop(updatedHistory, botMsgId, "moderate", 1); // Resume at iteration 1 (or we can just keep track of iterations)
-
+      await runAgentLoop(updatedHistory, botMsgId, "moderate", 1);
     } catch (error: any) {
       console.error("[ScriptDoctor] Tool execution failed:", error);
-      setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, content: `Tool Error: ${error.message}`, status: "❌ Error" } : m));
+      setDoctorMessages((prev) =>
+        prev.map((m) =>
+          m.id === botMsgId
+            ? { ...m, content: `Tool Error: ${error.message}`, status: "❌ Error" }
+            : m
+        )
+      );
       setIsDoctorTyping(false);
+      setActiveTool(null);
     }
   };
 
@@ -293,7 +397,14 @@ export function useScriptDoctor({
     setPendingToolCall(null);
     setAiStatus(null);
     setIsDoctorTyping(false);
-    setDoctorMessages(prev => prev.map(m => m.id === botMsgId ? { ...m, status: "🚫 Cancelled", content: "Operation cancelled by user." } : m));
+    setActiveTool(null);
+    setDoctorMessages((prev) =>
+      prev.map((m) =>
+        m.id === botMsgId
+          ? { ...m, status: "🚫 Cancelled", content: "Operation cancelled by user." }
+          : m
+      )
+    );
   };
 
   return {

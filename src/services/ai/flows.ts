@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { ai, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite } from '../../lib/genkit';
 import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
+// Note: retry/fallback still used in other flows (generateSynopsisFlow, etc.)
+// gemini3Flash, gemini25Flash, gemini25FlashLite still used in those flows too.
 
 /**
  * GENKIT FLOWS
@@ -266,7 +268,41 @@ const scriptDoctorTools = [
   setSuggestedActionsTool,
 ];
 
+// --- SCRIPT DOCTOR FUNCTION DECLARATIONS (Gemini REST API native format) ---
+// Declared separately so we bypass Genkit's internal tool-execution loop.
+// The client (useScriptDoctor.ts) handles all tool execution.
+const SCRIPT_DOCTOR_FUNCTION_DECLARATIONS = [
+  { name: 'fetch_project_state', description: 'Retrieves the complete list of stages, their primitive counts, and the full ID-MAP.', parameters: { type: 'OBJECT', properties: {} } },
+  { name: 'get_stage_structure', description: 'Retrieve the complete structure of any stage with all primitive IDs, titles, order indices, and content previews.', parameters: { type: 'OBJECT', properties: { stage_id: { type: 'STRING', description: 'The stage identifier' } }, required: ['stage_id'] } },
+  { name: 'research_context', description: 'Pull full content from any previous stage for coherence checks. Returns data with primitive_ids.', parameters: { type: 'OBJECT', properties: { stageName: { type: 'STRING', description: 'The stage name to research' } }, required: ['stageName'] } },
+  { name: 'fetch_character_details', description: 'Retrieve full details for a specific character using its primitive_id.', parameters: { type: 'OBJECT', properties: { characterId: { type: 'STRING', description: 'The character primitive_id' } }, required: ['characterId'] } },
+  { name: 'search_project_content', description: 'Search across all project primitives and stages for a keyword or query.', parameters: { type: 'OBJECT', properties: { query: { type: 'STRING', description: 'The search keyword' } }, required: ['query'] } },
+  { name: 'propose_patch', description: 'Submit a modification for a specific primitive. The ID MUST be a valid primitive_id from the ID-MAP.', parameters: { type: 'OBJECT', properties: { id: { type: 'STRING' }, stage: { type: 'STRING' }, updates: { type: 'OBJECT' } }, required: ['id', 'stage', 'updates'] } },
+  { name: 'execute_multi_stage_fix', description: 'Coordinate changes across multiple related stages using their primitive_ids.', parameters: { type: 'OBJECT', properties: { fixes: { type: 'ARRAY', items: { type: 'OBJECT', properties: { id: { type: 'STRING' }, stage: { type: 'STRING' }, updates: { type: 'OBJECT' } } } } }, required: ['fixes'] } },
+  { name: 'sync_metadata', description: "Ensure the project's DNA (title, tone, genre, etc.) is always up to date.", parameters: { type: 'OBJECT', properties: { metadata: { type: 'OBJECT' } }, required: ['metadata'] } },
+  { name: 'add_primitive', description: 'Adds a new structural element (primitive) to a production stage.', parameters: { type: 'OBJECT', properties: { stage: { type: 'STRING' }, primitive: { type: 'OBJECT' }, position: { type: 'NUMBER' } }, required: ['stage', 'primitive'] } },
+  { name: 'delete_primitive', description: 'Removes a specific element from production using its primitive_id.', parameters: { type: 'OBJECT', properties: { id: { type: 'STRING' }, stage: { type: 'STRING' } }, required: ['id', 'stage'] } },
+  { name: 'restructure_stage', description: 'Replaces all primitives in a stage with a new set. Use with caution.', parameters: { type: 'OBJECT', properties: { stage: { type: 'STRING' }, primitives: { type: 'ARRAY', items: { type: 'OBJECT' } } }, required: ['stage', 'primitives'] } },
+  { name: 'update_stage_insight', description: 'Provides a professional analysis (insight) of the current step state and readiness.', parameters: { type: 'OBJECT', properties: { stage: { type: 'STRING' }, insight: { type: 'OBJECT', properties: { content: { type: 'STRING' }, isReady: { type: 'BOOLEAN' }, suggestions: { type: 'ARRAY', items: { type: 'STRING' } }, score: { type: 'NUMBER' } } } }, required: ['stage', 'insight'] } },
+  { name: 'update_agent_status', description: 'Updates the clinical status of the Script Doctor.', parameters: { type: 'OBJECT', properties: { status: { type: 'STRING' }, thinking: { type: 'STRING' } }, required: ['status'] } },
+  { name: 'set_suggested_actions', description: 'Sets the contextual action chips for the user.', parameters: { type: 'OBJECT', properties: { actions: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['actions'] } },
+];
+
+// Helper: pick the right model name for the REST API
+function getModelRestName(modelId: string): string {
+  const map: Record<string, string> = {
+    'googleai/gemini-3.1-flash-lite-preview': 'gemini-2.5-flash-lite',
+    'googleai/gemini-3-flash-preview': 'gemini-2.5-flash',
+    'googleai/gemini-2.5-flash': 'gemini-2.5-flash',
+    'googleai/gemini-2.5-flash-lite': 'gemini-2.5-flash-lite',
+  };
+  return map[modelId] || 'gemini-2.5-flash-lite';
+}
+
 // 1. Script Doctor Flow
+// NOTE: We use the Gemini REST API directly (not ai.generate() with tools) so that
+// Genkit's internal tool-execution loop does NOT consume the functionCall parts.
+// The client (useScriptDoctor.ts) is responsible for the full agentic loop.
 export const scriptDoctorFlow = ai.defineFlow(
   {
     name: 'scriptDoctorFlow',
@@ -279,38 +315,41 @@ export const scriptDoctorFlow = ai.defineFlow(
     }),
     outputSchema: z.any(),
   },
-  async (input, { sendChunk }) => {
+  async (input) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
-    
-    // Construct system instruction
-    const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite');
 
-    const response = await ai.generate({
-      model: gemini31FlashLite,
-      system: systemInstruction,
-      messages: messages,
-      tools: scriptDoctorTools, // Enable tools for the model
-      use: [
-        retry({ maxRetries: 3 }),
-        fallback(ai, {
-          models: [gemini3Flash, gemini25Flash],
-          statuses: ['RESOURCE_EXHAUSTED', 'UNAVAILABLE', 'DEADLINE_EXCEEDED'],
-        }),
-      ],
-      onChunk: (chunk) => {
-        if (sendChunk && chunk.text) sendChunk(chunk.text);
-      },
+    const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-2.5-flash-lite');
+    const apiKey = process.env.GEMINI_API_KEY;
+    const modelName = getModelRestName(gemini31FlashLite);
 
-    });
+    const requestBody = {
+      system_instruction: { parts: [{ text: systemInstruction }] },
+      contents: messages,
+      tools: [{ function_declarations: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+    };
 
-    // Return the standard Genkit response JSON.
-    const jsonResponse = response.toJSON();
-    
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }
+    );
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Gemini API error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+    const parts: any[] = data?.candidates?.[0]?.content?.parts || [];
+    const textPart = parts.find((p: any) => p.text)?.text || '';
+
+    // Return a normalized response the client can parse
     return {
-      ...jsonResponse,
-      reasoning: response.reasoning,
-      message: response.message,
-      text: response.text,
+      candidates: data.candidates,
+      parts,
+      text: textPart,
+      message: { content: parts },
+      reasoning: null,
     };
   }
 );

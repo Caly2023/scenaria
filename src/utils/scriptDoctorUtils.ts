@@ -39,16 +39,23 @@ export function getTextFromModelResponse(response: unknown): string {
   return aggregatedText;
 }
 
+/**
+ * Filter parts to keep only those valid for the model turn:
+ * text parts and functionCall parts.
+ */
 export function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
   if (!Array.isArray(parts)) return [];
-  return parts.filter((part) => part && typeof part === "object");
+  return parts.filter((part) => {
+    if (!part || typeof part !== "object") return false;
+    return "text" in part || "functionCall" in part;
+  });
 }
 
 export function sanitizeFinalParts(parts: any[] | null | undefined): any[] {
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
-    if (part.toolRequest || part.functionCall) return false;
+    if (part.functionCall || part.toolRequest) return false;
     return true;
   });
 }
@@ -79,71 +86,97 @@ export function classifyComplexity(content: string): "simple" | "moderate" | "co
   const wordCount = content.split(/\s+/).filter(Boolean).length;
 
   const complexKeywords = [
-    "generate", "break down", "rewrite", "fix", "restructure", "create", "write", "develop", 
-    "analyze all", "full audit", "refaire", "modifier", "change", "delete", "remove", "add", "update"
+    "generate", "break down", "rewrite", "fix", "restructure", "create", "write", "develop",
+    "analyze all", "full audit", "refaire", "modifier", "change", "delete", "remove", "add", "update",
   ];
 
-  if (complexKeywords.some((kw) => lower.includes(kw)) || wordCount > 30) {
-    return "complex";
-  }
-  if (lower.includes("?") || wordCount > 10) {
-    return "moderate";
-  }
+  if (complexKeywords.some((kw) => lower.includes(kw)) || wordCount > 30) return "complex";
+  if (lower.includes("?") || wordCount > 10) return "moderate";
   return "simple";
 }
 
-export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; content: any[] }> {
-  const history: Array<{ role: string; content: any[] }> = [];
+/**
+ * Build a Gemini REST API "functionResponse" part.
+ * In the Gemini multi-turn spec, function results are wrapped in role:"user" turns.
+ */
+export function buildFunctionResponsePart(name: string, output: unknown): any {
+  return {
+    functionResponse: {
+      name,
+      response: typeof output === "object" && output !== null ? output : { result: output },
+    },
+  };
+}
+
+/**
+ * normalizeHistory — converts ScriptDoctorMessage[] to Gemini REST API "contents" format.
+ *
+ * Gemini multi-turn format:
+ *   { role: "user",  parts: [{ text }] }
+ *   { role: "model", parts: [{ text } | { functionCall }] }
+ *   { role: "user",  parts: [{ functionResponse }] }   ← tool results!
+ *
+ * IMPORTANT: In the Gemini REST API, function responses go in a "user" role turn,
+ * NOT a "tool" role turn. This function handles the conversion automatically.
+ */
+export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; parts: any[] }> {
+  const history: Array<{ role: string; parts: any[] }> = [];
 
   for (const msg of messages) {
     if (msg.role === "user") {
-      history.push({
-        role: "user",
-        content: [{ text: msg.content }],
-      });
-    } else {
-      if (msg.content_parts && msg.content_parts.length > 0) {
-        history.push({
-          role: msg.role === "assistant" ? "model" : msg.role,
-          content: msg.content_parts,
-        });
-      } else {
-        const role = msg.role === "assistant" ? "model" : msg.role;
-        
-        if (role === "tool") {
-          history.push({
-            role: "tool",
-            content: [{ text: msg.content }]
-          });
-        } else {
-          const assistantText = JSON.stringify({
-            status: msg.status || "✅ Done",
-            thinking: msg.thinking || "",
-            response: msg.content,
-            suggested_actions: msg.suggested_actions || [],
-          });
-          history.push({
-            role: "model",
-            content: [{ text: assistantText }],
-          });
+      history.push({ role: "user", parts: [{ text: msg.content || "" }] });
+      continue;
+    }
+
+    // Assistant messages that have structured content_parts (from multi-turn with tool calls)
+    if (msg.content_parts && msg.content_parts.length > 0) {
+      const modelParts: any[] = [];
+      const toolResultParts: any[] = [];
+
+      for (const p of msg.content_parts) {
+        if (!p || typeof p !== "object") continue;
+
+        if (p.functionCall) {
+          // Model part — the function call request
+          modelParts.push(p);
+        } else if (p.functionResponse) {
+          // Already in Gemini format
+          toolResultParts.push(p);
+        } else if (p.toolResponse) {
+          // Legacy Genkit format → convert
+          toolResultParts.push(
+            buildFunctionResponsePart(p.toolResponse.name, p.toolResponse.output)
+          );
+        } else if (p.text !== undefined) {
+          modelParts.push(p);
         }
       }
+
+      if (modelParts.length > 0) history.push({ role: "model", parts: modelParts });
+      // Tool results MUST be role:"user" per Gemini REST API spec
+      if (toolResultParts.length > 0) history.push({ role: "user", parts: toolResultParts });
+      continue;
     }
+
+    // Plain assistant text message
+    history.push({ role: "model", parts: [{ text: msg.content || "" }] });
   }
 
-  const cleaned: typeof history = [];
+  // Merge consecutive same-role entries (Gemini doesn't allow adjacent same-role turns)
+  const merged: Array<{ role: string; parts: any[] }> = [];
   for (const entry of history) {
-    const last = cleaned[cleaned.length - 1];
-    if (last && last.role === entry.role && entry.role !== "tool") {
-      last.content.push(...entry.content);
+    const last = merged[merged.length - 1];
+    if (last && last.role === entry.role) {
+      last.parts.push(...entry.parts);
     } else {
-      cleaned.push(entry);
+      merged.push({ role: entry.role, parts: [...entry.parts] });
     }
   }
 
-  while (cleaned.length > 0 && cleaned[0].role !== "user") {
-    cleaned.shift();
+  // Gemini requires the first message to be "user"
+  while (merged.length > 0 && merged[0].role !== "user") {
+    merged.shift();
   }
 
-  return cleaned;
+  return merged;
 }

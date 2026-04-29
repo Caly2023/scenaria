@@ -7,7 +7,9 @@ import {
   Character, 
   Location, 
   Sequence,
+  StageInsight,
 } from '../types';
+import { StageAnalysis } from '../types/stageContract';
 
 type BrainstormPrimitive = Sequence & { primitiveType?: string };
 type HydrationState = {
@@ -24,6 +26,12 @@ type CanvasErrorBoundaryProps = {
 type CharacterUpdate = Partial<Character>;
 type LocationUpdate = Partial<Location>;
 type SequenceUpdate = Partial<Sequence>;
+type PrimitiveWithAnalysisMeta = Sequence & {
+  primitiveType?: string;
+  isReady?: boolean;
+  suggestions?: string[];
+  updatedAt?: number;
+};
 
 function getBrainstormStory(primitives: Sequence[]): string {
   const typedPrimitives = primitives as BrainstormPrimitive[];
@@ -37,14 +45,19 @@ function getBrainstormStory(primitives: Sequence[]): string {
     || "";
 }
 
-function getStageInsight(stage: WorkflowStage, project: Project, primitives: Sequence[]): any {
-  const analysisPrim = primitives.find(p => p.order === 0 || (p as any).primitiveType === 'analysis');
+function getStageInsight(
+  stage: WorkflowStage,
+  project: Project,
+  primitives: Sequence[]
+): StageInsight | StageAnalysis | undefined {
+  const typed = primitives as PrimitiveWithAnalysisMeta[];
+  const analysisPrim = typed.find((p) => p.order === 0 || p.primitiveType === 'analysis');
   if (analysisPrim) {
     return {
       content: analysisPrim.content,
-      isReady: (analysisPrim as any).isReady ?? project.stageAnalyses?.[stage]?.isReady,
-      suggestions: (analysisPrim as any).suggestions || project.stageAnalyses?.[stage]?.suggestions,
-      updatedAt: (analysisPrim as any).updatedAt || project.stageAnalyses?.[stage]?.updatedAt,
+      isReady: analysisPrim.isReady ?? project.stageAnalyses?.[stage]?.isReady,
+      suggestions: analysisPrim.suggestions || project.stageAnalyses?.[stage]?.suggestions,
+      updatedAt: analysisPrim.updatedAt || project.stageAnalyses?.[stage]?.updatedAt || Date.now(),
     };
   }
   return project.stageAnalyses?.[stage];

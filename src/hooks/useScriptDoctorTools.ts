@@ -10,7 +10,7 @@ import {
   Location,
   StageState,
 } from "../types";
-import { ToolCall, ToolResult } from "../types/scriptDoctor";
+import { ScriptDoctorMessage, ToolCall, ToolResult } from "../types/scriptDoctor";
 import {
   getArgString,
   getArgNumber,
@@ -32,7 +32,7 @@ interface UseScriptDoctorToolsProps {
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
   setActiveTool: (name: string | null) => void;
   setAiStatus: (status: string | null) => void;
-  setDoctorMessages: React.Dispatch<React.SetStateAction<any[]>>;
+  setDoctorMessages: React.Dispatch<React.SetStateAction<ScriptDoctorMessage[]>>;
 }
 
 export function useScriptDoctorTools({

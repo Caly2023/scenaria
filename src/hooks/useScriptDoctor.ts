@@ -1,30 +1,14 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import {
-  Project,
-  WorkflowStage,
-  Sequence,
-  Character,
-  Location,
-  StageState,
-} from "../types";
-import { stageRegistry } from "../config/stageRegistry";
+import { useState, useRef, useEffect } from "react";
 import { contextAssembler } from "../services/contextAssembler";
 import { telemetryService } from "../services/telemetryService";
 import {
   ScriptDoctorMessage,
   ToolCall,
-  ToolResult,
   UseScriptDoctorProps,
 } from "../types/scriptDoctor";
 import {
-  getTextFromModelResponse,
   sanitizePartsForHistory,
   sanitizeFinalParts,
-  getArgString,
-  getArgNumber,
-  getArgRecord,
-  getArgArray,
   classifyComplexity,
   normalizeHistory,
   buildFunctionResponsePart,
@@ -46,15 +30,12 @@ export function useScriptDoctor({
   setLastUpdatedPrimitiveId,
   handleStageAnalyze,
 }: UseScriptDoctorProps) {
-  const { t } = useTranslation();
-
   const [isDoctorOpen, setIsDoctorOpen] = useState(false);
   const [doctorMessages, setDoctorMessages] = useState<ScriptDoctorMessage[]>([]);
   const [isDoctorTyping, setIsDoctorTyping] = useState(false);
   const [isHeavyThinking, setIsHeavyThinking] = useState(false);
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
-  const [currentBotMsgId, setCurrentBotMsgId] = useState<string | null>(null);
   const [pendingToolCall, setPendingToolCall] = useState<{ call: ToolCall; botMsgId: string } | null>(null);
   const messagesRef = useRef<ScriptDoctorMessage[]>([]);
 
@@ -100,14 +81,22 @@ export function useScriptDoctor({
    * Extract parts from the Gemini REST API response.
    * The flow returns: { candidates, parts, text, message: { content: parts } }
    */
-  const extractResponseParts = (result: any): any[] => {
+  type GeminiPart = Record<string, unknown>;
+  type GeminiHistoryEntry = { role: string; parts: GeminiPart[] };
+  const extractResponseParts = (result: unknown): GeminiPart[] => {
+    const asRecord = (result ?? {}) as Record<string, unknown>;
     // Direct parts array (our normalized return)
-    if (Array.isArray(result?.parts) && result.parts.length > 0) return result.parts;
+    if (Array.isArray(asRecord.parts) && asRecord.parts.length > 0) return asRecord.parts as GeminiPart[];
     // From candidates[0].content.parts (Gemini REST native)
-    const candidateParts = result?.candidates?.[0]?.content?.parts;
+    const candidates = asRecord.candidates as Array<Record<string, unknown>> | undefined;
+    const candidateParts =
+      candidates?.[0]?.content && typeof candidates[0].content === "object"
+        ? (candidates[0].content as Record<string, unknown>).parts
+        : undefined;
     if (Array.isArray(candidateParts)) return candidateParts;
     // From message.content (our normalized return)
-    if (Array.isArray(result?.message?.content)) return result.message.content;
+    const message = asRecord.message as Record<string, unknown> | undefined;
+    if (Array.isArray(message?.content)) return message.content as GeminiPart[];
     // Fallback
     return [];
   };
@@ -119,7 +108,7 @@ export function useScriptDoctor({
    * Tool results are sent as role:"user" with functionResponse parts.
    */
   const runAgentLoop = async (
-    history: Array<{ role: string; parts: any[] }>,
+    history: GeminiHistoryEntry[],
     botMsgId: string,
     complexity: "simple" | "moderate" | "complex",
     startIteration: number = 0
@@ -134,7 +123,7 @@ export function useScriptDoctor({
       const MAX_ITERATIONS = 10;
       let conversationHistory = [...history];
       let finalResponse = "";
-      let lastParts: any[] = [];
+      let lastParts: GeminiPart[] = [];
 
       for (let iteration = startIteration; iteration < MAX_ITERATIONS; iteration++) {
         if (!conversationHistory || conversationHistory.length === 0) {
@@ -154,9 +143,11 @@ export function useScriptDoctor({
         lastParts = responseParts;
 
         // Extract reasoning/thinking if present
-        const thought = responseParts.find((p: any) => p.reasoning || p.thought)?.reasoning
-          || result?.reasoning;
-        if (thought) {
+        const thoughtPart = responseParts.find((p) => p.reasoning || p.thought);
+        const thought =
+          (typeof thoughtPart?.reasoning === "string" ? thoughtPart.reasoning : undefined) ||
+          ((result as Record<string, unknown> | undefined)?.reasoning as string | undefined);
+        if (typeof thought === "string" && thought.length > 0) {
           setDoctorMessages((prev) =>
             prev.map((m) =>
               m.id === botMsgId
@@ -168,33 +159,47 @@ export function useScriptDoctor({
 
         // Detect function calls (Gemini REST native format: p.functionCall)
         const toolCallParts = responseParts.filter(
-          (p: any) => p?.functionCall || p?.toolRequest
+          (p) => p?.functionCall || p?.toolRequest
         );
 
         if (toolCallParts.length === 0) {
           // No more tool calls — extract final text
           finalResponse = responseParts
-            .filter((p: any) => p?.text)
-            .map((p: any) => p.text)
+            .filter((p) => typeof p?.text === "string")
+            .map((p) => p.text as string)
             .join("")
-            || result?.text
+            || ((result as Record<string, unknown> | undefined)?.text as string | undefined)
             || "";
           break;
         }
 
         // Process tool calls
         const modelTurnParts = sanitizePartsForHistory(responseParts);
-        const toolResponseParts: any[] = [];
+        const toolResponseParts: GeminiPart[] = [];
         let pausedForConfirmation = false;
 
         for (const part of toolCallParts) {
+        const partRecord = part as Record<string, unknown>;
+        const fnCall = (partRecord.functionCall ?? null) as Record<string, unknown> | null;
+        const toolRequest = (partRecord.toolRequest ?? null) as Record<string, unknown> | null;
           // Normalize to a unified ToolCall object
-          const call: ToolCall = part.functionCall
-            ? { name: part.functionCall.name, args: part.functionCall.args }
+          const call: ToolCall = fnCall
+            ? {
+                name: String(fnCall.name ?? ""),
+                args:
+                  fnCall.args && typeof fnCall.args === "object" && !Array.isArray(fnCall.args)
+                    ? (fnCall.args as Record<string, unknown>)
+                    : {},
+              }
             : {
-                name: part.toolRequest.name,
-                args: part.toolRequest.input,
-                ref: part.toolRequest.ref,
+                name: String(toolRequest?.name ?? ""),
+                args:
+                  toolRequest?.input &&
+                  typeof toolRequest.input === "object" &&
+                  !Array.isArray(toolRequest.input)
+                    ? (toolRequest.input as Record<string, unknown>)
+                    : {},
+                ref: typeof toolRequest?.ref === "string" ? toolRequest.ref : undefined,
               };
 
           if (SENSITIVE_TOOLS.includes(call.name)) {
@@ -270,12 +275,13 @@ export function useScriptDoctor({
       setIsHeavyThinking(false);
       setActiveTool(null);
       setAiStatus(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown ScriptDoctor error";
       console.error("[ScriptDoctor] Agent failed:", error);
       setDoctorMessages((prev) =>
         prev.map((m) =>
           m.id === botMsgId
-            ? { ...m, content: `Error: ${error.message}`, status: "❌ Error" }
+            ? { ...m, content: `Error: ${message}`, status: "❌ Error" }
             : m
         )
       );
@@ -314,7 +320,6 @@ export function useScriptDoctor({
     setIsDoctorTyping(true);
 
     const botMsgId = (Date.now() + 1).toString();
-    setCurrentBotMsgId(botMsgId);
 
     const newUserMsg: ScriptDoctorMessage = {
       id: Date.now().toString(),
@@ -368,12 +373,13 @@ export function useScriptDoctor({
 
       // Resume the loop with the freshly normalized history
       await runAgentLoop(historyToUse, botMsgId, "moderate", 1);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown tool execution error";
       console.error("[ScriptDoctor] Tool execution failed:", error);
       setDoctorMessages((prev) =>
         prev.map((m) =>
           m.id === botMsgId
-            ? { ...m, content: `Tool Error: ${error.message}`, status: "❌ Error" }
+            ? { ...m, content: `Tool Error: ${message}`, status: "❌ Error" }
             : m
         )
       );

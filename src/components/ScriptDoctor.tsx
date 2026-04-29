@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ttsService } from '@/services/ttsService';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { ToolCall } from '@/types/scriptDoctor';
 
 interface Message {
   id: string;
@@ -28,7 +29,7 @@ interface Message {
   suggested_actions?: string[];
   active_tool?: string;
   timestamp: number;
-  content_parts?: any[];
+  content_parts?: unknown[];
 }
 
 interface ScriptDoctorProps {
@@ -49,26 +50,34 @@ interface ScriptDoctorProps {
     timestamp: number;
     primitiveId?: string;
   } | null;
-  pendingToolCall?: { call: any; botMsgId: string } | null;
+  pendingToolCall?: { call: ToolCall; botMsgId: string } | null;
   onConfirmTool?: () => void;
   onCancelTool?: () => void;
 }
 
 // ── Tool Confirmation Component ─────────────────────────────────────────────
-function ToolConfirmation({ call, onConfirm, onCancel }: { call: any; onConfirm: () => void; onCancel: () => void }) {
-  const { t } = useTranslation();
-  const { name, args } = call;
+function ToolConfirmation({ call, onConfirm, onCancel }: { call: ToolCall; onConfirm: () => void; onCancel: () => void }) {
+  const { name, args = {} } = call;
+  const data = args as Record<string, unknown>;
+  const updates = (data.updates as Record<string, unknown> | undefined) ?? {};
+  const primitive = (data.primitive as Record<string, unknown> | undefined) ?? {};
+  const stage = typeof data.stage === "string" ? data.stage : "stage";
+  const id = typeof data.id === "string" ? data.id : "unknown";
+  const updatesTitle = typeof updates.title === "string" ? updates.title : undefined;
+  const updatesName = typeof updates.name === "string" ? updates.name : undefined;
+  const primitiveTitle = typeof primitive.title === "string" ? primitive.title : undefined;
+  const primitiveName = typeof primitive.name === "string" ? primitive.name : undefined;
 
   const getToolDescription = () => {
     switch (name) {
       case 'propose_patch':
-        return `Modify ${args.stage}: ${args.updates.title || args.updates.name || 'selected item'}`;
+        return `Modify ${stage}: ${updatesTitle || updatesName || 'selected item'}`;
       case 'add_primitive':
-        return `Add new ${args.stage}: ${args.primitive.title || args.primitive.name}`;
+        return `Add new ${stage}: ${primitiveTitle || primitiveName || "untitled"}`;
       case 'delete_primitive':
-        return `Delete ${args.stage} item: ${args.id}`;
+        return `Delete ${stage} item: ${id}`;
       case 'restructure_stage':
-        return `Full restructure of ${args.stage}`;
+        return `Full restructure of ${stage}`;
       case 'execute_multi_stage_fix':
         return `Apply multi-stage architectural fix`;
       case 'sync_metadata':

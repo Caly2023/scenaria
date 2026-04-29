@@ -17,6 +17,7 @@ import {
   getArgRecord,
   getArgArray,
 } from "../utils/scriptDoctorUtils";
+import { mapPrimitiveToDb } from "../utils/primitiveUtils";
 
 interface UseScriptDoctorToolsProps {
   currentProject: Project | null;
@@ -174,11 +175,7 @@ export function useScriptDoctorTools({
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: `Invalid stage: ${stage}` };
           const docRef = doc(db, "projects", currentProject.id, sub, id);
-          const safeUpdates: any = { ...updates };
-          if (stage === "Character Bible" || stage === "Location Bible") {
-            if (updates.title) safeUpdates.name = updates.title;
-            if (updates.content) safeUpdates.description = updates.content;
-          }
+          const safeUpdates = mapPrimitiveToDb(stage, updates);
           await updateDoc(docRef, { ...safeUpdates, updatedAt: serverTimestamp() });
           await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
@@ -195,11 +192,7 @@ export function useScriptDoctorTools({
           for (const fix of fixes as any[]) {
             const sub = subcollectionMap[fix.stage];
             if (!sub) continue;
-            const safe = { ...fix.updates };
-            if (fix.stage === "Character Bible" || fix.stage === "Location Bible") {
-              if (safe.title) safe.name = safe.title;
-              if (safe.content) safe.description = safe.content;
-            }
+            const safe = mapPrimitiveToDb(fix.stage, fix.updates);
             await updateDoc(doc(db, "projects", currentProject.id, sub, fix.id), { ...safe, updatedAt: serverTimestamp() });
           }
           const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
@@ -228,18 +221,14 @@ export function useScriptDoctorTools({
           telemetryService.setStatus("add_primitive", "➕", `Injecting new structural element into ${stage}...`);
           const sub = subcollectionMap[stage];
           if (!sub) return { success: false, error: "Unsupported stage" };
-          const safeData: any = {
+          const safeData = mapPrimitiveToDb(stage, {
             title: primitive.title || primitive.name || "Untitled",
             content: primitive.content || primitive.description || "",
             order: getArgNumber(args, "position") ?? primitive.order ?? 0,
             projectId: currentProject.id,
             createdAt: serverTimestamp(),
             ...primitive,
-          };
-          if (stage === "Character Bible" || stage === "Location Bible") {
-            safeData.name = safeData.title;
-            safeData.description = safeData.content;
-          }
+          });
           const newDoc = await addDoc(collection(db, "projects", currentProject.id, sub), safeData);
           await contextAssembler.getStageStructure(currentProject.id, stage);
           await handleStageAnalyze(stage as WorkflowStage);
@@ -288,18 +277,13 @@ export function useScriptDoctorTools({
             const p = primitives[i] as any;
             const id = p.id || p.primitive_id;
             
-            const safe: any = {
+            const safe = mapPrimitiveToDb(stage, {
               title: p.title || p.name || "Untitled",
               content: p.content || p.description || "",
               order: i,
               projectId: currentProject.id,
               updatedAt: serverTimestamp(),
-            };
-            
-            if (stage === "Character Bible" || stage === "Location Bible") {
-              safe.name = safe.title;
-              safe.description = safe.content;
-            }
+            });
 
             if (id) {
               const docRef = doc(db, "projects", currentProject.id, sub, id);

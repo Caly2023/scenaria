@@ -1,0 +1,233 @@
+export const en = {
+  translation: {
+    common: {
+    project: 'Project',
+    search: 'Search...',
+    synced: 'Synced',
+    syncing: 'Syncing...',
+    error: 'Error',
+    locked: 'Locked',
+    comingSoon: 'Coming Soon',
+    validate: 'Validate',
+    refine: 'Refine',
+    generate: 'Generate',
+    aiWorking: 'AI is working...',
+    aiWorkingDesc: 'Generating the next stage of your masterpiece.',
+    askAi: 'Ask AI to refine the {{stage}}...',
+    askDoctor: 'Ask the Doctor about {{stage}}...',
+    characterAdded: 'Character added',
+    characterDeleted: 'Character deleted',
+    locationAdded: 'Location added',
+    locationDeleted: 'Location deleted',
+    renaming: 'Renaming {{oldName}} to {{newName}} across the project...',
+    extracting: 'Extracting world entities...',
+    extracted: 'Characters & Locations extracted',
+    generatingSequences: 'Generating sequences...',
+    stepOutlineReady: 'Step Outline ready',
+    generatingScript: 'Generating script sequences...',
+    scriptGenerated: 'Script generated',
+    aiMagicFailed: 'AI Magic failed',
+    selectStage: 'Select a stage to begin',
+    completeProject: 'Complete Project',
+    importText: 'Import Text',
+    attach: 'Attach',
+    viewAll: 'View All',
+    recentMasterpieces: 'Recent Masterpieces',
+    professionalStudio: 'Professional AI Screenwriting Studio',
+    projectNameOptional: 'Project name (optional)',
+    whatsTheStory: 'What\'s the story?',
+    signIn: 'Sign in to start your professional screenwriting journey.',
+    signInWithGoogle: 'Sign in with Google',
+    step: 'Step',
+    locations: 'Locations',
+    newLocation: 'New Location',
+    locationName: 'Location Name (e.g., The Neon Diner)...',
+    describeAtmosphere: 'Describe the atmosphere...',
+    cancel: 'Cancel',
+    create: 'Create',
+    addNewLocation: 'Add New Location',
+    generateVisuals: 'Generate Visuals?',
+    generateVisualsDesc: 'This will use AI to generate a visual representation. This action cannot be undone.',
+    untitled: 'Untitled',
+    sequence: 'Sequence',
+    addNewSequence: 'Add New Sequence',
+    scriptDoctor: 'Script Doctor',
+    analyzing: 'Analyzing {{stage}}',
+    analyzingScript: 'I\'m analyzing your script.',
+    askForAdvice: 'Ask me for feedback or advice.',
+    you: 'You',
+    doctor: 'Doctor',
+    thinking: 'Thinking...',
+    askTheDoctor: 'Ask the Doctor...',
+    stopListening: 'Stop Listening',
+    listenToLogline: 'Listen to Logline',
+    aiDrafting: 'AI Drafting...',
+    focusModeActive: 'Focus Mode Active',
+    deepNightWriting: 'Deep night writing...',
+    close: 'Close',
+    visualDescriptionReady: 'Visual Description Ready',
+    speaker: 'Speaker',
+    aiRefine: 'AI Refine',
+    generateImage: 'Generate Image',
+    focus: 'Focus',
+    characters: 'Characters',
+    newCharacter: 'New Character',
+    characterName: 'Character Name (e.g., John Doe)...',
+    describeCharacter: 'Describe the character\'s appearance, personality, and role...',
+    addNewCharacter: 'Add New Character',
+    failedToGenerate: 'Failed to generate content. Please try again.',
+    blockRefined: '{{stage}} block refined',
+    refinedSuccessfully: '{{stage}} refined successfully',
+    failedToRefine: 'Failed to refine {{stage}}',
+    deepDeveloped: '{{name}} deep developed!',
+    locationDeveloped: 'Location developed!',
+    primitiveUpdated: 'Project updated by Script Doctor',
+    failedToDeepDevelop: 'Failed to deep develop',
+    deepDevelop: 'Deep Develop',
+    tier1: 'Tier 1: Main Cast',
+    tier2: 'Tier 2: Secondary',
+    tier3: 'Tier 3: Background',
+    newSequenceLabel: 'NEW SEQUENCE',
+    aiInsight: 'AI Insight',
+    readyToProceed: 'Ready to proceed',
+    notReadyYet: 'Not ready yet',
+    continue: 'Continue',
+    fixRequired: 'Fix required',
+    analysisInProgress: 'Analysis in progress...',
+    notReadyYetFeedback: 'I\'ve analyzed this stage and it\'s not quite ready yet.',
+    insightUpdated: 'AI Insight updated',
+    fixRequiredToast: 'Please address the AI insights before proceeding.',
+    helperText: 'Transform your vision into a cinematic masterpiece. What do you want to create today?',
+    reasoning: 'Internal Reasoning',
+    applied: 'Applied',
+    speak: 'Speak',
+    connectingToAi: 'Connecting to ScénarIA...',
+    multiStageFixApplied: 'Multi-stage fix applied successfully',
+    metadataSynced: 'Project metadata synced',
+    primitiveAdded: 'New element added to project',
+    primitiveDeleted: 'Element removed from project',
+    stageRestructured: 'Stage restructured successfully'
+  },
+  stages: {
+    'Project Metadata': {
+      label: 'Project Metadata',
+      title: 'Project Settings',
+      subtitle: 'Define the core parameters of your project: genre, format, tone, and language.',
+      validateLabel: 'Save & Start Draft'
+    },
+    'Initial Draft': {
+      label: 'Initial Draft',
+      title: 'The Spark',
+      subtitle: 'Paste your initial idea, synopsis draft, or premise here.',
+      placeholder: 'Paste your raw concept or idea...',
+      validateLabel: 'Validate Draft & Brainstorm'
+    },
+    Brainstorming: {
+      label: 'Brainstorming',
+      title: 'Organize Your Chaos',
+      subtitle: 'AI acts as a sounding board. Dump your ideas, themes, and fragments here.',
+      placeholder: 'Start typing your ideas...',
+      validateLabel: 'Validate Brainstorming'
+    },
+    Logline: {
+      label: 'Logline',
+      title: 'Refining the Vision',
+      subtitle: 'The AI has synthesized your brainstorming into a logline. Tweak it until it\'s perfect.',
+      placeholder: 'Your logline draft will appear here...',
+      validationText: 'Is this vision correct for your studio? Please validate to proceed or tell me what to tweak.',
+      refinePlaceholder: 'What should I tweak? (e.g., \'Make it darker\', \'Focus on the heist\')',
+      validateLabel: 'Validate & Move to Structure',
+      refineLabel: 'Refine Logline'
+    },
+    '3-Act Structure': {
+      label: '3-Act Structure',
+      title: 'Building the Skeleton',
+      subtitle: 'Act I, II and III. This is where the story takes shape.',
+      validateLabel: 'Validate & Move to 8-Beat'
+    },
+    '8-Beat Structure': {
+      label: '8-Beat Structure',
+      title: 'The 8 Story Beats',
+      subtitle: 'Breaking down your story into eight essential dramatic moments.',
+      validateLabel: 'Validate & Move to Synopsis'
+    },
+    Synopsis: {
+      label: 'Synopsis',
+      title: 'The Full Narrative',
+      subtitle: 'A detailed summary of your story\'s arc, characters, and themes.',
+      validateLabel: 'Validate Synopsis'
+    },
+    'Character Bible': {
+      label: 'Character Bible',
+      title: 'Character Bible',
+      subtitle: 'Define your characters, their roles, and their visual identity.',
+      placeholder: 'Describe the character\'s appearance, personality, and role...',
+      validationText: 'Ready to move from characters to locations?',
+      validateLabel: 'Validate Characters & Move to Locations'
+    },
+    'Location Bible': {
+      label: 'Location Bible',
+      title: 'Location Bible',
+      subtitle: 'Define your locations, their atmosphere, and their visual identity.',
+      placeholder: 'Describe the location\'s atmosphere, key features, and visual style...',
+      validationText: 'Ready to move from locations to the narrative treatment?',
+      validateLabel: 'Validate Locations & Move to Treatment'
+    },
+    Treatment: {
+      label: 'Treatment',
+      title: 'The Story in Prose',
+      subtitle: 'A detailed narrative version of your screenplay.',
+      validateLabel: 'Validate Treatment'
+    },
+    'Step Outline': {
+      label: 'Step Outline',
+      title: 'The Séquencier',
+      subtitle: 'Scene-by-scene breakdown of your story.',
+      placeholder: 'Describe the scene...',
+      validationText: 'Ready to turn this outline into a full script?',
+      validateLabel: 'Validate Outline & Move to Script'
+    },
+    Script: {
+      label: 'Script',
+      title: 'Final Screenplay',
+      subtitle: 'Professional formatting and dialogue.',
+      validateLabel: 'Validate Script'
+    },
+    'Global Script Doctoring': {
+      label: 'Global Script Doctor',
+      title: 'Deep Analysis',
+      subtitle: 'The Script Doctor reviews your entire screenplay for consistency and quality.',
+      validateLabel: 'Finish Analysis'
+    },
+    'Technical Breakdown': {
+      label: 'Technical Breakdown',
+      title: 'Production Plan',
+      subtitle: 'Transforming scenes into technical shots and production requirements.',
+      validateLabel: 'Validate Breakdown'
+    },
+    'Visual Assets': {
+      label: 'Visual Assets',
+      title: 'Concept Art & Assets',
+      subtitle: 'Generate multi-angle characters, environments, and key props.',
+      validateLabel: 'Validate Assets'
+    },
+    'AI Previs': {
+      label: 'AI Previs',
+      title: 'AI Previsualization',
+      subtitle: 'Preview your script with AI-generated storyboards and pre-visuals.',
+      validateLabel: 'Validate Previs'
+    },
+    'Production Export': {
+      label: 'Production Export',
+      title: 'Export Studio',
+      subtitle: 'Download your finalized script, breakdown, and assets for production.',
+      validateLabel: 'Final Export'
+    }
+  },
+  formats: {
+    'Short Film': 'short film',
+    'Feature': 'feature',
+    'Series': 'series'
+  }
+};
+};

@@ -15,6 +15,7 @@ import {
   writeBatch,
   Timestamp,
 } from "firebase/firestore";
+import { stageRegistry } from "../config/stageRegistry";
 import { Project } from "../types";
 
 /**
@@ -383,17 +384,7 @@ export const firebaseApi = createApi({
     deleteProject: builder.mutation<void, string>({
       async queryFn(projectId) {
         try {
-          const subcollections = [
-            "sequences",
-            "characters",
-            "locations",
-            "pitch_primitives",
-            "logline_primitives",
-            "structure_primitives",
-            "synopsis_primitives",
-            "treatment_sequences",
-            "script_scenes",
-          ];
+          const subcollections = stageRegistry.getAllCollectionNames();
           for (const sub of subcollections) {
             const subSnap = await getDocs(
               collection(db, "projects", projectId, sub),

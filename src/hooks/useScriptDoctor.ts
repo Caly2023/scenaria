@@ -5,6 +5,8 @@ import {
   ScriptDoctorMessage,
   ToolCall,
   UseScriptDoctorProps,
+  GeminiPart,
+  GeminiHistoryEntry,
 } from "../types/scriptDoctor";
 import {
   sanitizePartsForHistory,
@@ -12,6 +14,7 @@ import {
   classifyComplexity,
   normalizeHistory,
   buildFunctionResponsePart,
+  extractResponseParts,
 } from "../utils/scriptDoctorUtils";
 
 import { useScriptDoctorTools } from "./useScriptDoctorTools";
@@ -59,30 +62,6 @@ export function useScriptDoctor({
     setAiStatus,
     setDoctorMessages,
   });
-
-  /**
-   * Extract parts from the Gemini REST API response.
-   * The flow returns: { candidates, parts, text, message: { content: parts } }
-   */
-  type GeminiPart = Record<string, unknown>;
-  type GeminiHistoryEntry = { role: string; parts: GeminiPart[] };
-  const extractResponseParts = (result: unknown): GeminiPart[] => {
-    const asRecord = (result ?? {}) as Record<string, unknown>;
-    // Direct parts array (our normalized return)
-    if (Array.isArray(asRecord.parts) && asRecord.parts.length > 0) return asRecord.parts as GeminiPart[];
-    // From candidates[0].content.parts (Gemini REST native)
-    const candidates = asRecord.candidates as Array<Record<string, unknown>> | undefined;
-    const candidateParts =
-      candidates?.[0]?.content && typeof candidates[0].content === "object"
-        ? (candidates[0].content as Record<string, unknown>).parts
-        : undefined;
-    if (Array.isArray(candidateParts)) return candidateParts;
-    // From message.content (our normalized return)
-    const message = asRecord.message as Record<string, unknown> | undefined;
-    if (Array.isArray(message?.content)) return message.content as GeminiPart[];
-    // Fallback
-    return [];
-  };
 
   /**
    * Main agentic loop.

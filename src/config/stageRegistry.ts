@@ -268,6 +268,11 @@ class StageRegistry {
     return this._ordered.find(s => s.collectionName === collectionName);
   }
 
+  /** Get unique collection names for all stages */
+  getAllCollectionNames(): string[] {
+    return Array.from(new Set(this._ordered.map(s => s.collectionName)));
+  }
+
   /** Build the full subcollection → stageName map (e.g. for useScriptDoctor) */
   getSubcollectionMap(): Record<string, string> {
     const out: Record<string, string> = {};

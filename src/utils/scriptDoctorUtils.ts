@@ -188,3 +188,21 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
 
   return merged;
 }
+
+export function extractResponseParts(result: unknown): any[] {
+  const asRecord = (result ?? {}) as Record<string, unknown>;
+  // Direct parts array (our normalized return)
+  if (Array.isArray(asRecord.parts) && asRecord.parts.length > 0) return asRecord.parts;
+  // From candidates[0].content.parts (Gemini REST native)
+  const candidates = asRecord.candidates as Array<Record<string, unknown>> | undefined;
+  const candidateParts =
+    candidates?.[0]?.content && typeof candidates[0].content === "object"
+      ? (candidates[0].content as Record<string, unknown>).parts
+      : undefined;
+  if (Array.isArray(candidateParts)) return candidateParts as any[];
+  // From message.content (our normalized return)
+  const message = asRecord.message as Record<string, unknown> | undefined;
+  if (Array.isArray(message?.content)) return message.content as any[];
+  // Fallback
+  return [];
+}

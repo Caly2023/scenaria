@@ -39,3 +39,6 @@ export interface UseScriptDoctorProps {
   setLastUpdatedPrimitiveId?: (id: string | null) => void;
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
 }
+
+export type GeminiPart = Record<string, unknown>;
+export type GeminiHistoryEntry = { role: string; parts: GeminiPart[] };

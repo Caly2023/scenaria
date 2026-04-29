@@ -1,24 +1,17 @@
 import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Volume2, 
-  VolumeX, 
-  Sparkles, 
   Maximize2, 
-  ChevronDown, 
-  ChevronUp,
-  MoreVertical,
-  Trash2,
-  RefreshCw,
-  Target,
   Plus,
-  AlertCircle
+  Sparkles
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { MarkdownDisplay } from '@/components/ui/MarkdownDisplay';
 import { ttsService } from '@/services/ttsService';
+import { PrimitiveHeader } from './primitive/PrimitiveHeader';
+import { PrimitiveEmptyState } from './primitive/PrimitiveEmptyState';
 
 export type PrimitiveType =
   | 'text'
@@ -74,27 +67,9 @@ export const Primitive = memo(function Primitive({
   isUpdated = false
 }: PrimitiveProps) {
   const { t } = useTranslation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showGlow, setShowGlow] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMenuOpen]);
 
   // Trigger glow effect when isUpdated changes to true
   useEffect(() => {
@@ -106,17 +81,8 @@ export const Primitive = memo(function Primitive({
     return undefined;
   }, [isUpdated]);
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [content]);
-
   // Defer content updates to prevent lag
   const deferredContent = useDeferredValue(content);
-
   const safeContent = typeof deferredContent === 'string' ? deferredContent : JSON.stringify(deferredContent, null, 2);
 
   const handleTts = useCallback(() => {
@@ -137,7 +103,7 @@ export const Primitive = memo(function Primitive({
     ttsService.speak(
       content,
       msgId,
-      [], // No project languages available here, falls back to content detection
+      [],
       () => setIsSpeaking(false)
     );
     setIsSpeaking(true);
@@ -169,197 +135,24 @@ export const Primitive = memo(function Primitive({
       {isEmpty && type !== 'ai_insight' && (
         <div className="absolute top-0 left-0 w-full h-1 bg-amber-500/50 z-10" />
       )}
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 md:px-12 md:py-10 border-b border-white/5">
-        <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
-          {type === 'ai_insight' ? (
-            <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0" />
-          ) : (
-            <div className={cn(
-              "w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0",
-              (type === 'analysis' || type === 'analysis_block') ? "bg-blue-400 animate-pulse" : 
-              (type === 'pitch_result' || type === 'brainstorming_result') ? "bg-green-400" : "bg-white/20"
-            )} />
-          )}
-          {onTitleChange ? (
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent border-none text-lg md:text-lg font-semibold tracking-tight w-full text-white/90 focus:outline-none truncate"
-              placeholder={t('common.untitled')}
-            />
-          ) : (
-            <h3 className="text-lg md:text-lg font-semibold tracking-tight text-white/90 truncate">{title}</h3>
-          )}
-          {isEmpty && type !== 'ai_insight' && (
-            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 ml-2 shrink-0">
-              <AlertCircle className="w-3 h-3 text-amber-500" />
-              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">{t('common.empty', { defaultValue: 'Empty' })}</span>
-            </div>
-          )}
-        </div>
+      
+      <PrimitiveHeader 
+        title={title}
+        type={type}
+        isEmpty={isEmpty}
+        isGenerating={isGenerating}
+        isSpeaking={isSpeaking}
+        isExpanded={isExpanded}
+        mode={mode}
+        onTitleChange={onTitleChange}
+        onTts={handleTts}
+        onAiRefine={onAiRefine}
+        onGenerateImage={onGenerateImage}
+        onFocus={onFocus}
+        onDelete={onDelete}
+        onToggleExpand={handleToggleExpand}
+      />
 
-        <div className="flex items-center gap-1 md:gap-2 relative" ref={menuRef}>
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-2">
-            <button 
-              onClick={handleTts}
-              aria-label={isSpeaking ? "Stop speaking" : "Read aloud"}
-              className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                isSpeaking ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
-              )}
-              title={t('common.speaker')}
-            >
-              {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-            
-            {onAiRefine && (
-              <button 
-                onClick={() => onAiRefine?.()}
-                disabled={isGenerating}
-                aria-label="Refine with AI"
-                className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50"
-                title={t('common.aiRefine')}
-              >
-                {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              </button>
-            )}
-
-            {onGenerateImage && (
-              <button 
-                onClick={onGenerateImage}
-                disabled={isGenerating}
-                aria-label="Generate Image"
-                className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all disabled:opacity-50"
-                title={t('common.generateImage')}
-              >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-            )}
-
-            {onFocus && (
-              <button 
-                onClick={onFocus}
-                aria-label="Enter Focus Mode"
-                className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all"
-                title={t('common.focus')}
-              >
-                <Target className="w-4 h-4" />
-              </button>
-            )}
-
-            {mode === 'stacked' && (
-              <button 
-                onClick={handleToggleExpand}
-                aria-label={isExpanded ? "Collapse" : "Expand"}
-                className="w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-all"
-              >
-                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            )}
-
-            <div className="w-[1px] h-6 bg-white/10 mx-1" />
-            
-            {onDelete && (
-              <button 
-                onClick={onDelete}
-                aria-label="Delete block"
-                className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 flex items-center justify-center transition-all"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Mobile Actions Menu Button */}
-          <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="More options" 
-            className="md:hidden w-10 h-10 rounded-full bg-white/5 text-white flex items-center justify-center transition-all hover:bg-white/10"
-          >
-            <MoreVertical className="w-4 h-4" />
-          </button>
-
-          {/* Mobile Dropdown Menu */}
-          <AnimatePresence>
-            {isMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                className="absolute right-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden py-2"
-              >
-                <button 
-                  onClick={() => { handleTts(); setIsMenuOpen(false); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-white/80"
-                >
-                  {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                  <span className="text-sm font-medium">{isSpeaking ? 'Stop' : t('common.speaker')}</span>
-                </button>
-
-                {onAiRefine && (
-                  <button 
-                    onClick={() => { onAiRefine?.(); setIsMenuOpen(false); }}
-                    disabled={isGenerating}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-white/80 disabled:opacity-50"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-medium">{t('common.aiRefine')}</span>
-                  </button>
-                )}
-
-                {onGenerateImage && (
-                  <button 
-                    onClick={() => { onGenerateImage(); setIsMenuOpen(false); }}
-                    disabled={isGenerating}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-white/80 disabled:opacity-50"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                    <span className="text-sm font-medium">{t('common.generateImage')}</span>
-                  </button>
-                )}
-
-                {onFocus && (
-                  <button 
-                    onClick={() => { onFocus(); setIsMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-white/80"
-                  >
-                    <Target className="w-4 h-4" />
-                    <span className="text-sm font-medium">{t('common.focus')}</span>
-                  </button>
-                )}
-
-                {mode === 'stacked' && (
-                  <button 
-                    onClick={() => { handleToggleExpand(); setIsMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-white/80"
-                  >
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    <span className="text-sm font-medium">{isExpanded ? 'Collapse' : 'Expand'}</span>
-                  </button>
-                )}
-
-                {onDelete && (
-                  <>
-                    <div className="h-[1px] bg-white/5 my-1" />
-                    <button 
-                      onClick={() => { onDelete(); setIsMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-red-400"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="text-sm font-medium">Delete</span>
-                    </button>
-                  </>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {/* Body */}
       <AnimatePresence mode="wait">
         {isExpanded && (
           <motion.div
@@ -368,7 +161,7 @@ export const Primitive = memo(function Primitive({
             exit={{ opacity: 0, height: 0 }}
             className="flex-1 flex flex-col"
           >
-            {/* Horizontal Image Gallery (for characters/locations) */}
+            {/* Horizontal Image Gallery */}
             {type === 'gallery' && images.length > 0 && (
               <div className="px-5 py-4 md:px-10 border-b border-white/5 bg-black/10">
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
@@ -396,7 +189,6 @@ export const Primitive = memo(function Primitive({
                     <button
                       onClick={onGenerateImage}
                       disabled={isGenerating}
-                      aria-label="Add new view"
                       className="h-32 aspect-square rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all shrink-0 text-white/20 hover:text-white/40"
                     >
                       <Plus className="w-6 h-6" />
@@ -408,7 +200,6 @@ export const Primitive = memo(function Primitive({
             )}
 
             <div className="flex-1 flex flex-col">
-              {/* Text Area */}
               <div className="p-5 md:p-12 space-y-6 md:space-y-12">
                 <div className="relative group/text">
                   {onContentChange ? (
@@ -426,41 +217,19 @@ export const Primitive = memo(function Primitive({
                   )}
                 </div>
 
-                {/* Empty State Action */}
                 {isEmpty && (onRegenerate || onAiRefine) && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col items-center justify-center py-12 md:py-24 border-2 border-dashed border-white/5 rounded-[24px] bg-white/[0.02]"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-6">
-                      <Sparkles className="w-8 h-8 text-amber-500/50" />
-                    </div>
-                    <h4 className="text-xl font-semibold text-white/90 mb-2">{t('common.emptyPrimitive', { defaultValue: 'This section is empty' })}</h4>
-                    <p className="text-secondary text-center max-w-md mb-8">
-                      {t('common.emptyPrimitiveDesc', { defaultValue: 'Launch a generation to let the AI create content for this section based on your project context.' })}
-                    </p>
-                    <button
-                      onClick={() => (onRegenerate || onAiRefine)?.()}
-                      disabled={isGenerating}
-                      className="group relative px-8 py-4 bg-white text-black rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 disabled:opacity-50 overflow-hidden"
-                    >
-                      <div className="relative z-10 flex items-center gap-3">
-                        {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                        <span>{t('common.generateContent', { defaultValue: 'Generate Content' })}</span>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-10 transition-opacity" />
-                    </button>
-                  </motion.div>
+                  <PrimitiveEmptyState 
+                    isGenerating={isGenerating}
+                    onRegenerate={onRegenerate}
+                    onAiRefine={onAiRefine}
+                  />
                 )}
 
-                {/* Deep Develop Button (Gray style) */}
                 {type === 'gallery' && onDeepDevelop && (
                   <div className="flex justify-start">
                     <button
                       onClick={onDeepDevelop}
                       disabled={isGenerating}
-                      aria-label="Deep Develop"
                       className="px-8 py-3.5 rounded-full bg-[#2a2a2a] text-white/70 border border-white/5 text-xs uppercase font-bold hover:bg-[#333333] hover:text-white transition-all active:scale-95 disabled:opacity-50 tracking-wider"
                     >
                       {t('common.deepDevelop', { defaultValue: 'Deep Develop' })}
@@ -469,7 +238,6 @@ export const Primitive = memo(function Primitive({
                 )}
               </div>
 
-              {/* Empty State for Gallery (if no images yet) */}
               {type === 'gallery' && images.length === 0 && (
                 <div className="px-5 pb-6 md:px-10 md:pb-10">
                   <div 

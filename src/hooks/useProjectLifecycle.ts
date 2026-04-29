@@ -235,12 +235,9 @@ export function useProjectLifecycle({
     setIsTyping(true);
     try {
 
-      const nextStages: WorkflowStage[] = [
-        'Brainstorming', 'Logline', '3-Act Structure', 'Synopsis', 'Character Bible',
-        'Location Bible', 'Treatment', 'Step Outline', 'Script', 'Storyboard'
-      ];
-      const currentIndex = nextStages.indexOf(stage);
-      const nextStage = nextStages[currentIndex + 1];
+      const allStageIds = stageRegistry.getAllIds();
+      const currentIndex = allStageIds.indexOf(stage);
+      const nextStage = allStageIds[currentIndex + 1];
       
       const newValidatedStages = Array.from(new Set([...(currentProject.validatedStages || []), stage]));
       
@@ -249,17 +246,14 @@ export function useProjectLifecycle({
       if (nextStage) {
         await updateField({ id: currentProject.id, field: 'activeStage', content: nextStage }).unwrap();
         handleStageChange(nextStage);
-        addToast(`✅ ${stage} validated. Moving to ${nextStage}...`, 'success');
+        addToast(`✅ ${stage} validé. Passage à ${nextStage}...`, 'success');
       }
 
       setSyncStatus('synced');
       setIsTyping(false);
 
       // ── PROACTIVE GHOST GENERATION ──────────────────────────────────────
-      // Fire-and-forget: trigger generation for the next stage in the cascade.
-      // This runs in the background and writes results via persistAgentOutput.
-      // The UI picks up the new content via Firestore onSnapshot listeners.
-      const triggeredStage = stageRegistry.getTriggeredStage(stage);
+      const triggeredStage = nextStage; // Proactively generate the NEXT stage
       if (triggeredStage && currentProject) {
         triggerProactiveGeneration(triggeredStage, currentProject);
       }
@@ -283,8 +277,6 @@ export function useProjectLifecycle({
     project: Project
   ) => {
     try {
-      // Skip Storyboard (manual-only per system_logic.md §4)
-      if (targetStage === 'Storyboard') return;
 
       const agent = await agentRegistry.get(targetStage);
       if (!agent) {

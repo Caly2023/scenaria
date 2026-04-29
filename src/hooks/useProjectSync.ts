@@ -10,6 +10,7 @@ type ToastAction = {
 export function useProjectSync(
   currentProject: Project | null,
   addToast: (msg: string, type: 'error' | 'info' | 'success', action?: ToastAction) => void,
+  onSyncSuccess?: (collName: string, id: string) => void
 ) {
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
   const [updateField] = useUpdateProjectFieldMutation();
@@ -45,6 +46,7 @@ export function useProjectSync(
       try {
         await updateSubcol({ projectId: currentProject.id, collectionName: collName, docId: id, data: { content }, orderByField: 'order' }).unwrap();
         setSyncStatus('synced');
+        if (onSyncSuccess) onSyncSuccess(collName, id);
         return;
       } catch (_error) {
         if (attempt < MAX_RETRIES - 1) {

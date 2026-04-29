@@ -30,25 +30,33 @@ interface SidebarProps {
   variant?: 'sidebar' | 'bottom-nav';
 }
 
-const stages: { id: WorkflowStage; icon: React.ElementType; step: number; estTime: string }[] = [
-  { id: 'Project Metadata', icon: Info, step: 1, estTime: '5m' },
-  { id: 'Initial Draft', icon: Edit3, step: 2, estTime: '10m' },
-  { id: 'Brainstorming', icon: Lightbulb, step: 3, estTime: '15m' },
-  { id: 'Logline', icon: Zap, step: 4, estTime: '5m' },
-  { id: '3-Act Structure', icon: LayoutGrid, step: 5, estTime: '30m' },
-  { id: '8-Beat Structure', icon: Layers, step: 6, estTime: '30m' },
-  { id: 'Synopsis', icon: FileText, step: 7, estTime: '45m' },
-  { id: 'Character Bible', icon: BookOpen, step: 8, estTime: '1h' },
-  { id: 'Location Bible', icon: MapPin, step: 9, estTime: '30m' },
-  { id: 'Treatment', icon: PenTool, step: 10, estTime: '2h' },
-  { id: 'Step Outline', icon: ListOrdered, step: 11, estTime: '2h' },
-  { id: 'Script', icon: FileText, step: 12, estTime: 'Days' },
-  { id: 'Global Script Doctoring', icon: Bot, step: 13, estTime: '1h' },
-  { id: 'Technical Breakdown', icon: Cpu, step: 14, estTime: '3h' },
-  { id: 'Visual Assets', icon: ImageIcon, step: 15, estTime: '2h' },
-  { id: 'AI Previs', icon: Film, step: 16, estTime: '2h' },
-  { id: 'Production Export', icon: Share, step: 17, estTime: '5m' },
-];
+const stageUIMetadata: Record<string, { icon: React.ElementType; estTime: string }> = {
+  'Project Metadata': { icon: Info, estTime: '5m' },
+  'Initial Draft': { icon: Edit3, estTime: '10m' },
+  'Brainstorming': { icon: Lightbulb, estTime: '15m' },
+  'Logline': { icon: Zap, estTime: '5m' },
+  '3-Act Structure': { icon: LayoutGrid, estTime: '30m' },
+  '8-Beat Structure': { icon: Layers, estTime: '30m' },
+  'Synopsis': { icon: FileText, estTime: '45m' },
+  'Character Bible': { icon: BookOpen, estTime: '1h' },
+  'Location Bible': { icon: MapPin, estTime: '30m' },
+  'Treatment': { icon: PenTool, estTime: '2h' },
+  'Step Outline': { icon: ListOrdered, estTime: '2h' },
+  'Script': { icon: FileText, estTime: 'Days' },
+  'Global Script Doctoring': { icon: Bot, estTime: '1h' },
+  'Technical Breakdown': { icon: Cpu, estTime: '3h' },
+  'Visual Assets': { icon: ImageIcon, estTime: '2h' },
+  'AI Previs': { icon: Film, estTime: '2h' },
+  'Production Export': { icon: Share, estTime: '5m' },
+};
+
+import { stageRegistry } from '@/config/stageRegistry';
+
+const stages = stageRegistry.getAll().map(s => ({
+  id: s.id,
+  step: s.order + 1,
+  ...stageUIMetadata[s.id]
+}));
 
 export function Sidebar({ variant = 'sidebar' }: SidebarProps) {
   const { activeStage, handleStageChange: onStageChange, currentProject } = useProject();

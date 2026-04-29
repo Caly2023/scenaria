@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { User } from 'firebase/auth';
 import { Project, WorkflowStage } from '../types';
 import { useProjectData } from './useProjectData';
@@ -18,6 +18,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
   const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<string | null>(null);
+  const autoAnalyzeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const {
     projects,
@@ -52,7 +53,13 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     setSyncStatus,
     handleContentUpdate,
     handleSubcollectionUpdate
-  } = useProjectSync(currentProject, addToast);
+  } = useProjectSync(currentProject, addToast, (coll, id) => {
+    // Auto-trigger analysis when content changes, with a longer debounce
+    if (autoAnalyzeTimeoutRef.current) clearTimeout(autoAnalyzeTimeoutRef.current);
+    autoAnalyzeTimeoutRef.current = setTimeout(() => {
+      handleStageAnalyze(activeStage);
+    }, 3000); // 3 second delay after last sync
+  });
 
   const getProjectContext = useCallback(() => {
     if (!currentProject) return null;

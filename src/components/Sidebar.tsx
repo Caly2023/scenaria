@@ -23,10 +23,9 @@ import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptics';
 import { WorkflowStage } from '@/types';
 
+import { useProject } from '@/contexts/ProjectContext';
+
 interface SidebarProps {
-  activeStage: WorkflowStage;
-  onStageChange: (stage: WorkflowStage) => void;
-  validatedStages: WorkflowStage[];
   /** If true, renders as a horizontal bottom navigation bar (mobile) */
   variant?: 'sidebar' | 'bottom-nav';
 }
@@ -51,7 +50,10 @@ const stages: { id: WorkflowStage; icon: React.ElementType; step: number; estTim
   { id: 'Production Export', icon: Share, step: 17, estTime: '5m' },
 ];
 
-export function Sidebar({ activeStage, onStageChange, validatedStages, variant = 'sidebar' }: SidebarProps) {
+export function Sidebar({ variant = 'sidebar' }: SidebarProps) {
+  const { activeStage, handleStageChange: onStageChange, currentProject } = useProject();
+  const validatedStages = currentProject?.validatedStages || [];
+  
   const { t } = useTranslation();
 
   const isStageUnlocked = (index: number) => {

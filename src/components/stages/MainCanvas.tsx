@@ -2,9 +2,9 @@ import React, { useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Primitive } from './Primitive';
-import { Sequence, StageInsight } from '../types';
-import { StageAnalysis } from '../types/stageContract';
+import { Primitive } from '../Primitive';
+import { Sequence, StageInsight } from '@/types';
+import { StageAnalysis } from '@/types/stageContract';
 import { StepLayout } from './StepLayout';
 import { CardSkeleton } from './Skeleton';
 

@@ -8,7 +8,6 @@ import {
   WorkflowStage, 
   Toast,
 } from '../types';
-import { TelemetryStatus } from '../services/telemetryService';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { ProjectDrawer } from './ProjectDrawer';
@@ -18,6 +17,7 @@ import { OnboardingWizard } from './OnboardingWizard';
 import { OrbitingLoader } from './OrbitingLoader';
 import { FormErrorBoundary } from './ErrorBoundary/FormErrorBoundary';
 import { StageSkeleton } from './StageSkeleton';
+import { useProject } from '../contexts/ProjectContext';
 
 // Props for MainLayout
 type AccessibilitySettings = {
@@ -26,100 +26,27 @@ type AccessibilitySettings = {
   reducedMotion: boolean;
 };
 
-type ScriptDoctorMessage = {
-  id: string;
-  role: "user" | "assistant" | "tool" | "model";
-  content: string;
-  status?: string;
-  thinking?: string;
-  reasoning?: string;
-  suggested_actions?: string[];
-  active_tool?: string;
-  timestamp: number;
-  content_parts?: any[];
-};
-
-type ScriptDoctorProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  onSendMessage: (message: string) => void;
-  messages: ScriptDoctorMessage[];
-  isTyping?: boolean;
-  isHeavyThinking?: boolean;
-  aiStatus: string | null;
-  activeStage: string;
-  activeTool?: string | null;
-  projectLanguages?: string[];
-  telemetryStatus?: TelemetryStatus | null;
-  pendingToolCall?: { call: any; botMsgId: string } | null;
-  onConfirmTool?: () => void;
-  onCancelTool?: () => void;
-};
-
 interface MainLayoutProps {
-  currentProject: Project;
-  projectHistory: { id: string; title: string; logline: string; updatedAt: number }[];
-  user: {
-    displayName: string | null;
-    email: string | null;
-    photoURL: string | null;
-    providerId?: string;
-  };
-  activeStage: WorkflowStage;
+  user: any;
   isMobile: boolean;
-  isDoctorOpen: boolean;
-  isFocusMode: boolean;
-  isTyping: boolean;
-  isHeavyThinking: boolean;
   isProjectDrawerOpen: boolean;
   isSettingsDrawerOpen: boolean;
   isHelpOpen: boolean;
   isFirstTime: boolean;
-  isDeleting: boolean;
-  projectToDelete: string | null;
   toasts: Toast[];
-  syncStatus: 'synced' | 'syncing' | 'error';
-  collaborators: { id: string; name: string; photoURL: string; isActive: boolean }[];
   accessibilitySettings: AccessibilitySettings;
-  refiningBlockId: string | null;
-  lastUpdatedPrimitiveId: string | null;
-  hydrationState: {
-    isHydrating: boolean;
-    hydratingStage: WorkflowStage | null;
-    hydratingLabel: string | null;
-    resetHydration?: (stage: WorkflowStage) => void;
-  };
-  telemetryStatus: TelemetryStatus | null;
-  doctorMessages: ScriptDoctorMessage[];
-  isDoctorTyping: boolean;
-  aiStatus: string | null;
-  activeTool: string | null;
-  pendingToolCall: { call: any; botMsgId: string } | null;
-  onConfirmTool: () => void;
-  onCancelTool: () => void;
   
-  // Callbacks
-  handleStageChange: (stage: WorkflowStage) => void;
-  handleProjectSelect: (projectId: string) => void;
-  handleProjectExit: () => void;
-  handleOpenDoctor: () => void;
-  handleCloseDoctor: () => void;
+  // App UI callbacks
   handleOpenDrawer: () => void;
   handleCloseDrawer: () => void;
   handleOpenSettings: () => void;
   handleCloseSettings: () => void;
-  handleCloseFocus: () => void;
-  handleCancelDelete: () => void;
-  handleProjectDelete: (id: string) => void;
   setAccessibilitySettings: (s: AccessibilitySettings) => void;
   setIsHelpOpen: (v: boolean) => void;
   setIsFirstTime: (v: boolean) => void;
   setToasts: React.Dispatch<React.SetStateAction<Toast[]>>;
   
-  // Logic callbacks
-  handleDoctorMessage: (msg: string) => void;
-  handleMetadataUpdate: (metadata: ProjectMetadata) => void;
-  handleDeleteCurrentProject: () => void;
+  // Logic callbacks from App
   handleLanguageChange: (language: string) => void;
   handleThemeChange: (theme: 'dark' | 'light' | 'system') => void;
   handleProfileSave: (profile: { displayName: string; photoURL: string }) => Promise<void>;
@@ -130,60 +57,29 @@ interface MainLayoutProps {
   // Stage Content Children
   renderStage: () => React.ReactNode;
   
-  // Components from App.tsx
-  ScriptDoctor: React.ComponentType<ScriptDoctorProps>;
+  // Components
+  ScriptDoctor: React.ComponentType<any>;
 }
 
 const MainLayoutComponent = ({
-  currentProject,
-  projectHistory,
   user,
-  activeStage,
   isMobile,
-  isDoctorOpen,
-  isFocusMode,
-  isTyping,
-  isHeavyThinking,
   isProjectDrawerOpen,
   isSettingsDrawerOpen,
   isHelpOpen,
   isFirstTime,
-  isDeleting,
-  projectToDelete,
   toasts,
-  syncStatus,
-  collaborators,
   accessibilitySettings,
-  refiningBlockId,
-  hydrationState,
-  telemetryStatus,
-  doctorMessages,
-  isDoctorTyping,
-  aiStatus,
-  activeTool,
-  pendingToolCall,
-  onConfirmTool,
-  onCancelTool,
   
-  handleStageChange,
-  handleProjectSelect,
-  handleProjectExit,
-  handleOpenDoctor,
-  handleCloseDoctor,
   handleOpenDrawer,
   handleCloseDrawer,
   handleOpenSettings,
   handleCloseSettings,
-  handleCancelDelete,
-  handleProjectDelete,
   setAccessibilitySettings,
   setIsHelpOpen,
   setIsFirstTime,
   setToasts,
   
-  handleDoctorMessage,
-  handleMetadataUpdate,
-  handleDeleteCurrentProject,
   handleLanguageChange,
   handleThemeChange,
   handleProfileSave,
@@ -194,6 +90,25 @@ const MainLayoutComponent = ({
   renderStage,
   ScriptDoctor
 }: MainLayoutProps) => {
+  const project = useProject();
+  const {
+    currentProject,
+    activeStage,
+    isDoctorOpen,
+    isFocusMode,
+    isTyping,
+    isHeavyThinking,
+    isDeleting,
+    projectToDelete,
+    syncStatus,
+    refiningBlockId,
+    hydrationState,
+    handleOpenDoctor,
+    handleCloseDoctor,
+    handleProjectDelete,
+    handleCancelDelete,
+    handleDeleteCurrentProject
+  } = project;
   
   const [showDoctorBubble, setShowDoctorBubble] = useState(true);
   const lastScrollY = useRef(0);
@@ -215,17 +130,7 @@ const MainLayoutComponent = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobile]);
   
-  const EMPTY_ARRAY: WorkflowStage[] = [];
-  const DEFAULT_METADATA: ProjectMetadata = {
-    title: '',
-    format: '',
-    genre: '',
-    tone: '',
-    languages: [],
-    targetDuration: '',
-    logline: '',
-  };
-  const NOOP = () => {};
+  if (!currentProject) return null;
 
   return (
     <div className={cn(
@@ -236,11 +141,7 @@ const MainLayoutComponent = ({
       {!isMobile && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
           <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85dvh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
-            <Sidebar
-              activeStage={activeStage}
-              onStageChange={handleStageChange}
-              validatedStages={currentProject.validatedStages || EMPTY_ARRAY}
-            />
+            <Sidebar variant="sidebar" />
           </div>
         </div>
       )}
@@ -282,21 +183,13 @@ const MainLayoutComponent = ({
       )}>
         <div className={cn(isMobile && "fixed top-0 left-0 right-0 z-50")}>
           <Header
-            projectName={currentProject?.metadata?.title || "Untitled"}
-            projectHistory={projectHistory}
-            currentProjectId={currentProject.id}
-            onProjectSelect={handleProjectSelect}
-            onNewStory={handleProjectExit}
-            onCallStart={NOOP}
-            onInfoClick={() => setIsHelpOpen(true)}
-            syncStatus={syncStatus}
-            collaborators={collaborators}
             isCompact={isDoctorOpen}
             accessibilitySettings={accessibilitySettings}
             onAccessibilityChange={setAccessibilitySettings}
             onTitleClick={handleOpenDrawer}
             isTitleOpen={isProjectDrawerOpen}
             onSettingsClick={handleOpenSettings}
+            onInfoClick={() => setIsHelpOpen(true)}
           />
         </div>
 
@@ -350,22 +243,7 @@ const MainLayoutComponent = ({
                 </div>
               }
             >
-              <ScriptDoctor
-                isOpen={isDoctorOpen}
-                onClose={handleCloseDoctor}
-                messages={doctorMessages}
-                onSendMessage={handleDoctorMessage}
-                isTyping={isDoctorTyping}
-                isHeavyThinking={isHeavyThinking}
-                aiStatus={aiStatus}
-                activeStage={activeStage}
-                activeTool={activeTool}
-                projectLanguages={currentProject.metadata?.languages}
-                telemetryStatus={telemetryStatus}
-                pendingToolCall={pendingToolCall}
-                onConfirmTool={onConfirmTool}
-                onCancelTool={onCancelTool}
-              />
+              <ScriptDoctor />
             </Suspense>
           </div>
         </div>
@@ -374,22 +252,7 @@ const MainLayoutComponent = ({
       {/* ── MOBILE: Script Doctor as bottom sheet ─────────────────────────── */}
       {isMobile && (
         <Suspense fallback={null}>
-          <ScriptDoctor
-            isOpen={isDoctorOpen}
-            onClose={handleCloseDoctor}
-            messages={doctorMessages}
-            onSendMessage={handleDoctorMessage}
-            isTyping={isDoctorTyping}
-            isHeavyThinking={isHeavyThinking}
-            aiStatus={aiStatus}
-            activeStage={activeStage}
-            activeTool={activeTool}
-            projectLanguages={currentProject.metadata?.languages}
-            telemetryStatus={telemetryStatus}
-            pendingToolCall={pendingToolCall}
-            onConfirmTool={onConfirmTool}
-            onCancelTool={onCancelTool}
-          />
+          <ScriptDoctor />
         </Suspense>
       )}
 
@@ -400,12 +263,7 @@ const MainLayoutComponent = ({
         >
           {/* Stage tabs */}
           <div className="h-18 flex items-end pb-0">
-            <Sidebar
-              activeStage={activeStage}
-              onStageChange={handleStageChange}
-              validatedStages={currentProject.validatedStages || EMPTY_ARRAY}
-              variant="bottom-nav"
-            />
+            <Sidebar variant="bottom-nav" />
           </div>
         </div>
       )}
@@ -414,8 +272,6 @@ const MainLayoutComponent = ({
         <ProjectDrawer
           isOpen={isProjectDrawerOpen}
           onClose={handleCloseDrawer}
-          metadata={currentProject.metadata || DEFAULT_METADATA}
-          onUpdate={handleMetadataUpdate}
           onDelete={handleDeleteCurrentProject}
         />
       </FormErrorBoundary>

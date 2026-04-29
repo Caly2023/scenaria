@@ -17,41 +17,41 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { AiFlowToggle } from './AiFlowToggle';
 
+import { useProject } from '@/contexts/ProjectContext';
+
 interface HeaderProps {
-  projectName: string;
-  projectHistory: { id: string; title: string; logline: string; updatedAt: number }[];
-  currentProjectId: string;
-  onProjectSelect: (projectId: string) => void;
-  onNewStory: () => void;
-  onCallStart: () => void;
-  onInfoClick: () => void;
-  syncStatus: 'synced' | 'syncing' | 'error';
-  collaborators: { id: string; name: string; photoURL: string; isActive: boolean }[];
   isCompact?: boolean;
   accessibilitySettings: { highContrast: boolean; largeText: boolean; reducedMotion: boolean };
   onAccessibilityChange: (settings: HeaderProps['accessibilitySettings']) => void;
+  onSettingsClick: () => void;
+  onInfoClick: () => void;
   onTitleClick: () => void;
   isTitleOpen: boolean;
-  onSettingsClick: () => void;
 }
 
 export function Header({ 
-  projectName, 
-  projectHistory,
-  currentProjectId,
-  onProjectSelect,
-  onNewStory,
-  onCallStart, 
-  onInfoClick,
-  syncStatus, 
-  collaborators,
   isCompact,
   accessibilitySettings,
   onAccessibilityChange,
+  onSettingsClick,
+  onInfoClick,
   onTitleClick,
-  isTitleOpen,
-  onSettingsClick
+  isTitleOpen
 }: HeaderProps) {
+  const project = useProject();
+  const { 
+    currentProject, 
+    projects: projectHistory, 
+    handleProjectSelect: onProjectSelect, 
+    handleProjectExit: onNewStory,
+    syncStatus 
+  } = project;
+
+  const projectName = currentProject?.metadata?.title || "Untitled";
+  const currentProjectId = currentProject?.id || "";
+  const collaborators: any[] = [];
+  const onCallStart = () => {};
+
   const { t } = useTranslation();
   const [isAccessOpen, setIsAccessOpen] = React.useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = React.useState(false);

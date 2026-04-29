@@ -112,6 +112,13 @@ export interface Sequence {
   primitiveType?: string;
 }
 
+export interface HydrationState {
+  isHydrating: boolean;
+  hydratingStage: WorkflowStage | null;
+  hydratingLabel: string | null;
+  resetHydration?: (stage: WorkflowStage) => void;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;

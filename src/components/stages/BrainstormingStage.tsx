@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { StepLayout } from './StepLayout';
-import { Primitive } from './Primitive';
+import { Primitive } from '../Primitive';
 import { StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
 

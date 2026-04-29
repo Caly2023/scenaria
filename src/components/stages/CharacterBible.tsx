@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Users, Maximize2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Primitive } from './Primitive';
+import { Primitive } from '../Primitive';
 import { Character, StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
 import { StepLayout } from './StepLayout';

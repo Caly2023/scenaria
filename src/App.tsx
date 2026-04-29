@@ -1,11 +1,5 @@
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { useAppAuth as useAuth } from "./hooks/useAppAuth";
-import { useProjects } from "./hooks/useProjects";
-import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
-import { useScriptDoctor } from "./hooks/useScriptDoctor";
-import { useAppCallbacks } from "./hooks/useAppCallbacks";
-import { useAutoHydration } from "./hooks/useAutoHydration";
-import { useTelemetry } from "./hooks/useTelemetry";
 import { useWindowSize } from "./hooks/useWindowSize";
 import { WorkflowStage, Project } from "./types";
 import { FocusMode } from "./components/FocusMode";
@@ -48,20 +42,43 @@ export default function App() {
   }, []);
 
   const { user, isAuthReady, isOffline, connectionError } = useAuth();
+  
+  return (
+    <ProjectProvider user={user} addToast={addToast}>
+      <AppContent 
+        user={user} 
+        isAuthReady={isAuthReady} 
+        isOffline={isOffline} 
+        connectionError={connectionError} 
+        toasts={toasts}
+        addToast={addToast}
+      />
+    </ProjectProvider>
+  );
+}
+
+function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, addToast }: { user: any, isAuthReady: boolean, isOffline: boolean, connectionError: any, toasts: Toast[], addToast: any }) {
+  const project = useProject();
   const { 
-    projects, currentProject, isProjectLoading, isProjectNotFound, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
-    isTyping, syncStatus, handleRegenerate, handleStageValidate, activeStage, handleStageRefine, handleStageAnalyze,
+    currentProject, activeStage, projects, isProjectLoading, isProjectNotFound,
+    handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleDeleteCurrentProject,
+    handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
+    isTyping, syncStatus, handleRegenerate, handleStageValidate, handleStageRefine, handleStageAnalyze,
     pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
     isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
-    handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop, handleSequenceUpdate, handleSequenceAdd
-  } = useProjects(user, addToast);
+    handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop, handleSequenceUpdate, handleSequenceAdd,
+    handleToggleDoctor, handleOpenDoctor, handleCloseDoctor,
+    hydrationState,
+    isDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage,
+    pendingToolCall, handleConfirmTool, handleCancelTool,
+    isFocusMode, handleCloseFocus, focusedSequenceId, handleFocusMode,
+    telemetryStatus
+  } = project;
 
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
-  const [isFocusMode, setIsFocusMode] = useState(false);
-  const [focusedSequenceId, setFocusedSequenceId] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const savedTheme = localStorage.getItem("scenaria_theme");
     return savedTheme === "dark" || savedTheme === "light" || savedTheme === "system" ? savedTheme : "dark";
@@ -80,47 +97,12 @@ export default function App() {
     }
   });
 
-  // Sync Status Effect (Log changes if needed)
-  // useMemo and other logic around setSyncStatus could go here if specialized handling is needed
-  
-
-  const hydrationState = useAutoHydration({
-    activeStage,
-    currentProject,
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives,
-    characters,
-    locations,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    addToast,
-    onStageAnalyze: handleStageAnalyze
-  });
-
-  const telemetryStatus = useTelemetry();
-
-
   const { isMobile } = useWindowSize();
-  const {
-    isDoctorOpen, setIsDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage,
-    pendingToolCall, handleConfirmTool, handleCancelTool
-  } = useScriptDoctor({
-    currentProject, activeStage, sequences, treatmentSequences, scriptScenes, pitchPrimitives, characters, locations, addToast, setRefiningBlockId, setLastUpdatedPrimitiveId, handleStageAnalyze
-  });
 
-  const handleToggleDoctor = useCallback(() => setIsDoctorOpen(prev => !prev), [setIsDoctorOpen]);
-  const handleOpenDoctor = useCallback(() => setIsDoctorOpen(true), [setIsDoctorOpen]);
-  const handleCloseDoctor = useCallback(() => setIsDoctorOpen(false), [setIsDoctorOpen]);
   const handleOpenDrawer = useCallback(() => setIsProjectDrawerOpen(true), []);
   const handleCloseDrawer = useCallback(() => setIsProjectDrawerOpen(false), []);
   const handleOpenSettings = useCallback(() => setIsSettingsDrawerOpen(true), []);
   const handleCloseSettings = useCallback(() => setIsSettingsDrawerOpen(false), []);
-  const handleCloseFocus = useCallback(() => setIsFocusMode(false), []);
   const handleCancelDelete = useCallback(() => setProjectToDelete(null), [setProjectToDelete]);
 
   useEffect(() => {
@@ -154,8 +136,6 @@ export default function App() {
     onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Project Metadata", "Initial Draft", "Brainstorming", "Logline", "3-Act Structure", "8-Beat Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Global Script Doctoring", "Technical Breakdown", "Visual Assets", "AI Previs", "Production Export"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
   });
 
-  const handleFocusMode = useCallback((id: string) => { setFocusedSequenceId(id); setIsFocusMode(true); }, [setFocusedSequenceId, setIsFocusMode]);
-  const handleDeleteCurrentProject = useCallback(() => { if (currentProject) setProjectToDelete(currentProject.id); }, [currentProject, setProjectToDelete]);
   const handleLanguageChange = useCallback((nextLanguage: string) => {
     setLanguage(nextLanguage);
     addToast(nextLanguage === "fr" ? "Langue definie sur francais" : "Language changed to English", "success");
@@ -174,39 +154,6 @@ export default function App() {
     addToast("Deconnexion effectuee", "success");
   }, [addToast]);
 
-  const {
-    handleStoryChange, onLoglineChange, handleCharacterAdd, handleCharacterUpdate, handleCharacterDelete, handleLocationAdd, handleLocationUpdate, handleLocationDelete, onValidateProjectMetadata, onValidateInitialDraft, onValidateBrainstorming, onValidateLogline, onValidate3Act, onValidate8Beat, onValidateSynopsis, onValidateCharacterBible, onValidateLocationBible, onValidateTreatment, onValidateStepOutline, onValidateScript, onValidateGlobalDoctoring, onValidateTechnicalBreakdown, onValidateVisualAssets, onValidateAiPrevis, onValidateProductionExport
-  } = useAppCallbacks({
-    currentProject, addToast, handleSubcollectionUpdate, handleContentUpdate, handleStageValidate, pitchPrimitives, loglinePrimitives
-  });
-
-  const onRefineLogline = useCallback((f?: string) => handleStageRefine("Logline", f || "Refine Logline"), [handleStageRefine]);
-  const onContentChange3Act = useCallback((c: string) => {
-    const id = structurePrimitives[0]?.id;
-    if (id && structurePrimitives.length === 1) handleSubcollectionUpdate("structure_primitives", id, c);
-  }, [structurePrimitives, handleSubcollectionUpdate]);
-  const onRefine3Act = useCallback((f?: string, id?: string) => handleStageRefine("3-Act Structure", f || "Refine Structure", id), [handleStageRefine]);
-  const onRegenerate3Act = useCallback(() => handleRegenerate("3-Act Structure"), [handleRegenerate]);
-  const onContentChangeSynopsis = useCallback((c: string) => {
-    const id = synopsisPrimitives[0]?.id;
-    if (id) handleSubcollectionUpdate("synopsis_primitives", id, c);
-  }, [synopsisPrimitives, handleSubcollectionUpdate]);
-  const onRefineSynopsis = useCallback((f?: string, id?: string) => handleStageRefine("Synopsis", f || "Refine Synopsis", id), [handleStageRefine]);
-  const onRegenerateSynopsis = useCallback(() => handleRegenerate("Synopsis"), [handleRegenerate]);
-  const onContentChangeTreatment = useCallback((c: string) => handleContentUpdate("treatmentDraft", c), [handleContentUpdate]);
-  const onItemChangeTreatment = useCallback((id: string, content: string) => handleSubcollectionUpdate("treatment_sequences", id, content), [handleSubcollectionUpdate]);
-  const onRefineTreatment = useCallback((f?: string, id?: string) => handleStageRefine("Treatment", f || "Refine Treatment", id), [handleStageRefine]);
-  const onRegenerateTreatment = useCallback(() => handleRegenerate("Treatment"), [handleRegenerate]);
-  const onContentChangeScript = useCallback((c: string) => handleContentUpdate("scriptDraft", c), [handleContentUpdate]);
-  const onItemChangeScript = useCallback((id: string, content: string) => handleSubcollectionUpdate("script_scenes", id, content), [handleSubcollectionUpdate]);
-  const onRefineScript = useCallback((f?: string, id?: string) => handleStageRefine("Script", f || "Refine Script", id), [handleStageRefine]);
-  const onRegenerateScript = useCallback(() => handleRegenerate("Script"), [handleRegenerate]);
-  const onRefineCharacter = useCallback((f?: string, id?: string) => handleStageRefine("Character Bible", f || "Refine Character", id), [handleStageRefine]);
-  const onRefineLocation = useCallback((f?: string, id?: string) => handleStageRefine("Location Bible", f || "Refine Location", id), [handleStageRefine]);
-  const onApplyFix = useCallback((prompt: string) => {
-    handleOpenDoctor();
-    handleDoctorMessage(prompt);
-  }, [handleOpenDoctor, handleDoctorMessage]);
 
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const handleTts = useCallback((id: string, text: string) => {
@@ -238,158 +185,42 @@ export default function App() {
   }
 
   const renderStage = () => (
-    <StageRenderer
-      activeStage={activeStage}
-      currentProject={currentProject}
-      isTyping={isTyping}
-      hydrationState={hydrationState}
-      refiningBlockId={refiningBlockId}
-      lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-      pitchPrimitives={pitchPrimitives}
-      draftPrimitives={draftPrimitives}
-      loglinePrimitives={loglinePrimitives}
-      structurePrimitives={structurePrimitives}
-      beatPrimitives={beatPrimitives}
-      synopsisPrimitives={synopsisPrimitives}
-      doctoringPrimitives={doctoringPrimitives}
-      breakdownPrimitives={breakdownPrimitives}
-      assetPrimitives={assetPrimitives}
-      previsPrimitives={previsPrimitives}
-      exportPrimitives={exportPrimitives}
-      characters={characters}
-      locations={locations}
-      treatmentSequences={treatmentSequences}
-      sequences={sequences}
-      scriptScenes={scriptScenes}
-      handleStoryChange={handleStoryChange}
-      onLoglineChange={onLoglineChange}
-      onRefineLogline={onRefineLogline}
-      onContentChange3Act={onContentChange3Act}
-      onRefine3Act={onRefine3Act}
-      onRegenerate3Act={onRegenerate3Act}
-      onContentChangeSynopsis={onContentChangeSynopsis}
-      onRefineSynopsis={onRefineSynopsis}
-      onRegenerateSynopsis={onRegenerateSynopsis}
-      onContentChangeTreatment={onContentChangeTreatment}
-      onItemChangeTreatment={onItemChangeTreatment}
-      onRefineTreatment={onRefineTreatment}
-      onRegenerateTreatment={onRegenerateTreatment}
-      onContentChangeScript={onContentChangeScript}
-      onItemChangeScript={onItemChangeScript}
-      onRefineScript={onRefineScript}
-      onRegenerateScript={onRegenerateScript}
-      handleCharacterAdd={handleCharacterAdd}
-      handleCharacterUpdate={handleCharacterUpdate}
-      handleCharacterDelete={handleCharacterDelete}
-      onRefineCharacter={onRefineCharacter}
-      handleLocationAdd={handleLocationAdd}
-      handleLocationUpdate={handleLocationUpdate}
-      handleLocationDelete={handleLocationDelete}
-      onRefineLocation={onRefineLocation}
-      handleGenerateViews={handleGenerateViews}
-      handleCharacterDeepDevelop={handleCharacterDeepDevelop}
-      handleLocationDeepDevelop={handleLocationDeepDevelop}
-      handleSequenceUpdate={handleSequenceUpdate}
-      handleSequenceAdd={handleSequenceAdd}
-      handleFocusMode={handleFocusMode}
-      handleAiMagic={handleAiMagic}
-      handleToggleDoctor={handleToggleDoctor}
-      handleSubcollectionUpdate={handleSubcollectionUpdate}
-      onValidateProjectMetadata={onValidateProjectMetadata}
-      onValidateInitialDraft={onValidateInitialDraft}
-      onValidateBrainstorming={onValidateBrainstorming}
-      onValidateLogline={onValidateLogline}
-      onValidate3Act={onValidate3Act}
-      onValidate8Beat={onValidate8Beat}
-      onValidateSynopsis={onValidateSynopsis}
-      onValidateCharacterBible={onValidateCharacterBible}
-      onValidateLocationBible={onValidateLocationBible}
-      onValidateTreatment={onValidateTreatment}
-      onValidateStepOutline={onValidateStepOutline}
-      onValidateScript={onValidateScript}
-      onValidateGlobalDoctoring={onValidateGlobalDoctoring}
-      onValidateTechnicalBreakdown={onValidateTechnicalBreakdown}
-      onValidateVisualAssets={onValidateVisualAssets}
-      onValidateAiPrevis={onValidateAiPrevis}
-      onValidateProductionExport={onValidateProductionExport}
-      onAnalyzeStage={handleStageAnalyze}
-      onApplyFix={onApplyFix}
-      handleMetadataUpdate={handleMetadataUpdate}
-      CanvasErrorBoundary={({ children }: ErrorBoundaryProps) => <>{children}</>}
-    />
+    <StageRenderer />
   );
 
   return (
     <>
       <MainLayout
-        currentProject={currentProject}
-        projectHistory={projects
-          .slice()
-          .sort((a, b) => b.updatedAt - a.updatedAt)
-          .map((project) => ({
-            id: project.id,
-            title: project.metadata?.title || "Projet sans titre",
-            logline: project.metadata?.logline || "",
-            updatedAt: project.updatedAt || 0,
-          }))}
         user={{
           displayName: user.displayName,
           email: user.email,
           photoURL: user.photoURL,
           providerId: user.providerData[0]?.providerId,
         }}
-        activeStage={activeStage}
         isMobile={isMobile}
-        isDoctorOpen={isDoctorOpen}
-        isFocusMode={isFocusMode}
-        isTyping={isTyping}
-        isHeavyThinking={isHeavyThinking}
         isProjectDrawerOpen={isProjectDrawerOpen}
         isSettingsDrawerOpen={isSettingsDrawerOpen}
         isHelpOpen={isHelpOpen}
         isFirstTime={isFirstTime}
-        isDeleting={isDeleting}
-        projectToDelete={projectToDelete}
         toasts={toasts}
-        syncStatus={syncStatus}
-        collaborators={[]}
         accessibilitySettings={accessibilitySettings}
-        refiningBlockId={refiningBlockId}
-        lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
-        hydrationState={hydrationState}
-        telemetryStatus={telemetryStatus || null}
-        doctorMessages={doctorMessages}
-        isDoctorTyping={isDoctorTyping}
-        aiStatus={aiStatus}
-        activeTool={activeTool}
-        pendingToolCall={pendingToolCall}
-        onConfirmTool={handleConfirmTool}
-        onCancelTool={handleCancelTool}
-        handleStageChange={handleStageChange}
-        handleProjectSelect={handleProjectSelect}
-        handleProjectExit={handleProjectExit}
-        handleOpenDoctor={handleOpenDoctor}
-        handleCloseDoctor={handleCloseDoctor}
+        
         handleOpenDrawer={handleOpenDrawer}
         handleCloseDrawer={handleCloseDrawer}
         handleOpenSettings={handleOpenSettings}
         handleCloseSettings={handleCloseSettings}
-        handleCloseFocus={handleCloseFocus}
-        handleCancelDelete={handleCancelDelete}
-        handleProjectDelete={handleProjectDelete}
         setAccessibilitySettings={setAccessibilitySettings}
         setIsHelpOpen={setIsHelpOpen}
         setIsFirstTime={setIsFirstTime}
         setToasts={setToasts}
-        handleDoctorMessage={handleDoctorMessage}
-        handleMetadataUpdate={handleMetadataUpdate}
-        handleDeleteCurrentProject={handleDeleteCurrentProject}
+        
         handleLanguageChange={handleLanguageChange}
         handleThemeChange={handleThemeChange}
         handleProfileSave={handleProfileSave}
         handleLogout={handleLogout}
         theme={theme}
         language={language}
+        
         renderStage={renderStage}
         ScriptDoctor={ScriptDoctorComponent}
       />

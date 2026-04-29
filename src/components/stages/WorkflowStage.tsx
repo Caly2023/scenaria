@@ -1,4 +1,4 @@
-import { Primitive } from './Primitive';
+import { Primitive } from '../Primitive';
 import { StepLayout } from './StepLayout';
 import { StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';

@@ -9,16 +9,10 @@ import {
   Sequence,
   StageInsight,
   ProjectMetadata,
+  HydrationState,
 } from '../types';
 import { StageAnalysis } from '../types/stageContract';
 
-type BrainstormPrimitive = Sequence & { primitiveType?: string };
-type HydrationState = {
-  isHydrating: boolean;
-  hydratingStage: WorkflowStage | null;
-  hydratingLabel: string | null;
-  resetHydration?: (stage: WorkflowStage) => void;
-};
 
 type CanvasErrorBoundaryProps = {
   children: React.ReactNode;
@@ -27,247 +21,116 @@ type CanvasErrorBoundaryProps = {
 type CharacterUpdate = Partial<Character>;
 type LocationUpdate = Partial<Location>;
 type SequenceUpdate = Partial<Sequence>;
-type PrimitiveWithAnalysisMeta = Sequence & {
-  primitiveType?: string;
-  isReady?: boolean;
-  suggestions?: string[];
-  updatedAt?: number;
-};
 
-function getBrainstormStory(primitives: Sequence[]): string {
-  const typedPrimitives = primitives as BrainstormPrimitive[];
-  // Skip analysis primitive (order 0) for the story content
-  return typedPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.content
-    // Backward compatibility for older projects
-    || typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.content
-    || primitives.find((p) => /pitch|story|input/i.test(p.title || '') && p.order !== 0)?.content
-    || primitives.find((p) => p.order === 1)?.content
-    || primitives.find((p) => p.order !== 0)?.content
-    || "";
-}
-
-function getStageInsight(
-  stage: WorkflowStage,
-  project: Project,
-  primitives: Sequence[]
-): StageInsight | StageAnalysis | undefined {
-  const typed = primitives as PrimitiveWithAnalysisMeta[];
-  const analysisPrim = typed.find((p) => p.order === 0 || p.primitiveType === 'analysis');
-  if (analysisPrim) {
-    return {
-      content: analysisPrim.content,
-      isReady: analysisPrim.isReady ?? project.stageAnalyses?.[stage]?.isReady,
-      suggestions: analysisPrim.suggestions || project.stageAnalyses?.[stage]?.suggestions,
-      updatedAt: analysisPrim.updatedAt || project.stageAnalyses?.[stage]?.updatedAt || Date.now(),
-    };
-  }
-  return project.stageAnalyses?.[stage];
-}
+import { getBrainstormStory, getStageInsight } from '../lib/stageUtils';
 
 // Lazy-loaded stage components
 const BrainstormingStage = React.lazy(() =>
-  import("./BrainstormingStage").then((m) => ({
+  import("./stages/BrainstormingStage").then((m) => ({
     default: m.BrainstormingStage,
   })),
 );
 const LoglineStage = React.lazy(() =>
-  import("./LoglineStage").then((m) => ({
+  import("./stages/LoglineStage").then((m) => ({
     default: m.LoglineStage,
   })),
 );
 const WorkflowStageComponent = React.lazy(() =>
-  import("./WorkflowStage").then((m) => ({
+  import("./stages/WorkflowStage").then((m) => ({
     default: m.WorkflowStage,
   })),
 );
 const CharacterBible = React.lazy(() =>
-  import("./CharacterBible").then((m) => ({
+  import("./stages/CharacterBible").then((m) => ({
     default: m.CharacterBible,
   })),
 );
 const LocationBible = React.lazy(() =>
-  import("./LocationBible").then((m) => ({
+  import("./stages/LocationBible").then((m) => ({
     default: m.LocationBible,
   })),
 );
 const MainCanvas = React.lazy(() =>
-  import("./MainCanvas").then((m) => ({ default: m.MainCanvas })),
+  import("./stages/MainCanvas").then((m) => ({ default: m.MainCanvas })),
 );
 const ProjectMetadataStage = React.lazy(() =>
-  import("./ProjectMetadataStage").then((m) => ({ default: m.ProjectMetadataStage })),
+  import("./stages/ProjectMetadataStage").then((m) => ({ default: m.ProjectMetadataStage })),
 );
 
-interface StageRendererProps {
-  activeStage: WorkflowStage;
-  currentProject: Project;
-  pitchPrimitives: Sequence[];
-  draftPrimitives: Sequence[];
-  loglinePrimitives: Sequence[];
-  structurePrimitives: Sequence[];
-  beatPrimitives: Sequence[];
-  synopsisPrimitives: Sequence[];
-  doctoringPrimitives: Sequence[];
-  breakdownPrimitives: Sequence[];
-  assetPrimitives: Sequence[];
-  previsPrimitives: Sequence[];
-  exportPrimitives: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
-  sequences: Sequence[];
-  characters: Character[];
-  locations: Location[];
-  isTyping: boolean;
-  hydrationState: HydrationState;
-  refiningBlockId: string | null;
-  lastUpdatedPrimitiveId: string | null;
-  
-  // Callbacks
-  handleStoryChange: (c: string) => void;
-  onLoglineChange: (c: string) => void;
-  onRefineLogline: (f?: string) => void;
-  onContentChange3Act: (c: string) => void;
-  onRefine3Act: (f?: string, blockId?: string) => void;
-  onRegenerate3Act: () => void;
-  onContentChangeSynopsis: (c: string) => void;
-  onRefineSynopsis: (f?: string, blockId?: string) => void;
-  onRegenerateSynopsis: () => void;
-  onContentChangeTreatment: (c: string) => void;
-  onItemChangeTreatment: (id: string, content: string) => void;
-  onRefineTreatment: (f?: string, blockId?: string) => void;
-  onRegenerateTreatment: () => void;
-  onContentChangeScript: (c: string) => void;
-  onItemChangeScript: (id: string, content: string) => void;
-  onRefineScript: (f?: string, blockId?: string) => void;
-  onRegenerateScript: () => void;
-  handleCharacterAdd: (name: string, description: string, tier: Character['tier']) => void;
-  handleCharacterUpdate: (id: string, updates: CharacterUpdate) => void;
-  handleCharacterDelete: (id: string) => void;
-  onRefineCharacter: (f?: string, id?: string) => void;
-  handleLocationAdd: (name: string, description: string) => void;
-  handleLocationUpdate: (id: string, updates: LocationUpdate) => void;
-  handleLocationDelete: (id: string) => void;
-  onRefineLocation: (f?: string, id?: string) => void;
-  handleGenerateViews: (id: string) => void;
-  handleCharacterDeepDevelop: (id: string, stage: WorkflowStage) => void;
-  handleLocationDeepDevelop: (id: string, stage: WorkflowStage) => void;
-  handleSequenceUpdate: (id: string, updates: SequenceUpdate) => void;
-  handleSequenceAdd: () => void;
-  handleFocusMode: (id: string) => void;
-  handleAiMagic: (id: string) => void;
-  handleToggleDoctor: () => void;
-  handleSubcollectionUpdate: (coll: string, id: string, content: string) => void;
-  handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => void;
-  
-  // Validation Callbacks
-  onValidateBrainstorming: () => void;
-  onValidateInitialDraft: () => void;
-  onValidateProjectMetadata: () => void;
-  onValidateLogline: () => void;
-  onValidate3Act: () => void;
-  onValidate8Beat: () => void;
-  onValidateSynopsis: () => void;
-  onValidateCharacterBible: () => void;
-  onValidateLocationBible: () => void;
-  onValidateTreatment: () => void;
-  onValidateStepOutline: () => void;
-  onValidateScript: () => void;
-  onValidateGlobalDoctoring: () => void;
-  onValidateTechnicalBreakdown: () => void;
-  onValidateVisualAssets: () => void;
-  onValidateAiPrevis: () => void;
-  onValidateProductionExport: () => void;
-  
-  onAnalyzeStage: (stage: WorkflowStage) => Promise<void>;
-  onApplyFix: (prompt: string) => void;
-  
-  // Error Boundary Wrapper
-  CanvasErrorBoundary: React.ComponentType<CanvasErrorBoundaryProps>;
-}
+const StageRendererComponent = ({ CanvasErrorBoundary }: { CanvasErrorBoundary: React.ComponentType<{ children: React.ReactNode }> }) => {
+  const project = useProject();
+  const {
+    activeStage,
+    currentProject,
+    pitchPrimitives,
+    draftPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    beatPrimitives,
+    synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
+    treatmentSequences,
+    scriptScenes,
+    sequences,
+    characters,
+    locations,
+    isTyping,
+    hydrationState,
+    refiningBlockId,
+    lastUpdatedPrimitiveId,
+    
+    // Handlers
+    handleStoryChange,
+    onLoglineChange,
+    onContentChange3Act: onContentChange3ActFromContext,
+    onValidateBrainstorming,
+    onValidateInitialDraft,
+    onValidateProjectMetadata,
+    onValidateLogline,
+    onValidate3Act,
+    onValidate8Beat,
+    onValidateSynopsis,
+    onValidateCharacterBible,
+    onValidateLocationBible,
+    onValidateTreatment,
+    onValidateStepOutline,
+    onValidateScript,
+    onValidateGlobalDoctoring,
+    onValidateTechnicalBreakdown,
+    onValidateVisualAssets,
+    onValidateAiPrevis,
+    onValidateProductionExport,
+    
+    handleSubcollectionUpdate,
+    handleContentUpdate,
+    handleStageAnalyze: onAnalyzeStage,
+    handleSequenceUpdate,
+    handleSequenceAdd,
+    handleGenerateViews,
+    handleCharacterAdd,
+    handleCharacterUpdate,
+    handleCharacterDelete,
+    handleCharacterDeepDevelop,
+    handleLocationAdd,
+    handleLocationUpdate,
+    handleLocationDelete,
+    handleLocationDeepDevelop,
+    handleStageRefine,
+    handleRegenerate,
+    onApplyFix,
+    handleMetadataUpdate,
+    handleToggleDoctor,
+    handleFocusMode,
+    handleAiMagic,
+  } = project;
 
-const StageRendererComponent = ({
-  activeStage,
-  currentProject,
-  pitchPrimitives,
-  draftPrimitives,
-  loglinePrimitives,
-  structurePrimitives,
-  beatPrimitives,
-  synopsisPrimitives,
-  doctoringPrimitives,
-  breakdownPrimitives,
-  assetPrimitives,
-  previsPrimitives,
-  exportPrimitives,
-  treatmentSequences,
-  scriptScenes,
-  sequences,
-  characters,
-  locations,
-  isTyping,
-  hydrationState,
-  refiningBlockId,
-  lastUpdatedPrimitiveId,
-  
-  handleStoryChange,
-  onLoglineChange,
-  onRefineLogline,
-  onContentChange3Act,
-  onRefine3Act,
-  onRegenerate3Act,
-  onContentChangeSynopsis,
-  onRefineSynopsis,
-  onRegenerateSynopsis,
-  onContentChangeTreatment,
-  onItemChangeTreatment,
-  onRefineTreatment,
-  onRegenerateTreatment,
-  onContentChangeScript,
-  onItemChangeScript,
-  onRefineScript,
-  onRegenerateScript,
-  handleCharacterAdd,
-  handleCharacterUpdate,
-  handleCharacterDelete,
-  onRefineCharacter,
-  handleLocationAdd,
-  handleLocationUpdate,
-  handleLocationDelete,
-  onRefineLocation,
-  handleGenerateViews,
-  handleCharacterDeepDevelop,
-  handleLocationDeepDevelop,
-  handleSequenceUpdate,
-  handleSequenceAdd,
-  handleFocusMode,
-  handleAiMagic,
-  handleToggleDoctor,
-  handleSubcollectionUpdate,
-  handleMetadataUpdate,
-  
-  onValidateBrainstorming,
-  onValidateInitialDraft,
-  onValidateProjectMetadata,
-  onValidateLogline,
-  onValidate3Act,
-  onValidate8Beat,
-  onValidateSynopsis,
-  onValidateCharacterBible,
-  onValidateLocationBible,
-  onValidateTreatment,
-  onValidateStepOutline,
-  onValidateScript,
-  onValidateGlobalDoctoring,
-  onValidateTechnicalBreakdown,
-  onValidateVisualAssets,
-  onValidateAiPrevis,
-  onValidateProductionExport,
-  
-  onAnalyzeStage,
-  onApplyFix,
-
-  CanvasErrorBoundary
-}: StageRendererProps) => {
   const { t } = useTranslation();
+  const { isHydrating, hydratingStage, hydratingLabel } = hydrationState;
+  const isHydratingCurrent = isHydrating && hydratingStage === activeStage;
 
   switch (activeStage) {
     case "Project Metadata":

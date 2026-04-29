@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Primitive } from './Primitive';
+import { Primitive } from '../Primitive';
 import { StepLayout } from './StepLayout';
-import { StageInsight } from '../types';
-import { StageAnalysis } from '../types/stageContract';
+import { StageInsight } from '@/types';
+import { StageAnalysis } from '@/types/stageContract';
 
 interface LoglineStageProps {
   content: string;

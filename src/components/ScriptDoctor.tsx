@@ -32,27 +32,10 @@ interface Message {
   content_parts?: unknown[];
 }
 
+import { useProject } from '@/contexts/ProjectContext';
+
 interface ScriptDoctorProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSendMessage: (message: string) => void;
-  messages: Message[];
-  isTyping?: boolean;
-  isHeavyThinking?: boolean;
-  aiStatus: string | null;
-  activeStage: string;
-  activeTool?: string | null;
-  projectLanguages?: string[];
-  telemetryStatus?: {
-    phase: string;
-    emoji: string;
-    detail: string;
-    timestamp: number;
-    primitiveId?: string;
-  } | null;
-  pendingToolCall?: { call: ToolCall; botMsgId: string } | null;
-  onConfirmTool?: () => void;
-  onCancelTool?: () => void;
+  // No props needed as we use context
 }
 
 // ── Tool Confirmation Component ─────────────────────────────────────────────
@@ -177,21 +160,25 @@ function MobileFullScreenDrawer({ isOpen, onClose, children }: { isOpen: boolean
 
 
 // ── Script Doctor inner content ───────────────────────────────────────────────
-function ScriptDoctorContent({
-  onClose,
-  onSendMessage,
-  messages,
-  isTyping = false,
-  isHeavyThinking = false,
-  aiStatus,
-  activeStage,
-  activeTool,
-  projectLanguages = ['English'],
-  telemetryStatus,
-  pendingToolCall,
-  onConfirmTool,
-  onCancelTool
-}: ScriptDoctorProps) {
+function ScriptDoctorContent() {
+  const project = useProject();
+  const {
+    handleCloseDoctor: onClose,
+    handleDoctorMessage: onSendMessage,
+    doctorMessages: messages,
+    isDoctorTyping: isTyping,
+    isHeavyThinking,
+    aiStatus,
+    activeStage,
+    activeTool,
+    currentProject,
+    telemetryStatus,
+    pendingToolCall,
+    handleConfirmTool: onConfirmTool,
+    handleCancelTool: onCancelTool
+  } = project;
+
+  const projectLanguages = currentProject?.metadata?.languages || ['English'];
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
@@ -573,17 +560,17 @@ function ScriptDoctorContent({
 }
 
 // ── Main export: renders as desktop panel OR mobile bottom sheet ──────────────
-export function ScriptDoctor(props: ScriptDoctorProps) {
+export function ScriptDoctor() {
   const isMobile = useIsMobile();
-
+  const { isDoctorOpen, handleCloseDoctor } = useProject();
+  
   if (isMobile) {
     return (
-      <MobileFullScreenDrawer isOpen={props.isOpen} onClose={props.onClose}>
-        <ScriptDoctorContent {...props} />
+      <MobileFullScreenDrawer isOpen={isDoctorOpen} onClose={handleCloseDoctor}>
+        <ScriptDoctorContent />
       </MobileFullScreenDrawer>
     );
   }
-
-  // Desktop: render as-is (controlled externally by App.tsx sidebar panel)
-  return <ScriptDoctorContent {...props} />;
+  
+  return <ScriptDoctorContent />;
 }

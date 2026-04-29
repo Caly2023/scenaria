@@ -21,17 +21,21 @@ import { cn } from '../lib/utils';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { triggerHaptic } from '../lib/haptics';
 
+import { useProject } from '@/contexts/ProjectContext';
+
 interface ProjectDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  metadata: ProjectMetadata;
-  onUpdate: (metadata: ProjectMetadata) => Promise<void> | void;
   onDelete: () => void;
 }
 
 type SectionKey = 'menu' | 'general' | 'details' | 'languages' | 'danger';
 
-export function ProjectDrawer({ isOpen, onClose, metadata, onUpdate, onDelete }: ProjectDrawerProps) {
+export function ProjectDrawer({ isOpen, onClose, onDelete }: ProjectDrawerProps) {
+  const project = useProject();
+  const { currentProject, handleMetadataUpdate: onUpdate } = project;
+  const metadata = currentProject?.metadata || { title: '', format: '', genre: '', tone: '', languages: [], targetDuration: '', logline: '' };
+
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [localMeta, setLocalMeta] = useState<ProjectMetadata>(metadata);

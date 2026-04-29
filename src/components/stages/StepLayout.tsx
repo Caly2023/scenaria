@@ -1,4 +1,4 @@
-import { Primitive } from './Primitive';
+import { Primitive } from '../Primitive';
 import { Check, ChevronRight, ShieldCheck, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';

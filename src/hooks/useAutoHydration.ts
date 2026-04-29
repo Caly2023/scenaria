@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { WorkflowStage, Character, Location, Sequence, Project } from '../types';
+import { WorkflowStage, Character, Location, Sequence, Project, HydrationState } from '../types';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
 import { buildStageContentsMap } from '../lib/stageContent';
 
@@ -29,13 +29,6 @@ interface UseAutoHydrationProps {
   scriptScenes: Sequence[];
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
   onStageAnalyze: (stage: WorkflowStage) => Promise<void>;
-}
-
-interface HydrationState {
-  isHydrating: boolean;
-  hydratingStage: WorkflowStage | null;
-  hydratingLabel: string | null;
-  resetHydration?: (stage: WorkflowStage) => void;
 }
 
 export function useAutoHydration({

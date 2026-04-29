@@ -12,20 +12,20 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ProjectMetadata } from '../types';
+import { ProjectMetadata } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { validateProjectMetadata } from '../lib/formValidators';
-import { cn } from '../lib/utils';
-import { useIsMobile } from '../hooks/useIsMobile';
-import { triggerHaptic } from '../lib/haptics';
+import { validateProjectMetadata } from '../../lib/formValidators';
+import { cn } from '../../lib/utils';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { triggerHaptic } from '../../lib/haptics';
 
 import { useProject } from '@/contexts/ProjectContext';
 
 // Sub-components
-import { GeneralSection } from './project-drawer/GeneralSection';
-import { DetailsSection } from './project-drawer/DetailsSection';
-import { LanguagesSection } from './project-drawer/LanguagesSection';
-import { DangerSection } from './project-drawer/DangerSection';
+import { GeneralSection } from './GeneralSection';
+import { DetailsSection } from './DetailsSection';
+import { LanguagesSection } from './LanguagesSection';
+import { DangerSection } from './DangerSection';
 
 interface ProjectDrawerProps {
   isOpen: boolean;

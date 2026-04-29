@@ -4,7 +4,7 @@ import { Plus, ArrowUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptics';
-import { DictationButton } from './DictationButton';
+import { DictationButton } from '../ui/DictationButton';
 
 interface ProjectInputProps {
   storyIdea: string;

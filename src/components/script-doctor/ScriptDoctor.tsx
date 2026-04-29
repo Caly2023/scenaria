@@ -1,7 +1,7 @@
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useProject } from '@/contexts/ProjectContext';
-import { MobileFullScreenDrawer } from './script-doctor/MobileFullScreenDrawer';
-import { ScriptDoctorContent } from './script-doctor/ScriptDoctorContent';
+import { MobileFullScreenDrawer } from './MobileFullScreenDrawer';
+import { ScriptDoctorContent } from './ScriptDoctorContent';
 
 // ── Main export: renders as desktop panel OR mobile bottom sheet ──────────────
 export function ScriptDoctor() {

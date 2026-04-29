@@ -4,11 +4,11 @@ import { Project, WorkflowStage } from '../types';
 import { useProjectData } from './useProjectData';
 import { useProjectLifecycle } from './useProjectLifecycle';
 import { useProjectSync } from './useProjectSync';
-import { useProjectActions } from './useProjectActions';
+import { useProjectActions } from './actions/useProjectActions';
 import { useCharacterActions } from './actions/useCharacterActions';
 import { useLocationActions } from './actions/useLocationActions';
 import { useSequenceActions } from './actions/useSequenceActions';
-import { buildProjectContext } from '../services/orchestratorService';
+import { buildProjectContext } from '../services/orchestrator';
 import { ContentPrimitive } from '../types/stageContract';
 
 type BrainstormPrimitive = ContentPrimitive & { primitiveType?: string };
@@ -122,7 +122,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     if (!currentProject) return;
     setIsTyping(true);
     try {
-      const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestratorService');
+      const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestrator');
       
       let currentContent: ContentPrimitive[] = [];
       if (stage === 'Brainstorming') {

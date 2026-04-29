@@ -3,7 +3,7 @@
 import { StrictMode, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import '@/i18n';
 
 // Register PWA Service Worker in production

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { PrimitiveType } from '../Primitive';
+import { PrimitiveType } from './Primitive';
 
 interface PrimitiveHeaderProps {
   title: string;

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Project, ContentPrimitive, Sequence } from '../../types';
 import { geminiService } from '../../services/geminiService';
-import { contextAssembler } from '../../services/contextAssembler';
+import { contextAssembler } from '../../services/context';
 import { classifyError } from '../../lib/errorClassifier';
 import { stageRegistry } from '../../config/stageRegistry';
 import { 
@@ -70,11 +70,12 @@ export function useSequenceActions({
 
     setIsTyping(true);
     try {
-      // Note: buildPromptPayload is still async in contextAssembler
-      const payload = await contextAssembler.buildPromptPayload(currentProject.id, 'Step Outline', id);
       const instruction = "Rewrite this scene to be more dramatic and cinematic. Maintain continuity with the previous and next scenes.";
       
-      const improvedContent = await geminiService.rewriteSequence(seq.content || '', instruction);
+      const payload = await contextAssembler.buildPromptPayload(currentProject.id, 'Step Outline', id);
+      const prompt = contextAssembler.formatPrompt(payload, instruction);
+      
+      const improvedContent = await geminiService.rewriteSequenceWithContext(prompt);
       handleSequenceUpdate(id, { content: improvedContent as string });
     } catch (error) {
       const classified = classifyError(error);

@@ -1,4 +1,4 @@
-import { contextAssembler } from "../contextAssembler";
+import { contextAssembler } from "../context";
 import { telemetryService } from "../telemetryService";
 import {
   ScriptDoctorMessage,
@@ -15,22 +15,13 @@ import {
 } from "../../utils/scriptDoctorUtils";
 import { WorkflowStage } from "../../types";
 
-export interface AgentIterationResult {
+interface AgentIterationResult {
   finalResponse: string;
-  lastParts: GeminiPart[];
+  lastParts: GeminiPart[];-=
   iterationsReached: boolean;
 }
 
-export class ScriptDoctorAgent {
-  private SENSITIVE_TOOLS = [
-    "propose_patch",
-    "execute_multi_stage_fix",
-    "add_primitive",
-    "delete_primitive",
-    "restructure_stage",
-    "sync_metadata",
-  ];
-
+class ScriptDoctorAgent {
   async runAgentLoop(
     projectId: string,
     activeStage: WorkflowStage,

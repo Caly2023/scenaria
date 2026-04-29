@@ -1,41 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { User } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { Project, WorkflowStage } from '../types';
 import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery } from '../services/firebaseApi';
-import { buildStageContentsMap } from '../lib/stageContent';
-import { ContentPrimitive } from '../types/stageContract';
-
-// ── Stage-gated subcollection loading ─────────────────────────────────────────
-// Each collection is only fetched when the activeStage is at or past the stage
-// where that data first becomes relevant. This avoids loading all Firebase
-// subcollections on every stage change.
-//
-// Design rule: add a new entry here when you add a new subcollection.
-// Each entry maps a Firestore collection name → the minimum stage order at which it's needed.
-// The `stageRegistry` assigns numeric order values; check stageRegistry.ts for the full list.
-//
-// order 0  = Project Metadata
-// order 1  = Initial Draft
-// order 2  = Brainstorming       ← pitch primitives start here
-// order 3  = Logline
-// order 4  = 3-Act Structure
-// order 5  = 8-Beat Structure
-// order 6  = Synopsis
-// order 7  = Character Bible
-// order 8  = Location Bible
-// order 9  = Treatment           ← treatment sequences start here
-// order 10 = Step Outline        ← sequences start here
-// order 11 = Script              ← script scenes start here
-// order 12 = Global Script Doctoring
-// order 13 = Technical Breakdown
-// order 14 = Visual Assets
-// order 15 = AI Previs
-// order 16 = Production Export
-
+import { buildStageContentsMap, RawCollections } from '../lib/stageContent';
+import type { ContentPrimitive } from '../types/stageContract';
 import { stageRegistry } from '../config/stageRegistry';
-
-import { COLLECTION_GATES } from '../config/collectionGates';
-
 interface ProjectDataState {
   projects: Project[];
   currentProject: Project | null;
@@ -97,6 +66,7 @@ export function useProjectData(user: User | null): ProjectDataState {
 
   // ── Stage-gated subcollection fetches ──────────────────────────────────────
   // Each hook fires only when the active stage order >= the gate's minOrder.
+  // Collection names and gate orders come from stageRegistry — add new stages there.
   // RTK Query deduplicates identical queries and caches results.
 
   const { data: pitchPrimitives     = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'pitch_primitives',     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 0  });
@@ -108,37 +78,43 @@ export function useProjectData(user: User | null): ProjectDataState {
   const { data: characters          = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'characters'                                   }, { skip: !currentProjectId                          });
   const { data: locations           = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'locations'                                    }, { skip: !currentProjectId                          });
   const { data: treatmentSequences  = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'treatment_sequences',  orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 9  });
-  const { data: sequences           = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'sequences',           orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 10 });
-  const { data: scriptScenes        = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'script_scenes',        orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 11 });
-  const { data: doctoringPrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'doctoring_primitives', orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 12 });
-  const { data: breakdownPrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'breakdown_primitives', orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 13 });
-  const { data: assetPrimitives     = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'asset_primitives',     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 14 });
-  const { data: previsPrimitives    = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'previs_primitives',    orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 15 });
-  const { data: exportPrimitives    = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'export_primitives',    orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 16 });
+  const { data: sequences           = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'sequences',            orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 10 });
+  const { data: scriptScenes        = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'script_scenes',         orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 11 });
+  const { data: doctoringPrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'doctoring_primitives',  orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 12 });
+  const { data: breakdownPrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'breakdown_primitives',  orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 13 });
+  const { data: assetPrimitives     = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'asset_primitives',      orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 14 });
+  const { data: previsPrimitives    = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'previs_primitives',     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 15 });
+  const { data: exportPrimitives    = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: 'export_primitives',     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < 16 });
 
-  const stageContents = useMemo(() => buildStageContentsMap({
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives,
-    doctoringPrimitives,
-    breakdownPrimitives,
-    assetPrimitives,
-    previsPrimitives,
-    exportPrimitives,
+  const rawCollections = useMemo<RawCollections>(() => ({
+    pitch_primitives:     pitchPrimitives,
+    draft_primitives:     draftPrimitives,
+    logline_primitives:   loglinePrimitives,
+    structure_primitives: structurePrimitives,
+    beat_primitives:      beatPrimitives,
+    synopsis_primitives:  synopsisPrimitives,
     characters,
     locations,
-    treatmentSequences,
+    treatment_sequences:  treatmentSequences,
     sequences,
-    scriptScenes,
+    script_scenes:        scriptScenes,
+    doctoring_primitives: doctoringPrimitives,
+    breakdown_primitives: breakdownPrimitives,
+    asset_primitives:     assetPrimitives,
+    previs_primitives:    previsPrimitives,
+    export_primitives:    exportPrimitives,
   }), [
     pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives,
-    beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives,
-    assetPrimitives, previsPrimitives, exportPrimitives, characters, locations,
+    beatPrimitives, synopsisPrimitives, characters, locations,
     treatmentSequences, sequences, scriptScenes,
+    doctoringPrimitives, breakdownPrimitives, assetPrimitives,
+    previsPrimitives, exportPrimitives,
   ]);
+
+  const stageContents = useMemo(
+    () => buildStageContentsMap(rawCollections),
+    [rawCollections],
+  );
 
   const handleProjectExit = () => {
     setCurrentProjectId(null);

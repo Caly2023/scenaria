@@ -1,6 +1,6 @@
 import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
-import { contextAssembler } from "../contextAssembler";
+import { contextAssembler } from "../context";
 import { getArgString, getArgArray } from "../../utils/scriptDoctorUtils";
 import { mapPrimitiveToDb } from "../../utils/primitiveUtils";
 import { WorkflowStage } from "../../types";

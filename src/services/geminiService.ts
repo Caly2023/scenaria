@@ -59,12 +59,6 @@ export const geminiService = {
 
 
 
-  async analyzeScript(content: string, stage: string) {
-    return callGenkitFlow<any>('genericGemini', {
-      prompt: `Analyze the following content for the "${stage}" stage of screenwriting. Provide expert feedback on structure, dialogue, and character development.\n\nContent:\n${content}`,
-      systemPrompt: 'You are a professional script doctor.'
-    });
-  },
 
 
 
@@ -103,14 +97,6 @@ export const geminiService = {
   },
 
 
-  async brainstormFeedback(content: string) {
-    if (!content || content.trim().length < 10) return "Please provide more details for brainstorming analysis.";
-    
-    return callGenkitFlow<any>('genericGemini', {
-      prompt: `Help organize chaotic thoughts, identify core themes, and suggest interesting directions for these ideas:\n\n${content}`,
-      systemPrompt: 'You are a professional screenwriting consultant and sounding board.'
-    });
-  },
 
 
   async generateLoglineDraft(context: string) {
@@ -156,18 +142,6 @@ export const geminiService = {
     return callGenkitFlow<any>('generateFullScript', scriptCtx);
   },
 
-  async generateStepOutline(treatment: string) {
-    return callGenkitFlow<any>('genericGemini', {
-      prompt: `Convert the following treatment into a professional Step Outline (Séquencier). Provide scene-by-scene breakdown including Sluglines (INT/EXT - LOCATION - TIME).
-
-MANDATORY STRUCTURE: Output a JSON array representing exactly ONE (1) primitive per scene. Each primitive MUST have a 'title' and 'content' formatted in Markdown.
-
-Treatment:
-${treatment}`,
-      jsonMode: true,
-      structuredOutput: 'sequenceArray',
-    });
-  },
 
   async rewriteSequenceWithContext(prompt: string) {
     return callGenkitFlow<any>('genericGemini', { prompt });
@@ -184,13 +158,6 @@ ${treatment}`,
     });
   },
 
-  async extractMetadata(text: string) {
-    return callGenkitFlow<any>('genericGemini', {
-      prompt: `Analyze the following story idea and extract project metadata. If a field is not explicitly mentioned, infer the most likely value based on the context.\n\nStory Idea:\n${text}`,
-      jsonMode: true,
-      structuredOutput: 'metadata',
-    });
-  },
 
   async initializeProjectAgent(storyDraft: string, format?: string) {
     return callGenkitFlow<any>('genericGemini', {
@@ -210,11 +177,6 @@ ${treatment}`,
     });
   },
 
-  async suggestProjectTitle(storyDump: string) {
-    return callGenkitFlow<any>('genericGemini', {
-      prompt: `Based on this story dump, suggest a short, catchy, professional title. Return ONLY the title.\n\nStory Dump:\n${storyDump}`
-    });
-  },
 
   async generateCharacterViews(description: string) {
     // Character views might need specialized handling or just generic for now

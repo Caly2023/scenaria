@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { contextAssembler } from "../services/contextAssembler";
-import { telemetryService } from "../services/telemetryService";
 import {
   ScriptDoctorMessage,
   ToolCall,
@@ -14,10 +12,19 @@ import {
   classifyComplexity,
   normalizeHistory,
   buildFunctionResponsePart,
-  extractResponseParts,
 } from "../utils/scriptDoctorUtils";
 
 import { useScriptDoctorTools } from "./useScriptDoctorTools";
+
+/** Tools that require explicit user confirmation before execution. */
+const SENSITIVE_TOOLS = new Set([
+  "propose_patch",
+  "execute_multi_stage_fix",
+  "add_primitive",
+  "delete_primitive",
+  "restructure_stage",
+  "sync_metadata",
+]);
 
 export function useScriptDoctor({
   currentProject,
@@ -41,15 +48,6 @@ export function useScriptDoctor({
     messagesRef.current = doctorMessages;
   }, [doctorMessages]);
 
-  // Tools that require user confirmation before execution
-  const SENSITIVE_TOOLS = [
-    "propose_patch",
-    "execute_multi_stage_fix",
-    "add_primitive",
-    "delete_primitive",
-    "restructure_stage",
-    "sync_metadata",
-  ];
 
   const { executeToolCall } = useScriptDoctorTools({
     currentProject,
@@ -92,7 +90,7 @@ export function useScriptDoctor({
             );
           },
           onToolCall: async (call) => {
-            if (SENSITIVE_TOOLS.includes(call.name)) {
+            if (SENSITIVE_TOOLS.has(call.name)) {
               setDoctorMessages((prev) =>
                 prev.map((m) =>
                   m.id === botMsgId

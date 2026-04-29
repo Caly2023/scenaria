@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Project, WorkflowStage } from '../types';
-import { classifyError } from '../lib/errorClassifier';
+import { Project, WorkflowStage } from '../../types';
+import { classifyError } from '../../lib/errorClassifier';
 import { 
   useUpdateProjectMetadataMutation 
-} from '../services/firebaseApi';
-import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
-import { ContentPrimitive } from '../types/stageContract';
+} from '../../services/firebaseApi';
+import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../../services/orchestrator';
+import { ContentPrimitive } from '../../types/stageContract';
 
 interface UseProjectActionsProps {
   currentProject: Project | null;

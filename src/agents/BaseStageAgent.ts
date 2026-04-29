@@ -16,7 +16,7 @@ import {
   StageAnalysis,
   StageState
 } from '../types/stageContract';
-import { contextAssembler } from '../services/contextAssembler';
+import { contextAssembler } from '../services/context';
 
 export abstract class BaseStageAgent implements IStageAgent {
   abstract readonly stageId: string;

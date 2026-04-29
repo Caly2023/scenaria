@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { interpretIntent } from '../orchestratorService';
+import { interpretIntent } from '../orchestrator';
 import { stageRegistry } from '../../config/stageRegistry';
 
 vi.mock('../../config/stageRegistry', () => ({

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { stageRegistry } from "../config/stageRegistry";
-import { contextAssembler } from "../services/contextAssembler";
+import { contextAssembler } from "../services/context";
 import {
   Project,
   WorkflowStage,

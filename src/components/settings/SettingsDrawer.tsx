@@ -17,10 +17,10 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { triggerHaptic } from '@/lib/haptics';
 
 // Sub-components
-import { ProfileSection } from './settings/ProfileSection';
-import { LanguageSection } from './settings/LanguageSection';
-import { ThemeSection } from './settings/ThemeSection';
-import { AccessibilitySection } from './settings/AccessibilitySection';
+import { ProfileSection } from './ProfileSection';
+import { LanguageSection } from './LanguageSection';
+import { ThemeSection } from './ThemeSection';
+import { AccessibilitySection } from './AccessibilitySection';
 
 type ThemeMode = 'dark' | 'light' | 'system';
 

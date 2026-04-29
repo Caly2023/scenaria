@@ -10,12 +10,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { AnimatePresence } from 'motion/react';
-import { AiFlowToggle } from './AiFlowToggle';
+import { AiFlowToggle } from '../ui/AiFlowToggle';
 import { useProject } from '@/contexts/ProjectContext';
 
 // Sub-components
-import { AccessibilityMenu } from './header/AccessibilityMenu';
-import { ProjectHistorySidebar } from './header/ProjectHistorySidebar';
+import { AccessibilityMenu } from './AccessibilityMenu';
+import { ProjectHistorySidebar } from './ProjectHistorySidebar';
 
 interface HeaderProps {
   isCompact?: boolean;

@@ -1,14 +1,14 @@
 import React, { Suspense } from 'react';
-import { useProject } from '../contexts/ProjectContext';
+import { useProject } from '../../contexts/ProjectContext';
 import { useTranslation } from 'react-i18next';
-import { stageRegistry } from '../config/stageRegistry';
-import { UnifiedStage } from './stages/UnifiedStage';
-import { StageSkeleton } from './stages/StageSkeleton';
-import { StageDefinition } from '../config/stageRegistry';
+import { stageRegistry } from '../../config/stageRegistry';
+import { UnifiedStage } from './UnifiedStage';
+import { StageSkeleton } from './StageSkeleton';
+import { StageDefinition } from '../../config/stageRegistry';
 
 // Lazy-loaded custom stage components
 const ProjectMetadataStage = React.lazy(() =>
-  import("./stages/ProjectMetadataStage").then((m) => ({ default: m.ProjectMetadataStage })),
+  import("./ProjectMetadataStage").then((m) => ({ default: m.ProjectMetadataStage })),
 );
 
 /** Minimal passthrough wrapper used as a default CanvasErrorBoundary. */

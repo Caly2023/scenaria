@@ -1,6 +1,6 @@
 import { Cpu, Zap } from 'lucide-react';
-import { useAiFlow } from '../hooks/useAiFlow';
-import { cn } from '../lib/utils';
+import { useAiFlow } from '@/hooks/useAiFlow';
+import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 
 export function AiFlowToggle() {

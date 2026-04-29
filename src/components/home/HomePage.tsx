@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
-import { Project, ProjectFormat } from '../types';
-import { getErrorMessage } from '../utils/errorUtils';
+import { Project, ProjectFormat } from '../../types';
+import { getErrorMessage } from '../../lib/errorClassifier';
 import { FormatSelector } from './FormatSelector';
 import { ProjectInput } from './ProjectInput';
 import { ProjectCard } from './ProjectCard';

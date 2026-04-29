@@ -1,28 +1,28 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
 import { Bot, Check, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../lib/utils';
+import { cn } from '../../lib/utils';
 import { 
   Project, 
   Toast,
-} from '../types';
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
-import { ProjectDrawer } from './ProjectDrawer';
-import { SettingsDrawer } from './SettingsDrawer';
+} from '../../types';
+import { Sidebar } from './sidebar/Sidebar';
+import { Header } from '../header/Header';
+import { ProjectDrawer } from '../project-drawer/ProjectDrawer';
+import { SettingsDrawer } from '../settings/SettingsDrawer';
 import { HelpModal } from './HelpModal';
 import { OnboardingWizard } from './OnboardingWizard';
-import { OrbitingLoader } from './OrbitingLoader';
-import { FormErrorBoundary } from './ErrorBoundary/FormErrorBoundary';
-import { StageSkeleton } from './stages/StageSkeleton';
+import { OrbitingLoader } from '../ui/OrbitingLoader';
+import { FormErrorBoundary } from '../ui/FormErrorBoundary';
+import { StageSkeleton } from '../stages/StageSkeleton';
 import { DeleteProjectModal } from './DeleteProjectModal';
-import { useProject } from '../contexts/ProjectContext';
-import { ToastManager } from './ui/ToastManager';
-import { GlobalOverlay } from './ui/GlobalOverlay';
+import { useProject } from '../../contexts/ProjectContext';
+import { ToastManager } from '../ui/ToastManager';
+import { GlobalOverlay } from '../ui/GlobalOverlay';
 
 // Sub-components
-import { ScriptDoctorFAB } from './layout/ScriptDoctorFAB';
-import { MobileNav } from './layout/MobileNav';
+import { ScriptDoctorFAB } from './ScriptDoctorFAB';
+import { MobileNav } from './MobileNav';
 
 type AccessibilitySettings = {
   highContrast: boolean;

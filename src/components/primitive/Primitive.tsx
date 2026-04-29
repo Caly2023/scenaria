@@ -10,8 +10,8 @@ import { cn } from '@/lib/utils';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { MarkdownDisplay } from '@/components/ui/MarkdownDisplay';
 import { ttsService } from '@/services/ttsService';
-import { PrimitiveHeader } from './primitive/PrimitiveHeader';
-import { PrimitiveEmptyState } from './primitive/PrimitiveEmptyState';
+import { PrimitiveHeader } from './PrimitiveHeader';
+import { PrimitiveEmptyState } from './PrimitiveEmptyState';
 
 export type PrimitiveType =
   | 'text'

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus, X, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { StepLayout } from './StepLayout';
-import { Primitive } from '../Primitive';
+import { Primitive } from '../primitive/Primitive';
 import { useProject } from '@/contexts/ProjectContext';
 import { StageDefinition } from '@/config/stageRegistry';
 import { ContentPrimitive } from '@/types/stageContract';

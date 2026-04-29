@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 import { useProject } from '@/contexts/ProjectContext';
 import { stageRegistry } from '@/config/stageRegistry';
-import { DesktopSidebar } from './layout/sidebar/DesktopSidebar';
-import { MobileBottomNav } from './layout/sidebar/MobileBottomNav';
+import { DesktopSidebar } from './DesktopSidebar';
+import { MobileBottomNav } from './MobileBottomNav';
 
 interface SidebarProps {
   /** If true, renders as a horizontal bottom navigation bar (mobile) */

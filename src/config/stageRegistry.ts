@@ -1,53 +1,38 @@
-/**
- * STAGE REGISTRY — Single Source of Truth for all stage definitions.
- *
- * ALL stages use Firestore subcollections.
- * No stage stores content in a root project field anymore.
- * Root-field data is migrated to subcollections on first project load.
- */
-
 import { WorkflowStage } from '../types';
 
-// ─── Stage Definition ─────────────────────────────────────────────────────────
+/**
+ * STAGE REGISTRY — Single Source of Truth for all stage definitions.
+ */
 
 export interface StageDefinition {
-  /** Unique identifier — matches the WorkflowStage union type */
   id: WorkflowStage;
-  /** Display name */
+  /** Display name key for i18n */
   name: string;
-  /** Pipeline order: 0-indexed */
   order: number;
-  /** Firestore subcollection name */
   collectionName: string;
-
-  /** Agent identifier — matches agentRegistry key */
   agentId: string;
-  /** Primitive type tags expected in this stage */
   primitiveTypes: string[];
-  /** Human-readable description of this stage's purpose */
+  /** Description key for i18n */
   description: string;
-  /** Which stages must have content before this stage can auto-generate */
   requires: WorkflowStage[];
-  /** Which stage to auto-trigger generation of after this one is validated */
   triggers?: WorkflowStage;
-  /** Default order field used when querying the Firestore subcollection */
   orderField: string;
+  isCustom?: boolean;
 }
-
-// ─── Registry Definition ──────────────────────────────────────────────────────
 
 const STAGES: StageDefinition[] = [
   {
     id: 'Project Metadata',
     name: 'Project Metadata',
     order: 0,
-    collectionName: 'metadata_primitives', // Dummy or reserved
+    collectionName: 'metadata_primitives',
     agentId: 'metadata',
     primitiveTypes: ['metadata'],
-    description: 'Set core project parameters: Title, Format, Genre, and Tone.',
+    description: 'Define the core parameters of your project.',
     requires: [],
     triggers: 'Initial Draft',
     orderField: 'order',
+    isCustom: true
   },
   {
     id: 'Initial Draft',
@@ -56,7 +41,7 @@ const STAGES: StageDefinition[] = [
     collectionName: 'draft_primitives',
     agentId: 'draft',
     primitiveTypes: ['draft'],
-    description: 'A raw, unfiltered starting point for the narrative.',
+    description: 'Paste your initial idea or premise here.',
     requires: ['Project Metadata'],
     triggers: 'Brainstorming',
     orderField: 'order',
@@ -68,7 +53,7 @@ const STAGES: StageDefinition[] = [
     collectionName: 'pitch_primitives',
     agentId: 'brainstorming',
     primitiveTypes: ['brainstorming_result'],
-    description: 'The interactive foundation and Source of Truth for all subsequent stages.',
+    description: 'Explore narrative and thematic possibilities.',
     requires: ['Initial Draft'],
     triggers: 'Logline',
     orderField: 'order',
@@ -80,7 +65,7 @@ const STAGES: StageDefinition[] = [
     collectionName: 'logline_primitives',
     agentId: 'logline',
     primitiveTypes: ['logline'],
-    description: 'Concise 1-2 sentence description: Protagonist, Goal, Conflict.',
+    description: 'Summarize your story in one punchy sentence.',
     requires: ['Brainstorming'],
     triggers: '3-Act Structure',
     orderField: 'order',
@@ -92,7 +77,7 @@ const STAGES: StageDefinition[] = [
     collectionName: 'structure_primitives',
     agentId: 'structure',
     primitiveTypes: ['beat'],
-    description: 'High-level 3-act narrative framework.',
+    description: 'Define the dramatic backbone of your story.',
     requires: ['Logline'],
     triggers: '8-Beat Structure',
     orderField: 'order',
@@ -101,10 +86,10 @@ const STAGES: StageDefinition[] = [
     id: '8-Beat Structure',
     name: '8-Beat Structure',
     order: 5,
-    collectionName: 'beat_primitives',
-    agentId: 'beat_structure',
+    collectionName: 'structure_primitives',
+    agentId: 'structure',
     primitiveTypes: ['beat'],
-    description: 'Detailed 8-beat narrative framework (K.M. Weiland style).',
+    description: 'Break down your story into eight essential moments.',
     requires: ['3-Act Structure'],
     triggers: 'Synopsis',
     orderField: 'order',
@@ -116,7 +101,7 @@ const STAGES: StageDefinition[] = [
     collectionName: 'synopsis_primitives',
     agentId: 'synopsis',
     primitiveTypes: ['synopsis'],
-    description: 'Full narrative summary (~500 words).',
+    description: 'A detailed summary of your story arc and themes.',
     requires: ['8-Beat Structure'],
     triggers: 'Character Bible',
     orderField: 'order',
@@ -128,10 +113,11 @@ const STAGES: StageDefinition[] = [
     collectionName: 'characters',
     agentId: 'character_bible',
     primitiveTypes: ['character'],
-    description: 'Extracted and developed character profiles.',
+    description: 'Define your characters and their visual identity.',
     requires: ['Synopsis'],
     triggers: 'Location Bible',
     orderField: 'order',
+    isCustom: true
   },
   {
     id: 'Location Bible',
@@ -140,20 +126,21 @@ const STAGES: StageDefinition[] = [
     collectionName: 'locations',
     agentId: 'location_bible',
     primitiveTypes: ['location'],
-    description: 'Extracted and developed setting profiles.',
+    description: 'Define your locations and their atmosphere.',
     requires: ['Character Bible'],
     triggers: 'Treatment',
     orderField: 'order',
+    isCustom: true
   },
   {
     id: 'Treatment',
     name: 'Treatment',
     order: 9,
-    collectionName: 'treatment_sequences',
+    collectionName: 'treatment_primitives',
     agentId: 'treatment',
-    primitiveTypes: ['treatment_section'],
-    description: 'Dense cinematic prose narrative with high visual detail.',
-    requires: ['Synopsis', 'Character Bible', 'Location Bible'],
+    primitiveTypes: ['treatment'],
+    description: 'A detailed narrative version of your screenplay.',
+    requires: ['Location Bible'],
     triggers: 'Step Outline',
     orderField: 'order',
   },
@@ -163,20 +150,21 @@ const STAGES: StageDefinition[] = [
     order: 10,
     collectionName: 'sequences',
     agentId: 'step_outline',
-    primitiveTypes: ['scene_outline'],
-    description: 'Technical scene-by-scene breakdown with sluglines.',
+    primitiveTypes: ['sequence'],
+    description: 'Scene-by-scene breakdown of your story.',
     requires: ['Treatment'],
     triggers: 'Script',
     orderField: 'order',
+    isCustom: true
   },
   {
     id: 'Script',
     name: 'Script',
     order: 11,
-    collectionName: 'script_scenes',
+    collectionName: 'script_primitives',
     agentId: 'script',
     primitiveTypes: ['script_scene'],
-    description: 'Final professional screenplay with action and dialogue.',
+    description: 'Professional formatting and dialogue.',
     requires: ['Step Outline'],
     triggers: 'Global Script Doctoring',
     orderField: 'order',
@@ -185,10 +173,10 @@ const STAGES: StageDefinition[] = [
     id: 'Global Script Doctoring',
     name: 'Global Script Doctoring',
     order: 12,
-    collectionName: 'doctoring_primitives',
-    agentId: 'script_doctor',
-    primitiveTypes: ['analysis'],
-    description: 'Advanced polish and consistency check for the entire script.',
+    collectionName: 'script_primitives',
+    agentId: 'script',
+    primitiveTypes: ['script_scene'],
+    description: 'Full screenplay review for consistency and quality.',
     requires: ['Script'],
     triggers: 'Technical Breakdown',
     orderField: 'order',
@@ -198,10 +186,10 @@ const STAGES: StageDefinition[] = [
     name: 'Technical Breakdown',
     order: 13,
     collectionName: 'breakdown_primitives',
-    agentId: 'technical_breakdown',
+    agentId: 'script',
     primitiveTypes: ['breakdown'],
-    description: 'Identification of props, costumes, and technical requirements.',
-    requires: ['Script'],
+    description: 'Transform scenes into technical shots.',
+    requires: ['Global Script Doctoring'],
     triggers: 'Visual Assets',
     orderField: 'order',
   },
@@ -210,10 +198,10 @@ const STAGES: StageDefinition[] = [
     name: 'Visual Assets',
     order: 14,
     collectionName: 'asset_primitives',
-    agentId: 'visual_assets',
+    agentId: 'character_bible',
     primitiveTypes: ['asset'],
-    description: 'Generation of character and location concept art.',
-    requires: ['Character Bible', 'Location Bible'],
+    description: 'Generate multi-angle characters and environments.',
+    requires: ['Technical Breakdown'],
     triggers: 'AI Previs',
     orderField: 'order',
   },
@@ -222,10 +210,10 @@ const STAGES: StageDefinition[] = [
     name: 'AI Previs',
     order: 15,
     collectionName: 'previs_primitives',
-    agentId: 'previs',
-    primitiveTypes: ['previs_clip'],
-    description: 'AI-generated visual previews of key scenes.',
-    requires: ['Visual Assets', 'Step Outline'],
+    agentId: 'logline',
+    primitiveTypes: ['previs'],
+    description: 'Preview your script with AI-generated storyboards.',
+    requires: ['Visual Assets'],
     triggers: 'Production Export',
     orderField: 'order',
   },
@@ -234,10 +222,10 @@ const STAGES: StageDefinition[] = [
     name: 'Production Export',
     order: 16,
     collectionName: 'export_primitives',
-    agentId: 'export',
-    primitiveTypes: ['export_package'],
-    description: 'Final assembly of all production-ready documents.',
-    requires: ['Script', 'Technical Breakdown', 'Visual Assets'],
+    agentId: 'logline',
+    primitiveTypes: ['export'],
+    description: 'Download finalized script and assets.',
+    requires: ['AI Previs'],
     orderField: 'order',
   },
 ];
@@ -316,3 +304,4 @@ class StageRegistry {
 // ─── Singleton Export ─────────────────────────────────────────────────────────
 
 export const stageRegistry = new StageRegistry(STAGES);
+export const STAGE_LIST = stageRegistry.getAll();

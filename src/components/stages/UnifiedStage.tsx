@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StepLayout } from './StepLayout';
 import { Primitive } from '../Primitive';
 import { useProject } from '@/contexts/ProjectContext';
-import { StageDefinition } from '@/config/stageDefinitions';
+import { stageRegistry, StageDefinition } from '@/config/stageRegistry';
 import { ContentPrimitive } from '@/types/stageContract';
 
 interface UnifiedStageProps {
@@ -43,10 +43,10 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
 
   return (
     <StepLayout
-      stepIndex={definition.step}
+      stepIndex={definition.order + 1}
       stageName={definition.id}
-      title={definition.label}
-      subtitle={definition.subtitle}
+      title={definition.name}
+      subtitle={definition.description}
       insight={analysis}
       isGenerating={isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === definition.id)}
       isHydrating={hydrationState.isHydrating && hydrationState.hydratingStage === definition.id}
@@ -62,7 +62,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
             key={primitive.id}
             title={primitive.title}
             content={primitive.content}
-            type={(primitive.primitiveType || definition.primitiveType) as any}
+            type={(primitive.primitiveType || definition.primitiveTypes[0]) as any}
             onContentChange={(c) => handlePrimitiveChange(primitive.id, c)}
             onAiRefine={() => {
               const action = (!primitive.content || primitive.content.trim() === '' || primitive.content === '...') ? 'Generate' : 'Refine';

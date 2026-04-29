@@ -340,12 +340,13 @@ export function useScriptDoctorTools({
       return { success: false, error: `Unknown tool: ${name}` };
     } catch (error: any) {
       console.error(`[ScriptDoctor] Tool ${name} failed:`, error);
-      const classification = telemetryService.classifyFirebaseError(error);
-      if (retryAttempt < 1 && classification.action === "RESYNC_AND_RETRY") {
+      const { classifyError } = await import("../lib/errorClassifier");
+      const classification = classifyError(error);
+      if (retryAttempt < 1 && (classification.action === "RESYNC_AND_RETRY" || classification.type === "NotFoundError")) {
         await contextAssembler.hydrateFullIdMap(currentProject.id);
         return executeToolCall(call, retryAttempt + 1, botMsgId);
       }
-      return { success: false, error: classification.message, error_code: classification.code };
+      return { success: false, error: classification.userMessage, error_code: 0 };
     }
   };
 

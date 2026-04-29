@@ -1,10 +1,10 @@
 import React, { Suspense } from 'react';
 import { useProject } from '../contexts/ProjectContext';
 import { useTranslation } from 'react-i18next';
-import { STAGE_DEFINITIONS } from '../config/stageDefinitions';
+import { stageRegistry } from '../config/stageRegistry';
 import { UnifiedStage } from './stages/UnifiedStage';
 import { StageSkeleton } from './stages/StageSkeleton';
-import { StageDefinition } from '../config/stageDefinitions';
+import { StageDefinition } from '../config/stageRegistry';
 import { ContentPrimitive } from '../types/stageContract';
 import { WorkflowStage } from '../types';
 
@@ -39,7 +39,7 @@ const StageRendererComponent = ({ CanvasErrorBoundary = DefaultBoundary }: Stage
   const { activeStage } = project;
   const { t } = useTranslation();
 
-  const definition = STAGE_DEFINITIONS[activeStage];
+  const definition = stageRegistry.get(activeStage);
 
   if (!definition) {
     return (
@@ -72,7 +72,7 @@ function renderStage(
           <ProjectMetadataStage
             metadata={currentProject.metadata}
             onUpdate={project.handleMetadataUpdate}
-            onValidate={project.onValidateProjectMetadata}
+            onValidate={() => project.onValidateStage("Project Metadata")}
           />
         );
       case "Character Bible":
@@ -87,7 +87,7 @@ function renderStage(
             onDeepDevelop={(id: string) => project.handleCharacterDeepDevelop(id, "Character Bible")}
             isGenerating={project.isTyping}
             refiningBlockId={project.refiningBlockId}
-            onValidate={project.onValidateCharacterBible}
+            onValidate={() => project.onValidateStage("Character Bible")}
             onAnalyze={() => project.handleStageAnalyze("Character Bible")}
             onApplyFix={project.onApplyFix}
             lastUpdatedPrimitiveId={project.lastUpdatedPrimitiveId}
@@ -106,7 +106,7 @@ function renderStage(
             onDeepDevelop={(id: string) => project.handleLocationDeepDevelop(id, "Location Bible")}
             isGenerating={project.isTyping}
             refiningBlockId={project.refiningBlockId}
-            onValidate={project.onValidateLocationBible}
+            onValidate={() => project.onValidateStage("Location Bible")}
             onAnalyze={() => project.handleStageAnalyze("Location Bible")}
             onApplyFix={project.onApplyFix}
             lastUpdatedPrimitiveId={project.lastUpdatedPrimitiveId}
@@ -127,7 +127,7 @@ function renderStage(
               })}
               onFocusMode={project.handleFocusMode}
               onAiMagic={project.handleAiMagic}
-              onValidate={project.onValidateStepOutline}
+              onValidate={() => project.onValidateStage("Step Outline")}
               onAnalyze={() => project.handleStageAnalyze("Step Outline")}
               onApplyFix={project.onApplyFix}
               isGenerating={project.isTyping}

@@ -17,6 +17,7 @@ import { signOutUser, updateCurrentUserProfile } from "./lib/firebase";
 import { ProjectProvider, useProject } from "./contexts/ProjectContext";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { ContentPrimitive } from "./types/stageContract";
+import { STAGE_LIST } from "./config/stageRegistry";
 
 type ThemeMode = "dark" | "light" | "system";
 type AccessibilitySettings = {
@@ -137,7 +138,12 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, set
   }, [accessibilitySettings]);
 
   useKeyboardShortcuts({
-    onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Project Metadata", "Initial Draft", "Brainstorming", "Logline", "3-Act Structure", "8-Beat Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Global Script Doctoring", "Technical Breakdown", "Visual Assets", "AI Previs", "Production Export"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
+    onProjectSwitch: handleProjectExit, 
+    onDoctorToggle: handleToggleDoctor, 
+    onStageChange: handleStageChange, 
+    activeStage, 
+    stages: STAGE_LIST, 
+    onShowHelp: () => setIsHelpOpen(true)
   });
 
   const handleLanguageChange = useCallback((nextLanguage: string) => {

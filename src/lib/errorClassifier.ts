@@ -1,4 +1,4 @@
-export type ErrorType = 'NetworkError' | 'AuthError' | 'QuotaError' | 'ValidationError' | 'UnknownError';
+export type ErrorType = 'NetworkError' | 'AuthError' | 'QuotaError' | 'ValidationError' | 'NotFoundError' | 'UnknownError';
 
 export interface ClassifiedError {
   type: ErrorType;
@@ -6,6 +6,7 @@ export interface ClassifiedError {
   canRetry: boolean;
   retryDelay?: number;
   userMessage: string;
+  action?: 'REPORT' | 'RESYNC_AND_RETRY' | 'MODEL_FALLBACK_RETRY' | 'RETRY';
 }
 
 type ErrorWithDetails = {
@@ -18,48 +19,87 @@ type ErrorWithDetails = {
 export function classifyError(error: unknown): ClassifiedError {
   const errorDetails =
     error !== null && typeof error === 'object' ? (error as ErrorWithDetails) : undefined;
-  const message = (errorDetails?.message || errorDetails?.toString?.() || '').toLowerCase();
-  const statusCode = errorDetails?.status || errorDetails?.code;
+  
+  const rawMessage = (errorDetails?.message || errorDetails?.toString?.() || '').toLowerCase();
+  const errorCode = (errorDetails?.code || errorDetails?.status || '').toString().toLowerCase();
 
-  // Authentication Errors
-  if (message.includes('auth') || statusCode === 'auth/unauthorized' || message.includes('permission_denied')) {
+  // Authentication & Permission Errors
+  if (
+    errorCode === 'permission-denied' ||
+    errorCode === '403' ||
+    rawMessage.includes('auth') || 
+    rawMessage.includes('permission_denied') ||
+    rawMessage.includes('insufficient permissions')
+  ) {
     return {
       type: 'AuthError',
       message: errorDetails?.message || 'Authentication failed',
       canRetry: false,
-      userMessage: 'Your session has expired. Please sign in again.'
+      userMessage: 'Security block: You do not have permission to perform this action or your session has expired.',
+      action: 'REPORT'
+    };
+  }
+
+  // Not Found Errors
+  if (
+    errorCode === 'not-found' ||
+    errorCode === '404' ||
+    rawMessage.includes('not_found') ||
+    rawMessage.includes('no document to update')
+  ) {
+    return {
+      type: 'NotFoundError',
+      message: errorDetails?.message || 'Resource not found',
+      canRetry: true,
+      userMessage: 'The requested document was not found. We are attempting to resync.',
+      action: 'RESYNC_AND_RETRY'
     };
   }
 
   // Quota & Rate Limiting (Firebase & Gemini)
-  if (message.includes('quota') || statusCode === 429 || message.includes('rate limit') || statusCode === 'resource-exhausted') {
+  if (
+    rawMessage.includes('quota') || 
+    errorCode === '429' || 
+    rawMessage.includes('rate limit') || 
+    errorCode === 'resource-exhausted'
+  ) {
     return {
       type: 'QuotaError',
       message: errorDetails?.message || 'Quota exceeded',
       canRetry: true,
       retryDelay: 30000,
-      userMessage: 'API quota exceeded. The AI Architect is taking a brief rest. Please try again in a few moments.'
+      userMessage: 'API quota exceeded. The AI Architect is taking a brief rest. Please try again in a few moments.',
+      action: 'MODEL_FALLBACK_RETRY'
     };
   }
 
   // Network & Connectivity Errors
-  if (message.includes('network') || message.includes('failed to fetch') || message.includes('offline') || message.includes('timeout') || statusCode === 'unavailable') {
+  if (
+    rawMessage.includes('network') || 
+    rawMessage.includes('failed to fetch') || 
+    rawMessage.includes('offline') || 
+    rawMessage.includes('timeout') || 
+    errorCode === 'unavailable' ||
+    errorCode === 'internal'
+  ) {
     return {
       type: 'NetworkError',
       message: errorDetails?.message || 'Network connection failed',
       canRetry: true,
       retryDelay: 5000,
-      userMessage: 'Connection lost. Please check your network and try again.'
+      userMessage: 'Connection lost or server unavailable. Please check your network and try again.',
+      action: 'RETRY'
     };
   }
 
   // Validation Errors
-  if (message.includes('validation') || statusCode === 'invalid-argument') {
+  if (rawMessage.includes('validation') || errorCode === 'invalid-argument') {
     return {
       type: 'ValidationError',
       message: errorDetails?.message || 'Invalid input provided',
       canRetry: false,
-      userMessage: 'Please check your input for errors and try again.'
+      userMessage: 'Please check your input for errors and try again.',
+      action: 'REPORT'
     };
   }
 
@@ -69,6 +109,7 @@ export function classifyError(error: unknown): ClassifiedError {
     message: errorDetails?.message || 'An unknown error occurred',
     canRetry: true,
     retryDelay: 5000,
-    userMessage: 'An unexpected error occurred. Please try again.'
+    userMessage: 'An unexpected error occurred. Please try again.',
+    action: 'REPORT'
   };
 }

@@ -78,24 +78,8 @@ export interface ProjectContextType {
   handleOpenDoctor: () => void;
   handleCloseDoctor: () => void;
 
-  // Validation Shortcuts
-  onValidateProjectMetadata: () => void;
-  onValidateInitialDraft: () => void;
-  onValidateBrainstorming: () => void;
-  onValidateLogline: () => void;
-  onValidate3Act: () => void;
-  onValidate8Beat: () => void;
-  onValidateSynopsis: () => void;
-  onValidateCharacterBible: () => void;
-  onValidateLocationBible: () => void;
-  onValidateTreatment: () => void;
-  onValidateStepOutline: () => void;
-  onValidateScript: () => void;
-  onValidateGlobalDoctoring: () => void;
-  onValidateTechnicalBreakdown: () => void;
-  onValidateVisualAssets: () => void;
-  onValidateAiPrevis: () => void;
-  onValidateProductionExport: () => void;
+  // Validation
+  onValidateStage: (stage: WorkflowStage) => void;
 
   // Focus Mode
   isFocusMode: boolean;
@@ -184,6 +168,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     ...projectHook,
     ...doctor,
     ...callbacks,
+    onValidateStage: callbacks.onValidateStage,
     hydrationState,
     telemetryStatus,
     stageContents: projectHook.stageContents,

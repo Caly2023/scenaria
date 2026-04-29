@@ -5,7 +5,6 @@ import { stageRegistry } from '../config/stageRegistry';
 import { UnifiedStage } from './stages/UnifiedStage';
 import { StageSkeleton } from './stages/StageSkeleton';
 import { StageDefinition } from '../config/stageRegistry';
-import { WorkflowStage } from '../types';
 
 // Lazy-loaded custom stage components
 const ProjectMetadataStage = React.lazy(() =>

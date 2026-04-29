@@ -5,8 +5,7 @@ import {
   Info,
   Accessibility,
   Search,
-  Users,
-  PhoneCall
+  Users
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -59,9 +58,6 @@ export function Header({
       [key]: !accessibilitySettings[key]
     });
   }, [accessibilitySettings, onAccessibilityChange]);
-
-  const collaborators: any[] = []; // Placeholder for future feature
-  const onCallStart = () => {}; // Placeholder for future feature
 
   return (
     <>
@@ -122,7 +118,6 @@ export function Header({
               <div className="flex -space-x-1.5 whitespace-nowrap">
                 <button className="w-7 h-7 flex-shrink-0 rounded-full border-2 border-background bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all border-none"><Users className="w-3.5 h-3.5 text-white/40" /></button>
               </div>
-              <button onClick={onCallStart} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-all group shrink-0 border-none"><PhoneCall className="w-4 h-4 text-white/40 group-hover:text-white" /></button>
             </div>
 
             <div className="hidden md:flex items-center gap-2 px-2.5 md:px-3 py-2 md:py-1.5 rounded-xl bg-white/10 md:bg-white/5 border border-white/10 md:border-transparent">

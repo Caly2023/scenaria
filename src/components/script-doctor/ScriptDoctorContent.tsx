@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { ttsService } from '@/services/ttsService';
 import { useProject } from '@/contexts/ProjectContext';
 import { ToolConfirmation } from './ToolConfirmation';
+import { ScriptDoctorTypingIndicator } from './ScriptDoctorTypingIndicator';
+import { ScriptDoctorMessageItem } from './ScriptDoctorMessageItem';
 
 export function ScriptDoctorContent() {
   const project = useProject();
@@ -155,236 +157,32 @@ export function ScriptDoctorContent() {
           </div>
         )}
 
-        {messages.map((msg) => {
-          const displayContent = msg.content;
-          const isApplied = appliedSuggestions.has(msg.id);
-          const isApplyingThis = isApplying === msg.id;
-          const isPendingForThis = pendingToolCall?.botMsgId === msg.id;
-
-          return (
-            <div 
-              key={msg.id}
-              id={`msg-${msg.id}`}
-              className={cn(
-                "flex flex-col gap-2 w-full",
-                msg.role === 'user' ? "ml-auto items-end max-w-[85%]" : "mr-auto items-start w-full"
-              )}
-            >
-              <div className={cn(
-                "text-sm leading-relaxed font-sans relative group w-full transition-all duration-300",
-                msg.role === 'user' 
-                  ? "p-4 rounded-2xl bg-gradient-to-br from-white to-[#f0f0f0] text-black font-medium shadow-[0_4px_12px_rgba(255,255,255,0.1)]" 
-                  : "text-white/90"
-              )}>
-                {msg.role === 'assistant' && (msg.reasoning || msg.thinking) && (
-                  <details className="mb-5 group/thinking bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                    <summary className="flex items-center gap-2 p-3 text-[10px] font-bold uppercase tracking-widest text-white/50 cursor-pointer hover:bg-white/5 transition-all list-none select-none">
-                      <div className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center">
-                        <BrainCircuit className="w-3.5 h-3.5" />
-                      </div>
-                      <span>{t('common.reasoning', { defaultValue: 'Cognitive Process' })}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-auto transition-transform group-open/thinking:rotate-180" />
-                    </summary>
-                    <div className="p-4 pt-0 text-xs text-white/40 italic leading-relaxed font-mono border-t border-white/5 bg-black/20">
-                      <ReactMarkdown>
-                        {msg.reasoning || msg.thinking || ""}
-                      </ReactMarkdown>
-                    </div>
-                  </details>
-                )}
-
-                <div className={cn(
-                  "scenaria-markdown",
-                  msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5 prose-headings:text-white prose-strong:text-white prose-em:text-white/70" : ""
-                )}>
-                  <ReactMarkdown>
-                    {String(displayContent)}
-                  </ReactMarkdown>
-                </div>
-
-                {msg.role === 'assistant' && isPendingForThis && pendingToolCall && (
-                  <ToolConfirmation 
-                    call={pendingToolCall.call} 
-                    onConfirm={onConfirmTool!} 
-                    onCancel={onCancelTool!} 
-                  />
-                )}
-
-                {msg.role === 'assistant' && !isPendingForThis && (
-                  <div className="mt-8 flex flex-col gap-5">
-                    {/* Minimal Action Buttons */}
-                    <div className="flex flex-wrap gap-2">
-                      {msg.suggested_actions?.map((action: string, idx: number) => {
-                        const isApply = action.toLowerCase().includes('apply') || 
-                                       action.toLowerCase().includes('fix') || 
-                                       action.toLowerCase().includes('refactor');
-                        
-                        if (isApply && isApplied) return null;
-
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              if (isApply) {
-                                handleApply(msg.id, action);
-                              } else if (action === 'Retry') {
-                                const lastUserMsg = [...(messages || [])].reverse().find(m => m.role === 'user');
-                                if (lastUserMsg) {
-                                  onSendMessage(lastUserMsg.content);
-                                }
-                              } else {
-                                onSendMessage(action);
-                              }
-                            }}
-                            disabled={isApplyingThis}
-                            className={cn(
-                              "h-9 px-5 rounded-full text-[10px] font-bold transition-all border flex items-center gap-2",
-                              isApply 
-                                ? "bg-white text-black border-white hover:bg-[#e5e5e5] shadow-lg shadow-white/5" 
-                                : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30"
-                            )}
-                          >
-                            {isApply && isApplyingThis ? (
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            ) : isApply ? (
-                              <Sparkles className="w-3.5 h-3.5" />
-                            ) : null}
-                            {action}
-                          </button>
-                        );
-                      })}
-
-                      {isApplied && (
-                        <motion.div 
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className="flex items-center gap-2 h-9 px-5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-bold border border-green-500/20 shadow-lg shadow-green-500/5"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          {t('common.applied', { defaultValue: 'Applied' })}
-                        </motion.div>
-                      )}
-                    </div>
-
-                    {/* TTS Button - Floating/Minimal */}
-                    <div className="flex items-center justify-end">
-                      <button 
-                        onClick={() => handleTts(displayContent, msg.id)}
-                        className={cn(
-                          "w-9 h-9 rounded-full flex items-center justify-center transition-all border border-white/5 bg-white/5 text-white/20 hover:text-white/80 hover:bg-white/10",
-                          isSpeaking === msg.id && "bg-white text-black animate-pulse opacity-100 shadow-xl border-white"
-                        )}
-                        title={t('common.speak', { defaultValue: 'Speak' })}
-                      >
-                        <Volume2 className={cn("w-4 h-4", isSpeaking === msg.id && "text-black")} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold px-1 mt-1 flex items-center gap-2">
-                {msg.role === 'user' ? (
-                  <span className="text-white/40">{t('common.you')}</span>
-                ) : (
-                  <span className="text-white/60 flex items-center gap-1.5">
-                    <Bot className="w-2.5 h-2.5" />
-                    {t('common.doctor')}
-                  </span>
-                )} 
-                <span className="w-1 h-1 bg-white/10 rounded-full" />
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
-          );
-        })}
+        {messages.map((msg) => (
+          <ScriptDoctorMessageItem
+            key={msg.id}
+            msg={msg}
+            isApplied={appliedSuggestions.has(msg.id)}
+            isApplyingThis={isApplying === msg.id}
+            isPendingForThis={pendingToolCall?.botMsgId === msg.id}
+            pendingToolCall={pendingToolCall}
+            isSpeaking={isSpeaking}
+            onConfirmTool={onConfirmTool!}
+            onCancelTool={onCancelTool!}
+            handleApply={handleApply}
+            handleTts={handleTts}
+            onSendMessage={onSendMessage}
+            messages={messages}
+          />
+        ))}
 
 
         {isTyping && (
-          <div className="flex flex-col gap-3 mr-auto items-start max-w-[90%]">
-            <div className="bg-surface/50 backdrop-blur-xl p-5 rounded-2xl flex flex-col gap-4 min-w-[240px] border border-white/10 shadow-2xl relative overflow-hidden group">
-              {/* Animated Background Pulse */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 animate-pulse" />
-              
-              {/* Live Status Indicator */}
-              <div className="flex items-center gap-4 text-white relative z-10">
-                <div className="relative w-10 h-10 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping opacity-20" />
-                  <div className="absolute inset-0 border-2 border-white/20 rounded-full animate-spin [animation-duration:3s]" />
-                  <Sparkles className="w-5 h-5 text-blue-400 animate-pulse" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">
-                    {activeTool ? "Executing Tool" : "Thinking"}
-                  </span>
-                  <span className="text-sm font-bold text-white/90 truncate max-w-[150px]">
-                    {aiStatus || (isHeavyThinking ? "Deep structural analysis..." : t('common.thinking'))}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Telemetry-Driven Technical Status */}
-              {(activeTool || telemetryStatus) && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col gap-3 relative z-10"
-                >
-                  <div className="flex items-center gap-2.5 text-white/40 bg-white/5 p-2.5 rounded-lg border border-white/5">
-                    <div className="w-5 h-5 rounded-md bg-white/5 flex items-center justify-center shrink-0">
-                      <RefreshCw className="w-3 h-3 animate-spin text-white/30" />
-                    </div>
-                    <span className="text-[10px] font-medium italic leading-tight">
-                      {telemetryStatus
-                        ? `${telemetryStatus.emoji} ${telemetryStatus.detail}`
-                        : (
-                          <>
-                            {activeTool === 'research_context' && "Scanning narrative threads for coherence..."}
-                            {activeTool === 'get_stage_structure' && "Mapping system primitives..."}
-                            {activeTool === 'fetch_character_details' && "Analyzing psychological profiles..."}
-                            {activeTool === 'search_project_content' && "Searching across production stages..."}
-                            {activeTool === 'propose_patch' && "Syncing updates to Firebase..."}
-                            {activeTool === 'execute_multi_stage_fix' && "Coordinating structural fixes..."}
-                            {activeTool === 'sync_metadata' && "Synchronizing project DNA..."}
-                            {activeTool === 'add_primitive' && "Inserting structural element..."}
-                            {activeTool === 'delete_primitive' && "Removing element from production..."}
-                            {activeTool === 'fetch_project_state' && "Loading full state-map..."}
-                            {activeTool === 'update_agent_status' && "Updating cognitive state..."}
-                          </>
-                        )
-                      }
-                    </span>
-                  </div>
-                  
-                  {telemetryStatus?.primitiveId && (
-                    <div className="flex items-center gap-2 px-1">
-                      <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" />
-                      <span className="text-[9px] font-mono text-white/20 tracking-wider">
-                        TARGET_ID: {String(telemetryStatus.primitiveId).substring(0, 8)}...
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                    <motion.div 
-                      initial={{ width: "0%" }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                      className={cn(
-                        "h-full relative",
-                        telemetryStatus?.phase === 'Confirmed' ? 'bg-green-500' :
-                        telemetryStatus?.phase === 'Error' ? 'bg-red-500' :
-                        telemetryStatus?.phase === 'Recovery' ? 'bg-amber-500' :
-                        'bg-gradient-to-r from-blue-500 to-purple-500'
-                      )}
-                    >
-                      <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                    </motion.div>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </div>
+          <ScriptDoctorTypingIndicator
+            isHeavyThinking={isHeavyThinking}
+            aiStatus={aiStatus}
+            activeTool={activeTool}
+            telemetryStatus={telemetryStatus}
+          />
         )}
 
 

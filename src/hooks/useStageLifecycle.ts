@@ -97,7 +97,7 @@ export function useStageLifecycle({
       const agent = await agentRegistry.get(targetStage);
       if (!agent) return;
 
-      let context = getProjectContext?.() || buildProjectContext(project.id, project.metadata, {}, project.stageAnalyses || {});
+      const context = getProjectContext?.() || buildProjectContext(project.id, project.metadata, {}, project.stageAnalyses || {});
       
       const existingContent = context.stageContents[targetStage];
       if (existingContent && existingContent.length > 0) return;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type ReactNode } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAppAuth as useAuth } from "./hooks/useAppAuth";
 import { useWindowSize } from "./hooks/useWindowSize";
 import { WorkflowStage, Project } from "./types";
@@ -32,9 +32,6 @@ type Toast = {
   type: 'error' | 'info' | 'success';
 };
 
-type ErrorBoundaryProps = {
-  children: ReactNode;
-};
 
 
 export default function App() {
@@ -66,18 +63,13 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, set
   const project = useProject();
   const { 
     currentProject, activeStage, projects, isProjectLoading, isProjectNotFound,
-    handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleDeleteCurrentProject,
-    handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
-    isTyping, syncStatus, handleRegenerate, handleStageValidate, handleStageRefine, handleStageAnalyze,
+    handleProjectSelect, handleProjectExit, handleProjectCreate,
+    handleStageChange, handleSubcollectionUpdate,
     stageContents,
-    isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
-    handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop,
-    handleToggleDoctor, handleOpenDoctor, handleCloseDoctor,
-    hydrationState,
-    isDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage,
-    pendingToolCall, handleConfirmTool, handleCancelTool,
-    isFocusMode, handleCloseFocus, focusedSequenceId, handleFocusMode,
-    telemetryStatus
+    setProjectToDelete,
+    handleAiMagic,
+    handleToggleDoctor,
+    isFocusMode, handleCloseFocus, focusedSequenceId
   } = project;
 
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
@@ -108,7 +100,6 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, set
   const handleCloseDrawer = useCallback(() => setIsProjectDrawerOpen(false), []);
   const handleOpenSettings = useCallback(() => setIsSettingsDrawerOpen(true), []);
   const handleCloseSettings = useCallback(() => setIsSettingsDrawerOpen(false), []);
-  const handleCancelDelete = useCallback(() => setProjectToDelete(null), [setProjectToDelete]);
 
   useEffect(() => {
     localStorage.setItem("scenaria_theme", theme);

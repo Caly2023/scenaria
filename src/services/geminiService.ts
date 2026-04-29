@@ -45,43 +45,6 @@ async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
 // Unused resiliency helpers and model definitions removed in favor of Genkit server-side handling.
 
 
-/**
- * Clean and parse JSON from model output, handling markdown fences.
- */
-function safeJsonParse(text: string | null | undefined): any {
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch (_e) {
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    try {
-      return JSON.parse(cleaned);
-    } catch (e2) {
-      console.error('[GeminiService] JSON Parse failed:', text);
-      throw e2;
-    }
-  }
-}
-
-/**
- * Safely extract text from a model response, handling @google/genai SDK differences.
- * - v1.x: `.text` is a string property (getter), not a function.
- * - Legacy: `.text` could be a function.
- * - Always falls back to digging into candidates for robustness.
- */
- 
-/**
- * Safely extract text from a model response.
- * (Now simpler as the server returns strings or parsed JSON)
- */
-async function extractText(response: any): Promise<string> {
-  if (typeof response === 'string') return response;
-  if (response?.text) return response.text;
-  return JSON.stringify(response);
-}
-
-
-
 export const geminiService = {
   async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
     return callGenkitFlow<any>('scriptDoctor', {

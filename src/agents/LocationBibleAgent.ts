@@ -7,7 +7,7 @@ export class LocationBibleAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await await this.getUnifiedContext(context);
       const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
       const content: ContentPrimitive[] = extraction.settings.map((loc: any, i: number) =>
         this.buildPrimitive(
@@ -56,7 +56,7 @@ export class LocationBibleAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `**${p.title}**: ${p.content.substring(0, 200)}`).join('\n');
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Location Bible', fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
         raw.content, 

@@ -9,11 +9,6 @@ import { PromptPayload } from '../types/context';
 /**
  * Builds the cascading context string from already-resolved stage text.
  * Both the async (Firebase) and sync (in-memory) paths use the same ordering logic.
- *
- * @param currentOrder  - order index of the current stage in the registry
- * @param getStageText  - function returning the text content of any named stage
- * @param currentStage  - the active stage identifier
- * @param isUnlocked    - optional predicate; if omitted, all stages are considered unlocked
  */
 async function buildCascadingContext(
   currentOrder: number,
@@ -24,27 +19,35 @@ async function buildCascadingContext(
     const unlocked = isUnlocked ?? (() => true);
     let ctx = '';
 
-    if (currentOrder >= 2 && currentOrder <= 4) {
-      // Steps 2–4: brainstorming + all prior stages (except Logline/Brainstorming)
+    // Always include Brainstorming if we are beyond it
+    if (currentOrder > 2) {
       const bStory = await Promise.resolve(getStageText('Brainstorming'));
       if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
+    }
 
+    // Foundation/Structure Stages (Steps 2–6)
+    if (currentOrder >= 2 && currentOrder <= 6) {
       const allStages = stageRegistry.getAll();
       for (let i = 0; i < currentOrder; i++) {
         const s = allStages[i];
-        if (s.id === 'Logline' || s.id === 'Brainstorming') continue;
+        // Skip specialized meta stages that are handled separately or redundant
+        if (s.id === 'Logline' || s.id === 'Brainstorming' || s.id === 'Project Metadata') continue;
         const text = await Promise.resolve(getStageText(s.id));
         if (text) ctx += `[${s.name.toUpperCase()}]\n${text}\n\n`;
       }
-    } else if (currentOrder > 4) {
-      // Later stages: logline + synopsis + bibles
-      if (unlocked('Synopsis')) {
-        const logline = await Promise.resolve(getStageText('Logline'));
-        if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
+    } 
+    // Narrative/Production Stages (Steps 7+)
+    else if (currentOrder > 6) {
+      const logline = await Promise.resolve(getStageText('Logline'));
+      if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
 
+      if (unlocked('Synopsis')) {
         const synopsis = await Promise.resolve(getStageText('Synopsis'));
         if (synopsis) ctx += `[SYNOPSIS]\n${synopsis}\n\n`;
+      }
 
+      // Include Bibles if we are past them
+      if (currentOrder > 8) {
         if (unlocked('Character Bible') && currentStage !== 'Character Bible') {
           const chars = await Promise.resolve(getStageText('__characterBible__'));
           if (chars) ctx += chars;
@@ -53,23 +56,43 @@ async function buildCascadingContext(
           const locs = await Promise.resolve(getStageText('__locationBible__'));
           if (locs) ctx += locs;
         }
-      } else {
-        // Fallback when synopsis not yet unlocked
-        const bStory = await Promise.resolve(getStageText('Brainstorming'));
-        if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
-        const logline = await Promise.resolve(getStageText('Logline'));
-        if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
       }
-    } else {
-      // Steps 0–1
-      const bStory = await Promise.resolve(getStageText('Brainstorming'));
-      if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
+    } 
+    // Early Stages (Steps 0-1)
+    else {
+      const draft = await Promise.resolve(getStageText('Initial Draft'));
+      if (draft) ctx += `[INITIAL DRAFT]\n${draft}\n\n`;
     }
 
     return ctx;
 }
 
 class ContextAssembler {
+  private async getStageTextInternal(
+    projectId: string, 
+    stageName: string, 
+    allCharacters: any[], 
+    allLocations: any[]
+  ): Promise<string> {
+    if (stageName === '__characterBible__') {
+      return `[CHARACTER BIBLE]\n${JSON.stringify(allCharacters.map(c => ({ 
+        name: c.name || c.title, 
+        role: c.role, 
+        description: c.description || c.content, 
+        wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || '' 
+      })), null, 2)}\n\n`;
+    }
+    if (stageName === '__locationBible__') {
+      return `[LOCATION BIBLE]\n${JSON.stringify(allLocations.map(l => ({ 
+        name: l.name || l.title, 
+        atmosphere: l.atmosphere, 
+        description: l.description || l.content 
+      })), null, 2)}\n\n`;
+    }
+    const primitives = await this.getStageStructure(projectId, stageName);
+    return primitives.map(p => p.content).join('\n\n');
+  }
+
   async getStageStructure(
     projectId: string,
     stageName: string
@@ -115,7 +138,6 @@ class ContextAssembler {
 
     const allStages = stageRegistry.getAllIds();
 
-    // Fetch all stages in parallel to populate telemetry ID-Map
     await Promise.all(
       allStages.map(async (stageName) => {
         try {
@@ -162,16 +184,7 @@ class ContextAssembler {
       locations: []
     };
 
-    const getStageText = async (sName: string) => {
-      if (sName === '__characterBible__') {
-        return `[CHARACTER BIBLE]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role, description: c.description, wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || '' })), null, 2)}\n\n`;
-      }
-      if (sName === '__locationBible__') {
-        return `[LOCATION BIBLE]\n${JSON.stringify(allLocations.map(l => ({ name: l.name, atmosphere: l.atmosphere, description: l.description })), null, 2)}\n\n`;
-      }
-      const primitives = await this.getStageStructure(projectId, sName);
-      return primitives.map(p => p.content).join('\n\n');
-    };
+    const getStageText = (sName: string) => this.getStageTextInternal(projectId, sName, allCharacters, allLocations);
 
     const isUnlocked = (sName: string): boolean => {
       const state = project.stageStates?.[sName];
@@ -218,10 +231,6 @@ class ContextAssembler {
     return payload;
   }
 
-  /**
-   * High-level entry point for ANY AI component (Script Doctor, Step Agents, Verification).
-   * Fetches the "most complete" project context from Firebase and formats it.
-   */
   async getContextForStage(
     projectId: string, 
     currentStage: WorkflowStage, 
@@ -231,10 +240,10 @@ class ContextAssembler {
     return this.formatPrompt(payload, "");
   }
 
-  buildPayloadFromProjectContext(
-    context: any, // ProjectContext from stageContract
+  async buildPayloadFromProjectContext(
+    context: any, 
     currentStage: WorkflowStage
-  ): PromptPayload {
+  ): Promise<PromptPayload> {
     const { metadata, stageContents } = context;
     
     const payload: PromptPayload = {
@@ -248,35 +257,29 @@ class ContextAssembler {
         targetDuration: metadata.targetDuration
       },
       characters: (stageContents['Character Bible'] || []).map((c: any) => ({
-        id: c.id, name: c.name, role: c.role,
-        description: c.description, deepDevelopment: c.deepDevelopment
+        id: c.id, name: c.title || c.name, role: c.role,
+        description: c.content || c.description, deepDevelopment: c.deepDevelopment
       })),
       locations: (stageContents['Location Bible'] || []).map((l: any) => ({
-        id: l.id, name: l.name, atmosphere: l.atmosphere, description: l.description
+        id: l.id, name: l.title || l.name, atmosphere: l.atmosphere, description: l.content || l.description
       })),
     };
 
-    // Sync getStageText — reads from in-memory stageContents
     const getStageText = (sName: string) => {
       if (sName === '__characterBible__') {
-        return `[CHARACTER BIBLE]\n${JSON.stringify((stageContents['Character Bible'] || []).map((c: any) => ({ name: c.name, description: c.description })), null, 2)}\n\n`;
+        return `[CHARACTER BIBLE]\n${JSON.stringify((stageContents['Character Bible'] || []).map((c: any) => ({ name: c.title || c.name, description: c.content || c.description })), null, 2)}\n\n`;
       }
       if (sName === '__locationBible__') {
-        return `[LOCATION BIBLE]\n${JSON.stringify((stageContents['Location Bible'] || []).map((l: any) => ({ name: l.name, description: l.description })), null, 2)}\n\n`;
+        return `[LOCATION BIBLE]\n${JSON.stringify((stageContents['Location Bible'] || []).map((l: any) => ({ name: l.title || l.name, description: l.content || l.description })), null, 2)}\n\n`;
       }
       return (stageContents[sName] || []).map((p: any) => p.content).join('\n\n');
     };
 
     const currentOrder = stageRegistry.get(currentStage).order;
-    // buildCascadingContext always returns Promise<string> — await it
-    buildCascadingContext(currentOrder, getStageText, currentStage).then((ctx: string) => {
-      const currentItems = stageContents[currentStage] || [];
-      payload.sectionalContext = `${ctx}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
-    });
-
-    // Provide an immediate fallback for callers that use the payload synchronously
+    const cascadingContext = await buildCascadingContext(currentOrder, getStageText, currentStage);
+    
     const currentItems = stageContents[currentStage] || [];
-    payload.sectionalContext = `\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
+    payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
 
     return payload;
   }

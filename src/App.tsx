@@ -17,7 +17,7 @@ import { signOutUser, updateCurrentUserProfile } from "./lib/firebase";
 import { ProjectProvider, useProject } from "./contexts/ProjectContext";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { ContentPrimitive } from "./types/stageContract";
-import { STAGE_LIST } from "./config/stageRegistry";
+import { stageRegistry } from "./config/stageRegistry";
 
 type ThemeMode = "dark" | "light" | "system";
 type AccessibilitySettings = {
@@ -142,7 +142,7 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, set
     onDoctorToggle: handleToggleDoctor, 
     onStageChange: handleStageChange, 
     activeStage, 
-    stages: STAGE_LIST, 
+    stages: stageRegistry.getAllIds(), 
     onShowHelp: () => setIsHelpOpen(true)
   });
 

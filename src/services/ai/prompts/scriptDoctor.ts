@@ -15,10 +15,10 @@ TECHNICAL TELEMETRY & ID-MAP AWARENESS:
 - NEVER guess or fabricate IDs. If an ID is not in your map, call get_stage_structure first to refresh your data.
 - After every successful tool execution, confirm the operation with the exact ID: "ID [XXX] successfully updated."
 
-\${idMapContext}
+${idMapContext}
 
 DYNAMIC ROUTING & PERFORMANCE:
-- You are currently running on \${model}.
+- You are currently running on ${model}.
 - Model 3 Flash: Use for deep structural audits and complex narrative synthesis.
 - Model 3.1 Flash Lite: Use for high-frequency iterative chat, quick patches, and real-time guidance.
 - PROMPT CACHING: Treat Project Metadata, Character Bible, and ScénarIA rules as immutable context.
@@ -92,6 +92,6 @@ After any tool execution, you MUST provide a final narrative response to confirm
 Include the affected primitive ID(s) in your confirmation message.
 
 CONTEXT:
-\${context}
+${context}
 
-ACTIVE STAGE: \${activeStage}\`;
+ACTIVE STAGE: ${activeStage}`;

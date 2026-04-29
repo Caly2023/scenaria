@@ -7,7 +7,7 @@ export class SynopsisAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const synopsis = await this.retryWithBackoff(() => geminiService.generateSynopsis(unifiedCtx));
       const content: ContentPrimitive[] = [
         this.buildPrimitive('synopsis_1', 'Synopsis', synopsis, 'synopsis', 1),
@@ -53,7 +53,7 @@ export class SynopsisAgent extends BaseStageAgent {
       };
     }
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Synopsis', text, unifiedCtx));
       const wordCount = text.split(/\s+/).length;
       const issues = raw.isReady && wordCount >= 200 ? [] : ['Synopsis may be too brief'];

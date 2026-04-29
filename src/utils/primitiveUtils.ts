@@ -1,4 +1,5 @@
 import { WorkflowStage } from "../types";
+import { stageRegistry } from "../config/stageRegistry";
 
 /**
  * Maps generic ContentPrimitive fields (title, content) to collection-specific fields (name, description).
@@ -7,10 +8,11 @@ import { WorkflowStage } from "../types";
 export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any {
   const safeData = { ...data };
   
-  if (stage === "Character Bible" || stage === "Location Bible") {
+  const isBible = stage === 'Character Bible' || stage === 'Location Bible';
+  
+  if (isBible) {
     if (data.title !== undefined) safeData.name = data.title;
     if (data.content !== undefined) safeData.description = data.content;
-    // Don't delete title/content to maintain compatibility during transitions
   }
   
   return safeData;
@@ -22,7 +24,9 @@ export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any 
 export function mapDbToPrimitive(stage: WorkflowStage | string, data: any): any {
   const safeData = { ...data };
   
-  if (stage === "Character Bible" || stage === "Location Bible") {
+  const isBible = stage === 'Character Bible' || stage === 'Location Bible';
+  
+  if (isBible) {
     if (data.name !== undefined) safeData.title = data.name;
     if (data.description !== undefined) safeData.content = data.description;
   }

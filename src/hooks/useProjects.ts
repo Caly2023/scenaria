@@ -5,6 +5,9 @@ import { useProjectData } from './useProjectData';
 import { useProjectLifecycle } from './useProjectLifecycle';
 import { useProjectSync } from './useProjectSync';
 import { useProjectActions } from './useProjectActions';
+import { useCharacterActions } from './actions/useCharacterActions';
+import { useLocationActions } from './actions/useLocationActions';
+import { useSequenceActions } from './actions/useSequenceActions';
 import { buildProjectContext } from '../services/orchestratorService';
 import { ContentPrimitive } from '../types/stageContract';
 
@@ -82,17 +85,34 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
   const {
     handleStageRefine,
-    handleSequenceUpdate,
-    handleSequenceAdd,
-    handleAiMagic,
-    handleGenerateViews,
-    handleCharacterDeepDevelop,
-    handleLocationDeepDevelop
   } = useProjectActions({
     currentProject,
     setIsTyping,
     setRefiningBlockId,
     setLastUpdatedPrimitiveId,
+    addToast,
+    stageContents
+  });
+
+  const characterActions = useCharacterActions({
+    currentProject,
+    setIsTyping,
+    setRefiningBlockId,
+    addToast,
+    stageContents
+  });
+
+  const locationActions = useLocationActions({
+    currentProject,
+    setIsTyping,
+    setRefiningBlockId,
+    addToast,
+    stageContents
+  });
+
+  const sequenceActions = useSequenceActions({
+    currentProject,
+    setIsTyping,
     addToast,
     handleSubcollectionUpdate,
     stageContents
@@ -106,7 +126,6 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       
       let currentContent: ContentPrimitive[] = [];
       if (stage === 'Brainstorming') {
-        // Enforce strict contract: Brainstorming subcollection contains ONLY one content primitive
         const typedBrainstorming = stageContents.Brainstorming as BrainstormPrimitive[];
         const existing =
           typedBrainstorming.find((p) => p.primitiveType === 'brainstorming_result') ||
@@ -184,12 +203,9 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     setRefiningBlockId,
     lastUpdatedPrimitiveId,
     setLastUpdatedPrimitiveId,
-    // Action functions
-    handleSequenceUpdate,
-    handleSequenceAdd,
-    handleAiMagic,
-    handleGenerateViews,
-    handleCharacterDeepDevelop,
-    handleLocationDeepDevelop
+    // Action functions (spread from specialized hooks)
+    ...characterActions,
+    ...locationActions,
+    ...sequenceActions
   };
 }

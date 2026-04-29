@@ -18,7 +18,7 @@ export class StructureAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generate3ActStructure(unifiedCtx));
       const parsed = this.safeParseJson<{ blocks?: any[]; [k: string]: any }>(raw);
       const blocks = parsed?.blocks || (Array.isArray(parsed) ? parsed : []);
@@ -86,7 +86,7 @@ export class StructureAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('3-Act Structure', fullText, unifiedCtx));
       const beatCount = content.filter(p => p.primitiveType === 'beat').length;
       const issues = raw.isReady && beatCount >= 8 ? [] : [`Only ${beatCount}/8 beats defined`];

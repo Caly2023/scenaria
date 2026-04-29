@@ -38,7 +38,7 @@ export class ScriptAgent extends BaseStageAgent {
         .join('\n\n')
         .trim();
       const projectSignal = context.metadata.logline || this._getSynopsis(context) || context.metadata.title;
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const verification = await this.retryWithBackoff(() =>
         geminiService.generateStageInsight('Script', previewForVerification, unifiedCtx)
       );
@@ -143,7 +143,7 @@ ${JSON.stringify(scenes, null, 2)}`;
     }
     const fullText = content.map(p => `[${p.title}]\n${p.content.substring(0, 300)}`).join('\n\n');
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Script', fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
         raw.content, 

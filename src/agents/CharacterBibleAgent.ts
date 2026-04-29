@@ -7,7 +7,7 @@ export class CharacterBibleAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await await this.getUnifiedContext(context);
       const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
       const content: ContentPrimitive[] = extraction.characters.map((char: any, i: number) =>
         this.buildPrimitive(
@@ -56,7 +56,7 @@ export class CharacterBibleAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `**${p.title}**: ${p.content.substring(0, 200)}`).join('\n');
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Character Bible', fullText, unifiedCtx));
       const hasTier1 = content.some(p => p.metadata?.tier === 1);
       const issues = raw.isReady && hasTier1 ? [] : ['No Tier-1 (main) character defined'];

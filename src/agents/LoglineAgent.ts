@@ -7,7 +7,7 @@ export class LoglineAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const logline = await this.retryWithBackoff(() => geminiService.generateLoglineDraft(unifiedCtx));
       const content: ContentPrimitive[] = [
         this.buildPrimitive('logline_1', 'Logline', logline, 'logline', 1),
@@ -51,7 +51,7 @@ export class LoglineAgent extends BaseStageAgent {
       return { analysis, state: 'empty' };
     }
     try {
-      const unifiedCtx = this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Logline', loglineText, unifiedCtx));
       const issues = raw.isReady ? [] : ['Logline may lack a clear protagonist or conflict'];
       const analysis = this.buildAnalysis(

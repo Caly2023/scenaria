@@ -176,8 +176,8 @@ export abstract class BaseStageAgent implements IStageAgent {
   /**
    * Helper to get the unified, formatted context string for the current stage.
    */
-  protected getUnifiedContext(context: ProjectContext): string {
-    const payload = contextAssembler.buildPayloadFromProjectContext(context, this.stageId as any);
+  protected async getUnifiedContext(context: ProjectContext): Promise<string> {
+    const payload = await contextAssembler.buildPayloadFromProjectContext(context, this.stageId as any);
     return contextAssembler.formatPrompt(payload, "");
   }
 }

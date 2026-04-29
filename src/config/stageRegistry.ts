@@ -22,6 +22,7 @@ export interface StageDefinition {
   triggers?: WorkflowStage;
   orderField: string;
   isCustom?: boolean;
+  displayMode?: 'list' | 'gallery' | 'canvas';
 }
 
 const STAGES: StageDefinition[] = [
@@ -38,7 +39,8 @@ const STAGES: StageDefinition[] = [
     requires: [],
     triggers: 'Initial Draft',
     orderField: 'order',
-    isCustom: true
+    isCustom: true,
+    displayMode: 'canvas'
   },
   {
     id: 'Initial Draft',
@@ -137,7 +139,7 @@ const STAGES: StageDefinition[] = [
     requires: ['Synopsis'],
     triggers: 'Location Bible',
     orderField: 'order',
-    isCustom: true
+    displayMode: 'gallery'
   },
   {
     id: 'Location Bible',
@@ -152,7 +154,7 @@ const STAGES: StageDefinition[] = [
     requires: ['Character Bible'],
     triggers: 'Treatment',
     orderField: 'order',
-    isCustom: true
+    displayMode: 'gallery'
   },
   {
     id: 'Treatment',
@@ -181,7 +183,7 @@ const STAGES: StageDefinition[] = [
     requires: ['Treatment'],
     triggers: 'Script',
     orderField: 'order',
-    isCustom: true
+    displayMode: 'canvas'
   },
   {
     id: 'Script',

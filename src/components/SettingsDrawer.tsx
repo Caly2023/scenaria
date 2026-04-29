@@ -6,15 +6,8 @@ import {
   Globe,
   Loader2,
   LogOut,
-  Mail,
-  Monitor,
-  Moon,
-  MoveHorizontal,
-  Save,
   Settings2,
-  Shield,
   Sun,
-  Type,
   UserCircle2,
   X,
 } from 'lucide-react';
@@ -22,6 +15,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { triggerHaptic } from '@/lib/haptics';
+
+// Sub-components
+import { ProfileSection } from './settings/ProfileSection';
+import { LanguageSection } from './settings/LanguageSection';
+import { ThemeSection } from './settings/ThemeSection';
+import { AccessibilitySection } from './settings/AccessibilitySection';
 
 type ThemeMode = 'dark' | 'light' | 'system';
 
@@ -50,6 +49,8 @@ interface SettingsDrawerProps {
   onLogout: () => Promise<void>;
 }
 
+type SettingsSection = 'menu' | 'profile' | 'language' | 'theme' | 'accessibility' | 'session';
+
 export function SettingsDrawer({
   isOpen,
   onClose,
@@ -68,7 +69,7 @@ export function SettingsDrawer({
   const [photoURL, setPhotoURL] = useState(user.photoURL ?? '');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [activeSection, setActiveSection] = useState<'menu' | 'profile' | 'language' | 'theme' | 'accessibility' | 'session'>('menu');
+  const [activeSection, setActiveSection] = useState<SettingsSection>('menu');
 
   useEffect(() => {
     if (isOpen) {
@@ -95,7 +96,6 @@ export function SettingsDrawer({
   );
 
   const canSaveProfile = displayName.trim().length > 0 && hasProfileChanges;
-
   const currentLanguage = language || 'fr';
 
   const handleToggleAccessibility = (key: keyof AccessibilitySettings) => {
@@ -113,6 +113,7 @@ export function SettingsDrawer({
         displayName: displayName.trim(),
         photoURL: photoURL.trim(),
       });
+      setActiveSection('menu');
     } finally {
       setIsSavingProfile(false);
     }
@@ -129,37 +130,11 @@ export function SettingsDrawer({
   };
 
   const menuItems = [
-    {
-      key: 'profile' as const,
-      title: 'Profil',
-      subtitle: 'Modifier vos informations',
-      icon: UserCircle2,
-    },
-    {
-      key: 'language' as const,
-      title: 'Langue',
-      subtitle: currentLanguage.startsWith('en') ? 'English' : 'Francais',
-      icon: Globe,
-    },
-    {
-      key: 'theme' as const,
-      title: 'Apparence',
-      subtitle: theme === 'dark' ? 'Sombre' : theme === 'light' ? 'Clair' : 'Systeme',
-      icon: Sun,
-    },
-    {
-      key: 'accessibility' as const,
-      title: 'Accessibilite',
-      subtitle: 'Contraste, texte et animations',
-      icon: Contrast,
-    },
-    {
-      key: 'session' as const,
-      title: 'Session',
-      subtitle: 'Deconnexion',
-      icon: LogOut,
-      danger: true,
-    },
+    { key: 'profile' as const, title: 'Profil', subtitle: 'Modifier vos informations', icon: UserCircle2 },
+    { key: 'language' as const, title: 'Langue', subtitle: currentLanguage.startsWith('en') ? 'English' : 'Francais', icon: Globe },
+    { key: 'theme' as const, title: 'Apparence', subtitle: theme === 'dark' ? 'Sombre' : theme === 'light' ? 'Clair' : 'Systeme', icon: Sun },
+    { key: 'accessibility' as const, title: 'Accessibilite', subtitle: 'Contraste, texte et animations', icon: Contrast },
+    { key: 'session' as const, title: 'Session', subtitle: 'Deconnexion', icon: LogOut, danger: true },
   ];
 
   const renderMenu = () => (
@@ -215,206 +190,67 @@ export function SettingsDrawer({
   );
 
   const renderSection = () => {
-    if (activeSection === 'profile') {
-      return (
-        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-4", isMobile && "rounded-3xl p-5 space-y-5")}>
-          <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold ml-1">Nom d'affichage</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                className={cn("w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-base font-medium text-white focus:border-white/30 outline-none", isMobile && "h-13 rounded-2xl text-lg")}
-                placeholder="Votre nom"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold ml-1">Photo de profil</label>
-              <input
-                type="url"
-                value={photoURL}
-                onChange={(event) => setPhotoURL(event.target.value)}
-                className={cn("w-full bg-[#111111] border border-white/10 rounded-xl px-4 h-11 text-sm font-medium text-white focus:border-white/30 outline-none", isMobile && "h-13 rounded-2xl text-base")}
-                placeholder="https://..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="rounded-xl border border-white/10 bg-[#111111] px-3.5 py-3 flex items-center gap-3">
-                <Mail className="w-4 h-4 text-white/40" />
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Email</p>
-                  <p className="text-sm text-white/70 truncate">{user.email || 'Non renseigne'}</p>
-                </div>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-[#111111] px-3.5 py-3 flex items-center gap-3">
-                <Shield className="w-4 h-4 text-white/40" />
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Connexion</p>
-                  <p className="text-sm text-white/70">{user.providerId || 'google.com'}</p>
-                </div>
-              </div>
-            </div>
-
+    switch (activeSection) {
+      case 'profile':
+        return (
+          <ProfileSection
+            displayName={displayName}
+            setDisplayName={setDisplayName}
+            photoURL={photoURL}
+            setPhotoURL={setPhotoURL}
+            email={user.email}
+            providerId={user.providerId}
+            isSaving={isSavingProfile}
+            canSave={canSaveProfile}
+            isMobile={isMobile}
+            onSave={handleSaveProfile}
+          />
+        );
+      case 'language':
+        return (
+          <LanguageSection
+            currentLanguage={currentLanguage}
+            isMobile={isMobile}
+            onLanguageChange={onLanguageChange}
+            onBack={() => setActiveSection('menu')}
+          />
+        );
+      case 'theme':
+        return (
+          <ThemeSection
+            theme={theme}
+            isMobile={isMobile}
+            onThemeChange={onThemeChange}
+            onBack={() => setActiveSection('menu')}
+          />
+        );
+      case 'accessibility':
+        return (
+          <AccessibilitySection
+            settings={accessibilitySettings}
+            isMobile={isMobile}
+            onToggle={handleToggleAccessibility}
+          />
+        );
+      case 'session':
+        return (
+          <section className={cn("bg-red-500/5 p-4 rounded-2xl border border-red-500/20 space-y-3", isMobile && "rounded-3xl p-5")}>
             <button
               onClick={() => {
-                triggerHaptic('success');
-                handleSaveProfile().then(() => setActiveSection('menu'));
+                triggerHaptic('warning');
+                handleLogout();
               }}
-              disabled={isSavingProfile || !canSaveProfile}
-              className={cn("yt-btn-primary w-full h-12 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed", isMobile && "h-14 text-base")}
+              disabled={isLoggingOut}
+              className={cn("w-full h-12 rounded-2xl bg-red-500/10 text-red-400 font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50", isMobile && "h-14 text-base")}
             >
-              {isSavingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {isSavingProfile ? 'Enregistrement...' : 'Enregistrer mes informations'}
+              {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+              {isLoggingOut ? 'Deconnexion...' : 'Se deconnecter'}
             </button>
-          </div>
-        </section>
-      );
+          </section>
+        );
+      default:
+        return null;
     }
-
-    if (activeSection === 'language') {
-      return (
-        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3", isMobile && "rounded-3xl p-5 space-y-4")}>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { value: 'fr', label: 'Francais' },
-              { value: 'en', label: 'English' },
-            ].map((option) => {
-              const isActive = currentLanguage.startsWith(option.value);
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    triggerHaptic('light');
-                    onLanguageChange(option.value);
-                    setActiveSection('menu');
-                  }}
-                  className={cn(
-                    'rounded-xl border px-4 py-3 text-sm font-semibold transition-all',
-                    isMobile && 'rounded-2xl py-3.5 text-base',
-                    isActive
-                      ? 'bg-white text-black border-white'
-                      : 'bg-[#111111] text-white/80 border-white/10 hover:border-white/20 hover:bg-white/5',
-                  )}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      );
-    }
-
-    if (activeSection === 'theme') {
-      return (
-        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3", isMobile && "rounded-3xl p-5 space-y-4")}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { value: 'dark' as ThemeMode, label: 'Sombre', icon: Moon },
-              { value: 'light' as ThemeMode, label: 'Clair', icon: Sun },
-              { value: 'system' as ThemeMode, label: 'Systeme', icon: Monitor },
-            ].map((option) => {
-              const Icon = option.icon;
-              const isActive = theme === option.value;
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    triggerHaptic('light');
-                    onThemeChange(option.value);
-                    setActiveSection('menu');
-                  }}
-                  className={cn(
-                    'rounded-xl border px-4 py-3 text-sm font-semibold transition-all flex items-center justify-center gap-2',
-                    isMobile && 'rounded-2xl py-3.5 text-base',
-                    isActive
-                      ? 'bg-white text-black border-white'
-                      : 'bg-[#111111] text-white/80 border-white/10 hover:border-white/20 hover:bg-white/5',
-                  )}
-                >
-                  <Icon className={cn("w-4 h-4", isMobile && "w-5 h-5")} />
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      );
-    }
-
-    if (activeSection === 'accessibility') {
-      return (
-        <section className={cn("bg-[#161616] p-4 rounded-2xl border border-white/10 space-y-3", isMobile && "rounded-3xl p-5 space-y-4")}>
-          {[
-            {
-              key: 'highContrast' as keyof AccessibilitySettings,
-              label: 'Contraste eleve',
-              icon: Contrast,
-            },
-            {
-              key: 'largeText' as keyof AccessibilitySettings,
-              label: 'Texte agrandi',
-              icon: Type,
-            },
-            {
-              key: 'reducedMotion' as keyof AccessibilitySettings,
-              label: 'Animations reduites',
-              icon: MoveHorizontal,
-            },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = accessibilitySettings[item.key];
-            return (
-              <button
-                key={item.key}
-                onClick={() => {
-                  triggerHaptic('light');
-                  handleToggleAccessibility(item.key);
-                }}
-                className={cn("w-full flex items-center justify-between rounded-xl border border-white/10 bg-[#111111] px-4 py-3 hover:bg-white/5 transition-colors", isMobile && "rounded-2xl px-5 py-4")}
-              >
-                <span className="flex items-center gap-3 text-white">
-                  <Icon className={cn("w-4 h-4 text-white/50", isMobile && "w-5 h-5")} />
-                  <span className={cn("text-sm font-medium", isMobile && "text-base")}>{item.label}</span>
-                </span>
-                <span
-                  className={cn(
-                    'w-10 h-5 rounded-full transition-all relative',
-                    isActive ? 'bg-white' : 'bg-white/10',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'absolute top-1 w-3 h-3 rounded-full transition-all',
-                      isActive ? 'right-1 bg-black' : 'left-1 bg-white/40',
-                    )}
-                  />
-                </span>
-              </button>
-            );
-          })}
-        </section>
-      );
-    }
-
-    return (
-      <section className={cn("bg-red-500/5 p-4 rounded-2xl border border-red-500/20 space-y-3", isMobile && "rounded-3xl p-5")}>
-        <button
-          onClick={() => {
-            triggerHaptic('warning');
-            handleLogout();
-          }}
-          disabled={isLoggingOut}
-          className={cn("w-full h-12 rounded-2xl bg-red-500/10 text-red-400 font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50", isMobile && "h-14 text-base")}
-        >
-          {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-          {isLoggingOut ? 'Deconnexion...' : 'Se deconnecter'}
-        </button>
-      </section>
-    );
   };
 
   return (

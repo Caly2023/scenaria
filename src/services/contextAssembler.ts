@@ -11,33 +11,33 @@ import { PromptPayload } from '../types/context';
  * Both the async (Firebase) and sync (in-memory) paths use the same ordering logic.
  */
 async function buildCascadingContext(
-  currentOrder: number,
   getStageText: (stageName: string) => string | Promise<string>,
   currentStage: string,
   isUnlocked?: (stageName: string) => boolean,
 ): Promise<string> {
     const unlocked = isUnlocked ?? (() => true);
     let ctx = '';
+    const currentDef = stageRegistry.get(currentStage);
+    const currentCategory = currentDef.category;
 
     // Always include Brainstorming if we are beyond it
-    if (currentOrder > 2) {
+    if (currentDef.order > 2) {
       const bStory = await Promise.resolve(getStageText('Brainstorming'));
       if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
     }
 
-    // Foundation/Structure Stages (Steps 2–6)
-    if (currentOrder >= 2 && currentOrder <= 6) {
+    // Foundation/Structure Stages
+    if (currentCategory === 'FOUNDATION') {
       const allStages = stageRegistry.getAll();
-      for (let i = 0; i < currentOrder; i++) {
+      for (let i = 0; i < currentDef.order; i++) {
         const s = allStages[i];
-        // Skip specialized meta stages that are handled separately or redundant
         if (s.id === 'Logline' || s.id === 'Brainstorming' || s.id === 'Project Metadata') continue;
         const text = await Promise.resolve(getStageText(s.id));
         if (text) ctx += `[${s.name.toUpperCase()}]\n${text}\n\n`;
       }
     } 
-    // Narrative/Production Stages (Steps 7+)
-    else if (currentOrder > 6) {
+    // Narrative/Production Stages
+    else if (currentCategory === 'NARRATIVE' || currentCategory === 'PRODUCTION') {
       const logline = await Promise.resolve(getStageText('Logline'));
       if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
 
@@ -47,7 +47,7 @@ async function buildCascadingContext(
       }
 
       // Include Bibles if we are past them
-      if (currentOrder > 8) {
+      if (currentDef.order > 8) {
         if (unlocked('Character Bible') && currentStage !== 'Character Bible') {
           const chars = await Promise.resolve(getStageText('__characterBible__'));
           if (chars) ctx += chars;
@@ -58,7 +58,7 @@ async function buildCascadingContext(
         }
       }
     } 
-    // Early Stages (Steps 0-1)
+    // Early Stages
     else {
       const draft = await Promise.resolve(getStageText('Initial Draft'));
       if (draft) ctx += `[INITIAL DRAFT]\n${draft}\n\n`;
@@ -192,7 +192,11 @@ class ContextAssembler {
     };
 
     const currentOrder = stageRegistry.get(currentStage).order;
-    const cascadingContext = await buildCascadingContext(currentOrder, getStageText, currentStage, isUnlocked);
+    const cascadingContext = await buildCascadingContext(
+      getStageText, 
+      currentStage, 
+      isUnlocked
+    );
 
     const primitives = await this.getStageStructure(projectId, currentStage);
     const sectionalContent = JSON.stringify(primitives, null, 2);
@@ -275,8 +279,10 @@ class ContextAssembler {
       return (stageContents[sName] || []).map((p: any) => p.content).join('\n\n');
     };
 
-    const currentOrder = stageRegistry.get(currentStage).order;
-    const cascadingContext = await buildCascadingContext(currentOrder, getStageText, currentStage);
+    const cascadingContext = await buildCascadingContext(
+      getStageText, 
+      currentStage
+    );
     
     const currentItems = stageContents[currentStage] || [];
     payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;

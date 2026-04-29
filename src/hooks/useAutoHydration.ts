@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { WorkflowStage, Character, Location, Sequence, Project, HydrationState } from '../types';
+import { WorkflowStage, Project, HydrationState } from '../types';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
-import { buildStageContentsMap } from '../lib/stageContent';
+import { stageRegistry } from '../config/stageRegistry';
 
 interface StageHydrationConfig {
   stage: WorkflowStage;
@@ -57,122 +57,35 @@ export function useAutoHydration({
     }
   }, [currentProject, getContext]);
 
-  const generateLogline = useCallback(async () => runStageHydration('Logline'), [runStageHydration]);
-  const generateStructure = useCallback(async () => runStageHydration('3-Act Structure'), [runStageHydration]);
-  const generate8Beat = useCallback(async () => runStageHydration('8-Beat Structure'), [runStageHydration]);
-  const generateSynopsis = useCallback(async () => runStageHydration('Synopsis'), [runStageHydration]);
   const generateCharactersAndLocations = useCallback(async () => {
     await Promise.all([
       runStageHydration('Character Bible'),
       runStageHydration('Location Bible')
     ]);
   }, [runStageHydration]);
-  const generateTreatment = useCallback(async () => runStageHydration('Treatment'), [runStageHydration]);
-  const generateStepOutline = useCallback(async () => runStageHydration('Step Outline'), [runStageHydration]);
-  const generateScript = useCallback(async () => runStageHydration('Script'), [runStageHydration]);
-  const generateDoctoring = useCallback(async () => runStageHydration('Global Script Doctoring'), [runStageHydration]);
-  const generateBreakdown = useCallback(async () => runStageHydration('Technical Breakdown'), [runStageHydration]);
-  const generateAssets = useCallback(async () => runStageHydration('Visual Assets'), [runStageHydration]);
-  const generatePrevis = useCallback(async () => runStageHydration('AI Previs'), [runStageHydration]);
-  const generateExport = useCallback(async () => runStageHydration('Production Export'), [runStageHydration]);
 
   const getHydrationConfig = useCallback((): StageHydrationConfig | null => {
     if (!currentProject) return null;
 
-    const configs: Record<string, StageHydrationConfig> = {
-      'Logline': {
-        stage: 'Logline',
-        isEmpty: () => (stageContents['Logline'] || []).length === 0,
-        generate: generateLogline,
-        label: 'Generating Logline...',
-      },
-      '3-Act Structure': {
-        stage: '3-Act Structure',
-        isEmpty: () => (stageContents['3-Act Structure'] || []).length === 0,
-        generate: generateStructure,
-        label: 'Generating 3-Act Structure...',
-      },
-      '8-Beat Structure': {
-        stage: '8-Beat Structure',
-        isEmpty: () => (stageContents['8-Beat Structure'] || []).length === 0,
-        generate: generate8Beat,
-        label: 'Generating 8-Beat Structure...',
-      },
-      'Synopsis': {
-        stage: 'Synopsis',
-        isEmpty: () => (stageContents['Synopsis'] || []).length === 0,
-        generate: generateSynopsis,
-        label: 'Generating Synopsis...',
-      },
-      'Character Bible': {
-        stage: 'Character Bible',
-        isEmpty: () => (stageContents['Character Bible'] || []).length === 0,
-        generate: generateCharactersAndLocations,
-        label: 'Extracting Characters & Locations...',
-      },
-      'Location Bible': {
-        stage: 'Location Bible',
-        isEmpty: () => (stageContents['Location Bible'] || []).length === 0,
-        generate: generateCharactersAndLocations,
-        label: 'Extracting Characters & Locations...',
-      },
-      'Treatment': {
-        stage: 'Treatment',
-        isEmpty: () => (stageContents['Treatment'] || []).length === 0,
-        generate: generateTreatment,
-        label: 'Generating Cinematic Treatment...',
-      },
-      'Step Outline': {
-        stage: 'Step Outline',
-        isEmpty: () => (stageContents['Step Outline'] || []).length === 0,
-        generate: generateStepOutline,
-        label: 'Generating Step Outline...',
-      },
-      'Script': {
-        stage: 'Script',
-        isEmpty: () => (stageContents['Script'] || []).length === 0,
-        generate: generateScript,
-        label: 'Generating Full Script (Pro)...',
-      },
-      'Global Script Doctoring': {
-        stage: 'Global Script Doctoring',
-        isEmpty: () => (stageContents['Global Script Doctoring'] || []).length === 0,
-        generate: generateDoctoring,
-        label: 'Running Global Script Doctoring...',
-      },
-      'Technical Breakdown': {
-        stage: 'Technical Breakdown',
-        isEmpty: () => (stageContents['Technical Breakdown'] || []).length === 0,
-        generate: generateBreakdown,
-        label: 'Generating Technical Breakdown...',
-      },
-      'Visual Assets': {
-        stage: 'Visual Assets',
-        isEmpty: () => (stageContents['Visual Assets'] || []).length === 0,
-        generate: generateAssets,
-        label: 'Generating Visual Assets...',
-      },
-      'AI Previs': {
-        stage: 'AI Previs',
-        isEmpty: () => (stageContents['AI Previs'] || []).length === 0,
-        generate: generatePrevis,
-        label: 'Generating AI Previs...',
-      },
-      'Production Export': {
-        stage: 'Production Export',
-        isEmpty: () => (stageContents['Production Export'] || []).length === 0,
-        generate: generateExport,
-        label: 'Preparing Production Export...',
-      },
-    };
+    const def = stageRegistry.get(activeStage);
+    if (!def || !def.hydrationLabel) return null;
 
-    return configs[activeStage] || null;
+    return {
+      stage: activeStage,
+      isEmpty: () => (stageContents[activeStage] || []).length === 0,
+      generate: async () => {
+        // Special case: Character & Location Bible are extracted together
+        if (activeStage === 'Character Bible' || activeStage === 'Location Bible') {
+          await generateCharactersAndLocations();
+        } else {
+          await runStageHydration(activeStage);
+        }
+      },
+      label: def.hydrationLabel,
+    };
   }, [
     activeStage, currentProject, stageContents,
-    generateLogline, generateStructure, generate8Beat, generateSynopsis,
-    generateCharactersAndLocations, generateTreatment,
-    generateStepOutline, generateScript, generateDoctoring, 
-    generateBreakdown, generateAssets, generatePrevis, generateExport
+    generateCharactersAndLocations, runStageHydration
   ]);
 
   useEffect(() => {

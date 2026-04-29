@@ -8,7 +8,7 @@ import { stageRegistry } from "../config/stageRegistry";
 export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any {
   const safeData = { ...data };
   
-  const isBible = stage === 'Character Bible' || stage === 'Location Bible';
+  const isBible = stageRegistry.getCategory(stage) === 'BIBLE';
   
   if (isBible) {
     if (data.title !== undefined) safeData.name = data.title;
@@ -24,7 +24,7 @@ export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any 
 export function mapDbToPrimitive(stage: WorkflowStage | string, data: any): any {
   const safeData = { ...data };
   
-  const isBible = stage === 'Character Bible' || stage === 'Location Bible';
+  const isBible = stageRegistry.getCategory(stage) === 'BIBLE';
   
   if (isBible) {
     if (data.name !== undefined) safeData.title = data.name;

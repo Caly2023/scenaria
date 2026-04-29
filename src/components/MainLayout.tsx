@@ -4,8 +4,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { 
   Project, 
-  ProjectMetadata,
-  WorkflowStage, 
   Toast,
 } from '../types';
 import { Sidebar } from './Sidebar';
@@ -22,7 +20,10 @@ import { useProject } from '../contexts/ProjectContext';
 import { ToastManager } from './ui/ToastManager';
 import { GlobalOverlay } from './ui/GlobalOverlay';
 
-// Props for MainLayout
+// Sub-components
+import { ScriptDoctorFAB } from './layout/ScriptDoctorFAB';
+import { MobileNav } from './layout/MobileNav';
+
 type AccessibilitySettings = {
   highContrast: boolean;
   largeText: boolean;
@@ -38,8 +39,6 @@ interface MainLayoutProps {
   isFirstTime: boolean;
   toasts: Toast[];
   accessibilitySettings: AccessibilitySettings;
-  
-  // App UI callbacks
   handleOpenDrawer: () => void;
   handleCloseDrawer: () => void;
   handleOpenSettings: () => void;
@@ -48,69 +47,26 @@ interface MainLayoutProps {
   setIsHelpOpen: (v: boolean) => void;
   setIsFirstTime: (v: boolean) => void;
   setToasts: React.Dispatch<React.SetStateAction<Toast[]>>;
-  
-  // Logic callbacks from App
   handleLanguageChange: (language: string) => void;
   handleThemeChange: (theme: 'dark' | 'light' | 'system') => void;
   handleProfileSave: (profile: { displayName: string; photoURL: string }) => Promise<void>;
   handleLogout: () => Promise<void>;
   theme: 'dark' | 'light' | 'system';
   language: string;
-  
-  // Stage Content Children
   renderStage: () => React.ReactNode;
-  
-  // Components
   ScriptDoctor: React.ComponentType<any>;
 }
 
 const MainLayoutComponent = ({
-  user,
-  isMobile,
-  isProjectDrawerOpen,
-  isSettingsDrawerOpen,
-  isHelpOpen,
-  isFirstTime,
-  toasts,
-  accessibilitySettings,
-  
-  handleOpenDrawer,
-  handleCloseDrawer,
-  handleOpenSettings,
-  handleCloseSettings,
-  setAccessibilitySettings,
-  setIsHelpOpen,
-  setIsFirstTime,
-  setToasts,
-  
-  handleLanguageChange,
-  handleThemeChange,
-  handleProfileSave,
-  handleLogout,
-  theme,
-  language,
-  
-  renderStage,
-  ScriptDoctor
+  user, isMobile, isProjectDrawerOpen, isSettingsDrawerOpen, isHelpOpen, isFirstTime, toasts, accessibilitySettings,
+  handleOpenDrawer, handleCloseDrawer, handleOpenSettings, handleCloseSettings, setAccessibilitySettings, setIsHelpOpen, setIsFirstTime, setToasts,
+  handleLanguageChange, handleThemeChange, handleProfileSave, handleLogout, theme, language,
+  renderStage, ScriptDoctor
 }: MainLayoutProps) => {
   const project = useProject();
   const {
-    currentProject,
-    activeStage,
-    isDoctorOpen,
-    isFocusMode,
-    isTyping,
-    isHeavyThinking,
-    isDeleting,
-    projectToDelete,
-    syncStatus,
-    refiningBlockId,
-    hydrationState,
-    handleOpenDoctor,
-    handleCloseDoctor,
-    handleProjectDelete,
-    handleCancelDelete,
-    handleDeleteCurrentProject
+    currentProject, activeStage, isDoctorOpen, isFocusMode, isTyping, isHeavyThinking, isDeleting, projectToDelete,
+    hydrationState, refiningBlockId, handleOpenDoctor, handleProjectDelete, handleCancelDelete, handleDeleteCurrentProject
   } = project;
   
   const [showDoctorBubble, setShowDoctorBubble] = useState(true);
@@ -118,17 +74,11 @@ const MainLayoutComponent = ({
 
   useEffect(() => {
     if (!isMobile) return;
-
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY.current && currentScrollY > 20) {
-        setShowDoctorBubble(false);
-      } else {
-        setShowDoctorBubble(true);
-      }
+      setShowDoctorBubble(currentScrollY <= lastScrollY.current || currentScrollY <= 20);
       lastScrollY.current = currentScrollY;
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobile]);
@@ -136,11 +86,7 @@ const MainLayoutComponent = ({
   if (!currentProject) return null;
 
   return (
-    <div className={cn(
-      "w-full flex flex-col md:flex-row bg-background relative font-sans",
-      isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden"
-    )}>
-      {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
+    <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
       {!isMobile && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
           <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85dvh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
@@ -149,41 +95,16 @@ const MainLayoutComponent = ({
         </div>
       )}
 
-      {/* ── Script Doctor Floating Action Button (Universal) ──────────────── */}
       {!isFocusMode && (
-        <div className={cn(
-          "pointer-events-none z-50 overflow-hidden",
-          isMobile ? "fixed inset-0" : "absolute inset-0"
-        )}>
-          <div
-            className={cn(
-              "pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-[60]",
-              isMobile
-                ? "fixed right-5 bottom-[calc(var(--bottom-nav-height)+16px)]"
-                : "absolute bottom-6 right-6",
-              isDoctorOpen || (isMobile && !showDoctorBubble)
-                ? "opacity-0 scale-50 pointer-events-none translate-y-12"
-                : "opacity-100 scale-100",
-            )}
-          >
-            <button
-              onClick={handleOpenDoctor}
-              className={cn(
-                "w-16 h-16 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10",
-                isMobile ? "bg-surface text-white" : "bg-white text-black"
-              )}
-            >
-              <Bot className="w-8 h-8 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
-        </div>
+        <ScriptDoctorFAB 
+          isOpen={isDoctorOpen} 
+          isVisible={showDoctorBubble} 
+          isMobile={isMobile} 
+          onOpen={handleOpenDoctor} 
+        />
       )}
 
-      {/* ── Main content column ─────────────────────────────────────────────── */}
-      <div className={cn(
-        "flex-1 flex flex-col relative transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] z-10 min-w-0",
-        isMobile ? "h-auto" : "h-full"
-      )}>
+      <div className={cn("flex-1 flex flex-col relative transition-all duration-500 z-10 min-w-0", isMobile ? "h-auto" : "h-full")}>
         <div className={cn(isMobile && "fixed top-0 left-0 right-0 z-50")}>
           <Header
             isCompact={isDoctorOpen}
@@ -196,137 +117,47 @@ const MainLayoutComponent = ({
           />
         </div>
 
-        <div className={cn(
-          "flex-1 flex flex-col relative w-full",
-          isMobile ? "overflow-visible" : "overflow-hidden"
-        )}>
-          <div
-            className={cn(
-              "w-full relative",
-              isMobile 
-                ? "overflow-visible scroll-smooth" 
-                : "flex-1 flex flex-col overflow-y-auto no-scrollbar scroll-smooth overscroll-none",
-              isMobile && "pb-safe-nav",
-            )}
-          >
-            <div
-              className={cn(
-                "w-full max-w-4xl mx-auto flex flex-col justify-start relative",
-                isMobile 
-                  ? "px-3 pb-2 pt-[calc(var(--header-top-padding)+64px)]" 
-                  : "flex-1 px-6 py-12 md:pl-32 md:pr-12",
-              )}
-            >
-              <Suspense fallback={<StageSkeleton />}>
-                {renderStage()}
-              </Suspense>
+        <div className={cn("flex-1 flex flex-col relative w-full", isMobile ? "overflow-visible" : "overflow-hidden")}>
+          <div className={cn("w-full relative", isMobile ? "overflow-visible scroll-smooth" : "flex-1 flex flex-col overflow-y-auto no-scrollbar scroll-smooth overscroll-none", isMobile && "pb-safe-nav")}>
+            <div className={cn("w-full max-w-4xl mx-auto flex flex-col justify-start relative", isMobile ? "px-3 pb-2 pt-[calc(var(--header-top-padding)+64px)]" : "flex-1 px-6 py-12 md:pl-32 md:pr-12")}>
+              <Suspense fallback={<StageSkeleton />}>{renderStage()}</Suspense>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── DESKTOP: Script Doctor side panel ─────────────────────────────── */}
       {!isMobile && (
-        <div
-          className={cn(
-            "h-full border-l border-white/5 bg-background z-40 flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] overflow-hidden relative",
-            isDoctorOpen
-              ? "w-[30%] min-w-[350px] max-w-[450px]"
-              : "w-0 min-w-0 border-none",
-          )}
-        >
+        <div className={cn("h-full border-l border-white/5 bg-background z-40 flex-shrink-0 transition-all duration-500 overflow-hidden relative", isDoctorOpen ? "w-[30%] min-w-[350px] max-w-[450px]" : "w-0 min-w-0 border-none")}>
           <div className="absolute right-0 top-0 w-[30vw] min-w-[350px] max-w-[450px] h-full">
-            <Suspense
-              fallback={
-                <div className="h-full flex flex-col items-center justify-center p-12 space-y-4">
-                  <OrbitingLoader size="small" showText={false} />
-                  <span className="text-white/20 text-xs font-bold uppercase tracking-widest">
-                    Initialisation du Docteur...
-                  </span>
-                </div>
-              }
-            >
+            <Suspense fallback={<div className="h-full flex flex-col items-center justify-center p-12 space-y-4"><OrbitingLoader size="small" showText={false} /><span className="text-white/20 text-xs font-bold uppercase tracking-widest">Initialisation...</span></div>}>
               <ScriptDoctor />
             </Suspense>
           </div>
         </div>
       )}
 
-      {/* ── MOBILE: Script Doctor as bottom sheet ─────────────────────────── */}
-      {isMobile && (
-        <Suspense fallback={null}>
-          <ScriptDoctor />
-        </Suspense>
-      )}
-
-      {isMobile && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f0f]/95 backdrop-blur-xl border-t border-white/5 flex flex-col"
-          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-        >
-          {/* Stage tabs */}
-          <div className="h-18 flex items-end pb-0">
-            <Sidebar variant="bottom-nav" />
-          </div>
-        </div>
-      )}
+      {isMobile && <Suspense fallback={null}><ScriptDoctor /></Suspense>}
+      {isMobile && <MobileNav />}
 
       <FormErrorBoundary>
-        <ProjectDrawer
-          isOpen={isProjectDrawerOpen}
-          onClose={handleCloseDrawer}
-          onDelete={handleDeleteCurrentProject}
-        />
+        <ProjectDrawer isOpen={isProjectDrawerOpen} onClose={handleCloseDrawer} onDelete={handleDeleteCurrentProject} />
       </FormErrorBoundary>
 
       <SettingsDrawer
-        isOpen={isSettingsDrawerOpen}
-        onClose={handleCloseSettings}
-        user={user}
-        theme={theme}
-        language={language}
-        accessibilitySettings={accessibilitySettings}
-        onThemeChange={handleThemeChange}
-        onLanguageChange={handleLanguageChange}
-        onAccessibilityChange={setAccessibilitySettings}
-        onSaveProfile={handleProfileSave}
-        onLogout={handleLogout}
+        isOpen={isSettingsDrawerOpen} onClose={handleCloseSettings} user={user} theme={theme} language={language} accessibilitySettings={accessibilitySettings}
+        onThemeChange={handleThemeChange} onLanguageChange={handleLanguageChange} onAccessibilityChange={setAccessibilitySettings} onSaveProfile={handleProfileSave} onLogout={handleLogout}
       />
 
-      {/* Global Modals & Overlays */}
       <AnimatePresence>
-        {projectToDelete && (
-          <DeleteProjectModal
-            projectId={projectToDelete}
-            isDeleting={isDeleting}
-            onCancel={handleCancelDelete}
-            onConfirm={handleProjectDelete}
-          />
-        )}
+        {projectToDelete && <DeleteProjectModal projectId={projectToDelete} isDeleting={isDeleting} onCancel={handleCancelDelete} onConfirm={handleProjectDelete} />}
       </AnimatePresence>
 
       <ToastManager toasts={toasts} setToasts={setToasts} />
-
-      <GlobalOverlay
-        isTyping={isTyping}
-        isHydrating={hydrationState.isHydrating}
-        hydratingLabel={hydrationState.hydratingLabel}
-        isHeavyThinking={isHeavyThinking}
-        activeStage={activeStage}
-        refiningBlockId={refiningBlockId}
-      />
-      
+      <GlobalOverlay isTyping={isTyping} isHydrating={hydrationState.isHydrating} hydratingLabel={hydrationState.hydratingLabel} isHeavyThinking={isHeavyThinking} activeStage={activeStage} refiningBlockId={refiningBlockId} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
       <AnimatePresence>
-        {isFirstTime && (
-          <OnboardingWizard
-            onComplete={() => {
-              setIsFirstTime(false);
-              localStorage.setItem("scenaria_onboarded", "true");
-            }}
-          />
-        )}
+        {isFirstTime && <OnboardingWizard onComplete={() => { setIsFirstTime(false); localStorage.setItem("scenaria_onboarded", "true"); }} />}
       </AnimatePresence>
     </div>
   );

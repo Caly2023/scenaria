@@ -88,6 +88,30 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     );
   }, [currentProject, pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
 
+  const stageContents = React.useMemo(() => buildStageContentsMap({
+    pitchPrimitives,
+    draftPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    beatPrimitives,
+    synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
+    characters,
+    locations,
+    treatmentSequences,
+    sequences,
+    scriptScenes,
+  }), [
+    pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, 
+    beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, 
+    assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, 
+    treatmentSequences, sequences, scriptScenes
+  ]);
+
   const {
     handleRegenerate,
     handleProjectDelete,
@@ -267,6 +291,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleAiMagic,
     handleGenerateViews,
     handleCharacterDeepDevelop,
-    handleLocationDeepDevelop
+    handleLocationDeepDevelop,
+    stageContents
   };
 }

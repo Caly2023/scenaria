@@ -7,7 +7,8 @@ import {
   Character, 
   Location, 
   ProjectMetadata, 
-  HydrationState 
+  HydrationState,
+  ContentPrimitive
 } from '../types';
 import { useProjects } from '../hooks/useProjects';
 import { useAutoHydration } from '../hooks/useAutoHydration';
@@ -38,6 +39,7 @@ interface ProjectContextType {
   exportPrimitives: Sequence[];
   characters: Character[];
   locations: Location[];
+  stageContents: Record<string, ContentPrimitive[]>;
 
   // States
   isProjectLoading: boolean;
@@ -223,6 +225,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     ...callbacks,
     hydrationState,
     telemetryStatus,
+    stageContents: projectHook.stageContents,
     handleToggleDoctor,
     handleOpenDoctor,
     handleCloseDoctor,

@@ -3,6 +3,9 @@ import { useProject } from '../contexts/ProjectContext';
 import { STAGE_DEFINITIONS } from '../config/stageDefinitions';
 import { UnifiedStage } from './stages/UnifiedStage';
 import { StageSkeleton } from './stages/StageSkeleton';
+import { ProjectContextType } from '../contexts/ProjectContext';
+import { StageDefinition } from '../config/stageDefinitions';
+import { WorkflowStage } from '../types';
 
 // Lazy-loaded custom stage components
 const CharacterBible = React.lazy(() =>
@@ -43,33 +46,13 @@ const StageRendererComponent = ({ CanvasErrorBoundary }: { CanvasErrorBoundary: 
   );
 };
 
-function renderStage(definition: any, project: any, CanvasErrorBoundary: any) {
-  const {
-    currentProject,
-    isTyping,
-    refiningBlockId,
-    lastUpdatedPrimitiveId,
-    handleMetadataUpdate,
-    onValidateProjectMetadata,
-    onValidateCharacterBible,
-    onValidateLocationBible,
-    onValidateStepOutline,
-    handleCharacterAdd,
-    handleCharacterUpdate,
-    handleCharacterDelete,
-    handleCharacterDeepDevelop,
-    handleLocationAdd,
-    handleLocationUpdate,
-    handleLocationDelete,
-    handleLocationDeepDevelop,
-    handleGenerateViews,
-    handleSequenceUpdate,
-    handleSequenceAdd,
-    handleFocusMode,
-    handleAiMagic,
-    handleStageAnalyze,
-    onApplyFix,
-  } = project;
+function renderStage(
+  definition: StageDefinition, 
+  project: ProjectContextType, 
+  CanvasErrorBoundary: React.ComponentType<{ children: React.ReactNode }>
+) {
+  const { currentProject } = project;
+  if (!currentProject) return null;
 
   if (definition.isCustom) {
     switch (definition.id) {
@@ -77,45 +60,45 @@ function renderStage(definition: any, project: any, CanvasErrorBoundary: any) {
         return (
           <ProjectMetadataStage
             metadata={currentProject.metadata}
-            onUpdate={handleMetadataUpdate}
-            onValidate={onValidateProjectMetadata}
+            onUpdate={project.handleMetadataUpdate}
+            onValidate={project.onValidateProjectMetadata}
           />
         );
       case "Character Bible":
         return (
           <CharacterBible
-            characters={project.characters.filter((p: any) => p.order !== 0)}
-            onCharacterAdd={handleCharacterAdd}
-            onCharacterUpdate={handleCharacterUpdate}
-            onCharacterDelete={handleCharacterDelete}
+            characters={project.characters.filter((p) => p.order !== 0)}
+            onCharacterAdd={project.handleCharacterAdd}
+            onCharacterUpdate={project.handleCharacterUpdate}
+            onCharacterDelete={project.handleCharacterDelete}
             onRefine={(f: string, id: string) => project.handleStageRefine("Character Bible", f, id)}
-            onGenerateViews={handleGenerateViews}
-            onDeepDevelop={(id: string) => handleCharacterDeepDevelop(id, "Character Bible")}
-            isGenerating={isTyping}
-            refiningBlockId={refiningBlockId}
-            onValidate={onValidateCharacterBible}
-            onAnalyze={() => handleStageAnalyze("Character Bible")}
-            onApplyFix={onApplyFix}
-            lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
+            onGenerateViews={project.handleGenerateViews}
+            onDeepDevelop={(id: string) => project.handleCharacterDeepDevelop(id, "Character Bible")}
+            isGenerating={project.isTyping}
+            refiningBlockId={project.refiningBlockId}
+            onValidate={project.onValidateCharacterBible}
+            onAnalyze={() => project.handleStageAnalyze("Character Bible")}
+            onApplyFix={project.onApplyFix}
+            lastUpdatedPrimitiveId={project.lastUpdatedPrimitiveId}
             insight={currentProject.stageAnalyses?.["Character Bible"]}
           />
         );
       case "Location Bible":
         return (
           <LocationBible
-            locations={project.locations.filter((p: any) => p.order !== 0)}
-            onLocationAdd={handleLocationAdd}
-            onLocationUpdate={handleLocationUpdate}
-            onLocationDelete={handleLocationDelete}
+            locations={project.locations.filter((p) => p.order !== 0)}
+            onLocationAdd={project.handleLocationAdd}
+            onLocationUpdate={project.handleLocationUpdate}
+            onLocationDelete={project.handleLocationDelete}
             onRefine={(f: string, id: string) => project.handleStageRefine("Location Bible", f, id)}
-            onGenerateViews={handleGenerateViews}
-            onDeepDevelop={(id: string) => handleLocationDeepDevelop(id, "Location Bible")}
-            isGenerating={isTyping}
-            refiningBlockId={refiningBlockId}
-            onValidate={onValidateLocationBible}
-            onAnalyze={() => handleStageAnalyze("Location Bible")}
-            onApplyFix={onApplyFix}
-            lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
+            onGenerateViews={project.handleGenerateViews}
+            onDeepDevelop={(id: string) => project.handleLocationDeepDevelop(id, "Location Bible")}
+            isGenerating={project.isTyping}
+            refiningBlockId={project.refiningBlockId}
+            onValidate={project.onValidateLocationBible}
+            onAnalyze={() => project.handleStageAnalyze("Location Bible")}
+            onApplyFix={project.onApplyFix}
+            lastUpdatedPrimitiveId={project.lastUpdatedPrimitiveId}
             insight={currentProject.stageAnalyses?.["Location Bible"]}
           />
         );
@@ -124,15 +107,15 @@ function renderStage(definition: any, project: any, CanvasErrorBoundary: any) {
           <CanvasErrorBoundary>
             <MainCanvas
               sequences={project.sequences}
-              onSequenceUpdate={handleSequenceUpdate}
-              onSequenceAdd={handleSequenceAdd}
-              onFocusMode={handleFocusMode}
-              onAiMagic={handleAiMagic}
-              onValidate={onValidateStepOutline}
-              onAnalyze={() => handleStageAnalyze("Step Outline")}
-              onApplyFix={onApplyFix}
-              isGenerating={isTyping}
-              refiningBlockId={refiningBlockId}
+              onSequenceUpdate={project.handleSequenceUpdate}
+              onSequenceAdd={project.handleSequenceAdd}
+              onFocusMode={project.handleFocusMode}
+              onAiMagic={project.handleAiMagic}
+              onValidate={project.onValidateStepOutline}
+              onAnalyze={() => project.handleStageAnalyze("Step Outline")}
+              onApplyFix={project.onApplyFix}
+              isGenerating={project.isTyping}
+              refiningBlockId={project.refiningBlockId}
               insight={currentProject.stageAnalyses?.["Step Outline"]}
             />
           </CanvasErrorBoundary>

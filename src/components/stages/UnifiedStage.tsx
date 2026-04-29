@@ -34,28 +34,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
   const analysis = currentProject.stageAnalyses?.[definition.id];
   
   // Dynamically get primitives for this stage from the project context
-  // This requires the ProjectContext to expose a generic way to get primitives by collection name
-  // For now, we'll use a helper to map definition.id to the correct primitive list
-  const getPrimitivesForStage = () => {
-    switch (definition.id) {
-      case 'Initial Draft': return project.draftPrimitives;
-      case 'Brainstorming': return project.pitchPrimitives;
-      case 'Logline': return project.loglinePrimitives;
-      case '3-Act Structure': return project.structurePrimitives;
-      case '8-Beat Structure': return project.beatPrimitives;
-      case 'Synopsis': return project.synopsisPrimitives;
-      case 'Treatment': return project.treatmentSequences;
-      case 'Script': return project.scriptScenes;
-      case 'Global Script Doctoring': return project.doctoringPrimitives;
-      case 'Technical Breakdown': return project.breakdownPrimitives;
-      case 'Visual Assets': return project.assetPrimitives;
-      case 'AI Previs': return project.previsPrimitives;
-      case 'Production Export': return project.exportPrimitives;
-      default: return [];
-    }
-  };
-
-  const primitives = getPrimitivesForStage();
+  const primitives = project.stageContents[definition.id] || [];
   const contentPrimitives = primitives.filter(p => p.order !== 0);
 
   const handlePrimitiveChange = (id: string, content: string) => {
@@ -83,7 +62,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
             key={primitive.id}
             title={primitive.title}
             content={primitive.content}
-            type={(primitive as any).type || (definition.primitiveType as any)}
+            type={primitive.primitiveType || definition.primitiveType}
             onContentChange={(c) => handlePrimitiveChange(primitive.id, c)}
             onAiRefine={() => {
               const action = (!primitive.content || primitive.content.trim() === '' || primitive.content === '...') ? 'Generate' : 'Refine';
@@ -93,7 +72,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
             isGenerating={isTyping && (refiningBlockId === primitive.id || refiningBlockId === null)}
             placeholder={t(`stages.${definition.id}.placeholder`, { defaultValue: "Commencez à écrire..." })}
             mode={contentPrimitives.length > 1 ? "stacked" : "single"}
-            visualPrompt={(primitive as any).visualPrompt}
+            visualPrompt={primitive.visualPrompt}
             isUpdated={lastUpdatedPrimitiveId === primitive.id}
           />
         ))}

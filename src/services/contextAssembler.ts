@@ -3,8 +3,71 @@ import { firebaseApi } from './firebaseApi';
 import { Character, Location, Sequence, WorkflowStage } from '../types';
 import { telemetryService } from './telemetryService';
 import { stageRegistry } from '../config/stageRegistry';
-
 import { PromptPayload } from '../types/context';
+
+// ── Shared helper ─────────────────────────────────────────────────────────────
+/**
+ * Builds the cascading context string from already-resolved stage text.
+ * Both the async (Firebase) and sync (in-memory) paths use the same ordering logic.
+ *
+ * @param currentOrder  - order index of the current stage in the registry
+ * @param getStageText  - function returning the text content of any named stage
+ * @param currentStage  - the active stage identifier
+ * @param isUnlocked    - optional predicate; if omitted, all stages are considered unlocked
+ */
+async function buildCascadingContext(
+  currentOrder: number,
+  getStageText: (stageName: string) => string | Promise<string>,
+  currentStage: string,
+  isUnlocked?: (stageName: string) => boolean,
+): Promise<string> {
+    const unlocked = isUnlocked ?? (() => true);
+    let ctx = '';
+
+    if (currentOrder >= 2 && currentOrder <= 4) {
+      // Steps 2–4: brainstorming + all prior stages (except Logline/Brainstorming)
+      const bStory = await Promise.resolve(getStageText('Brainstorming'));
+      if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
+
+      const allStages = stageRegistry.getAll();
+      for (let i = 0; i < currentOrder; i++) {
+        const s = allStages[i];
+        if (s.id === 'Logline' || s.id === 'Brainstorming') continue;
+        const text = await Promise.resolve(getStageText(s.id));
+        if (text) ctx += `[${s.name.toUpperCase()}]\n${text}\n\n`;
+      }
+    } else if (currentOrder > 4) {
+      // Later stages: logline + synopsis + bibles
+      if (unlocked('Synopsis')) {
+        const logline = await Promise.resolve(getStageText('Logline'));
+        if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
+
+        const synopsis = await Promise.resolve(getStageText('Synopsis'));
+        if (synopsis) ctx += `[SYNOPSIS]\n${synopsis}\n\n`;
+
+        if (unlocked('Character Bible') && currentStage !== 'Character Bible') {
+          const chars = await Promise.resolve(getStageText('__characterBible__'));
+          if (chars) ctx += chars;
+        }
+        if (unlocked('Location Bible') && currentStage !== 'Location Bible') {
+          const locs = await Promise.resolve(getStageText('__locationBible__'));
+          if (locs) ctx += locs;
+        }
+      } else {
+        // Fallback when synopsis not yet unlocked
+        const bStory = await Promise.resolve(getStageText('Brainstorming'));
+        if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
+        const logline = await Promise.resolve(getStageText('Logline'));
+        if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
+      }
+    } else {
+      // Steps 0–1
+      const bStory = await Promise.resolve(getStageText('Brainstorming'));
+      if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
+    }
+
+    return ctx;
+}
 
 class ContextAssembler {
   async getStageStructure(
@@ -99,70 +162,24 @@ class ContextAssembler {
       locations: []
     };
 
-    // Helper to get text representation of a stage
     const getStageText = async (sName: string) => {
+      if (sName === '__characterBible__') {
+        return `[CHARACTER BIBLE]\n${JSON.stringify(allCharacters.map(c => ({ name: c.name, role: c.role, description: c.description, wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || '' })), null, 2)}\n\n`;
+      }
+      if (sName === '__locationBible__') {
+        return `[LOCATION BIBLE]\n${JSON.stringify(allLocations.map(l => ({ name: l.name, atmosphere: l.atmosphere, description: l.description })), null, 2)}\n\n`;
+      }
       const primitives = await this.getStageStructure(projectId, sName);
       return primitives.map(p => p.content).join('\n\n');
     };
 
-    // Helper to check if a stage is unlocked
-    const isUnlocked = (sName: string) => {
+    const isUnlocked = (sName: string): boolean => {
       const state = project.stageStates?.[sName];
-      return state && state !== 'empty';
+      return !!(state && state !== 'empty');
     };
 
     const currentOrder = stageRegistry.get(currentStage).order;
-    let cascadingContext = '';
-
-    // Helpers for specific content blocks
-    const getCharacterBibleText = () => `[CHARACTER BIBLE]\n${JSON.stringify(allCharacters.map(c => ({ 
-      name: c.name, 
-      role: c.role, 
-      description: c.description,
-      wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || ''
-    })), null, 2)}\n\n`;
-
-    const getLocationBibleText = () => `[LOCATION BIBLE]\n${JSON.stringify(allLocations.map(l => ({ 
-      name: l.name, 
-      atmosphere: l.atmosphere, 
-      description: l.description 
-    })), null, 2)}\n\n`;
-
-    if (currentOrder >= 2 && currentOrder <= 4) {
-      // --- STEPS 2, 3, 4: BRAINSTORMING + PREVIOUS (NO LOGLINE) ---
-      const bStory = await getStageText('Brainstorming');
-      if (bStory) cascadingContext += `[BRAINSTORMING]\n${bStory}\n\n`;
-
-      const allStages = stageRegistry.getAll();
-      for (let i = 0; i < currentOrder; i++) {
-        const s = allStages[i];
-        if (s.id === 'Logline' || s.id === 'Brainstorming') continue;
-        const text = await getStageText(s.id);
-        if (text) cascadingContext += `[${s.name.toUpperCase()}]\n${text}\n\n`;
-      }
-    } else if (currentOrder > 4) {
-      // --- NEXT STAGES: LOGLINE + SYNOPSIS + BIBLES ---
-      if (isUnlocked('Synopsis')) {
-        const logline = await getStageText('Logline');
-        if (logline) cascadingContext += `[LOGLINE]\n${logline}\n\n`;
-
-        const synopsis = await getStageText('Synopsis');
-        if (synopsis) cascadingContext += `[SYNOPSIS]\n${synopsis}\n\n`;
-
-        if (isUnlocked('Character Bible') && currentStage !== 'Character Bible') cascadingContext += getCharacterBibleText();
-        if (isUnlocked('Location Bible') && currentStage !== 'Location Bible') cascadingContext += getLocationBibleText();
-      } else {
-        // Fallback if synopsis not unlocked: Basic foundation
-        const bStory = await getStageText('Brainstorming');
-        if (bStory) cascadingContext += `[BRAINSTORMING]\n${bStory}\n\n`;
-        const logline = await getStageText('Logline');
-        if (logline) cascadingContext += `[LOGLINE]\n${logline}\n\n`;
-      }
-    } else {
-      // --- STEPS 0, 1 (BRAINSTORMING, LOGLINE) ---
-      const bStory = await getStageText('Brainstorming');
-      if (bStory) cascadingContext += `[BRAINSTORMING]\n${bStory}\n\n`;
-    }
+    const cascadingContext = await buildCascadingContext(currentOrder, getStageText, currentStage, isUnlocked);
 
     const primitives = await this.getStageStructure(projectId, currentStage);
     const sectionalContent = JSON.stringify(primitives, null, 2);
@@ -214,10 +231,6 @@ class ContextAssembler {
     return this.formatPrompt(payload, "");
   }
 
-  /**
-   * Helper to convert a ProjectContext (raw data dump) into a PromptPayload.
-   * Useful when we already have the data in memory and don't want to re-fetch from Firebase.
-   */
   buildPayloadFromProjectContext(
     context: any, // ProjectContext from stageContract
     currentStage: WorkflowStage
@@ -235,55 +248,36 @@ class ContextAssembler {
         targetDuration: metadata.targetDuration
       },
       characters: (stageContents['Character Bible'] || []).map((c: any) => ({
-        id: c.id,
-        name: c.name,
-        role: c.role,
-        description: c.description,
-        deepDevelopment: c.deepDevelopment
+        id: c.id, name: c.name, role: c.role,
+        description: c.description, deepDevelopment: c.deepDevelopment
       })),
       locations: (stageContents['Location Bible'] || []).map((l: any) => ({
-        id: l.id,
-        name: l.name,
-        atmosphere: l.atmosphere,
-        description: l.description
+        id: l.id, name: l.name, atmosphere: l.atmosphere, description: l.description
       })),
     };
 
-    // Build sectional context (simplified version of the buildPromptPayload logic but using provided data)
-    let sectionalContext = '';
-    const currentOrder = stageRegistry.get(currentStage).order;
-
+    // Sync getStageText — reads from in-memory stageContents
     const getStageText = (sName: string) => {
-      const items = stageContents[sName] || [];
-      return items.map((p: any) => p.content).join('\n\n');
+      if (sName === '__characterBible__') {
+        return `[CHARACTER BIBLE]\n${JSON.stringify((stageContents['Character Bible'] || []).map((c: any) => ({ name: c.name, description: c.description })), null, 2)}\n\n`;
+      }
+      if (sName === '__locationBible__') {
+        return `[LOCATION BIBLE]\n${JSON.stringify((stageContents['Location Bible'] || []).map((l: any) => ({ name: l.name, description: l.description })), null, 2)}\n\n`;
+      }
+      return (stageContents[sName] || []).map((p: any) => p.content).join('\n\n');
     };
 
-    if (currentOrder >= 2 && currentOrder <= 4) {
-      const bStory = getStageText('Brainstorming');
-      if (bStory) sectionalContext += `[BRAINSTORMING]\n${bStory}\n\n`;
+    const currentOrder = stageRegistry.get(currentStage).order;
+    // buildCascadingContext always returns Promise<string> — await it
+    buildCascadingContext(currentOrder, getStageText, currentStage).then((ctx: string) => {
+      const currentItems = stageContents[currentStage] || [];
+      payload.sectionalContext = `${ctx}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
+    });
 
-      const allStages = stageRegistry.getAll();
-      for (let i = 0; i < currentOrder; i++) {
-        const s = allStages[i];
-        if (s.id === 'Logline' || s.id === 'Brainstorming') continue;
-        const text = getStageText(s.id);
-        if (text) sectionalContext += `[${s.name.toUpperCase()}]\n${text}\n\n`;
-      }
-    } else if (currentOrder > 4) {
-      const logline = getStageText('Logline');
-      if (logline) sectionalContext += `[LOGLINE]\n${logline}\n\n`;
-      
-      const synopsis = getStageText('Synopsis');
-      if (synopsis) sectionalContext += `[SYNOPSIS]\n${synopsis}\n\n`;
-    } else {
-      const bStory = getStageText('Brainstorming');
-      if (bStory) sectionalContext += `[BRAINSTORMING]\n${bStory}\n\n`;
-    }
-
+    // Provide an immediate fallback for callers that use the payload synchronously
     const currentItems = stageContents[currentStage] || [];
-    sectionalContext += `\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
-    
-    payload.sectionalContext = sectionalContext;
+    payload.sectionalContext = `\n[CURRENT STAGE CONTENT: ${currentStage}]\n${JSON.stringify(currentItems, null, 2)}`;
+
     return payload;
   }
 

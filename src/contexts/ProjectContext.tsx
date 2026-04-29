@@ -16,7 +16,7 @@ import { useAppCallbacks } from '../hooks/useAppCallbacks';
 import { useScriptDoctor } from '../hooks/useScriptDoctor';
 import { useTelemetry } from '../hooks/useTelemetry';
 
-interface ProjectContextType {
+export interface ProjectContextType {
   // Data
   projects: Project[];
   currentProject: Project | null;
@@ -38,12 +38,12 @@ interface ProjectContextType {
   // Handlers
   handleProjectSelect: (id: string, project?: Project) => void;
   handleProjectExit: () => void;
-  handleProjectCreate: (metadata: ProjectMetadata) => Promise<string | undefined>;
+  handleProjectCreate: (brainstormingDraft: string, format?: any) => Promise<void>;
   handleProjectDelete: (id: string) => Promise<void>;
   handleStageChange: (stage: WorkflowStage) => void;
   handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
   handleContentUpdate: (field: string, content: string) => Promise<void>;
-  handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, any>) => Promise<void>;
+  handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, any>) => void;
   handleRegenerate: (stage: WorkflowStage) => Promise<void>;
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
   handleStageRefine: (stage: WorkflowStage, feedback: string, blockId?: string) => Promise<void>;
@@ -112,6 +112,9 @@ interface ProjectContextType {
   setProjectToDelete: (id: string | null) => void;
   setRefiningBlockId: (id: string | null) => void;
   setLastUpdatedPrimitiveId: (id: string | null) => void;
+  handleDeleteCurrentProject: () => void;
+  handleCancelDelete: () => void;
+  onApplyFix: (prompt: string) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -194,7 +197,8 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     handleFocusMode,
     handleCloseFocus,
     handleDeleteCurrentProject,
-    handleCancelDelete
+    handleCancelDelete,
+    onApplyFix: doctor.handleDoctorMessage
   };
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;

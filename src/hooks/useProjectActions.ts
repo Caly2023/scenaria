@@ -260,6 +260,8 @@ ${deepData.relationshipMap}
 
   return {
     handleStageRefine,
+    handleSequenceUpdate,
+    handleSequenceAdd,
     handleAiMagic,
     handleGenerateViews,
     handleCharacterDeepDevelop,

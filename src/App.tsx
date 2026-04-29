@@ -14,6 +14,9 @@ import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { LoginPage } from "./components/LoginPage";
 import i18n from "./i18n";
 import { signOutUser, updateCurrentUserProfile } from "./lib/firebase";
+import { ProjectProvider, useProject } from "./contexts/ProjectContext";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { ContentPrimitive } from "./types/stageContract";
 
 type ThemeMode = "dark" | "light" | "system";
 type AccessibilitySettings = {
@@ -51,20 +54,20 @@ export default function App() {
         isOffline={isOffline} 
         connectionError={connectionError} 
         toasts={toasts}
+        setToasts={setToasts}
         addToast={addToast}
       />
     </ProjectProvider>
   );
 }
 
-function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, addToast }: { user: any, isAuthReady: boolean, isOffline: boolean, connectionError: any, toasts: Toast[], addToast: any }) {
+function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, setToasts, addToast }: { user: any, isAuthReady: boolean, isOffline: boolean, connectionError: any, toasts: Toast[], setToasts: React.Dispatch<React.SetStateAction<Toast[]>>, addToast: any }) {
   const project = useProject();
   const { 
     currentProject, activeStage, projects, isProjectLoading, isProjectNotFound,
     handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleDeleteCurrentProject,
     handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
     isTyping, syncStatus, handleRegenerate, handleStageValidate, handleStageRefine, handleStageAnalyze,
-    characters, locations,
     stageContents,
     isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
     handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop,
@@ -232,9 +235,9 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, add
           onClose={handleCloseFocus}
           onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, { content: c })}
           onAiMagic={() => handleAiMagic(focusedSequenceId)}
-          onTts={() => handleTts(focusedSequenceId, (stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.content || "")}
-          title={(stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.title || "Sequence"}
-          content={(stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.content || ""}
+          onTts={() => handleTts(focusedSequenceId, (stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.content || "")}
+          title={(stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.title || "Sequence"}
+          content={(stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.content || ""}
         />
       )}
 

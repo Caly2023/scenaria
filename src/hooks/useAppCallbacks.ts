@@ -68,74 +68,33 @@ export function useAppCallbacks({
     [stageContents, handleSubcollectionUpdate],
   );
 
-  const onValidateProjectMetadata = useCallback(
-    () => handleStageValidate("Project Metadata"),
+  /**
+   * Generic stage validator — replaces 17 individual onValidate* callbacks.
+   * Usage: onValidateStage("Character Bible")
+   */
+  const onValidateStage = useCallback(
+    (stage: WorkflowStage) => handleStageValidate(stage),
     [handleStageValidate],
   );
-  const onValidateInitialDraft = useCallback(
-    () => handleStageValidate("Initial Draft"),
-    [handleStageValidate],
-  );
-  const onValidateBrainstorming = useCallback(
-    () => handleStageValidate("Brainstorming"),
-    [handleStageValidate],
-  );
-  const onValidateLogline = useCallback(
-    () => handleStageValidate("Logline"),
-    [handleStageValidate],
-  );
-  const onValidate3Act = useCallback(
-    () => handleStageValidate("3-Act Structure"),
-    [handleStageValidate],
-  );
-  const onValidate8Beat = useCallback(
-    () => handleStageValidate("8-Beat Structure"),
-    [handleStageValidate],
-  );
-  const onValidateSynopsis = useCallback(
-    () => handleStageValidate("Synopsis"),
-    [handleStageValidate],
-  );
-  const onValidateCharacterBible = useCallback(
-    () => handleStageValidate("Character Bible"),
-    [handleStageValidate],
-  );
-  const onValidateLocationBible = useCallback(
-    () => handleStageValidate("Location Bible"),
-    [handleStageValidate],
-  );
-  const onValidateTreatment = useCallback(
-    () => handleStageValidate("Treatment"),
-    [handleStageValidate],
-  );
-  const onValidateStepOutline = useCallback(
-    () => handleStageValidate("Step Outline"),
-    [handleStageValidate],
-  );
-  const onValidateScript = useCallback(
-    () => handleStageValidate("Script"),
-    [handleStageValidate],
-  );
-  const onValidateGlobalDoctoring = useCallback(
-    () => handleStageValidate("Global Script Doctoring"),
-    [handleStageValidate],
-  );
-  const onValidateTechnicalBreakdown = useCallback(
-    () => handleStageValidate("Technical Breakdown"),
-    [handleStageValidate],
-  );
-  const onValidateVisualAssets = useCallback(
-    () => handleStageValidate("Visual Assets"),
-    [handleStageValidate],
-  );
-  const onValidateAiPrevis = useCallback(
-    () => handleStageValidate("AI Previs"),
-    [handleStageValidate],
-  );
-  const onValidateProductionExport = useCallback(
-    () => handleStageValidate("Production Export"),
-    [handleStageValidate],
-  );
+
+  // Named aliases for backwards compatibility with existing component props
+  const onValidateProjectMetadata  = useCallback(() => handleStageValidate("Project Metadata"),        [handleStageValidate]);
+  const onValidateInitialDraft     = useCallback(() => handleStageValidate("Initial Draft"),            [handleStageValidate]);
+  const onValidateBrainstorming    = useCallback(() => handleStageValidate("Brainstorming"),            [handleStageValidate]);
+  const onValidateLogline          = useCallback(() => handleStageValidate("Logline"),                  [handleStageValidate]);
+  const onValidate3Act             = useCallback(() => handleStageValidate("3-Act Structure"),          [handleStageValidate]);
+  const onValidate8Beat            = useCallback(() => handleStageValidate("8-Beat Structure"),         [handleStageValidate]);
+  const onValidateSynopsis         = useCallback(() => handleStageValidate("Synopsis"),                 [handleStageValidate]);
+  const onValidateCharacterBible   = useCallback(() => handleStageValidate("Character Bible"),          [handleStageValidate]);
+  const onValidateLocationBible    = useCallback(() => handleStageValidate("Location Bible"),           [handleStageValidate]);
+  const onValidateTreatment        = useCallback(() => handleStageValidate("Treatment"),                [handleStageValidate]);
+  const onValidateStepOutline      = useCallback(() => handleStageValidate("Step Outline"),             [handleStageValidate]);
+  const onValidateScript           = useCallback(() => handleStageValidate("Script"),                   [handleStageValidate]);
+  const onValidateGlobalDoctoring  = useCallback(() => handleStageValidate("Global Script Doctoring"),  [handleStageValidate]);
+  const onValidateTechnicalBreakdown = useCallback(() => handleStageValidate("Technical Breakdown"),   [handleStageValidate]);
+  const onValidateVisualAssets     = useCallback(() => handleStageValidate("Visual Assets"),            [handleStageValidate]);
+  const onValidateAiPrevis         = useCallback(() => handleStageValidate("AI Previs"),                [handleStageValidate]);
+  const onValidateProductionExport = useCallback(() => handleStageValidate("Production Export"),        [handleStageValidate]);
 
   const handlePrimitiveAdd = useCallback(
     async (stage: WorkflowStage, data: any) => {
@@ -205,10 +164,12 @@ export function useAppCallbacks({
     handlePrimitiveAdd,
     handlePrimitiveUpdate,
     handlePrimitiveDelete,
+    // Generic validator (preferred for new code)
+    onValidateStage,
+    // Named aliases (for existing component prop interfaces)
     onValidateProjectMetadata,
     onValidateInitialDraft,
     onValidateBrainstorming,
-    onLoglineChange,
     onValidateLogline,
     onValidate3Act,
     onValidate8Beat,

@@ -38,7 +38,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
   const contentPrimitives = primitives.filter(p => p.order !== 0);
 
   const handlePrimitiveChange = (id: string, content: string) => {
-    handleSubcollectionUpdate(definition.collectionName, id, content);
+    handleSubcollectionUpdate(definition.collectionName, id, { content });
   };
 
   return (
@@ -62,7 +62,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
             key={primitive.id}
             title={primitive.title}
             content={primitive.content}
-            type={primitive.primitiveType || definition.primitiveType}
+            type={(primitive.primitiveType || definition.primitiveType) as any}
             onContentChange={(c) => handlePrimitiveChange(primitive.id, c)}
             onAiRefine={() => {
               const action = (!primitive.content || primitive.content.trim() === '' || primitive.content === '...') ? 'Generate' : 'Refine';

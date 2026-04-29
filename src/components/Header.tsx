@@ -321,10 +321,10 @@ export function Header({
                   )}
                 >
                   <p className="text-sm font-semibold text-white truncate">
-                    {item.title || 'Projet sans titre'}
+                    {item.metadata?.title || 'Projet sans titre'}
                   </p>
                   <p className="text-xs text-white/50 line-clamp-2 mt-1">
-                    {item.logline || 'Aucune logline'}
+                    {item.metadata?.logline || 'Aucune logline'}
                   </p>
                 </button>
               ))}

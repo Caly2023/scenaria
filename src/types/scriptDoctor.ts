@@ -34,8 +34,6 @@ export interface UseScriptDoctorProps {
   currentProject: Project | null;
   activeStage: WorkflowStage;
   stageContents: Record<string, import("./stageContract").ContentPrimitive[]>;
-  characters: Character[];
-  locations: Location[];
   addToast: (msg: string, type: "error" | "info" | "success") => void;
   setRefiningBlockId: (id: string | null) => void;
   setLastUpdatedPrimitiveId?: (id: string | null) => void;

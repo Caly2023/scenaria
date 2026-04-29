@@ -67,7 +67,7 @@ function renderStage(
       case "Character Bible":
         return (
           <CharacterBible
-            characters={project.characters.filter((p) => p.order !== 0)}
+            characters={(project.stageContents["Character Bible"] || []).filter((p) => p.order !== 0)}
             onCharacterAdd={project.handleCharacterAdd}
             onCharacterUpdate={project.handleCharacterUpdate}
             onCharacterDelete={project.handleCharacterDelete}
@@ -86,7 +86,7 @@ function renderStage(
       case "Location Bible":
         return (
           <LocationBible
-            locations={project.locations.filter((p) => p.order !== 0)}
+            locations={(project.stageContents["Location Bible"] || []).filter((p) => p.order !== 0)}
             onLocationAdd={project.handleLocationAdd}
             onLocationUpdate={project.handleLocationUpdate}
             onLocationDelete={project.handleLocationDelete}

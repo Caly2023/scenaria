@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from '../Primitive';
 import { Character, StageInsight } from '@/types';
-import { StageAnalysis } from '@/types/stageContract';
+import { StageAnalysis, ContentPrimitive } from '@/types/stageContract';
 import { StepLayout } from './StepLayout';
 
 interface CharacterBibleProps {
-  characters: Character[];
+  characters: ContentPrimitive[];
   onCharacterAdd: (name: string, description: string, tier: 1 | 2 | 3) => void;
   onCharacterUpdate: (id: string, updates: Partial<Character>) => void;
   onCharacterDelete: (id: string) => void;
@@ -96,21 +96,21 @@ export function CharacterBible({
               {characters.map((char) => (
                 <Primitive
                   key={char.id}
-                  title={char.name}
-                  content={char.description}
-                  onContentChange={(description) => onCharacterUpdate(char.id, { description })}
-                  onTitleChange={(name) => onCharacterUpdate(char.id, { name })}
+                  title={char.title}
+                  content={char.content}
+                  onContentChange={(description) => onCharacterUpdate(char.id, { description } as any)}
+                  onTitleChange={(name) => onCharacterUpdate(char.id, { name } as any)}
                   onAiRefine={() => {
-                    const action = (!char.description || char.description.trim() === '' || char.description === '...') ? 'Generate' : 'Refine';
-                    onRefine(`${action} description for character: ${char.name}`, char.id);
+                    const action = (!char.content || char.content.trim() === '' || char.content === '...') ? 'Generate' : 'Refine';
+                    onRefine(`${action} description for character: ${char.title}`, char.id);
                   }}
                   onGenerateImage={() => handleGenerateClick(char.id)}
                   onDeepDevelop={() => onDeepDevelop(char.id)}
                   onDelete={() => onCharacterDelete(char.id)}
                   type="gallery"
-                  tier={char.tier || 3}
+                  tier={char.metadata?.tier || 3}
                   mode="split"
-                  images={char.views ? Object.values(char.views) as string[] : []}
+                  images={char.metadata?.views ? Object.values(char.metadata.views) as string[] : []}
                   onImageClick={setFullscreenImage}
                   isGenerating={isGenerating && (refiningBlockId === char.id || refiningBlockId === null)}
                   placeholder={t('stages.Character Bible.placeholder')}

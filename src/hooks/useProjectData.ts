@@ -29,8 +29,6 @@ interface ProjectDataState {
   isProjectLoading: boolean;
   isProjectNotFound: boolean;
   stageContents: Record<string, ContentPrimitive[]>;
-  characters: Character[];
-  locations: Location[];
   handleProjectSelect: (id: string, projectObj?: Project) => void;
   handleProjectExit: () => void;
   activeStage: WorkflowStage;
@@ -220,8 +218,6 @@ export function useProjectData(user: User | null): ProjectDataState {
     isProjectLoading: loading,
     isProjectNotFound,
     stageContents,
-    characters,
-    locations,
     handleProjectSelect,
     handleProjectExit,
     activeStage,

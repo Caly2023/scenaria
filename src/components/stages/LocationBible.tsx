@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from '../Primitive';
 import { Location, StageInsight } from '@/types';
-import { StageAnalysis } from '@/types/stageContract';
+import { StageAnalysis, ContentPrimitive } from '@/types/stageContract';
 import { StepLayout } from './StepLayout';
 
 interface LocationBibleProps {
-  locations: Location[];
+  locations: ContentPrimitive[];
   onLocationAdd: (name: string, description: string) => void;
   onLocationUpdate: (id: string, updates: Partial<Location>) => void;
   onLocationDelete: (id: string) => void;
@@ -92,13 +92,13 @@ export function LocationBible({
               {locations.map((loc) => (
                 <Primitive
                   key={loc.id}
-                  title={loc.name}
-                  content={loc.description}
-                  onContentChange={(description) => onLocationUpdate(loc.id, { description })}
-                  onTitleChange={(name) => onLocationUpdate(loc.id, { name })}
+                  title={loc.title}
+                  content={loc.content}
+                  onContentChange={(description) => onLocationUpdate(loc.id, { description } as any)}
+                  onTitleChange={(name) => onLocationUpdate(loc.id, { name } as any)}
                   onAiRefine={() => {
-                    const action = (!loc.description || loc.description.trim() === '' || loc.description === '...') ? 'Generate' : 'Refine';
-                    onRefine(`${action} description for location: ${loc.name}`, loc.id);
+                    const action = (!loc.content || loc.content.trim() === '' || loc.content === '...') ? 'Generate' : 'Refine';
+                    onRefine(`${action} description for location: ${loc.title}`, loc.id);
                   }}
                   onGenerateImage={() => handleGenerateClick(loc.id)}
                   onDeepDevelop={() => onDeepDevelop(loc.id)}

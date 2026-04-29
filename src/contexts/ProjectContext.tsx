@@ -22,9 +22,6 @@ interface ProjectContextType {
   currentProject: Project | null;
   activeStage: WorkflowStage;
   
-  // Subcollections
-  characters: Character[];
-  locations: Location[];
   stageContents: Record<string, ContentPrimitive[]>;
 
   // States
@@ -127,7 +124,7 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider: React.FC<{ user: User | null; addToast: any; children: ReactNode }> = ({ user, addToast, children }) => {
   const projectHook = useProjects(user, addToast);
   const { 
-    currentProject, activeStage, characters, locations, handleStageAnalyze, handleSubcollectionUpdate,
+    currentProject, activeStage, handleStageAnalyze, handleSubcollectionUpdate,
     handleContentUpdate, handleStageValidate, setRefiningBlockId, setLastUpdatedPrimitiveId,
     stageContents
   } = projectHook;
@@ -153,8 +150,6 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     currentProject,
     activeStage,
     stageContents,
-    characters,
-    locations,
     addToast,
     setRefiningBlockId,
     setLastUpdatedPrimitiveId,

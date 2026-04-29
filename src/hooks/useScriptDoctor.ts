@@ -20,8 +20,6 @@ export function useScriptDoctor({
   currentProject,
   activeStage,
   stageContents = {},
-  characters: rawCharacters = [],
-  locations: rawLocations = [],
   addToast,
   setRefiningBlockId,
   setLastUpdatedPrimitiveId,
@@ -40,14 +38,6 @@ export function useScriptDoctor({
     messagesRef.current = doctorMessages;
   }, [doctorMessages]);
 
-  // Derived arrays (backward compatibility for tools or internal logic if needed)
-  const sequences = stageContents["Step Outline"] || [];
-  const treatmentSequences = stageContents["Treatment"] || [];
-  const scriptScenes = stageContents["Script"] || [];
-  const pitchPrimitives = stageContents["Brainstorming"] || [];
-  const characters = rawCharacters || [];
-  const locations = rawLocations || [];
-
   // Tools that require user confirmation before execution
   const SENSITIVE_TOOLS = [
     "propose_patch",
@@ -60,12 +50,7 @@ export function useScriptDoctor({
 
   const { executeToolCall } = useScriptDoctorTools({
     currentProject,
-    pitchPrimitives,
-    characters,
-    locations,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
+    stageContents,
     addToast,
     setRefiningBlockId,
     setLastUpdatedPrimitiveId,

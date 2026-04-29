@@ -29,9 +29,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleProjectExit,
     activeStage,
     handleStageChange,
-    stageContents,
-    characters,
-    locations
+    stageContents
   } = useProjectData(user);
 
   const {
@@ -177,8 +175,6 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleStageAnalyze,
     activeStage,
     stageContents,
-    characters,
-    locations,
     // Modal & Action states
     isDeleting,
     setIsDeleting,

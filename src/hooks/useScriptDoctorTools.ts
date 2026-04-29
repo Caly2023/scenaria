@@ -21,8 +21,6 @@ import {
 interface UseScriptDoctorToolsProps {
   currentProject: Project | null;
   stageContents: Record<string, import("../types/stageContract").ContentPrimitive[]>;
-  characters: Character[];
-  locations: Location[];
   addToast: (msg: string, type: "error" | "info" | "success") => void;
   setRefiningBlockId: (id: string | null) => void;
   setLastUpdatedPrimitiveId?: (id: string | null) => void;
@@ -35,8 +33,6 @@ interface UseScriptDoctorToolsProps {
 export function useScriptDoctorTools({
   currentProject,
   stageContents,
-  characters,
-  locations,
   addToast,
   setRefiningBlockId,
   setLastUpdatedPrimitiveId,
@@ -47,6 +43,9 @@ export function useScriptDoctorTools({
 }: UseScriptDoctorToolsProps) {
   const { t } = useTranslation();
   const subcollectionMap = stageRegistry.getSubcollectionMap();
+  
+  const characters = stageContents["Character Bible"] || [];
+  const locations = stageContents["Location Bible"] || [];
 
   const executeToolCall = async (
     call: ToolCall,
@@ -160,8 +159,8 @@ export function useScriptDoctorTools({
           return {
             success: true,
             data: {
-              characters: characters.filter(c => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q)),
-              locations: locations.filter(l => l.name.toLowerCase().includes(q) || l.description.toLowerCase().includes(q)),
+              characters: characters.filter(c => c.title.toLowerCase().includes(q) || c.content.toLowerCase().includes(q)),
+              locations: locations.filter(l => l.title.toLowerCase().includes(q) || l.content.toLowerCase().includes(q)),
             }
           };
         },

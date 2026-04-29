@@ -8,6 +8,7 @@ import {
   Location, 
   Sequence,
   StageInsight,
+  ProjectMetadata,
 } from '../types';
 import { StageAnalysis } from '../types/stageContract';
 
@@ -92,14 +93,24 @@ const LocationBible = React.lazy(() =>
 const MainCanvas = React.lazy(() =>
   import("./MainCanvas").then((m) => ({ default: m.MainCanvas })),
 );
+const ProjectMetadataStage = React.lazy(() =>
+  import("./ProjectMetadataStage").then((m) => ({ default: m.ProjectMetadataStage })),
+);
 
 interface StageRendererProps {
   activeStage: WorkflowStage;
   currentProject: Project;
   pitchPrimitives: Sequence[];
+  draftPrimitives: Sequence[];
   loglinePrimitives: Sequence[];
   structurePrimitives: Sequence[];
+  beatPrimitives: Sequence[];
   synopsisPrimitives: Sequence[];
+  doctoringPrimitives: Sequence[];
+  breakdownPrimitives: Sequence[];
+  assetPrimitives: Sequence[];
+  previsPrimitives: Sequence[];
+  exportPrimitives: Sequence[];
   treatmentSequences: Sequence[];
   scriptScenes: Sequence[];
   sequences: Sequence[];
@@ -145,18 +156,26 @@ interface StageRendererProps {
   handleAiMagic: (id: string) => void;
   handleToggleDoctor: () => void;
   handleSubcollectionUpdate: (coll: string, id: string, content: string) => void;
+  handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => void;
   
   // Validation Callbacks
   onValidateBrainstorming: () => void;
+  onValidateInitialDraft: () => void;
+  onValidateProjectMetadata: () => void;
   onValidateLogline: () => void;
   onValidate3Act: () => void;
+  onValidate8Beat: () => void;
   onValidateSynopsis: () => void;
   onValidateCharacterBible: () => void;
   onValidateLocationBible: () => void;
   onValidateTreatment: () => void;
   onValidateStepOutline: () => void;
   onValidateScript: () => void;
-  onValidateStoryboard: () => void;
+  onValidateGlobalDoctoring: () => void;
+  onValidateTechnicalBreakdown: () => void;
+  onValidateVisualAssets: () => void;
+  onValidateAiPrevis: () => void;
+  onValidateProductionExport: () => void;
   
   onAnalyzeStage: (stage: WorkflowStage) => Promise<void>;
   onApplyFix: (prompt: string) => void;
@@ -169,9 +188,16 @@ const StageRendererComponent = ({
   activeStage,
   currentProject,
   pitchPrimitives,
+  draftPrimitives,
   loglinePrimitives,
   structurePrimitives,
+  beatPrimitives,
   synopsisPrimitives,
+  doctoringPrimitives,
+  breakdownPrimitives,
+  assetPrimitives,
+  previsPrimitives,
+  exportPrimitives,
   treatmentSequences,
   scriptScenes,
   sequences,
@@ -216,17 +242,25 @@ const StageRendererComponent = ({
   handleAiMagic,
   handleToggleDoctor,
   handleSubcollectionUpdate,
+  handleMetadataUpdate,
   
   onValidateBrainstorming,
+  onValidateInitialDraft,
+  onValidateProjectMetadata,
   onValidateLogline,
   onValidate3Act,
+  onValidate8Beat,
   onValidateSynopsis,
   onValidateCharacterBible,
   onValidateLocationBible,
   onValidateTreatment,
   onValidateStepOutline,
   onValidateScript,
-  onValidateStoryboard,
+  onValidateGlobalDoctoring,
+  onValidateTechnicalBreakdown,
+  onValidateVisualAssets,
+  onValidateAiPrevis,
+  onValidateProductionExport,
   
   onAnalyzeStage,
   onApplyFix,
@@ -236,6 +270,36 @@ const StageRendererComponent = ({
   const { t } = useTranslation();
 
   switch (activeStage) {
+    case "Project Metadata":
+      return (
+        <ProjectMetadataStage
+          metadata={currentProject.metadata}
+          onUpdate={handleMetadataUpdate}
+          onValidate={onValidateProjectMetadata}
+          insight={getStageInsight("Project Metadata", currentProject, [])}
+        />
+      );
+    case "Initial Draft":
+      return (
+        <WorkflowStageComponent
+          stage="Initial Draft"
+          step={2}
+          title={t("stages.Initial Draft.title")}
+          subtitle={t("stages.Initial Draft.subtitle")}
+          content={draftPrimitives.find(p => p.order !== 0)?.content || ""}
+          primitiveId={draftPrimitives.find(p => p.order !== 0)?.id}
+          onContentChange={(c) => {
+            const id = draftPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("draft_primitives", id, c);
+          }}
+          onValidate={onValidateInitialDraft}
+          onRefine={(f, id) => onAnalyzeStage("Initial Draft")}
+          onAnalyze={() => onAnalyzeStage("Initial Draft")}
+          isGenerating={isTyping}
+          validateLabel={t("stages.Initial Draft.validateLabel")}
+          insight={getStageInsight("Initial Draft", currentProject, draftPrimitives)}
+        />
+      );
     case "Brainstorming": {
       return (
         <BrainstormingStage
@@ -272,7 +336,7 @@ const StageRendererComponent = ({
       return (
         <WorkflowStageComponent
           stage="3-Act Structure"
-          step={3}
+          step={5}
           title={t("stages.3-Act Structure.title")}
           subtitle={t("stages.3-Act Structure.subtitle")}
           content={structureContentItems.length === 1 ? structureContentItems[0].content : ""}
@@ -295,11 +359,36 @@ const StageRendererComponent = ({
         />
       );
     }
+    case "8-Beat Structure": {
+      const beatContentItems = beatPrimitives.filter(p => p.order !== 0);
+      return (
+        <WorkflowStageComponent
+          stage="8-Beat Structure"
+          step={6}
+          title={t("stages.8-Beat Structure.title")}
+          subtitle={t("stages.8-Beat Structure.subtitle")}
+          content={beatContentItems.length === 1 ? beatContentItems[0].content : ""}
+          items={beatContentItems.length > 1 ? beatContentItems : undefined}
+          primitiveId={beatContentItems.length === 1 ? beatContentItems[0].id : undefined}
+          onContentChange={(c) => {
+            const id = beatPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("beat_primitives", id, c);
+          }}
+          onItemChange={(id, content) => handleSubcollectionUpdate("beat_primitives", id, content)}
+          onValidate={onValidate8Beat}
+          onRefine={(f, id) => onAnalyzeStage("8-Beat Structure")}
+          onAnalyze={() => onAnalyzeStage("8-Beat Structure")}
+          isGenerating={isTyping}
+          validateLabel={t("stages.8-Beat Structure.validateLabel")}
+          insight={getStageInsight("8-Beat Structure", currentProject, beatPrimitives)}
+        />
+      );
+    }
     case "Synopsis":
       return (
         <WorkflowStageComponent
           stage="Synopsis"
-          step={4}
+          step={7}
           title={t("stages.Synopsis.title")}
           subtitle={t("stages.Synopsis.subtitle")}
           content={synopsisPrimitives.find(p => p.order !== 0)?.content || ""}
@@ -365,7 +454,7 @@ const StageRendererComponent = ({
       return (
         <WorkflowStageComponent
           stage="Treatment"
-          step={7}
+          step={10}
           title={t("stages.Treatment.title")}
           subtitle={t("stages.Treatment.subtitle")}
           content={treatmentSequences[0]?.content || ""}
@@ -408,7 +497,7 @@ const StageRendererComponent = ({
       return (
         <WorkflowStageComponent
           stage="Script"
-          step={9}
+          step={12}
           title={t("stages.Script.title")}
           subtitle={t("stages.Script.subtitle")}
           content={scriptScenes[0]?.content || ""}
@@ -429,33 +518,120 @@ const StageRendererComponent = ({
           insight={getStageInsight("Script", currentProject, scriptScenes)}
         />
       );
-    case "Storyboard":
+    case "Global Script Doctoring":
       return (
-        <div className="w-full space-y-12 py-24 flex flex-col items-center justify-center text-center">
-          <div className="max-w-2xl space-y-8">
-            <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-8">
-              <ImageIcon className="w-12 h-12 text-white/20" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tighter text-white">
-              {t("stages.Storyboard.title")}
-            </h2>
-            <p className="text-secondary text-lg">
-              {t("stages.Storyboard.subtitle")}
-            </p>
-            <div className="bg-surface p-8 rounded-[32px] border border-white/5">
-              <p className="text-white/40 font-medium">
-                {t("stages.Storyboard.comingSoon")}
-              </p>
-            </div>
-            <button
-              onClick={onValidateStoryboard}
-              className="px-12 py-5 rounded-2xl bg-[#2a2a2a] text-white border border-[#444444] font-semibold tracking-tight hover:bg-[#333333] transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-2xl mx-auto"
-            >
-              <Check className="w-5 h-5" />
-              {t("common.completeProject")}
-            </button>
-          </div>
-        </div>
+        <WorkflowStageComponent
+          stage="Global Script Doctoring"
+          step={13}
+          title={t("stages.Global Script Doctoring.title")}
+          subtitle={t("stages.Global Script Doctoring.subtitle")}
+          content={doctoringPrimitives.find(p => p.order !== 0)?.content || ""}
+          items={doctoringPrimitives}
+          onContentChange={(c) => {
+            const id = doctoringPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("doctoring_primitives", id, c);
+          }}
+          onItemChange={(id, content) => handleSubcollectionUpdate("doctoring_primitives", id, content)}
+          onValidate={onValidateGlobalDoctoring}
+          onRefine={(f, id) => onAnalyzeStage("Global Script Doctoring")}
+          onAnalyze={() => onAnalyzeStage("Global Script Doctoring")}
+          onApplyFix={onApplyFix}
+          isGenerating={isTyping}
+          validateLabel={t("stages.Global Script Doctoring.validateLabel")}
+          insight={getStageInsight("Global Script Doctoring", currentProject, doctoringPrimitives)}
+        />
+      );
+    case "Technical Breakdown":
+      return (
+        <WorkflowStageComponent
+          stage="Technical Breakdown"
+          step={14}
+          title={t("stages.Technical Breakdown.title")}
+          subtitle={t("stages.Technical Breakdown.subtitle")}
+          content={breakdownPrimitives.find(p => p.order !== 0)?.content || ""}
+          items={breakdownPrimitives}
+          onContentChange={(c) => {
+            const id = breakdownPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("breakdown_primitives", id, c);
+          }}
+          onItemChange={(id, content) => handleSubcollectionUpdate("breakdown_primitives", id, content)}
+          onValidate={onValidateTechnicalBreakdown}
+          onRefine={(f, id) => onAnalyzeStage("Technical Breakdown")}
+          onAnalyze={() => onAnalyzeStage("Technical Breakdown")}
+          onApplyFix={onApplyFix}
+          isGenerating={isTyping}
+          validateLabel={t("stages.Technical Breakdown.validateLabel")}
+          insight={getStageInsight("Technical Breakdown", currentProject, breakdownPrimitives)}
+        />
+      );
+    case "Visual Assets":
+      return (
+        <WorkflowStageComponent
+          stage="Visual Assets"
+          step={15}
+          title={t("stages.Visual Assets.title")}
+          subtitle={t("stages.Visual Assets.subtitle")}
+          content={assetPrimitives.find(p => p.order !== 0)?.content || ""}
+          items={assetPrimitives}
+          onContentChange={(c) => {
+            const id = assetPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("asset_primitives", id, c);
+          }}
+          onItemChange={(id, content) => handleSubcollectionUpdate("asset_primitives", id, content)}
+          onValidate={onValidateVisualAssets}
+          onRefine={(f, id) => onAnalyzeStage("Visual Assets")}
+          onAnalyze={() => onAnalyzeStage("Visual Assets")}
+          onApplyFix={onApplyFix}
+          isGenerating={isTyping}
+          validateLabel={t("stages.Visual Assets.validateLabel")}
+          insight={getStageInsight("Visual Assets", currentProject, assetPrimitives)}
+        />
+      );
+    case "AI Previs":
+      return (
+        <WorkflowStageComponent
+          stage="AI Previs"
+          step={16}
+          title={t("stages.AI Previs.title")}
+          subtitle={t("stages.AI Previs.subtitle")}
+          content={previsPrimitives.find(p => p.order !== 0)?.content || ""}
+          items={previsPrimitives}
+          onContentChange={(c) => {
+            const id = previsPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("previs_primitives", id, c);
+          }}
+          onItemChange={(id, content) => handleSubcollectionUpdate("previs_primitives", id, content)}
+          onValidate={onValidateAiPrevis}
+          onRefine={(f, id) => onAnalyzeStage("AI Previs")}
+          onAnalyze={() => onAnalyzeStage("AI Previs")}
+          onApplyFix={onApplyFix}
+          isGenerating={isTyping}
+          validateLabel={t("stages.AI Previs.validateLabel")}
+          insight={getStageInsight("AI Previs", currentProject, previsPrimitives)}
+        />
+      );
+    case "Production Export":
+      return (
+        <WorkflowStageComponent
+          stage="Production Export"
+          step={17}
+          title={t("stages.Production Export.title")}
+          subtitle={t("stages.Production Export.subtitle")}
+          content={exportPrimitives.find(p => p.order !== 0)?.content || ""}
+          items={exportPrimitives}
+          onContentChange={(c) => {
+            const id = exportPrimitives.find(p => p.order !== 0)?.id;
+            if (id) handleSubcollectionUpdate("export_primitives", id, c);
+          }}
+          onItemChange={(id, content) => handleSubcollectionUpdate("export_primitives", id, content)}
+          onValidate={onValidateProductionExport}
+          onRefine={(f, id) => onAnalyzeStage("Production Export")}
+          onAnalyze={() => onAnalyzeStage("Production Export")}
+          onApplyFix={onApplyFix}
+          isGenerating={isTyping}
+          validateLabel={t("stages.Production Export.validateLabel")}
+          insight={getStageInsight("Production Export", currentProject, exportPrimitives)}
+        />
       );
     default:
       return (

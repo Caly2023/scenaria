@@ -5,13 +5,20 @@ import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery }
 
 // Subcollections required for each active stage — avoids loading all collections at once
 // Foundational stages must be loaded continuously because downstream AI agents require them for context
-const STAGE_NEEDS_SEQUENCES = new Set<WorkflowStage>(['Step Outline', 'Script', 'Storyboard']);
-const STAGE_NEEDS_TREATMENT_SEQ = new Set<WorkflowStage>(['Treatment', 'Step Outline', 'Script']);
-const STAGE_NEEDS_SCRIPT_SCENES = new Set<WorkflowStage>(['Script', 'Storyboard']);
-const STAGE_NEEDS_PITCH = new Set<WorkflowStage>(['Brainstorming', 'Logline', '3-Act Structure', 'Synopsis', 'Character Bible', 'Location Bible', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
-const STAGE_NEEDS_LOGLINE = new Set<WorkflowStage>(['Logline', '3-Act Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
-const STAGE_NEEDS_STRUCTURE = new Set<WorkflowStage>(['3-Act Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
-const STAGE_NEEDS_SYNOPSIS = new Set<WorkflowStage>(['Synopsis', 'Treatment', 'Step Outline', 'Script', 'Storyboard']);
+const STAGE_NEEDS_SEQUENCES = new Set<WorkflowStage>(['Step Outline', 'Script', 'AI Previs', 'Production Export']);
+const STAGE_NEEDS_TREATMENT_SEQ = new Set<WorkflowStage>(['Treatment', 'Step Outline', 'Script', 'Technical Breakdown']);
+const STAGE_NEEDS_SCRIPT_SCENES = new Set<WorkflowStage>(['Script', 'Global Script Doctoring', 'Technical Breakdown']);
+const STAGE_NEEDS_PITCH = new Set<WorkflowStage>(['Project Metadata', 'Initial Draft', 'Brainstorming', 'Logline', '3-Act Structure', '8-Beat Structure', 'Synopsis', 'Character Bible', 'Location Bible', 'Treatment', 'Step Outline', 'Script', 'Global Script Doctoring', 'Technical Breakdown', 'Visual Assets', 'AI Previs', 'Production Export']);
+const STAGE_NEEDS_LOGLINE = new Set<WorkflowStage>(['Logline', '3-Act Structure', '8-Beat Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Global Script Doctoring', 'Technical Breakdown', 'Visual Assets', 'AI Previs', 'Production Export']);
+const STAGE_NEEDS_STRUCTURE = new Set<WorkflowStage>(['3-Act Structure', '8-Beat Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Global Script Doctoring', 'Technical Breakdown']);
+const STAGE_NEEDS_SYNOPSIS = new Set<WorkflowStage>(['Synopsis', 'Treatment', 'Step Outline', 'Script', 'Global Script Doctoring', 'Technical Breakdown']);
+const STAGE_NEEDS_DRAFT = new Set<WorkflowStage>(['Initial Draft', 'Brainstorming', 'Logline', '3-Act Structure', '8-Beat Structure', 'Synopsis', 'Character Bible', 'Location Bible', 'Treatment', 'Step Outline', 'Script', 'Global Script Doctoring', 'Technical Breakdown', 'Visual Assets', 'AI Previs', 'Production Export']);
+const STAGE_NEEDS_BEATS = new Set<WorkflowStage>(['8-Beat Structure', 'Synopsis', 'Treatment', 'Step Outline', 'Script', 'Global Script Doctoring', 'Technical Breakdown']);
+const STAGE_NEEDS_DOCTORING = new Set<WorkflowStage>(['Global Script Doctoring']);
+const STAGE_NEEDS_BREAKDOWN = new Set<WorkflowStage>(['Technical Breakdown']);
+const STAGE_NEEDS_ASSETS = new Set<WorkflowStage>(['Visual Assets', 'AI Previs']);
+const STAGE_NEEDS_PREVIS = new Set<WorkflowStage>(['AI Previs']);
+const STAGE_NEEDS_EXPORT = new Set<WorkflowStage>(['Production Export']);
 // Characters + locations are reused across several stages; fetch whenever a project is open
 
 interface ProjectDataState {
@@ -24,9 +31,16 @@ interface ProjectDataState {
   treatmentSequences: Sequence[];
   scriptScenes: Sequence[];
   pitchPrimitives: Sequence[];
+  draftPrimitives: Sequence[];
   loglinePrimitives: Sequence[];
   structurePrimitives: Sequence[];
+  beatPrimitives: Sequence[];
   synopsisPrimitives: Sequence[];
+  doctoringPrimitives: Sequence[];
+  breakdownPrimitives: Sequence[];
+  assetPrimitives: Sequence[];
+  previsPrimitives: Sequence[];
+  exportPrimitives: Sequence[];
   characters: Character[];
   locations: Location[];
   handleProjectSelect: (id: string, projectObj?: Project) => void;
@@ -38,7 +52,7 @@ interface ProjectDataState {
 
 export function useProjectData(user: User | null): ProjectDataState {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [activeStage, setActiveStage] = useState<WorkflowStage>('Brainstorming');
+  const [activeStage, setActiveStage] = useState<WorkflowStage>('Project Metadata');
   const [optimisticProject, setOptimisticProject] = useState<Project | null>(null);
 
   useEffect(() => {
@@ -101,6 +115,11 @@ export function useProjectData(user: User | null): ProjectDataState {
     { skip: !currentProjectId || !STAGE_NEEDS_PITCH.has(activeStage) }
   );
 
+  const { data: draftPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'draft_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_DRAFT.has(activeStage) }
+  );
+
   const { data: loglinePrimitives = [] } = useGetSubcollectionQuery(
     { projectId: currentProjectId || '', collectionName: 'logline_primitives', orderByField: 'order' },
     { skip: !currentProjectId || !STAGE_NEEDS_LOGLINE.has(activeStage) }
@@ -111,9 +130,39 @@ export function useProjectData(user: User | null): ProjectDataState {
     { skip: !currentProjectId || !STAGE_NEEDS_STRUCTURE.has(activeStage) }
   );
 
+  const { data: beatPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'beat_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_BEATS.has(activeStage) }
+  );
+
   const { data: synopsisPrimitives = [] } = useGetSubcollectionQuery(
     { projectId: currentProjectId || '', collectionName: 'synopsis_primitives', orderByField: 'order' },
     { skip: !currentProjectId || !STAGE_NEEDS_SYNOPSIS.has(activeStage) }
+  );
+
+  const { data: doctoringPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'doctoring_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_DOCTORING.has(activeStage) }
+  );
+
+  const { data: breakdownPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'breakdown_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_BREAKDOWN.has(activeStage) }
+  );
+
+  const { data: assetPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'asset_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_ASSETS.has(activeStage) }
+  );
+
+  const { data: previsPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'previs_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_PREVIS.has(activeStage) }
+  );
+
+  const { data: exportPrimitives = [] } = useGetSubcollectionQuery(
+    { projectId: currentProjectId || '', collectionName: 'export_primitives', orderByField: 'order' },
+    { skip: !currentProjectId || !STAGE_NEEDS_EXPORT.has(activeStage) }
   );
 
   const { data: characters = [] } = useGetSubcollectionQuery(
@@ -140,7 +189,7 @@ export function useProjectData(user: User | null): ProjectDataState {
     }
     
     const savedStage = localStorage.getItem(`scenaria_stage_${id}`) as WorkflowStage | null;
-    const stage = savedStage || 'Brainstorming';
+    const stage = savedStage || 'Project Metadata';
     setActiveStage(stage);
     window.location.hash = `/project/${id}/stage/${encodeURIComponent(stage)}`;
   };
@@ -166,9 +215,16 @@ export function useProjectData(user: User | null): ProjectDataState {
     treatmentSequences,
     scriptScenes,
     pitchPrimitives,
+    draftPrimitives,
     loglinePrimitives,
     structurePrimitives,
+    beatPrimitives,
     synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
     characters,
     locations,
     handleProjectSelect,

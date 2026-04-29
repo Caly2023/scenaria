@@ -17,6 +17,11 @@ interface UseAutoHydrationProps {
   loglinePrimitives: Sequence[];
   structurePrimitives: Sequence[];
   synopsisPrimitives: Sequence[];
+  doctoringPrimitives: Sequence[];
+  breakdownPrimitives: Sequence[];
+  assetPrimitives: Sequence[];
+  previsPrimitives: Sequence[];
+  exportPrimitives: Sequence[];
   characters: Character[];
   locations: Location[];
   sequences: Sequence[];
@@ -67,6 +72,11 @@ export function useAutoHydration({
         loglinePrimitives,
         structurePrimitives,
         synopsisPrimitives,
+        doctoringPrimitives,
+        breakdownPrimitives,
+        assetPrimitives,
+        previsPrimitives,
+        exportPrimitives,
         characters,
         locations,
         treatmentSequences,
@@ -81,6 +91,11 @@ export function useAutoHydration({
     loglinePrimitives,
     structurePrimitives,
     synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
     characters,
     locations,
     treatmentSequences,
@@ -103,6 +118,7 @@ export function useAutoHydration({
 
   const generateLogline = useCallback(async () => runStageHydration('Logline'), [runStageHydration]);
   const generateStructure = useCallback(async () => runStageHydration('3-Act Structure'), [runStageHydration]);
+  const generate8Beat = useCallback(async () => runStageHydration('8-Beat Structure'), [runStageHydration]);
   const generateSynopsis = useCallback(async () => runStageHydration('Synopsis'), [runStageHydration]);
   const generateCharactersAndLocations = useCallback(async () => {
     await Promise.all([
@@ -113,6 +129,11 @@ export function useAutoHydration({
   const generateTreatment = useCallback(async () => runStageHydration('Treatment'), [runStageHydration]);
   const generateStepOutline = useCallback(async () => runStageHydration('Step Outline'), [runStageHydration]);
   const generateScript = useCallback(async () => runStageHydration('Script'), [runStageHydration]);
+  const generateDoctoring = useCallback(async () => runStageHydration('Global Script Doctoring'), [runStageHydration]);
+  const generateBreakdown = useCallback(async () => runStageHydration('Technical Breakdown'), [runStageHydration]);
+  const generateAssets = useCallback(async () => runStageHydration('Visual Assets'), [runStageHydration]);
+  const generatePrevis = useCallback(async () => runStageHydration('AI Previs'), [runStageHydration]);
+  const generateExport = useCallback(async () => runStageHydration('Production Export'), [runStageHydration]);
 
   const getHydrationConfig = useCallback((): StageHydrationConfig | null => {
     if (!currentProject) return null;
@@ -129,6 +150,12 @@ export function useAutoHydration({
         isEmpty: () => structurePrimitives.length === 0,
         generate: generateStructure,
         label: 'Generating 3-Act Structure...',
+      },
+      '8-Beat Structure': {
+        stage: '8-Beat Structure',
+        isEmpty: () => beatPrimitives.length === 0,
+        generate: generate8Beat,
+        label: 'Generating 8-Beat Structure...',
       },
       'Synopsis': {
         stage: 'Synopsis',
@@ -166,16 +193,48 @@ export function useAutoHydration({
         generate: generateScript,
         label: 'Generating Full Script (Pro)...',
       },
+      'Global Script Doctoring': {
+        stage: 'Global Script Doctoring',
+        isEmpty: () => doctoringPrimitives.length === 0,
+        generate: generateDoctoring,
+        label: 'Running Global Script Doctoring...',
+      },
+      'Technical Breakdown': {
+        stage: 'Technical Breakdown',
+        isEmpty: () => breakdownPrimitives.length === 0,
+        generate: generateBreakdown,
+        label: 'Generating Technical Breakdown...',
+      },
+      'Visual Assets': {
+        stage: 'Visual Assets',
+        isEmpty: () => assetPrimitives.length === 0,
+        generate: generateAssets,
+        label: 'Generating Visual Assets...',
+      },
+      'AI Previs': {
+        stage: 'AI Previs',
+        isEmpty: () => previsPrimitives.length === 0,
+        generate: generatePrevis,
+        label: 'Generating AI Previs...',
+      },
+      'Production Export': {
+        stage: 'Production Export',
+        isEmpty: () => exportPrimitives.length === 0,
+        generate: generateExport,
+        label: 'Preparing Production Export...',
+      },
     };
 
     return configs[activeStage] || null;
   }, [
     activeStage, currentProject, characters, locations, 
     sequences, treatmentSequences, scriptScenes,
-    loglinePrimitives, structurePrimitives, synopsisPrimitives,
-    generateLogline, generateStructure, generateSynopsis,
+    loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, 
+    doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives,
+    generateLogline, generateStructure, generate8Beat, generateSynopsis,
     generateCharactersAndLocations, generateTreatment,
-    generateStepOutline, generateScript
+    generateStepOutline, generateScript, generateDoctoring, 
+    generateBreakdown, generateAssets, generatePrevis, generateExport
   ]);
 
   useEffect(() => {

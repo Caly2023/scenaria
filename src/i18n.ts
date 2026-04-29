@@ -114,6 +114,19 @@ const resources = {
         stageRestructured: 'Stage restructured successfully'
       },
       stages: {
+        'Project Metadata': {
+          label: 'Project Metadata',
+          title: 'Project Settings',
+          subtitle: 'Define the core parameters of your project: genre, format, tone, and language.',
+          validateLabel: 'Save & Start Draft'
+        },
+        'Initial Draft': {
+          label: 'Initial Draft',
+          title: 'The Spark',
+          subtitle: 'Paste your initial idea, synopsis draft, or premise here.',
+          placeholder: 'Paste your raw concept or idea...',
+          validateLabel: 'Validate Draft & Brainstorm'
+        },
         Brainstorming: {
           label: 'Brainstorming',
           title: 'Organize Your Chaos',
@@ -135,7 +148,13 @@ const resources = {
           label: '3-Act Structure',
           title: 'Building the Skeleton',
           subtitle: 'Act I, II and III. This is where the story takes shape.',
-          validateLabel: 'Validate Structure'
+          validateLabel: 'Validate & Move to 8-Beat'
+        },
+        '8-Beat Structure': {
+          label: '8-Beat Structure',
+          title: 'The 8 Story Beats',
+          subtitle: 'Breaking down your story into eight essential dramatic moments.',
+          validateLabel: 'Validate & Move to Synopsis'
         },
         Synopsis: {
           label: 'Synopsis',
@@ -179,11 +198,35 @@ const resources = {
           subtitle: 'Professional formatting and dialogue.',
           validateLabel: 'Validate Script'
         },
-        Storyboard: {
-          label: 'Storyboard',
-          title: 'Storyboard',
-          subtitle: 'Visualize your scenes. This stage allows you to generate and organize manual scene images for your screenplay.',
-          comingSoon: 'Coming Soon: Interactive Storyboard Canvas'
+        'Global Script Doctoring': {
+          label: 'Global Script Doctor',
+          title: 'Deep Analysis',
+          subtitle: 'The Script Doctor reviews your entire screenplay for consistency and quality.',
+          validateLabel: 'Finish Analysis'
+        },
+        'Technical Breakdown': {
+          label: 'Technical Breakdown',
+          title: 'Production Plan',
+          subtitle: 'Transforming scenes into technical shots and production requirements.',
+          validateLabel: 'Validate Breakdown'
+        },
+        'Visual Assets': {
+          label: 'Visual Assets',
+          title: 'Concept Art & Assets',
+          subtitle: 'Generate multi-angle characters, environments, and key props.',
+          validateLabel: 'Validate Assets'
+        },
+        'AI Previs': {
+          label: 'AI Previs',
+          title: 'AI Previsualization',
+          subtitle: 'Preview your script with AI-generated storyboards and pre-visuals.',
+          validateLabel: 'Validate Previs'
+        },
+        'Production Export': {
+          label: 'Production Export',
+          title: 'Export Studio',
+          subtitle: 'Download your finalized script, breakdown, and assets for production.',
+          validateLabel: 'Final Export'
         }
       },
       formats: {
@@ -304,6 +347,19 @@ const resources = {
         stageRestructured: 'Étape restructurée avec succès'
       },
       stages: {
+        'Project Metadata': {
+          label: 'Métadonnées',
+          title: 'Paramètres du projet',
+          subtitle: 'Définissez les paramètres de base de votre projet : genre, format, ton et langue.',
+          validateLabel: 'Enregistrer et commencer le brouillon'
+        },
+        'Initial Draft': {
+          label: 'Brouillon initial',
+          title: 'L\'étincelle',
+          subtitle: 'Collez votre idée initiale, votre brouillon de synopsis ou votre prémisse ici.',
+          placeholder: 'Collez votre concept ou idée brute...',
+          validateLabel: 'Valider le brouillon et brainstormer'
+        },
         Brainstorming: {
           label: 'Brainstorming',
           title: 'Organisez votre chaos',
@@ -325,7 +381,13 @@ const resources = {
           label: 'Structure en 3 actes',
           title: 'Construire le squelette',
           subtitle: 'Acte I, II et III. C\'est ici que l\'histoire prend forme.',
-          validateLabel: 'Valider la Structure'
+          validateLabel: 'Valider et passer aux 8 beats'
+        },
+        '8-Beat Structure': {
+          label: 'Structure en 8 beats',
+          title: 'Les 8 beats de l\'histoire',
+          subtitle: 'Découpage de votre histoire en huit moments dramatiques essentiels.',
+          validateLabel: 'Valider et passer au synopsis'
         },
         Synopsis: {
           label: 'Synopsis',
@@ -369,11 +431,35 @@ const resources = {
           subtitle: 'Formatage professionnel et dialogues.',
           validateLabel: 'Valider le Scénario'
         },
-        Storyboard: {
-          label: 'Storyboard',
-          title: 'Storyboard',
-          subtitle: 'Visualisez vos scènes. Cette étape vous permet de générer et d\'organiser des images de scènes manuelles pour votre scénario.',
-          comingSoon: 'Bientôt disponible : Canevas de Storyboard interactif'
+        'Global Script Doctoring': {
+          label: 'Docteur Global',
+          title: 'Analyse profonde',
+          subtitle: 'Le Docteur Scénario examine l\'ensemble de votre scénario pour la cohérence et la qualité.',
+          validateLabel: 'Terminer l\'analyse'
+        },
+        'Technical Breakdown': {
+          label: 'Découpage technique',
+          title: 'Plan de production',
+          subtitle: 'Transformer les scènes en plans techniques et exigences de production.',
+          validateLabel: 'Valider le découpage'
+        },
+        'Visual Assets': {
+          label: 'Assets visuels',
+          title: 'Concept Art & Assets',
+          subtitle: 'Générer des personnages multi-angles, des environnements et des accessoires clés.',
+          validateLabel: 'Valider les assets'
+        },
+        'AI Previs': {
+          label: 'Prévisualisation IA',
+          title: 'Prévisualisation IA',
+          subtitle: 'Prévisualisez votre scénario avec des storyboards et des pré-visuels générés par l\'IA.',
+          validateLabel: 'Valider la prévis'
+        },
+        'Production Export': {
+          label: 'Export production',
+          title: 'Studio d\'exportation',
+          subtitle: 'Téléchargez votre scénario finalisé, votre découpage et vos assets pour la production.',
+          validateLabel: 'Exportation finale'
         }
       },
       formats: {

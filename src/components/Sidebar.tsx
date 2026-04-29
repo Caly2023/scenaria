@@ -5,11 +5,18 @@ import {
   FileText, 
   ListOrdered, 
   PenTool, 
-  Image as ImageIcon,
+  ImageIcon,
   Lock,
   Wand2,
   Lightbulb,
-  MapPin
+  MapPin,
+  Info,
+  Edit3,
+  Layers,
+  Bot,
+  Cpu,
+  Film,
+  Share
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -25,16 +32,23 @@ interface SidebarProps {
 }
 
 const stages: { id: WorkflowStage; icon: React.ElementType; step: number; estTime: string }[] = [
-  { id: 'Brainstorming', icon: Lightbulb, step: 1, estTime: '15m' },
-  { id: 'Logline', icon: Zap, step: 2, estTime: '5m' },
-  { id: '3-Act Structure', icon: LayoutGrid, step: 3, estTime: '30m' },
-  { id: 'Synopsis', icon: FileText, step: 4, estTime: '45m' },
-  { id: 'Character Bible', icon: BookOpen, step: 5, estTime: '1h' },
-  { id: 'Location Bible', icon: MapPin, step: 6, estTime: '30m' },
-  { id: 'Treatment', icon: PenTool, step: 7, estTime: '2h' },
-  { id: 'Step Outline', icon: ListOrdered, step: 8, estTime: '2h' },
-  { id: 'Script', icon: FileText, step: 9, estTime: 'Days' },
-  { id: 'Storyboard', icon: ImageIcon, step: 10, estTime: 'TBD' },
+  { id: 'Project Metadata', icon: Info, step: 1, estTime: '5m' },
+  { id: 'Initial Draft', icon: Edit3, step: 2, estTime: '10m' },
+  { id: 'Brainstorming', icon: Lightbulb, step: 3, estTime: '15m' },
+  { id: 'Logline', icon: Zap, step: 4, estTime: '5m' },
+  { id: '3-Act Structure', icon: LayoutGrid, step: 5, estTime: '30m' },
+  { id: '8-Beat Structure', icon: Layers, step: 6, estTime: '30m' },
+  { id: 'Synopsis', icon: FileText, step: 7, estTime: '45m' },
+  { id: 'Character Bible', icon: BookOpen, step: 8, estTime: '1h' },
+  { id: 'Location Bible', icon: MapPin, step: 9, estTime: '30m' },
+  { id: 'Treatment', icon: PenTool, step: 10, estTime: '2h' },
+  { id: 'Step Outline', icon: ListOrdered, step: 11, estTime: '2h' },
+  { id: 'Script', icon: FileText, step: 12, estTime: 'Days' },
+  { id: 'Global Script Doctoring', icon: Bot, step: 13, estTime: '1h' },
+  { id: 'Technical Breakdown', icon: Cpu, step: 14, estTime: '3h' },
+  { id: 'Visual Assets', icon: ImageIcon, step: 15, estTime: '2h' },
+  { id: 'AI Previs', icon: Film, step: 16, estTime: '2h' },
+  { id: 'Production Export', icon: Share, step: 17, estTime: '5m' },
 ];
 
 export function Sidebar({ activeStage, onStageChange, validatedStages, variant = 'sidebar' }: SidebarProps) {

@@ -67,6 +67,14 @@ export function useAppCallbacks({
     [loglinePrimitives, handleSubcollectionUpdate],
   );
 
+  const onValidateProjectMetadata = useCallback(
+    () => handleStageValidate("Project Metadata"),
+    [handleStageValidate],
+  );
+  const onValidateInitialDraft = useCallback(
+    () => handleStageValidate("Initial Draft"),
+    [handleStageValidate],
+  );
   const onValidateBrainstorming = useCallback(
     () => handleStageValidate("Brainstorming"),
     [handleStageValidate],
@@ -77,6 +85,10 @@ export function useAppCallbacks({
   );
   const onValidate3Act = useCallback(
     () => handleStageValidate("3-Act Structure"),
+    [handleStageValidate],
+  );
+  const onValidate8Beat = useCallback(
+    () => handleStageValidate("8-Beat Structure"),
     [handleStageValidate],
   );
   const onValidateSynopsis = useCallback(
@@ -103,8 +115,24 @@ export function useAppCallbacks({
     () => handleStageValidate("Script"),
     [handleStageValidate],
   );
-  const onValidateStoryboard = useCallback(
-    () => handleStageValidate("Storyboard"),
+  const onValidateGlobalDoctoring = useCallback(
+    () => handleStageValidate("Global Script Doctoring"),
+    [handleStageValidate],
+  );
+  const onValidateTechnicalBreakdown = useCallback(
+    () => handleStageValidate("Technical Breakdown"),
+    [handleStageValidate],
+  );
+  const onValidateVisualAssets = useCallback(
+    () => handleStageValidate("Visual Assets"),
+    [handleStageValidate],
+  );
+  const onValidateAiPrevis = useCallback(
+    () => handleStageValidate("AI Previs"),
+    [handleStageValidate],
+  );
+  const onValidateProductionExport = useCallback(
+    () => handleStageValidate("Production Export"),
     [handleStageValidate],
   );
 
@@ -215,15 +243,23 @@ export function useAppCallbacks({
     handleLocationAdd,
     handleLocationUpdate,
     handleLocationDelete,
+    onValidateProjectMetadata,
+    onValidateInitialDraft,
     onValidateBrainstorming,
+    onLoglineChange,
     onValidateLogline,
     onValidate3Act,
+    onValidate8Beat,
     onValidateSynopsis,
     onValidateCharacterBible,
     onValidateLocationBible,
     onValidateTreatment,
     onValidateStepOutline,
     onValidateScript,
-    onValidateStoryboard,
+    onValidateGlobalDoctoring,
+    onValidateTechnicalBreakdown,
+    onValidateVisualAssets,
+    onValidateAiPrevis,
+    onValidateProductionExport,
   };
 }

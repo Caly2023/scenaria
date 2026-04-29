@@ -33,9 +33,16 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     treatmentSequences,
     scriptScenes,
     pitchPrimitives,
+    draftPrimitives,
     loglinePrimitives,
     structurePrimitives,
+    beatPrimitives,
     synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
     characters,
     locations
   } = useProjectData(user);
@@ -54,9 +61,16 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       currentProject.metadata,
       buildStageContentsMap({
         pitchPrimitives,
+        draftPrimitives,
         loglinePrimitives,
         structurePrimitives,
+        beatPrimitives,
         synopsisPrimitives,
+        doctoringPrimitives,
+        breakdownPrimitives,
+        assetPrimitives,
+        previsPrimitives,
+        exportPrimitives,
         characters,
         locations,
         treatmentSequences,
@@ -65,7 +79,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       }),
       currentProject.stageAnalyses || {}
     );
-  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
+  }, [currentProject, pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
 
   const {
     handleRegenerate,
@@ -113,8 +127,10 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     treatmentSequences,
     scriptScenes,
     pitchPrimitives,
+    draftPrimitives,
     loglinePrimitives,
     structurePrimitives,
+    beatPrimitives,
     synopsisPrimitives
   });
 
@@ -133,6 +149,11 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
           loglinePrimitives: [],
           structurePrimitives: [],
           synopsisPrimitives: [],
+          doctoringPrimitives: [],
+          breakdownPrimitives: [],
+          assetPrimitives: [],
+          previsPrimitives: [],
+          exportPrimitives: [],
           characters: [],
           locations: [],
           treatmentSequences: [],
@@ -175,7 +196,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     } finally {
       setIsTyping(false);
     }
-  }, [currentProject, pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes, addToast, setIsTyping, getProjectContext]);
+  }, [currentProject, pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes, addToast, setIsTyping, getProjectContext]);
 
   const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;
@@ -212,9 +233,16 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     treatmentSequences,
     scriptScenes,
     pitchPrimitives,
+    draftPrimitives,
     loglinePrimitives,
     structurePrimitives,
+    beatPrimitives,
     synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
     characters,
     locations,
     // Modal & Action states

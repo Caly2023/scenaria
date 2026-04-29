@@ -206,7 +206,9 @@ export async function persistAgentOutput(
               && !prim.id.startsWith('scene_') && !prim.id.startsWith('script_')
               && !prim.id.startsWith('synopsis_') && !prim.id.startsWith('char_gen_')
               && !prim.id.startsWith('loc_gen_') && !prim.id.startsWith('logline_')
-              && !prim.id.startsWith('storyboard_')) {
+              && !prim.id.startsWith('draft_') && !prim.id.startsWith('breakdown_')
+              && !prim.id.startsWith('asset_') && !prim.id.startsWith('previs_')
+              && !prim.id.startsWith('export_') && !prim.id.startsWith('storyboard_')) {
             // Real Firestore ID — update existing document
             try {
               await store.dispatch(firebaseApi.endpoints.updateSubcollectionDoc.initiate({

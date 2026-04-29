@@ -14,16 +14,23 @@ class AgentRegistry {
   constructor() {
     this._instances = new Map();
     this._agents = new Map<string, AgentFactory>([
+      ['Project Metadata', async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
+      ['Initial Draft',    async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
       ['Brainstorming',    async () => new (await import('./BrainstormingAgent')).BrainstormingAgent()],
       ['Logline',          async () => new (await import('./LoglineAgent')).LoglineAgent()],
       ['3-Act Structure',  async () => new (await import('./StructureAgent')).StructureAgent()],
+      ['8-Beat Structure', async () => new (await import('./StructureAgent')).StructureAgent()], // Placeholder
       ['Synopsis',         async () => new (await import('./SynopsisAgent')).SynopsisAgent()],
       ['Character Bible',  async () => new (await import('./CharacterBibleAgent')).CharacterBibleAgent()],
       ['Location Bible',   async () => new (await import('./LocationBibleAgent')).LocationBibleAgent()],
       ['Treatment',        async () => new (await import('./TreatmentAgent')).TreatmentAgent()],
       ['Step Outline',     async () => new (await import('./StepOutlineAgent')).StepOutlineAgent()],
       ['Script',           async () => new (await import('./ScriptAgent')).ScriptAgent()],
-      ['Storyboard',       async () => new (await import('./StoryboardAgent')).StoryboardAgent()],
+      ['Global Script Doctoring', async () => new (await import('./ScriptAgent')).ScriptAgent()], // Placeholder
+      ['Technical Breakdown',     async () => new (await import('./ScriptAgent')).ScriptAgent()], // Placeholder
+      ['Visual Assets',           async () => new (await import('./CharacterBibleAgent')).CharacterBibleAgent()], // Placeholder
+      ['AI Previs',               async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
+      ['Production Export',       async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
     ]);
   }
 

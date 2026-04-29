@@ -51,7 +51,7 @@ export default function App() {
   const { 
     projects, currentProject, isProjectLoading, isProjectNotFound, handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
     isTyping, syncStatus, handleRegenerate, handleStageValidate, activeStage, handleStageRefine, handleStageAnalyze,
-    pitchPrimitives, loglinePrimitives, structurePrimitives, synopsisPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
+    pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
     isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
     handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop, handleSequenceUpdate, handleSequenceAdd
   } = useProjects(user, addToast);
@@ -88,8 +88,10 @@ export default function App() {
     activeStage,
     currentProject,
     pitchPrimitives,
+    draftPrimitives,
     loglinePrimitives,
     structurePrimitives,
+    beatPrimitives,
     synopsisPrimitives,
     characters,
     locations,
@@ -149,7 +151,7 @@ export default function App() {
   }, [accessibilitySettings]);
 
   useKeyboardShortcuts({
-    onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Brainstorming", "Logline", "3-Act Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Storyboard"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
+    onProjectSwitch: handleProjectExit, onDoctorToggle: handleToggleDoctor, onStageChange: handleStageChange, activeStage, stages: ["Project Metadata", "Initial Draft", "Brainstorming", "Logline", "3-Act Structure", "8-Beat Structure", "Synopsis", "Character Bible", "Location Bible", "Treatment", "Step Outline", "Script", "Global Script Doctoring", "Technical Breakdown", "Visual Assets", "AI Previs", "Production Export"] as WorkflowStage[], onShowHelp: () => setIsHelpOpen(true)
   });
 
   const handleFocusMode = useCallback((id: string) => { setFocusedSequenceId(id); setIsFocusMode(true); }, [setFocusedSequenceId, setIsFocusMode]);
@@ -173,7 +175,7 @@ export default function App() {
   }, [addToast]);
 
   const {
-    handleStoryChange, onLoglineChange, handleCharacterAdd, handleCharacterUpdate, handleCharacterDelete, handleLocationAdd, handleLocationUpdate, handleLocationDelete, onValidateBrainstorming, onValidateLogline, onValidate3Act, onValidateSynopsis, onValidateCharacterBible, onValidateLocationBible, onValidateTreatment, onValidateStepOutline, onValidateScript, onValidateStoryboard
+    handleStoryChange, onLoglineChange, handleCharacterAdd, handleCharacterUpdate, handleCharacterDelete, handleLocationAdd, handleLocationUpdate, handleLocationDelete, onValidateProjectMetadata, onValidateInitialDraft, onValidateBrainstorming, onValidateLogline, onValidate3Act, onValidate8Beat, onValidateSynopsis, onValidateCharacterBible, onValidateLocationBible, onValidateTreatment, onValidateStepOutline, onValidateScript, onValidateGlobalDoctoring, onValidateTechnicalBreakdown, onValidateVisualAssets, onValidateAiPrevis, onValidateProductionExport
   } = useAppCallbacks({
     currentProject, addToast, handleSubcollectionUpdate, handleContentUpdate, handleStageValidate, pitchPrimitives, loglinePrimitives
   });
@@ -244,9 +246,16 @@ export default function App() {
       refiningBlockId={refiningBlockId}
       lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
       pitchPrimitives={pitchPrimitives}
+      draftPrimitives={draftPrimitives}
       loglinePrimitives={loglinePrimitives}
       structurePrimitives={structurePrimitives}
+      beatPrimitives={beatPrimitives}
       synopsisPrimitives={synopsisPrimitives}
+      doctoringPrimitives={doctoringPrimitives}
+      breakdownPrimitives={breakdownPrimitives}
+      assetPrimitives={assetPrimitives}
+      previsPrimitives={previsPrimitives}
+      exportPrimitives={exportPrimitives}
       characters={characters}
       locations={locations}
       treatmentSequences={treatmentSequences}
@@ -286,18 +295,26 @@ export default function App() {
       handleAiMagic={handleAiMagic}
       handleToggleDoctor={handleToggleDoctor}
       handleSubcollectionUpdate={handleSubcollectionUpdate}
+      onValidateProjectMetadata={onValidateProjectMetadata}
+      onValidateInitialDraft={onValidateInitialDraft}
       onValidateBrainstorming={onValidateBrainstorming}
       onValidateLogline={onValidateLogline}
       onValidate3Act={onValidate3Act}
+      onValidate8Beat={onValidate8Beat}
       onValidateSynopsis={onValidateSynopsis}
       onValidateCharacterBible={onValidateCharacterBible}
       onValidateLocationBible={onValidateLocationBible}
       onValidateTreatment={onValidateTreatment}
       onValidateStepOutline={onValidateStepOutline}
       onValidateScript={onValidateScript}
-      onValidateStoryboard={onValidateStoryboard}
+      onValidateGlobalDoctoring={onValidateGlobalDoctoring}
+      onValidateTechnicalBreakdown={onValidateTechnicalBreakdown}
+      onValidateVisualAssets={onValidateVisualAssets}
+      onValidateAiPrevis={onValidateAiPrevis}
+      onValidateProductionExport={onValidateProductionExport}
       onAnalyzeStage={handleStageAnalyze}
       onApplyFix={onApplyFix}
+      handleMetadataUpdate={handleMetadataUpdate}
       CanvasErrorBoundary={({ children }: ErrorBoundaryProps) => <>{children}</>}
     />
   );

@@ -4,16 +4,23 @@ export type ProjectFormat = 'Short Film' | 'Feature' | 'Series';
 export type { StageState, StageAnalysis, ContentPrimitive } from './stageContract';
 
 export type WorkflowStage = 
+  | 'Project Metadata'
+  | 'Initial Draft'
   | 'Brainstorming'
   | 'Logline' 
   | '3-Act Structure'
+  | '8-Beat Structure'
   | 'Synopsis'
   | 'Character Bible' 
   | 'Location Bible'
   | 'Treatment' 
   | 'Step Outline' 
   | 'Script' 
-  | 'Storyboard';
+  | 'Global Script Doctoring'
+  | 'Technical Breakdown'
+  | 'Visual Assets'
+  | 'AI Previs'
+  | 'Production Export';
 
 export interface StageInsight {
   content: string;

@@ -26,7 +26,7 @@ function getModelRestName(modelId: string): string {
 // ── Flows ─────────────────────────────────────────────────────────────────────
 
 // 1. Script Doctor Flow
-export const scriptDoctorFlow = ai.defineFlow(
+const scriptDoctorFlow = ai.defineFlow(
   {
     name: 'scriptDoctorFlow',
     inputSchema: z.object({
@@ -107,7 +107,7 @@ export const scriptDoctorFlow = ai.defineFlow(
 );
 
 // 2. 3-Act Structure Flow
-export const generate3ActStructureFlow = ai.defineFlow(
+const generate3ActStructureFlow = ai.defineFlow(
   {
     name: 'generate3ActStructureFlow',
     inputSchema: z.object({ context: z.string() }) as any,
@@ -125,7 +125,7 @@ export const generate3ActStructureFlow = ai.defineFlow(
 );
 
 // 3. Synopsis Flow
-export const generateSynopsisFlow = ai.defineFlow(
+const generateSynopsisFlow = ai.defineFlow(
   {
     name: 'generateSynopsisFlow',
     inputSchema: z.object({ context: z.string() }) as any,
@@ -143,7 +143,7 @@ export const generateSynopsisFlow = ai.defineFlow(
 );
 
 // 4. Character Extraction Flow
-export const extractCharactersFlow = ai.defineFlow(
+const extractCharactersFlow = ai.defineFlow(
   {
     name: 'extractCharactersFlow',
     inputSchema: z.object({ brainstorming: z.string() }) as any,
@@ -161,7 +161,7 @@ export const extractCharactersFlow = ai.defineFlow(
 );
 
 // 5. Full Script Generation Flow
-export const generateFullScriptFlow = ai.defineFlow(
+const generateFullScriptFlow = ai.defineFlow(
   {
     name: 'generateFullScriptFlow',
     inputSchema: z.any() as any,
@@ -179,7 +179,7 @@ export const generateFullScriptFlow = ai.defineFlow(
 );
 
 // 6. Generic Gemini Flow
-export const genericGeminiFlow = ai.defineFlow(
+const genericGeminiFlow = ai.defineFlow(
   {
     name: 'genericGeminiFlow',
     inputSchema: z.object({

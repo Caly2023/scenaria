@@ -18,18 +18,4 @@ export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any 
   return safeData;
 }
 
-/**
- * Maps collection-specific fields (name, description) back to generic ContentPrimitive fields (title, content).
- */
-export function mapDbToPrimitive(stage: WorkflowStage | string, data: any): any {
-  const safeData = { ...data };
-  
-  const isBible = stageRegistry.getCategory(stage) === 'BIBLE';
-  
-  if (isBible) {
-    if (data.name !== undefined) safeData.title = data.name;
-    if (data.description !== undefined) safeData.content = data.description;
-  }
-  
-  return safeData;
-}
+

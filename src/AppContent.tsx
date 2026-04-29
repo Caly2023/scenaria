@@ -19,8 +19,8 @@ import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { ContentPrimitive } from "./types/stageContract";
 import { stageRegistry } from "./config/stageRegistry";
 
-export type ThemeMode = "dark" | "light" | "system";
-export type AccessibilitySettings = {
+type ThemeMode = "dark" | "light" | "system";
+type AccessibilitySettings = {
   highContrast: boolean;
   largeText: boolean;
   reducedMotion: boolean;
@@ -32,7 +32,7 @@ export type Toast = {
   type: 'error' | 'info' | 'success';
 };
 
-export type AppContentProps = {
+type AppContentProps = {
   user: User | null;
   isAuthReady: boolean;
   isOffline: boolean;

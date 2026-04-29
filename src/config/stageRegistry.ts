@@ -4,7 +4,7 @@ import { WorkflowStage } from '../types';
  * STAGE REGISTRY — Single Source of Truth for all stage definitions.
  */
 
-export type StageCategory = 'METADATA' | 'DRAFT' | 'FOUNDATION' | 'BIBLE' | 'NARRATIVE' | 'PRODUCTION';
+type StageCategory = 'METADATA' | 'DRAFT' | 'FOUNDATION' | 'BIBLE' | 'NARRATIVE' | 'PRODUCTION';
 
 export interface StageDefinition {
   id: WorkflowStage;
@@ -354,4 +354,4 @@ class StageRegistry {
 // ─── Singleton Export ─────────────────────────────────────────────────────────
 
 export const stageRegistry = new StageRegistry(STAGES);
-export const STAGE_LIST = stageRegistry.getAll();
+

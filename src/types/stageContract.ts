@@ -9,21 +9,21 @@
 
 export type StageState = 'empty' | 'needs_improvement' | 'good' | 'excellent';
 
-export const STAGE_STATE_ORDER: StageState[] = [
+const STAGE_STATE_ORDER: StageState[] = [
   'empty',
   'needs_improvement',
   'good',
   'excellent',
 ];
 
-export const STAGE_STATE_LABELS: Record<StageState, string> = {
+const STAGE_STATE_LABELS: Record<StageState, string> = {
   empty: 'Empty',
   needs_improvement: 'Needs Improvement',
   good: 'Good',
   excellent: 'Excellent',
 };
 
-export const STAGE_STATE_ICONS: Record<StageState, string> = {
+const STAGE_STATE_ICONS: Record<StageState, string> = {
   empty: '○',
   needs_improvement: '◐',
   good: '●',

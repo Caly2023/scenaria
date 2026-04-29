@@ -1,7 +1,7 @@
 export type ProjectFormat = 'Short Film' | 'Feature' | 'Series';
 
 // Re-export from stageContract for convenience
-export type { StageState, StageAnalysis, ContentPrimitive } from './stageContract';
+export type { ContentPrimitive } from './stageContract';
 
 export type WorkflowStage = 
   | 'Project Metadata'
@@ -67,12 +67,7 @@ export interface Location {
   primitiveType?: string;
 }
 
-export interface PrimitiveBlock {
-  id: string;
-  title: string;
-  content: string;
-  visualPrompt?: string;
-}
+
 
 export interface ProjectMetadata {
   title: string;
@@ -119,12 +114,7 @@ export interface HydrationState {
   resetHydration?: (stage: WorkflowStage) => void;
 }
 
-export interface UserProfile {
-  uid: string;
-  email: string;
-  displayName: string;
-  photoURL: string;
-}
+
 
 export interface Toast {
   id: string;

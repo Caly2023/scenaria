@@ -1,43 +1,6 @@
 import { ScriptDoctorMessage } from "../types/scriptDoctor";
 
-export function getTextFromModelResponse(response: unknown): string {
-  if (!response) return "";
-  if (typeof response === "string") return response;
 
-  const asRecord =
-    typeof response === "object" && !Array.isArray(response)
-      ? (response as Record<string, unknown>)
-      : null;
-  if (!asRecord) return "";
-
-  const directText = asRecord.text;
-  if (typeof directText === "string") return directText;
-
-  const candidate =
-    Array.isArray(asRecord.candidates) && asRecord.candidates.length > 0
-      ? (asRecord.candidates[0] as Record<string, unknown>)
-      : null;
-
-  const contentParts =
-    (candidate as any)?.message?.content ||
-    (candidate as any)?.content?.parts ||
-    (asRecord as any).message?.content ||
-    (asRecord as any).content?.parts ||
-    (Array.isArray(asRecord.parts) ? asRecord.parts : null);
-
-  if (!Array.isArray(contentParts)) return "";
-
-  let aggregatedText = "";
-  for (const part of contentParts) {
-    if (part && typeof part === "object" && !Array.isArray(part)) {
-      if (typeof (part as any).text === "string") {
-        aggregatedText += (part as any).text;
-      }
-    }
-  }
-
-  return aggregatedText;
-}
 
 /**
  * Filter parts to keep only those valid for the model turn:

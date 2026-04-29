@@ -63,7 +63,7 @@ function mapLocationPrimitive(location: Location, index: number): ContentPrimiti
  * Two special cases — Character Bible and Location Bible — use domain-specific mappers
  * because their documents have a different shape from the generic Sequence type.
  */
-export function getStageContentPrimitives(
+function getStageContentPrimitives(
   stage: WorkflowStage,
   rawCollections: RawCollections,
 ): ContentPrimitive[] {

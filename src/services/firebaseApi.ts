@@ -339,20 +339,7 @@ export const firebaseApi = createApi({
       },
     }),
 
-    createProject: builder.mutation<string, { projectData: any }>({
-      async queryFn({ projectData }) {
-        try {
-          const docRef = await addDoc(collection(db, "projects"), {
-            ...projectData,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
-          return { data: docRef.id };
-        } catch (error: any) {
-          return { error: { message: error.message } };
-        }
-      },
-    }),
+
 
     deleteProject: builder.mutation<void, string>({
       async queryFn(projectId) {
@@ -454,7 +441,7 @@ export const {
   useUpdateSubcollectionDocMutation,
   useAddSubcollectionDocMutation,
   useDeleteSubcollectionDocMutation,
-  useCreateProjectMutation,
+
   useDeleteProjectMutation,
   useClearSubcollectionMutation,
   useInitializeProjectWithPrimitivesMutation,

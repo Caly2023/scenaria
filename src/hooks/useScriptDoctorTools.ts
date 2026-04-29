@@ -20,12 +20,9 @@ import {
 
 interface UseScriptDoctorToolsProps {
   currentProject: Project | null;
-  pitchPrimitives: Sequence[];
+  stageContents: Record<string, import("../types/stageContract").ContentPrimitive[]>;
   characters: Character[];
   locations: Location[];
-  sequences: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
   addToast: (msg: string, type: "error" | "info" | "success") => void;
   setRefiningBlockId: (id: string | null) => void;
   setLastUpdatedPrimitiveId?: (id: string | null) => void;
@@ -37,12 +34,9 @@ interface UseScriptDoctorToolsProps {
 
 export function useScriptDoctorTools({
   currentProject,
-  pitchPrimitives,
+  stageContents,
   characters,
   locations,
-  sequences,
-  treatmentSequences,
-  scriptScenes,
   addToast,
   setRefiningBlockId,
   setLastUpdatedPrimitiveId,
@@ -94,9 +88,9 @@ export function useScriptDoctorTools({
                 Synopsis: currentProject.stageStates?.["Synopsis"] !== "empty" ? 1 : 0,
                 "Character Bible": characters.length,
                 "Location Bible": locations.length,
-                "Step Outline": sequences.length,
-                Treatment: treatmentSequences.length,
-                Script: scriptScenes.length,
+                "Step Outline": (stageContents["Step Outline"] || []).length,
+                Treatment: (stageContents["Treatment"] || []).length,
+                Script: (stageContents["Script"] || []).length,
               },
               id_map: idMapSnapshot,
             },
@@ -128,12 +122,12 @@ export function useScriptDoctorTools({
           
           let items: any[] = [];
           const localDataMap: Record<string, any[]> = {
-            Brainstorming: pitchPrimitives,
+            Brainstorming: stageContents["Brainstorming"] || [],
             "Character Bible": characters,
             "Location Bible": locations,
-            "Step Outline": sequences,
-            Treatment: treatmentSequences,
-            Script: scriptScenes,
+            "Step Outline": stageContents["Step Outline"] || [],
+            Treatment: stageContents["Treatment"] || [],
+            Script: stageContents["Script"] || [],
           };
 
           if (localDataMap[stageName] && localDataMap[stageName].length > 0) {

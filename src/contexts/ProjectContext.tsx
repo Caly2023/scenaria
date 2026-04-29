@@ -23,20 +23,6 @@ interface ProjectContextType {
   activeStage: WorkflowStage;
   
   // Subcollections
-  sequences: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
-  pitchPrimitives: Sequence[];
-  draftPrimitives: Sequence[];
-  loglinePrimitives: Sequence[];
-  structurePrimitives: Sequence[];
-  beatPrimitives: Sequence[];
-  synopsisPrimitives: Sequence[];
-  doctoringPrimitives: Sequence[];
-  breakdownPrimitives: Sequence[];
-  assetPrimitives: Sequence[];
-  previsPrimitives: Sequence[];
-  exportPrimitives: Sequence[];
   characters: Character[];
   locations: Location[];
   stageContents: Record<string, ContentPrimitive[]>;
@@ -141,29 +127,15 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider: React.FC<{ user: User | null; addToast: any; children: ReactNode }> = ({ user, addToast, children }) => {
   const projectHook = useProjects(user, addToast);
   const { 
-    currentProject, activeStage, sequences, treatmentSequences, scriptScenes, 
-    pitchPrimitives, loglinePrimitives, structurePrimitives, 
-    characters, locations, handleStageAnalyze, handleSubcollectionUpdate,
-    handleContentUpdate, handleStageValidate, setRefiningBlockId, setLastUpdatedPrimitiveId
+    currentProject, activeStage, characters, locations, handleStageAnalyze, handleSubcollectionUpdate,
+    handleContentUpdate, handleStageValidate, setRefiningBlockId, setLastUpdatedPrimitiveId,
+    stageContents
   } = projectHook;
 
   const hydrationState = useAutoHydration({
     activeStage,
     currentProject,
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives: projectHook.synopsisPrimitives,
-    doctoringPrimitives: projectHook.doctoringPrimitives,
-    breakdownPrimitives: projectHook.breakdownPrimitives,
-    assetPrimitives: projectHook.assetPrimitives,
-    previsPrimitives: projectHook.previsPrimitives,
-    exportPrimitives: projectHook.exportPrimitives,
-    characters,
-    locations,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
+    stageContents,
     addToast,
     onStageAnalyze: handleStageAnalyze
   });
@@ -174,17 +146,13 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     handleSubcollectionUpdate,
     handleContentUpdate,
     handleStageValidate,
-    pitchPrimitives,
-    loglinePrimitives
+    stageContents
   });
 
   const doctor = useScriptDoctor({
     currentProject,
     activeStage,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
+    stageContents,
     characters,
     locations,
     addToast,

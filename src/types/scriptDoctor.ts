@@ -33,10 +33,7 @@ export interface ToolResult {
 export interface UseScriptDoctorProps {
   currentProject: Project | null;
   activeStage: WorkflowStage;
-  sequences: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
-  pitchPrimitives?: Sequence[];
+  stageContents: Record<string, import("./stageContract").ContentPrimitive[]>;
   characters: Character[];
   locations: Location[];
   addToast: (msg: string, type: "error" | "info" | "success") => void;

@@ -3,14 +3,14 @@ import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from '../Primitive';
-import { Sequence, StageInsight } from '@/types';
-import { StageAnalysis } from '@/types/stageContract';
+import { ContentPrimitive, StageAnalysis } from '@/types/stageContract';
+import { StageInsight } from '@/types';
 import { StepLayout } from './StepLayout';
 import { CardSkeleton } from './Skeleton';
 
 interface MainCanvasProps {
-  sequences: Sequence[];
-  onSequenceUpdate: (id: string, updates: Partial<Sequence>) => void;
+  sequences: ContentPrimitive[];
+  onSequenceUpdate: (id: string, updates: Partial<ContentPrimitive>) => void;
   onSequenceAdd: () => void;
   onFocusMode: (id: string) => void;
   onAiMagic: (id: string) => void;
@@ -24,11 +24,11 @@ interface MainCanvasProps {
 
 // Memoized per-sequence row — only re-renders when its own data changes
 interface SequenceRowProps {
-  seq: Sequence;
+  seq: ContentPrimitive;
   index: number;
   isGenerating: boolean;
   refiningBlockId: string | null;
-  onSequenceUpdate: (id: string, updates: Partial<Sequence>) => void;
+  onSequenceUpdate: (id: string, updates: Partial<ContentPrimitive>) => void;
   onAiMagic: (id: string) => void;
   onFocusMode: (id: string) => void;
   placeholder: string;

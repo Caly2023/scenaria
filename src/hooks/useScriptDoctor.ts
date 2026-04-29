@@ -19,10 +19,7 @@ import { useScriptDoctorTools } from "./useScriptDoctorTools";
 export function useScriptDoctor({
   currentProject,
   activeStage,
-  sequences: propsSequences = [],
-  treatmentSequences: propsTreatmentSequences = [],
-  scriptScenes: propsScriptScenes = [],
-  pitchPrimitives: propsPitchPrimitives = [],
+  stageContents = {},
   characters: rawCharacters = [],
   locations: rawLocations = [],
   addToast,
@@ -43,10 +40,11 @@ export function useScriptDoctor({
     messagesRef.current = doctorMessages;
   }, [doctorMessages]);
 
-  const sequences = propsSequences || [];
-  const treatmentSequences = propsTreatmentSequences || [];
-  const scriptScenes = propsScriptScenes || [];
-  const pitchPrimitives = propsPitchPrimitives || [];
+  // Derived arrays (backward compatibility for tools or internal logic if needed)
+  const sequences = stageContents["Step Outline"] || [];
+  const treatmentSequences = stageContents["Treatment"] || [];
+  const scriptScenes = stageContents["Script"] || [];
+  const pitchPrimitives = stageContents["Brainstorming"] || [];
   const characters = rawCharacters || [];
   const locations = rawLocations || [];
 

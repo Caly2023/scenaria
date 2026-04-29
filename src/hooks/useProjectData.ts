@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { User } from 'firebase/auth';
 import { Project, Sequence, Character, Location, WorkflowStage } from '../types';
 import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery } from '../services/firebaseApi';
+import { buildStageContentsMap } from '../lib/stageContent';
+import { ContentPrimitive } from '../types/stageContract';
 
 // Subcollections required for each active stage — avoids loading all collections at once
 // Foundational stages must be loaded continuously because downstream AI agents require them for context
@@ -19,7 +21,6 @@ const STAGE_NEEDS_BREAKDOWN = new Set<WorkflowStage>(['Technical Breakdown']);
 const STAGE_NEEDS_ASSETS = new Set<WorkflowStage>(['Visual Assets', 'AI Previs']);
 const STAGE_NEEDS_PREVIS = new Set<WorkflowStage>(['AI Previs']);
 const STAGE_NEEDS_EXPORT = new Set<WorkflowStage>(['Production Export']);
-// Characters + locations are reused across several stages; fetch whenever a project is open
 
 interface ProjectDataState {
   projects: Project[];
@@ -27,20 +28,7 @@ interface ProjectDataState {
   currentProjectId: string | null;
   isProjectLoading: boolean;
   isProjectNotFound: boolean;
-  sequences: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
-  pitchPrimitives: Sequence[];
-  draftPrimitives: Sequence[];
-  loglinePrimitives: Sequence[];
-  structurePrimitives: Sequence[];
-  beatPrimitives: Sequence[];
-  synopsisPrimitives: Sequence[];
-  doctoringPrimitives: Sequence[];
-  breakdownPrimitives: Sequence[];
-  assetPrimitives: Sequence[];
-  previsPrimitives: Sequence[];
-  exportPrimitives: Sequence[];
+  stageContents: Record<string, ContentPrimitive[]>;
   characters: Character[];
   locations: Location[];
   handleProjectSelect: (id: string, projectObj?: Project) => void;
@@ -85,16 +73,12 @@ export function useProjectData(user: User | null): ProjectDataState {
   // Run migration if needed when the project loads
   useEffect(() => {
     if (currentProject?.id) {
-      // Small optimization: only run migration when the actual project ID changes
-      // or if it hasn't been migrated in this session.
       import('../services/migrationService').then(m => m.migrateProjectIfNeeded(currentProject));
     }
   }, [currentProject?.id]);
 
   // ── Stage-gated subcollection fetches ─────────────────────────────────────
-  // Each large sequence collection is only subscribed when its stage is active.
-  // Characters/locations are shared across multiple stages and always loaded.
-
+  
   const { data: sequences = [] } = useGetSubcollectionQuery(
     { projectId: currentProjectId || '', collectionName: 'sequences', orderByField: 'order' },
     { skip: !currentProjectId || !STAGE_NEEDS_SEQUENCES.has(activeStage) }
@@ -175,6 +159,30 @@ export function useProjectData(user: User | null): ProjectDataState {
     { skip: !currentProjectId }
   );
 
+  const stageContents = useMemo(() => buildStageContentsMap({
+    pitchPrimitives,
+    draftPrimitives,
+    loglinePrimitives,
+    structurePrimitives,
+    beatPrimitives,
+    synopsisPrimitives,
+    doctoringPrimitives,
+    breakdownPrimitives,
+    assetPrimitives,
+    previsPrimitives,
+    exportPrimitives,
+    characters,
+    locations,
+    treatmentSequences,
+    sequences,
+    scriptScenes,
+  }), [
+    pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, 
+    beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, 
+    assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, 
+    treatmentSequences, sequences, scriptScenes
+  ]);
+
   const handleProjectExit = () => {
     setCurrentProjectId(null);
     window.location.hash = '';
@@ -211,20 +219,7 @@ export function useProjectData(user: User | null): ProjectDataState {
     currentProjectId,
     isProjectLoading: loading,
     isProjectNotFound,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives,
-    doctoringPrimitives,
-    breakdownPrimitives,
-    assetPrimitives,
-    previsPrimitives,
-    exportPrimitives,
+    stageContents,
     characters,
     locations,
     handleProjectSelect,

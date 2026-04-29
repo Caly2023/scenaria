@@ -6,7 +6,6 @@ import { useProjectLifecycle } from './useProjectLifecycle';
 import { useProjectSync } from './useProjectSync';
 import { useProjectActions } from './useProjectActions';
 import { buildProjectContext } from '../services/orchestratorService';
-import { buildStageContentsMap } from '../lib/stageContent';
 import { ContentPrimitive } from '../types/stageContract';
 
 type BrainstormPrimitive = ContentPrimitive & { primitiveType?: string };
@@ -30,20 +29,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleProjectExit,
     activeStage,
     handleStageChange,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives,
-    doctoringPrimitives,
-    breakdownPrimitives,
-    assetPrimitives,
-    previsPrimitives,
-    exportPrimitives,
+    stageContents,
     characters,
     locations
   } = useProjectData(user);
@@ -66,51 +52,10 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     return buildProjectContext(
       currentProject.id,
       currentProject.metadata,
-      buildStageContentsMap({
-        pitchPrimitives,
-        draftPrimitives,
-        loglinePrimitives,
-        structurePrimitives,
-        beatPrimitives,
-        synopsisPrimitives,
-        doctoringPrimitives,
-        breakdownPrimitives,
-        assetPrimitives,
-        previsPrimitives,
-        exportPrimitives,
-        characters,
-        locations,
-        treatmentSequences,
-        sequences,
-        scriptScenes,
-      }),
+      stageContents,
       currentProject.stageAnalyses || {}
     );
-  }, [currentProject, pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes]);
-
-  const stageContents = React.useMemo(() => buildStageContentsMap({
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives,
-    doctoringPrimitives,
-    breakdownPrimitives,
-    assetPrimitives,
-    previsPrimitives,
-    exportPrimitives,
-    characters,
-    locations,
-    treatmentSequences,
-    sequences,
-    scriptScenes,
-  }), [
-    pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, 
-    beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, 
-    assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, 
-    treatmentSequences, sequences, scriptScenes
-  ]);
+  }, [currentProject, stageContents]);
 
   const {
     handleRegenerate,
@@ -152,17 +97,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     setLastUpdatedPrimitiveId,
     addToast,
     handleSubcollectionUpdate,
-    characters,
-    locations,
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives
+    stageContents
   });
 
   const handleStageAnalyze = useCallback(async (stage: WorkflowStage) => {
@@ -173,29 +108,13 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       
       let currentContent: ContentPrimitive[] = [];
       if (stage === 'Brainstorming') {
-        // Enforce strict contract: Brainstorming subcollection contains ONLY one content primitive:
-        // primitiveType = 'brainstorming_result' (feedback lives in stageAnalyses / insight).
-        const typedPitchPrimitives = buildStageContentsMap({
-          pitchPrimitives,
-          loglinePrimitives: [],
-          structurePrimitives: [],
-          synopsisPrimitives: [],
-          doctoringPrimitives: [],
-          breakdownPrimitives: [],
-          assetPrimitives: [],
-          previsPrimitives: [],
-          exportPrimitives: [],
-          characters: [],
-          locations: [],
-          treatmentSequences: [],
-          sequences: [],
-          scriptScenes: [],
-        }).Brainstorming as BrainstormPrimitive[];
+        // Enforce strict contract: Brainstorming subcollection contains ONLY one content primitive
+        const typedBrainstorming = stageContents.Brainstorming as BrainstormPrimitive[];
         const existing =
-          typedPitchPrimitives.find((p) => p.primitiveType === 'brainstorming_result') ||
-          typedPitchPrimitives.find((p) => p.primitiveType === 'pitch_result') ||
-          typedPitchPrimitives.find((p) => p.order === 1) ||
-          typedPitchPrimitives[0];
+          typedBrainstorming.find((p) => p.primitiveType === 'brainstorming_result') ||
+          typedBrainstorming.find((p) => p.primitiveType === 'pitch_result') ||
+          typedBrainstorming.find((p) => p.order === 1) ||
+          typedBrainstorming[0];
 
         currentContent = existing
           ? [
@@ -209,9 +128,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
           : [];
       }
       else {
-        currentContent =
-          getProjectContext()?.stageContents[stage] ||
-          [];
+        currentContent = stageContents[stage] || [];
       }
 
       const context = getProjectContext();
@@ -227,7 +144,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     } finally {
       setIsTyping(false);
     }
-  }, [currentProject, pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes, addToast, setIsTyping, getProjectContext]);
+  }, [currentProject, stageContents, addToast, setIsTyping, getProjectContext]);
 
   const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;
@@ -259,21 +176,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleStageRefine,
     handleStageAnalyze,
     activeStage,
-    // Subcollections
-    sequences,
-    treatmentSequences,
-    scriptScenes,
-    pitchPrimitives,
-    draftPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    beatPrimitives,
-    synopsisPrimitives,
-    doctoringPrimitives,
-    breakdownPrimitives,
-    assetPrimitives,
-    previsPrimitives,
-    exportPrimitives,
+    stageContents,
     characters,
     locations,
     // Modal & Action states
@@ -291,7 +194,6 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleAiMagic,
     handleGenerateViews,
     handleCharacterDeepDevelop,
-    handleLocationDeepDevelop,
-    stageContents
+    handleLocationDeepDevelop
   };
 }

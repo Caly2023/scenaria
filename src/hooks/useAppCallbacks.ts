@@ -25,8 +25,7 @@ interface UseAppCallbacksProps {
   handleSubcollectionUpdate: (collName: string, id: string, content: string) => void;
   handleContentUpdate: (field: string, content: string) => void;
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
-  pitchPrimitives: Sequence[];
-  loglinePrimitives: Sequence[];
+  stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
 }
 
 export function useAppCallbacks({
@@ -35,8 +34,7 @@ export function useAppCallbacks({
   handleSubcollectionUpdate,
   handleContentUpdate,
   handleStageValidate,
-  pitchPrimitives = [],
-  loglinePrimitives = [],
+  stageContents,
 }: UseAppCallbacksProps) {
   const { t } = useTranslation();
   
@@ -46,25 +44,26 @@ export function useAppCallbacks({
 
   const handleStoryChange = useCallback(
     (c: string) => {
-      const typedPrimitives = pitchPrimitives as BrainstormPrimitive[];
-      const pitchId = typedPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.id
-        || typedPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id // backward compat
+      const pitchPrimitives = stageContents['Brainstorming'] || [];
+      const pitchId = pitchPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.id
+        || pitchPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id // backward compat
         || pitchPrimitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.id
         || pitchPrimitives.find((p) => p.order === 1)?.id;
       if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, c);
       handleContentUpdate("brainstorming_result", c);
     },
-    [pitchPrimitives, handleSubcollectionUpdate, handleContentUpdate],
+    [stageContents, handleSubcollectionUpdate, handleContentUpdate],
   );
 
   const onLoglineChange = useCallback(
     (c: string) => {
+      const loglinePrimitives = stageContents['Logline'] || [];
       const id = loglinePrimitives[0]?.id;
       if (id) {
         handleSubcollectionUpdate("logline_primitives", id, c);
       }
     },
-    [loglinePrimitives, handleSubcollectionUpdate],
+    [stageContents, handleSubcollectionUpdate],
   );
 
   const onValidateProjectMetadata = useCallback(

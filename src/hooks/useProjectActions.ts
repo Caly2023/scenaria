@@ -19,15 +19,7 @@ interface UseProjectActionsProps {
   setLastUpdatedPrimitiveId: (id: string | null) => void;
   addToast: (msg: string, type: 'error' | 'info' | 'success') => void;
   handleSubcollectionUpdate: (collName: string, id: string, content: string) => void;
-  characters: Character[];
-  locations: Location[];
-  sequences: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
-  pitchPrimitives: Sequence[];
-  loglinePrimitives: Sequence[];
-  structurePrimitives: Sequence[];
-  synopsisPrimitives: Sequence[];
+  stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
 }
 
 export function useProjectActions({
@@ -37,33 +29,13 @@ export function useProjectActions({
   setLastUpdatedPrimitiveId,
   addToast,
   handleSubcollectionUpdate,
-  characters = [],
-  locations = [],
-  sequences = [],
-  treatmentSequences = [],
-  scriptScenes = [],
-  pitchPrimitives = [],
-  loglinePrimitives = [],
-  structurePrimitives = [],
-  synopsisPrimitives = [],
+  stageContents,
 }: UseProjectActionsProps) {
   const { t } = useTranslation();
   
   const [updateMetadata] = useUpdateProjectMetadataMutation();
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
   const [addSubcol] = useAddSubcollectionDocMutation();
-
-  const stageCollections = {
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives,
-    characters,
-    locations,
-    treatmentSequences,
-    sequences,
-    scriptScenes,
-  };
 
   const handleStageRefine = async (stage: WorkflowStage, feedback: string, blockId?: string) => {
     if (!currentProject) return;
@@ -72,13 +44,12 @@ export function useProjectActions({
     
     try {
       const decision = interpretIntent(feedback, stage, blockId);
-      
-      const currentContent: ContentPrimitive[] = getStageContentPrimitives(stage, stageCollections);
+      const currentContent: ContentPrimitive[] = stageContents[stage] || [];
       
       const context = buildProjectContext(
         currentProject.id,
         currentProject.metadata,
-        buildStageContentsMap(stageCollections),
+        stageContents,
         currentProject.stageAnalyses || {}
       );
 
@@ -89,9 +60,6 @@ export function useProjectActions({
       if (agentOutput.metadataUpdates) {
         const newMeta = { ...currentProject.metadata, ...agentOutput.metadataUpdates };
         await updateMetadata({ id: currentProject.id, metadata: newMeta });
-        if (agentOutput.metadataUpdates.logline) {
-          // Metadata logline updated in metadataUpdates block above
-        }
       }
 
       if (blockId) {
@@ -124,6 +92,7 @@ export function useProjectActions({
 
   const handleSequenceAdd = async () => {
     if (!currentProject) return;
+    const sequences = stageContents['Step Outline'] || [];
     try {
       await addSubcol({ projectId: currentProject.id, collectionName: 'sequences', data: { title: t('common.newSequenceLabel'), content: '', order: sequences.length } }).unwrap();
     } catch (error) {
@@ -134,6 +103,7 @@ export function useProjectActions({
 
   const handleAiMagic = async (id: string) => {
     if (!currentProject) return;
+    const sequences = stageContents['Step Outline'] || [];
     const seq = sequences.find(s => s.id === id);
     if (!seq) return;
 
@@ -154,12 +124,13 @@ export function useProjectActions({
 
   const handleGenerateViews = async (id: string) => {
     if (!currentProject) return;
+    const characters = stageContents['Character Bible'] || [];
     const char = characters.find(c => c.id === id);
     if (!char) return;
 
     setIsTyping(true);
     try {
-      const views = await geminiService.generateCharacterViews(char.description);
+      const views = await geminiService.generateCharacterViews(char.content);
       await updateSubcol({ 
         projectId: currentProject.id, 
         collectionName: 'characters', 
@@ -183,17 +154,30 @@ export function useProjectActions({
 
   const handleCharacterDeepDevelop = async (id: string) => {
     if (!currentProject) return;
+    const characters = stageContents['Character Bible'] || [];
     const char = characters.find(c => c.id === id);
     if (!char) return;
 
     setIsTyping(true);
     setRefiningBlockId(id);
     try {
+      const pitchPrimitives = stageContents['Brainstorming'] || [];
       const bStory = pitchPrimitives.map(p => p.content).join('\n\n');
+      
+      // Map ContentPrimitive back to Character structure for the service if needed
+      // but here we just need content and name
+      const charData = {
+        id: char.id,
+        name: char.title,
+        description: char.content,
+        tier: char.metadata?.tier,
+        visualPrompt: char.visualPrompt,
+      };
+
       const deepData = await geminiService.deepDevelopCharacter(
-        char, 
+        charData as any, 
         bStory, 
-        characters.filter(c => c.id !== id)
+        characters.filter(c => c.id !== id).map(c => ({ name: c.title, description: c.content })) as any
       );
 
       const formattedDescription = `
@@ -219,7 +203,7 @@ ${deepData.relationshipMap}
         data: { description: formattedDescription, deepDevelopment: deepData }
       }).unwrap();
       
-      addToast(t('common.deepDeveloped', { name: char.name, defaultValue: 'Character deep developed!' }), 'success');
+      addToast(t('common.deepDeveloped', { name: char.title, defaultValue: 'Character deep developed!' }), 'success');
     } catch (error) {
       const classified = classifyError(error);
       addToast(classified.userMessage, 'error');
@@ -231,15 +215,17 @@ ${deepData.relationshipMap}
 
   const handleLocationDeepDevelop = async (id: string) => {
     if (!currentProject) return;
+    const locations = stageContents['Location Bible'] || [];
     const loc = locations.find(l => l.id === id);
     if (!loc) return;
 
     setIsTyping(true);
     setRefiningBlockId(id);
     try {
+      const pitchPrimitives = stageContents['Brainstorming'] || [];
       const bStory = pitchPrimitives.map(p => p.content).join('\n\n');
       const developed = await geminiService.deepDevelopLocation(
-        loc, 
+        { name: loc.title, description: loc.content } as any, 
         bStory
       );
       await updateSubcol({

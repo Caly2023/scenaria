@@ -13,20 +13,7 @@ interface StageHydrationConfig {
 interface UseAutoHydrationProps {
   activeStage: WorkflowStage;
   currentProject: Project | null;
-  pitchPrimitives: Sequence[];
-  loglinePrimitives: Sequence[];
-  structurePrimitives: Sequence[];
-  synopsisPrimitives: Sequence[];
-  doctoringPrimitives: Sequence[];
-  breakdownPrimitives: Sequence[];
-  assetPrimitives: Sequence[];
-  previsPrimitives: Sequence[];
-  exportPrimitives: Sequence[];
-  characters: Character[];
-  locations: Location[];
-  sequences: Sequence[];
-  treatmentSequences: Sequence[];
-  scriptScenes: Sequence[];
+  stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
   onStageAnalyze: (stage: WorkflowStage) => Promise<void>;
 }
@@ -34,15 +21,7 @@ interface UseAutoHydrationProps {
 export function useAutoHydration({
   activeStage,
   currentProject,
-  pitchPrimitives,
-  loglinePrimitives,
-  structurePrimitives,
-  synopsisPrimitives,
-  characters,
-  locations,
-  sequences,
-  treatmentSequences,
-  scriptScenes,
+  stageContents,
   addToast,
   onStageAnalyze,
 }: UseAutoHydrationProps): HydrationState {
@@ -60,41 +39,10 @@ export function useAutoHydration({
     return buildProjectContext(
       currentProject.id,
       currentProject.metadata,
-      buildStageContentsMap({
-        pitchPrimitives,
-        loglinePrimitives,
-        structurePrimitives,
-        synopsisPrimitives,
-        doctoringPrimitives,
-        breakdownPrimitives,
-        assetPrimitives,
-        previsPrimitives,
-        exportPrimitives,
-        characters,
-        locations,
-        treatmentSequences,
-        sequences,
-        scriptScenes,
-      }),
+      stageContents,
       currentProject.stageAnalyses || {}
     );
-  }, [
-    currentProject,
-    pitchPrimitives,
-    loglinePrimitives,
-    structurePrimitives,
-    synopsisPrimitives,
-    doctoringPrimitives,
-    breakdownPrimitives,
-    assetPrimitives,
-    previsPrimitives,
-    exportPrimitives,
-    characters,
-    locations,
-    treatmentSequences,
-    sequences,
-    scriptScenes,
-  ]);
+  }, [currentProject, stageContents]);
 
   const runStageHydration = useCallback(async (stageName: WorkflowStage) => {
     const context = getContext();
@@ -134,85 +82,85 @@ export function useAutoHydration({
     const configs: Record<string, StageHydrationConfig> = {
       'Logline': {
         stage: 'Logline',
-        isEmpty: () => loglinePrimitives.length === 0,
+        isEmpty: () => (stageContents['Logline'] || []).length === 0,
         generate: generateLogline,
         label: 'Generating Logline...',
       },
       '3-Act Structure': {
         stage: '3-Act Structure',
-        isEmpty: () => structurePrimitives.length === 0,
+        isEmpty: () => (stageContents['3-Act Structure'] || []).length === 0,
         generate: generateStructure,
         label: 'Generating 3-Act Structure...',
       },
       '8-Beat Structure': {
         stage: '8-Beat Structure',
-        isEmpty: () => beatPrimitives.length === 0,
+        isEmpty: () => (stageContents['8-Beat Structure'] || []).length === 0,
         generate: generate8Beat,
         label: 'Generating 8-Beat Structure...',
       },
       'Synopsis': {
         stage: 'Synopsis',
-        isEmpty: () => synopsisPrimitives.length === 0,
+        isEmpty: () => (stageContents['Synopsis'] || []).length === 0,
         generate: generateSynopsis,
         label: 'Generating Synopsis...',
       },
       'Character Bible': {
         stage: 'Character Bible',
-        isEmpty: () => characters.length === 0,
+        isEmpty: () => (stageContents['Character Bible'] || []).length === 0,
         generate: generateCharactersAndLocations,
         label: 'Extracting Characters & Locations...',
       },
       'Location Bible': {
         stage: 'Location Bible',
-        isEmpty: () => locations.length === 0,
+        isEmpty: () => (stageContents['Location Bible'] || []).length === 0,
         generate: generateCharactersAndLocations,
         label: 'Extracting Characters & Locations...',
       },
       'Treatment': {
         stage: 'Treatment',
-        isEmpty: () => treatmentSequences.length === 0,
+        isEmpty: () => (stageContents['Treatment'] || []).length === 0,
         generate: generateTreatment,
         label: 'Generating Cinematic Treatment...',
       },
       'Step Outline': {
         stage: 'Step Outline',
-        isEmpty: () => sequences.length === 0,
+        isEmpty: () => (stageContents['Step Outline'] || []).length === 0,
         generate: generateStepOutline,
         label: 'Generating Step Outline...',
       },
       'Script': {
         stage: 'Script',
-        isEmpty: () => scriptScenes.length === 0,
+        isEmpty: () => (stageContents['Script'] || []).length === 0,
         generate: generateScript,
         label: 'Generating Full Script (Pro)...',
       },
       'Global Script Doctoring': {
         stage: 'Global Script Doctoring',
-        isEmpty: () => doctoringPrimitives.length === 0,
+        isEmpty: () => (stageContents['Global Script Doctoring'] || []).length === 0,
         generate: generateDoctoring,
         label: 'Running Global Script Doctoring...',
       },
       'Technical Breakdown': {
         stage: 'Technical Breakdown',
-        isEmpty: () => breakdownPrimitives.length === 0,
+        isEmpty: () => (stageContents['Technical Breakdown'] || []).length === 0,
         generate: generateBreakdown,
         label: 'Generating Technical Breakdown...',
       },
       'Visual Assets': {
         stage: 'Visual Assets',
-        isEmpty: () => assetPrimitives.length === 0,
+        isEmpty: () => (stageContents['Visual Assets'] || []).length === 0,
         generate: generateAssets,
         label: 'Generating Visual Assets...',
       },
       'AI Previs': {
         stage: 'AI Previs',
-        isEmpty: () => previsPrimitives.length === 0,
+        isEmpty: () => (stageContents['AI Previs'] || []).length === 0,
         generate: generatePrevis,
         label: 'Generating AI Previs...',
       },
       'Production Export': {
         stage: 'Production Export',
-        isEmpty: () => exportPrimitives.length === 0,
+        isEmpty: () => (stageContents['Production Export'] || []).length === 0,
         generate: generateExport,
         label: 'Preparing Production Export...',
       },
@@ -220,10 +168,7 @@ export function useAutoHydration({
 
     return configs[activeStage] || null;
   }, [
-    activeStage, currentProject, characters, locations, 
-    sequences, treatmentSequences, scriptScenes,
-    loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, 
-    doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives,
+    activeStage, currentProject, stageContents,
     generateLogline, generateStructure, generate8Beat, generateSynopsis,
     generateCharactersAndLocations, generateTreatment,
     generateStepOutline, generateScript, generateDoctoring, 
@@ -276,10 +221,7 @@ export function useAutoHydration({
           hydratingLabel: null,
         });
       });
-  }, [activeStage, currentProject, getHydrationConfig, addToast, onStageAnalyze,
-      characters.length, locations.length, sequences.length, 
-      treatmentSequences.length, scriptScenes.length
-  ]);
+  }, [activeStage, currentProject, getHydrationConfig, addToast, onStageAnalyze, stageContents]);
 
   useEffect(() => {
     checkedStages.current.clear();

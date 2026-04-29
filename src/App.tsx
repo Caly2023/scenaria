@@ -64,7 +64,8 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, add
     handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete, handleDeleteCurrentProject,
     handleStageChange, handleMetadataUpdate, handleContentUpdate, handleSubcollectionUpdate,
     isTyping, syncStatus, handleRegenerate, handleStageValidate, handleStageRefine, handleStageAnalyze,
-    pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives, beatPrimitives, synopsisPrimitives, doctoringPrimitives, breakdownPrimitives, assetPrimitives, previsPrimitives, exportPrimitives, characters, locations, treatmentSequences, sequences, scriptScenes,
+    characters, locations,
+    stageContents,
     isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
     handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop, handleSequenceUpdate, handleSequenceAdd,
     handleToggleDoctor, handleOpenDoctor, handleCloseDoctor,
@@ -231,9 +232,9 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, add
           onClose={handleCloseFocus}
           onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, c)}
           onAiMagic={() => handleAiMagic(focusedSequenceId)}
-          onTts={() => handleTts(focusedSequenceId, sequences.find(s => s.id === focusedSequenceId)?.content || "")}
-          title={sequences.find(s => s.id === focusedSequenceId)?.title || "Sequence"}
-          content={sequences.find(s => s.id === focusedSequenceId)?.content || ""}
+          onTts={() => handleTts(focusedSequenceId, (stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.content || "")}
+          title={(stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.title || "Sequence"}
+          content={(stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.content || ""}
         />
       )}
 

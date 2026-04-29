@@ -106,7 +106,7 @@ function renderStage(
         return (
           <CanvasErrorBoundary>
             <MainCanvas
-              sequences={project.sequences}
+              sequences={project.stageContents["Step Outline"] || []}
               onSequenceUpdate={project.handleSequenceUpdate}
               onSequenceAdd={project.handleSequenceAdd}
               onFocusMode={project.handleFocusMode}

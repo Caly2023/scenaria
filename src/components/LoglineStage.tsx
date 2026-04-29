@@ -43,7 +43,6 @@ export function LoglineStage({
       validateLabel={t('stages.Logline.validateLabel')}
     >
       <Primitive
-        id={primitiveId}
         title={t('stages.Logline.label')}
         content={content}
         onContentChange={onContentChange}

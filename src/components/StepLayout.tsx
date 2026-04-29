@@ -24,6 +24,21 @@ interface StepLayoutProps {
   children: React.ReactNode;
 }
 
+function isStageAnalysis(insight: StageInsight | StageAnalysis): insight is StageAnalysis {
+  return "evaluation" in insight || "issues" in insight || "recommendations" in insight;
+}
+
+function getInsightContent(insight: StageInsight | StageAnalysis): string {
+  if (insight.content) return insight.content;
+  if (!isStageAnalysis(insight)) return "";
+
+  const issues = (insight.issues ?? []).map((issue: string) => `- ${issue}`).join("\n") || "*None*";
+  const recommendations =
+    (insight.recommendations ?? []).map((rec: string) => `- ${rec}`).join("\n") || "*None*";
+
+  return `${insight.evaluation || ""}\n\n**Issues to Address:**\n${issues}\n\n**Recommendations:**\n${recommendations}`;
+}
+
 export function StepLayout({
   stepIndex,
   stageName,
@@ -62,7 +77,7 @@ export function StepLayout({
 
   // Derive readiness from insight
   const isReady = insight
-    ? ('isReady' in insight ? insight.isReady : ('issues' in insight ? insight.issues.length === 0 : false))
+    ? ('isReady' in insight ? insight.isReady : (('issues' in insight && insight.issues) ? insight.issues.length === 0 : false))
     : false;
 
   // Handle "Vérifier" click: show loading briefly then trigger onAnalyze
@@ -110,10 +125,7 @@ export function StepLayout({
           <div className="relative">
             <Primitive
               title={t('common.aiInsight', { defaultValue: 'AI Insight' })}
-              content={'content' in insight
-                ? insight.content
-                : `${insight.evaluation}\n\n**Issues to Address:**\n${insight.issues.length ? insight.issues.map(i => `- ${i}`).join('\n') : '*None*'}\n\n**Recommendations:**\n${insight.recommendations.length ? insight.recommendations.map(r => `- ${r}`).join('\n') : '*None*'}`
-              }
+              content={getInsightContent(insight)}
               type="ai_insight"
               mode="stacked"
               isGenerating={isGenerating}

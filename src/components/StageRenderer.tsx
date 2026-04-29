@@ -223,8 +223,7 @@ const StageRendererComponent = ({
   const { t } = useTranslation();
 
   switch (activeStage) {
-    case "Brainstorming":
-      const filteredPitch = pitchPrimitives.filter(p => p.order !== 0);
+    case "Brainstorming": {
       return (
         <BrainstormingStage
           story={getBrainstormStory(pitchPrimitives)}
@@ -237,7 +236,8 @@ const StageRendererComponent = ({
           insight={getStageInsight("Brainstorming", currentProject, pitchPrimitives)}
         />
       );
-    case "Logline":
+    }
+    case "Logline": {
       const filteredLogline = loglinePrimitives.filter(p => p.order !== 0);
       const loglinePrim = filteredLogline[0];
       return (
@@ -253,7 +253,8 @@ const StageRendererComponent = ({
           insight={getStageInsight("Logline", currentProject, loglinePrimitives)}
         />
       );
-    case "3-Act Structure":
+    }
+    case "3-Act Structure": {
       const structureContentItems = structurePrimitives.filter(p => p.order !== 0);
       return (
         <WorkflowStageComponent
@@ -280,6 +281,7 @@ const StageRendererComponent = ({
           insight={getStageInsight("3-Act Structure", currentProject, structurePrimitives)}
         />
       );
+    }
     case "Synopsis":
       return (
         <WorkflowStageComponent
@@ -304,7 +306,7 @@ const StageRendererComponent = ({
           insight={getStageInsight("Synopsis", currentProject, synopsisPrimitives)}
         />
       );
-    case "Character Bible":
+    case "Character Bible": {
       const filteredCharacters = characters.filter(p => p.order !== 0);
       return (
         <CharacterBible
@@ -324,7 +326,8 @@ const StageRendererComponent = ({
           insight={getStageInsight("Character Bible", currentProject, (characters as unknown as Sequence[]))}
         />
       );
-    case "Location Bible":
+    }
+    case "Location Bible": {
       const filteredLocations = locations.filter(p => p.order !== 0);
       return (
         <LocationBible
@@ -344,6 +347,7 @@ const StageRendererComponent = ({
           insight={getStageInsight("Location Bible", currentProject, (locations as unknown as Sequence[]))}
         />
       );
+    }
     case "Treatment":
       return (
         <WorkflowStageComponent

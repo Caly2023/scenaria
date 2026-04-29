@@ -104,7 +104,6 @@ export interface Sequence {
   locationIds?: string[];
   primitiveType?: string;
 }
-}
 
 export interface UserProfile {
   uid: string;

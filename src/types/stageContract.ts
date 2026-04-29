@@ -33,9 +33,12 @@ export const STAGE_STATE_ICONS: Record<StageState, string> = {
 // ─── Analysis Primitive ───────────────────────────────────────────────────────
 
 export interface StageAnalysis {
-  evaluation: string;        // Professional AI narrative evaluation (markdown)
-  issues: string[];          // Identified weaknesses or gaps
-  recommendations: string[]; // Actionable improvement suggestions
+  evaluation?: string;       // Professional AI narrative evaluation (markdown)
+  issues?: string[];         // Identified weaknesses or gaps
+  recommendations?: string[]; // Actionable improvement suggestions
+  content?: string;          // Combined insight content
+  isReady?: boolean;         // Global readiness status
+  suggestions?: string[];    // Actionable improvement suggestions (alias for recommendations)
   suggestedPrompt?: string;  // Clear instruction for Script Doctor to fix issues
   updatedAt: number;
 }

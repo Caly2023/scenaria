@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Project,
@@ -56,6 +56,11 @@ export function useScriptDoctor({
   const [aiStatus, setAiStatus] = useState<string | null>(null);
   const [currentBotMsgId, setCurrentBotMsgId] = useState<string | null>(null);
   const [pendingToolCall, setPendingToolCall] = useState<{ call: ToolCall; botMsgId: string } | null>(null);
+  const messagesRef = useRef<ScriptDoctorMessage[]>([]);
+
+  useEffect(() => {
+    messagesRef.current = doctorMessages;
+  }, [doctorMessages]);
 
   const sequences = propsSequences || [];
   const treatmentSequences = propsTreatmentSequences || [];
@@ -132,6 +137,11 @@ export function useScriptDoctor({
       let lastParts: any[] = [];
 
       for (let iteration = startIteration; iteration < MAX_ITERATIONS; iteration++) {
+        if (!conversationHistory || conversationHistory.length === 0) {
+          console.warn("[ScriptDoctor] conversationHistory is empty, adding fallback 'Continue'");
+          conversationHistory = [{ role: "user", parts: [{ text: "Continue" }] }];
+        }
+
         const result = await geminiService.scriptDoctorAgent(
           conversationHistory,
           context,
@@ -322,7 +332,7 @@ export function useScriptDoctor({
     }]);
 
     // Build Gemini-format history (excludes the new bot placeholder)
-    const history = normalizeHistory([...doctorMessages, newUserMsg]);
+    const history = normalizeHistory([...messagesRef.current, newUserMsg]);
     await runAgentLoop(history, botMsgId, complexity);
   };
 
@@ -340,29 +350,23 @@ export function useScriptDoctor({
       // Build the functionResponse part in Gemini format
       const fnResponsePart = buildFunctionResponsePart(call.name, res);
 
-      let historyToUse: Array<{ role: string; parts: any[] }> = [];
+      // Use the Ref to get the absolute latest state across async boundaries
+      const nextMessages = messagesRef.current.map((m) =>
+        m.id === botMsgId
+          ? {
+              ...m,
+              status: "⚙️ Resuming...",
+              content_parts: [...(m.content_parts || []), fnResponsePart],
+            }
+          : m
+      );
+      
+      setDoctorMessages(nextMessages);
 
-      // Use functional update to get latest state and build history
-      setDoctorMessages((prev) => {
-        const nextMessages = prev.map((m) =>
-          m.id === botMsgId
-            ? {
-                ...m,
-                status: "⚙️ Resuming...",
-                content_parts: [...(m.content_parts || []), fnResponsePart],
-              }
-            : m
-        );
-
-        // Normalize the ENTIRE updated message history
-        // This ensures the sequence is correct (User -> Model -> User Tool Result -> ...)
-        historyToUse = normalizeHistory(nextMessages);
-
-        return nextMessages;
-      });
+      // Normalize the ENTIRE updated message history synchronously from the new array
+      const historyToUse = normalizeHistory(nextMessages);
 
       // Resume the loop with the freshly normalized history
-      // startIteration remains 1 because we already did the first turn
       await runAgentLoop(historyToUse, botMsgId, "moderate", 1);
     } catch (error: any) {
       console.error("[ScriptDoctor] Tool execution failed:", error);

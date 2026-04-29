@@ -67,7 +67,7 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, add
     characters, locations,
     stageContents,
     isDeleting, projectToDelete, setProjectToDelete, refiningBlockId, setRefiningBlockId, lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId,
-    handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop, handleSequenceUpdate, handleSequenceAdd,
+    handleAiMagic, handleGenerateViews, handleCharacterDeepDevelop, handleLocationDeepDevelop,
     handleToggleDoctor, handleOpenDoctor, handleCloseDoctor,
     hydrationState,
     isDoctorOpen, doctorMessages, isDoctorTyping, isHeavyThinking, activeTool, aiStatus, handleDoctorMessage,
@@ -230,7 +230,7 @@ function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, add
         <FocusMode
           isOpen={isFocusMode}
           onClose={handleCloseFocus}
-          onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, c)}
+          onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, { content: c })}
           onAiMagic={() => handleAiMagic(focusedSequenceId)}
           onTts={() => handleTts(focusedSequenceId, (stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.content || "")}
           title={(stageContents["Step Outline"] || []).find(s => s.id === focusedSequenceId)?.title || "Sequence"}

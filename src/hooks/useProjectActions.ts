@@ -11,6 +11,7 @@ import {
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../services/orchestratorService';
 import { ContentPrimitive } from '../types/stageContract';
 import { buildStageContentsMap, getStageContentPrimitives } from '../lib/stageContent';
+import { stageRegistry } from '../config/stageRegistry';
 
 interface UseProjectActionsProps {
   currentProject: Project | null;
@@ -18,7 +19,7 @@ interface UseProjectActionsProps {
   setRefiningBlockId: (id: string | null) => void;
   setLastUpdatedPrimitiveId: (id: string | null) => void;
   addToast: (msg: string, type: 'error' | 'info' | 'success') => void;
-  handleSubcollectionUpdate: (collName: string, id: string, content: string) => void;
+  handleSubcollectionUpdate: (collName: string, id: string, data: Record<string, any>) => void;
   stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
 }
 
@@ -79,22 +80,32 @@ export function useProjectActions({
 
   const handleSequenceUpdate = (id: string, updates: Partial<Sequence>) => {
     if (!currentProject) return;
+    const collectionName = stageRegistry.getCollectionName('Step Outline');
     
-    if (updates.content !== undefined) {
-      handleSubcollectionUpdate('sequences', id, updates.content);
-    }
-
-    if (updates.title !== undefined) {
-      updateSubcol({ projectId: currentProject.id, collectionName: 'sequences', docId: id, data: { title: updates.title }, orderByField: 'order' })
-        .catch(console.error);
+    // Use debounced sync for content, direct update for other fields
+    if (Object.keys(updates).length === 1 && updates.content !== undefined) {
+      handleSubcollectionUpdate(collectionName, id, { content: updates.content });
+    } else {
+      updateSubcol({ 
+        projectId: currentProject.id, 
+        collectionName, 
+        docId: id, 
+        data: updates, 
+        orderByField: 'order' 
+      }).catch(console.error);
     }
   };
 
   const handleSequenceAdd = async () => {
     if (!currentProject) return;
     const sequences = stageContents['Step Outline'] || [];
+    const collectionName = stageRegistry.getCollectionName('Step Outline');
     try {
-      await addSubcol({ projectId: currentProject.id, collectionName: 'sequences', data: { title: t('common.newSequenceLabel'), content: '', order: sequences.length } }).unwrap();
+      await addSubcol({ 
+        projectId: currentProject.id, 
+        collectionName, 
+        data: { title: t('common.newSequenceLabel'), content: '', order: sequences.length } 
+      }).unwrap();
     } catch (error) {
       const classified = classifyError(error);
       addToast(classified.userMessage, 'error');
@@ -131,9 +142,10 @@ export function useProjectActions({
     setIsTyping(true);
     try {
       const views = await geminiService.generateCharacterViews(char.content);
+      const collectionName = stageRegistry.getCollectionName('Character Bible');
       await updateSubcol({ 
         projectId: currentProject.id, 
-        collectionName: 'characters', 
+        collectionName, 
         docId: id, 
         data: {
           views: {
@@ -196,9 +208,10 @@ ${deepData.forwardStory}
 ${deepData.relationshipMap}
       `.trim();
 
+      const collectionName = stageRegistry.getCollectionName('Character Bible');
       await updateSubcol({
         projectId: currentProject.id,
-        collectionName: 'characters',
+        collectionName,
         docId: id,
         data: { description: formattedDescription, deepDevelopment: deepData }
       }).unwrap();
@@ -228,9 +241,10 @@ ${deepData.relationshipMap}
         { name: loc.title, description: loc.content } as any, 
         bStory
       );
+      const collectionName = stageRegistry.getCollectionName('Location Bible');
       await updateSubcol({
         projectId: currentProject.id,
-        collectionName: 'locations',
+        collectionName,
         docId: id,
         data: { description: developed }
       }).unwrap();
@@ -246,8 +260,6 @@ ${deepData.relationshipMap}
 
   return {
     handleStageRefine,
-    handleSequenceUpdate,
-    handleSequenceAdd,
     handleAiMagic,
     handleGenerateViews,
     handleCharacterDeepDevelop,

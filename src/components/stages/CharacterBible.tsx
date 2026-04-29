@@ -3,14 +3,14 @@ import { Plus, Users, Maximize2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from '../Primitive';
-import { Character, StageInsight } from '@/types';
+import { StageInsight } from '@/types';
 import { StageAnalysis, ContentPrimitive } from '@/types/stageContract';
 import { StepLayout } from './StepLayout';
 
 interface CharacterBibleProps {
   characters: ContentPrimitive[];
   onCharacterAdd: (name: string, description: string, tier: 1 | 2 | 3) => void;
-  onCharacterUpdate: (id: string, updates: Partial<Character>) => void;
+   onCharacterUpdate: (id: string, updates: any) => void;
   onCharacterDelete: (id: string) => void;
   onRefine: (feedback: string, blockId?: string) => void;
   onGenerateViews: (id: string) => void;
@@ -98,8 +98,8 @@ export function CharacterBible({
                   key={char.id}
                   title={char.title}
                   content={char.content}
-                  onContentChange={(description) => onCharacterUpdate(char.id, { description } as any)}
-                  onTitleChange={(name) => onCharacterUpdate(char.id, { name } as any)}
+                  onContentChange={(description) => onCharacterUpdate(char.id, { description })}
+                  onTitleChange={(name) => onCharacterUpdate(char.id, { name })}
                   onAiRefine={() => {
                     const action = (!char.content || char.content.trim() === '' || char.content === '...') ? 'Generate' : 'Refine';
                     onRefine(`${action} description for character: ${char.title}`, char.id);

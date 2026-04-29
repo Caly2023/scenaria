@@ -26,6 +26,7 @@ export function useProjectSync(
       try {
         await updateField({ id: currentProject.id, field, content }).unwrap();
         setSyncStatus('synced');
+        if (onSyncSuccess) onSyncSuccess(field, '');
         return;
       } catch (_error) {
         if (attempt < MAX_RETRIES - 1) {
@@ -38,13 +39,13 @@ export function useProjectSync(
     addToast('Failed to sync changes', 'error', { label: 'Retry', onClick: () => handleContentUpdate(field, content) });
   };
 
-  const syncSubcollectionToDb = async (collName: string, id: string, content: string) => {
+  const syncSubcollectionToDb = async (collName: string, id: string, data: Record<string, unknown>) => {
     if (!currentProject) return;
     setSyncStatus('syncing');
     
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
-        await updateSubcol({ projectId: currentProject.id, collectionName: collName, docId: id, data: { content }, orderByField: 'order' }).unwrap();
+        await updateSubcol({ projectId: currentProject.id, collectionName: collName, docId: id, data, orderByField: 'order' }).unwrap();
         setSyncStatus('synced');
         if (onSyncSuccess) onSyncSuccess(collName, id);
         return;
@@ -56,22 +57,23 @@ export function useProjectSync(
       }
     }
     setSyncStatus('error');
-    addToast('Failed to sync changes', 'error', { label: 'Retry', onClick: () => syncSubcollectionToDb(collName, id, content) });
+    addToast('Failed to sync changes', 'error', { label: 'Retry', onClick: () => syncSubcollectionToDb(collName, id, data) });
   };
 
   const [debouncedSync] = useState(() => {
     let timeout: NodeJS.Timeout;
-    return (collName: string, id: string, content: string) => {
+    return (collName: string, id: string, data: Record<string, unknown>) => {
       setSyncStatus('syncing');
       clearTimeout(timeout);
       timeout = setTimeout(() => {
-        syncSubcollectionToDb(collName, id, content);
+        syncSubcollectionToDb(collName, id, data);
       }, 500);
     };
   });
 
-  const handleSubcollectionUpdate = useCallback((collName: string, id: string, content: string) => {
-    debouncedSync(collName, id, content);
+  const handleSubcollectionUpdate = useCallback((collName: string, id: string, dataOrContent: string | Record<string, unknown>) => {
+    const data = typeof dataOrContent === 'string' ? { content: dataOrContent } : dataOrContent;
+    debouncedSync(collName, id, data);
   }, [debouncedSync]);
 
   return { syncStatus, setSyncStatus, handleContentUpdate, handleSubcollectionUpdate };

@@ -43,15 +43,13 @@ interface ProjectContextType {
   handleStageChange: (stage: WorkflowStage) => void;
   handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
   handleContentUpdate: (field: string, content: string) => Promise<void>;
-  handleSubcollectionUpdate: (coll: string, id: string, content: string) => Promise<void>;
+  handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, any>) => Promise<void>;
   handleRegenerate: (stage: WorkflowStage) => Promise<void>;
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
   handleStageRefine: (stage: WorkflowStage, feedback: string, blockId?: string) => Promise<void>;
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
   
   // Specific Handlers
-  handleSequenceUpdate: (id: string, updates: Partial<Sequence>) => Promise<void>;
-  handleSequenceAdd: () => Promise<void>;
   handleAiMagic: (id: string) => Promise<void>;
   handleGenerateViews: (id: string) => Promise<void>;
   handleCharacterDeepDevelop: (id: string, stage: WorkflowStage) => Promise<void>;
@@ -60,12 +58,9 @@ interface ProjectContextType {
   // App Callbacks (Standardized)
   handleStoryChange: (c: string) => void;
   onLoglineChange: (c: string) => void;
-  handleCharacterAdd: (name: string, description: string, tier: Character['tier']) => void;
-  handleCharacterUpdate: (id: string, updates: Partial<Character>) => void;
-  handleCharacterDelete: (id: string) => void;
-  handleLocationAdd: (name: string, description: string) => void;
-  handleLocationUpdate: (id: string, updates: Partial<Location>) => void;
-  handleLocationDelete: (id: string) => void;
+  handlePrimitiveAdd: (stage: WorkflowStage, data: any) => Promise<void>;
+  handlePrimitiveUpdate: (stage: WorkflowStage, id: string, updates: any) => Promise<void>;
+  handlePrimitiveDelete: (stage: WorkflowStage, id: string) => Promise<void>;
   
   // Script Doctor
   isDoctorOpen: boolean;

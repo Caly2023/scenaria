@@ -13,6 +13,8 @@ import {
   useDeleteSubcollectionDocMutation
 } from '../services/firebaseApi';
 import { classifyError } from '../lib/errorClassifier';
+import { stageRegistry } from '../config/stageRegistry';
+import { ContentPrimitive } from '../types/stageContract';
 
 type BrainstormPrimitive = Sequence & { primitiveType?: string };
 type CharacterCreateTier = Character['tier'];
@@ -22,10 +24,10 @@ type LocationUpdates = Partial<Location>;
 interface UseAppCallbacksProps {
   currentProject: Project | null;
   addToast: (msg: string, type: 'error' | 'info' | 'success') => void;
-  handleSubcollectionUpdate: (collName: string, id: string, content: string) => void;
+  handleSubcollectionUpdate: (collName: string, id: string, data: Record<string, any>) => void;
   handleContentUpdate: (field: string, content: string) => void;
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
-  stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
+  stageContents: Record<string, ContentPrimitive[]>;
 }
 
 export function useAppCallbacks({
@@ -49,7 +51,7 @@ export function useAppCallbacks({
         || pitchPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id // backward compat
         || pitchPrimitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.id
         || pitchPrimitives.find((p) => p.order === 1)?.id;
-      if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, c);
+      if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, { content: c });
       handleContentUpdate("brainstorming_result", c);
     },
     [stageContents, handleSubcollectionUpdate, handleContentUpdate],
@@ -60,7 +62,7 @@ export function useAppCallbacks({
       const loglinePrimitives = stageContents['Logline'] || [];
       const id = loglinePrimitives[0]?.id;
       if (id) {
-        handleSubcollectionUpdate("logline_primitives", id, c);
+        handleSubcollectionUpdate("logline_primitives", id, { content: c });
       }
     },
     [stageContents, handleSubcollectionUpdate],
@@ -135,16 +137,17 @@ export function useAppCallbacks({
     [handleStageValidate],
   );
 
-  const handleCharacterAdd = useCallback(
-    async (name: string, description: string, tier: CharacterCreateTier) => {
+  const handlePrimitiveAdd = useCallback(
+    async (stage: WorkflowStage, data: any) => {
       if (!currentProject) return;
       try {
+        const collectionName = stageRegistry.getCollectionName(stage);
         await addSubcollectionDoc({
           projectId: currentProject.id,
-          collectionName: "characters",
-          data: { name, description, tier },
+          collectionName,
+          data,
         }).unwrap();
-        addToast(t("common.characterAdded"), "success");
+        addToast(t("common.addedSuccessfully", { stage }), "success");
       } catch (e) {
         const classified = classifyError(e);
         addToast(classified.userMessage, "error");
@@ -153,82 +156,45 @@ export function useAppCallbacks({
     [currentProject, addSubcollectionDoc, addToast, t],
   );
 
-  const handleCharacterUpdate = useCallback(
-    async (id: string, updates: CharacterUpdates) => {
+  const handlePrimitiveUpdate = useCallback(
+    async (stage: WorkflowStage, id: string, updates: any) => {
       if (!currentProject) return;
       try {
-        await updateSubcollectionDoc({
+        const collectionName = stageRegistry.getCollectionName(stage);
+        // If it's a simple content update, use the debounced sync
+        if (Object.keys(updates).length === 1 && updates.content !== undefined) {
+          handleSubcollectionUpdate(collectionName, id, updates);
+        } else {
+          await updateSubcollectionDoc({
+            projectId: currentProject.id,
+            collectionName,
+            docId: id,
+            data: updates,
+          }).unwrap();
+        }
+      } catch (e) {
+        const classified = classifyError(e);
+        addToast(classified.userMessage, "error");
+      }
+    },
+    [currentProject, updateSubcollectionDoc, handleSubcollectionUpdate, addToast],
+  );
+
+  const handlePrimitiveDelete = useCallback(
+    async (stage: WorkflowStage, id: string) => {
+      if (!currentProject) return;
+      try {
+        const collectionName = stageRegistry.getCollectionName(stage);
+        await deleteSubcollectionDoc({
           projectId: currentProject.id,
-          collectionName: "characters",
+          collectionName,
           docId: id,
-          data: updates,
         }).unwrap();
+        addToast(t("common.deletedSuccessfully", { stage }), "info");
       } catch (e) {
         const classified = classifyError(e);
         addToast(classified.userMessage, "error");
       }
-    },
-    [currentProject, updateSubcollectionDoc, addToast],
-  );
-
-  const handleCharacterDelete = useCallback(
-    async (id: string) => {
-      if (!currentProject) return;
-      await deleteSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "characters",
-        docId: id,
-      }).unwrap();
-      addToast(t("common.characterDeleted"), "info");
-    },
-    [currentProject, deleteSubcollectionDoc, addToast, t],
-  );
-
-  const handleLocationAdd = useCallback(
-    async (name: string, description: string) => {
-      if (!currentProject) return;
-      try {
-        await addSubcollectionDoc({
-          projectId: currentProject.id,
-          collectionName: "locations",
-          data: { name, description },
-        }).unwrap();
-        addToast(t("common.locationAdded"), "success");
-      } catch (e) {
-        const classified = classifyError(e);
-        addToast(classified.userMessage, "error");
-      }
-    },
-    [currentProject, addSubcollectionDoc, addToast, t],
-  );
-
-  const handleLocationUpdate = useCallback(
-    async (id: string, updates: LocationUpdates) => {
-      if (!currentProject) return;
-      try {
-        await updateSubcollectionDoc({
-          projectId: currentProject.id,
-          collectionName: "locations",
-          docId: id,
-          data: updates,
-        }).unwrap();
-      } catch (e) {
-        const classified = classifyError(e);
-        addToast(classified.userMessage, "error");
-      }
-    },
-    [currentProject, updateSubcollectionDoc, addToast],
-  );
-
-  const handleLocationDelete = useCallback(
-    async (id: string) => {
-      if (!currentProject) return;
-      await deleteSubcollectionDoc({
-        projectId: currentProject.id,
-        collectionName: "locations",
-        docId: id,
-      }).unwrap();
-      addToast(t("common.locationDeleted"), "info");
     },
     [currentProject, deleteSubcollectionDoc, addToast, t],
   );
@@ -236,12 +202,9 @@ export function useAppCallbacks({
   return {
     handleStoryChange,
     onLoglineChange,
-    handleCharacterAdd,
-    handleCharacterUpdate,
-    handleCharacterDelete,
-    handleLocationAdd,
-    handleLocationUpdate,
-    handleLocationDelete,
+    handlePrimitiveAdd,
+    handlePrimitiveUpdate,
+    handlePrimitiveDelete,
     onValidateProjectMetadata,
     onValidateInitialDraft,
     onValidateBrainstorming,

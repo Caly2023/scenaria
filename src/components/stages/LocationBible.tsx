@@ -3,14 +3,14 @@ import { Plus, MapPin, Maximize2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Primitive } from '../Primitive';
-import { Location, StageInsight } from '@/types';
+import { StageInsight } from '@/types';
 import { StageAnalysis, ContentPrimitive } from '@/types/stageContract';
 import { StepLayout } from './StepLayout';
 
 interface LocationBibleProps {
   locations: ContentPrimitive[];
   onLocationAdd: (name: string, description: string) => void;
-  onLocationUpdate: (id: string, updates: Partial<Location>) => void;
+   onLocationUpdate: (id: string, updates: any) => void;
   onLocationDelete: (id: string) => void;
   onRefine: (feedback: string, blockId?: string) => void;
   onGenerateViews: (id: string) => void;
@@ -94,8 +94,8 @@ export function LocationBible({
                   key={loc.id}
                   title={loc.title}
                   content={loc.content}
-                  onContentChange={(description) => onLocationUpdate(loc.id, { description } as any)}
-                  onTitleChange={(name) => onLocationUpdate(loc.id, { name } as any)}
+                  onContentChange={(description) => onLocationUpdate(loc.id, { description })}
+                  onTitleChange={(name) => onLocationUpdate(loc.id, { name })}
                   onAiRefine={() => {
                     const action = (!loc.content || loc.content.trim() === '' || loc.content === '...') ? 'Generate' : 'Refine';
                     onRefine(`${action} description for location: ${loc.title}`, loc.id);

@@ -68,9 +68,9 @@ function renderStage(
         return (
           <CharacterBible
             characters={(project.stageContents["Character Bible"] || []).filter((p) => p.order !== 0)}
-            onCharacterAdd={project.handleCharacterAdd}
-            onCharacterUpdate={project.handleCharacterUpdate}
-            onCharacterDelete={project.handleCharacterDelete}
+            onCharacterAdd={(name, description, tier) => project.handlePrimitiveAdd("Character Bible", { name, description, tier })}
+            onCharacterUpdate={(id, updates) => project.handlePrimitiveUpdate("Character Bible", id, updates)}
+            onCharacterDelete={(id) => project.handlePrimitiveDelete("Character Bible", id)}
             onRefine={(f: string, id: string) => project.handleStageRefine("Character Bible", f, id)}
             onGenerateViews={project.handleGenerateViews}
             onDeepDevelop={(id: string) => project.handleCharacterDeepDevelop(id, "Character Bible")}
@@ -87,9 +87,9 @@ function renderStage(
         return (
           <LocationBible
             locations={(project.stageContents["Location Bible"] || []).filter((p) => p.order !== 0)}
-            onLocationAdd={project.handleLocationAdd}
-            onLocationUpdate={project.handleLocationUpdate}
-            onLocationDelete={project.handleLocationDelete}
+            onLocationAdd={(name, description) => project.handlePrimitiveAdd("Location Bible", { name, description })}
+            onLocationUpdate={(id, updates) => project.handlePrimitiveUpdate("Location Bible", id, updates)}
+            onLocationDelete={(id) => project.handlePrimitiveDelete("Location Bible", id)}
             onRefine={(f: string, id: string) => project.handleStageRefine("Location Bible", f, id)}
             onGenerateViews={project.handleGenerateViews}
             onDeepDevelop={(id: string) => project.handleLocationDeepDevelop(id, "Location Bible")}
@@ -107,8 +107,8 @@ function renderStage(
           <CanvasErrorBoundary>
             <MainCanvas
               sequences={project.stageContents["Step Outline"] || []}
-              onSequenceUpdate={project.handleSequenceUpdate}
-              onSequenceAdd={project.handleSequenceAdd}
+              onSequenceUpdate={(id, updates) => project.handlePrimitiveUpdate("Step Outline", id, updates)}
+              onSequenceAdd={() => project.handlePrimitiveAdd("Step Outline", { title: t("common.newSequenceLabel"), content: "", order: (project.stageContents["Step Outline"] || []).length })}
               onFocusMode={project.handleFocusMode}
               onAiMagic={project.handleAiMagic}
               onValidate={project.onValidateStepOutline}

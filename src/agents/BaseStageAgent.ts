@@ -168,15 +168,19 @@ export abstract class BaseStageAgent implements IStageAgent {
   protected buildPrimitive(
     id: string,
     title: string,
-    content: string,
+    content: any,
     primitiveType: string,
     order: number,
     extra?: Record<string, any>
   ): ContentPrimitive {
+    const safeContent = typeof content === 'string' 
+      ? content 
+      : content != null ? (typeof content === 'object' ? JSON.stringify(content, null, 2) : String(content)) : '';
+      
     return {
       id,
       title,
-      content,
+      content: safeContent,
       primitiveType,
       order,
       agentGenerated: true,

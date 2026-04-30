@@ -33,7 +33,7 @@ export const projectApi = baseApi.injectEndpoints({
           const projs = snapshot.docs
             .map((doc) => ({ id: doc.id, ...doc.data() }) as Project)
             .filter(
-              (p) => p.metadata?.title && p.metadata?.title.trim() !== "",
+              (p) => typeof p.metadata?.title === "string" && p.metadata?.title.trim() !== "",
             );
           return { data: serializeData(projs) };
         } catch (error: any) {
@@ -57,7 +57,7 @@ export const projectApi = baseApi.injectEndpoints({
             const projs = snapshot.docs
               .map((doc) => ({ id: doc.id, ...doc.data() }) as Project)
               .filter(
-                (p) => p.metadata?.title && p.metadata?.title.trim() !== "",
+                (p) => typeof p.metadata?.title === "string" && p.metadata?.title.trim() !== "",
               );
             updateCachedData(() => serializeData(projs));
           });

@@ -19,7 +19,7 @@ export const geminiService = {
   },
 
   async generateLoglineDraft(context: string): Promise<string> {
-    if (!context || context.trim().length < 20) return "Based on your brainstorming, I will draft a logline here once you provide more details.";
+    if (!context || typeof context !== 'string' || context.trim().length < 20) return "Based on your brainstorming, I will draft a logline here once you provide more details.";
 
     return callGenericGemini<string>({
       prompt: `Synthesize a professional 1-2 sentence logline from this project context:\n\n${context}`,
@@ -34,7 +34,7 @@ export const geminiService = {
   },
 
   async generateStageInsight(stage: string, content: string, context: string): Promise<StageInsight> {
-    if (!content || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
+    if (!content || typeof content !== 'string' || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
     return callGenericGemini({
       prompt: Prompts.STAGE_INSIGHT_PROMPT(stage, content, context),
       jsonMode: true,

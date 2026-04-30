@@ -111,7 +111,8 @@ export const Primitive = memo(function Primitive({
 
   const isEmpty = useMemo(() => {
     if (!content) return true;
-    const trimmed = content.trim();
+    const textContent = typeof content === 'string' ? content : JSON.stringify(content);
+    const trimmed = textContent.trim();
     return trimmed === '' || trimmed === '...' || trimmed === '[]' || trimmed === '{}';
   }, [content]);
 

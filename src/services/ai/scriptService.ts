@@ -33,7 +33,7 @@ export const scriptService = {
   },
 
   async generateSynopsis(context: string): Promise<any> {
-    if (!context || context.trim().length < 50) return "Once the story is more developed, I will generate a full synopsis here.";
+    if (!context || typeof context !== 'string' || context.trim().length < 50) return "Once the story is more developed, I will generate a full synopsis here.";
     return callGenkitFlow<any>('generateSynopsis', { context });
   },
 

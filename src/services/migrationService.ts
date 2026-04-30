@@ -66,8 +66,8 @@ export async function migrateProjectIfNeeded(project: Project): Promise<void> {
 
   // ── 3. Migrate legacy root fields → subcollections ─────────────────────────
   for (const [stageName, fieldName] of Object.entries(LEGACY_FIELD_MAP)) {
-    const legacyContent = (project as any)[fieldName] as string | undefined;
-    if (!legacyContent?.trim()) continue;
+    const legacyContent = (project as any)[fieldName];
+    if (!legacyContent || typeof legacyContent !== 'string' || !legacyContent.trim()) continue;
 
     try {
       const stageDef = stageRegistry.get(stageName);

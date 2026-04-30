@@ -5,7 +5,7 @@ import { stageRegistry } from "../config/stageRegistry";
  * Maps generic ContentPrimitive fields (title, content) to collection-specific fields (name, description).
  * This ensures compatibility with legacy "Character Bible" and "Location Bible" schemas.
  */
-export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any {
+export function mapPrimitiveToDb(stage: WorkflowStage | string, data: Record<string, unknown>): Record<string, unknown> {
   const safeData = { ...data };
   
   const isBible = stageRegistry.getCategory(stage) === 'BIBLE';
@@ -21,14 +21,14 @@ export function mapPrimitiveToDb(stage: WorkflowStage | string, data: any): any 
  * Recursively removes undefined values from an object or array.
  * Required for Firestore writes as it throws on undefined fields.
  */
-export function stripUndefined(obj: any): any {
+export function stripUndefined<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') return obj;
-  if (Array.isArray(obj)) return obj.map(stripUndefined).filter(v => v !== undefined);
+  if (Array.isArray(obj)) return obj.map(stripUndefined).filter(v => v !== undefined) as unknown as T;
   return Object.fromEntries(
     Object.entries(obj)
       .filter(([_, v]) => v !== undefined)
       .map(([k, v]) => [k, stripUndefined(v)])
-  );
+  ) as unknown as T;
 }
 
 /**

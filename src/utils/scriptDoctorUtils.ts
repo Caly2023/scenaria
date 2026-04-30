@@ -1,4 +1,4 @@
-import { ScriptDoctorMessage } from "../types/scriptDoctor";
+import { ScriptDoctorMessage, GeminiPart } from "../types/scriptDoctor";
 
 
 
@@ -6,7 +6,7 @@ import { ScriptDoctorMessage } from "../types/scriptDoctor";
  * Filter parts to keep only those valid for the model turn:
  * text parts and functionCall parts.
  */
-export function sanitizePartsForHistory(parts: any[] | null | undefined): any[] {
+export function sanitizePartsForHistory(parts: GeminiPart[] | null | undefined): GeminiPart[] {
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
@@ -14,7 +14,7 @@ export function sanitizePartsForHistory(parts: any[] | null | undefined): any[] 
   });
 }
 
-export function sanitizeFinalParts(parts: any[] | null | undefined): any[] {
+export function sanitizeFinalParts(parts: GeminiPart[] | null | undefined): GeminiPart[] {
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
@@ -62,7 +62,7 @@ export function classifyComplexity(content: string): "simple" | "moderate" | "co
  * Build a Gemini REST API "functionResponse" part.
  * In the Gemini multi-turn spec, function results are wrapped in role:"user" turns.
  */
-export function buildFunctionResponsePart(name: string, output: unknown): any {
+export function buildFunctionResponsePart(name: string, output: unknown): GeminiPart {
   return {
     functionResponse: {
       name,
@@ -82,10 +82,10 @@ export function buildFunctionResponsePart(name: string, output: unknown): any {
  * IMPORTANT: In the Gemini REST API, function responses go in a "user" role turn,
  * NOT a "tool" role turn. This function handles the conversion automatically.
  */
-export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; parts: any[] }> {
+export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; parts: GeminiPart[] }> {
   if (!messages || messages.length === 0) return [];
 
-  const history: Array<{ role: string; parts: any[] }> = [];
+  const history: Array<{ role: string; parts: GeminiPart[] }> = [];
 
   for (const msg of messages) {
     if (msg.role === "user") {
@@ -95,8 +95,8 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
 
     // Assistant messages that have structured content_parts (from multi-turn with tool calls)
     if (msg.content_parts && msg.content_parts.length > 0) {
-      const modelParts: any[] = [];
-      const toolResultParts: any[] = [];
+      const modelParts: GeminiPart[] = [];
+      const toolResultParts: GeminiPart[] = [];
 
       for (const p of msg.content_parts) {
         if (!p || typeof p !== "object") continue;
@@ -124,7 +124,7 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
   }
 
   // Merge consecutive same-role entries
-  const merged: Array<{ role: string; parts: any[] }> = [];
+  const merged: Array<{ role: string; parts: GeminiPart[] }> = [];
   for (const entry of history) {
     const last = merged[merged.length - 1];
     if (last && last.role === entry.role) {
@@ -152,7 +152,7 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
   return merged;
 }
 
-export function extractResponseParts(result: unknown): any[] {
+export function extractResponseParts(result: unknown): GeminiPart[] {
   const asRecord = (result ?? {}) as Record<string, unknown>;
   // Direct parts array (our normalized return)
   if (Array.isArray(asRecord.parts) && asRecord.parts.length > 0) return asRecord.parts;
@@ -162,10 +162,10 @@ export function extractResponseParts(result: unknown): any[] {
     candidates?.[0]?.content && typeof candidates[0].content === "object"
       ? (candidates[0].content as Record<string, unknown>).parts
       : undefined;
-  if (Array.isArray(candidateParts)) return candidateParts as any[];
+  if (Array.isArray(candidateParts)) return candidateParts as GeminiPart[];
   // From message.content (our normalized return)
   const message = asRecord.message as Record<string, unknown> | undefined;
-  if (Array.isArray(message?.content)) return message.content as any[];
+  if (Array.isArray(message?.content)) return message.content as GeminiPart[];
   // Fallback
   return [];
 }

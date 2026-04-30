@@ -1,4 +1,4 @@
-import { Project, WorkflowStage, Sequence, Character, Location } from "./index";
+import { Project, WorkflowStage } from "./index";
 
 type ScriptDoctorRole = "user" | "assistant" | "tool" | "model";
 

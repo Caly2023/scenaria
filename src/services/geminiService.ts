@@ -202,19 +202,7 @@ export const geminiService = {
   async generateStageInsight(stage: string, content: string, context: string) {
     if (!content || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
     return callGenkitFlow<any>('genericGemini', {
-      prompt: `Tu es un Script Doctor expert. Analyse l'état actuel de l'étape "${stage}". 
-Cette analyse sera placée en haut de l'étape (primitive d'ordre 0) pour guider l'utilisateur.
-
-Contexte complet du projet :
-${context}
-
-Contenu à analyser :
-${content}
-
-RÈGLES :
-1. Ton analyse doit être constructive, professionnelle et rédigée en Markdown.
-2. Identifie les points forts et les points faibles.
-3. Détermine si l'étape est prête (isReady: true/false).`,
+      prompt: Prompts.STAGE_INSIGHT_PROMPT(stage, content, context),
       jsonMode: true,
       structuredOutput: 'stageInsight',
     });

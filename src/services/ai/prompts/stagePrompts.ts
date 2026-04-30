@@ -1,6 +1,10 @@
+import { STORY_DEVELOPMENT_BLUEPRINT } from './blueprint';
+
 export const SYNOPSIS_PROMPT = (context: string) => `
 You are a professional screenwriter. Based on the provided project context, write a full narrative synopsis (approx. 500 words). 
 Focus on the emotional arc, key plot points, and the overall journey of the characters as defined in the brainstorming and structure.
+
+${STORY_DEVELOPMENT_BLUEPRINT}
 
 MANDATORY STRUCTURE:
 The result MUST be returned as a single JSON object or array representing exactly ONE (1) primitive with a clear 'title' and 'content' formatted in Markdown.
@@ -29,6 +33,8 @@ export const THREE_ACT_STRUCTURE_PROMPT = (context: string) => `
 
 Act as a world-class Script Architect. Your goal is to transform a raw story idea into a professional 3-Act Structure using the exact 8-beat framework from K.M. Weiland. 
 IMPORTANT: All generated content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
+
+${STORY_DEVELOPMENT_BLUEPRINT}
 
 ## CONTEXT:
 \${context}
@@ -59,6 +65,8 @@ IMPORTANT: All generated content MUST be written in the project's primary langua
 export const TREATMENT_PROMPT = (context: string) => `
 You are an Elite Screenwriter and Cinematic Architect. Your task is to generate the CORE NARRATIVE SEQUENCES of a professional CINEMATIC TREATMENT based on the provided project context.
 IMPORTANT: The treatment MUST be written in the project's primary language or the user's language. If in doubt, write in French.
+
+${STORY_DEVELOPMENT_BLUEPRINT}
 
 CINEMATIC TREATMENT STANDARDS:
 1. Write a dense, high-impact narrative for all the provided structural beats. Aim for powerful, concise execution. Do NOT attempt to write 15 exhaustive pages at once. Focus on emotional arcs, sensory immersion, and dramatic tension.

@@ -1,3 +1,5 @@
+import { SCREENPLAY_GENERATION_BLUEPRINT } from './blueprint';
+
 /** Données structurées pour la génération du scénario (alignées sur le pipeline Scénaria). */
 export interface ScriptGenerationContext {
   metadata: {
@@ -70,6 +72,8 @@ RÈGLES DE FORMÉ SCÉNARIO (didascalies + dialogues) :
 - Ne pas mélanger action et dialogue sur la même ligne. Alterner clairement blocs de didascalie et blocs de dialogue.
 - Écrire dans la/les langue(s) indiquée(s) aux métadonnées.
 - Interdiction de s'arrêter à mi-parcours, de résumer à la place d'écrire, ou d'omettre des scènes prévues au séquencier.
+
+${SCREENPLAY_GENERATION_BLUEPRINT}
 
 SORTIE ATTENDUE — UNIQUEMENT du JSON valide : un tableau d'objets, une entrée par scène du séquencier (ou l'équivalent si séquencier vide), dans l'ordre chronologique.
 

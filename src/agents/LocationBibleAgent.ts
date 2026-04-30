@@ -8,9 +8,10 @@ export class LocationBibleAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = this.getPrompt('generate', 'Identify and build out key locations that serve the story’s mood.');
+      const prompt = this.getPrompt('generate', 'Identify and build out key locations that serve the story\'s mood.');
+      const contextWithPrompt = `${prompt}\n\n${unifiedCtx}`;
       
-      const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
+      const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(contextWithPrompt));
       const content: ContentPrimitive[] = extraction.settings.map((loc: any, i: number) =>
         this.buildPrimitive(
           `loc_gen_${i}`,
@@ -77,4 +78,4 @@ export class LocationBibleAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-  }
+}

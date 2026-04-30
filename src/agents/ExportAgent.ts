@@ -8,7 +8,7 @@ export class ExportAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = "Prepare a final production export summary. Summarize the script, character details, locations, and technical requirements for hand-off to a crew.";
+      const prompt = this.getPrompt('generate', "Prepare a final production export summary. Summarize the script, character details, locations, and technical requirements for hand-off to a crew.");
       
       const raw = await geminiService.generateStageContent(this.stageId, prompt, unifiedCtx);
       

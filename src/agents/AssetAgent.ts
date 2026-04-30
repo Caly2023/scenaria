@@ -8,7 +8,7 @@ export class AssetAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = "Identify and describe visual assets needed for the film, including character looks, key props, and environment textures. Provide visual prompts for an image generator.";
+      const prompt = this.getPrompt('generate', "Identify and describe visual assets needed for the film, including character looks, key props, and environment textures. Provide visual prompts for an image generator.");
       
       const raw = await geminiService.generateStageContent(this.stageId, prompt, unifiedCtx);
       

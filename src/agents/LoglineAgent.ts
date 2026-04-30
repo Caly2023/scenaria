@@ -72,4 +72,4 @@ export class LoglineAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-  }
+}

@@ -35,8 +35,20 @@ export class MetadataAgent extends BaseStageAgent {
     currentContent: ContentPrimitive[],
     context: ProjectContext
   ): Promise<AgentOutput> {
-    // Similar to generate but with more specific instruction
-    return this.generate(context);
+    try {
+      const current = currentContent.find(p => p.id === primitiveId) || currentContent[0];
+      const prompt = current?.content
+        ? `Refine these project metadata settings: "${current.content}". Instruction: ${instruction}`
+        : `Suggest project settings for: ${instruction}`;
+      const result = await geminiService.generateStageContent(this.stageId, prompt, '');
+      const updated = currentContent.map(p =>
+        p.id === primitiveId ? { ...p, content: result, agentGenerated: true } : p
+      );
+      const evalResult = await this.evaluate(updated, context);
+      return { ...evalResult, content: updated };
+    } catch (e: any) {
+      return this.buildFallbackOutput(e.message, currentContent);
+    }
   }
 
   async evaluate(

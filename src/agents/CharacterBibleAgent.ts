@@ -9,8 +9,9 @@ export class CharacterBibleAgent extends BaseStageAgent {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
       const prompt = this.getPrompt('generate', 'Extract and develop complex characters from the current story context.');
+      const contextWithPrompt = `${prompt}\n\n${unifiedCtx}`;
       
-      const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
+      const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(contextWithPrompt));
       const content: ContentPrimitive[] = extraction.characters.map((char: any, i: number) =>
         this.buildPrimitive(
           `char_gen_${i}`,
@@ -79,4 +80,4 @@ export class CharacterBibleAgent extends BaseStageAgent {
       return { analysis, state: this.computeState(analysis) };
     }
   }
-  }
+}

@@ -8,7 +8,7 @@ export class PrevisAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = "Generate a storyboard previs description. For each key beat, describe the camera angle, character position, and visual atmosphere.";
+      const prompt = this.getPrompt('generate', "Generate a storyboard previs description. For each key beat, describe the camera angle, character position, and visual atmosphere.");
       
       const raw = await geminiService.generateStageContent(this.stageId, prompt, unifiedCtx);
       

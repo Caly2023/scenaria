@@ -95,7 +95,7 @@ export function StepLayout({
   };
 
   return (
-    <div className="w-full h-auto flex-1 flex flex-col space-y-12 md:space-y-16 pb-4 md:pb-40">
+    <div className="w-full h-auto flex-1 flex flex-col space-y-12 md:space-y-16 pb-48 md:pb-40">
       <div className="flex-1 flex flex-col space-y-12 md:space-y-16">
         <div className="text-center space-y-4">
           <span className="text-sm md:text-xs uppercase tracking-[0.28em] md:tracking-[0.4em] text-white/50 font-bold">
@@ -170,10 +170,10 @@ export function StepLayout({
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-50",
-          // Mobile: Boxed, in flow
-          "relative w-full rounded-[32px] px-4 py-5 md:p-6 border bg-[#212121] mt-12 mb-0 md:mb-8",
+          // Mobile: Fixed at bottom
+          "fixed bottom-0 left-0 right-0 w-full rounded-t-[32px] px-6 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] border-x-0 border-b-0 border-t bg-[#212121] md:relative md:rounded-[32px] md:px-4 md:py-5 md:border md:mt-12 md:mb-0",
           // Desktop: Conditional sticky behavior
-          "md:sticky md:w-full md:mt-20 md:border md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
+          "md:sticky md:w-full md:mt-20 md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
           isStuck 
             ? "md:bottom-0 md:rounded-b-none md:mb-0" 
             : "md:bottom-8 md:rounded-[40px] md:mb-12",

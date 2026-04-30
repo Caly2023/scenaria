@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { User } from 'firebase/auth';
 import { Project, WorkflowStage } from '../types';
 import { useProjectData } from './useProjectData';
@@ -12,7 +12,6 @@ import { buildProjectContext } from '../services/orchestration';
 import { ContentPrimitive } from '../types/stageContract';
 import { classifyError } from '../lib/errorClassifier';
 
-type BrainstormPrimitive = ContentPrimitive & { primitiveType?: string };
 
 export function useProjects(user: User | null, addToast: (msg: string, type: 'error' | 'info' | 'success') => void) {
   const [isTyping, setIsTyping] = useState(false);
@@ -41,7 +40,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     setSyncStatus,
     handleContentUpdate,
     handleSubcollectionUpdate
-  } = useProjectSync(currentProject, addToast, (coll, id) => {
+  } = useProjectSync(currentProject, addToast, (_coll, _id) => {
     // Auto-trigger analysis when content changes, with a longer debounce
     if (autoAnalyzeTimeoutRef.current) clearTimeout(autoAnalyzeTimeoutRef.current);
     autoAnalyzeTimeoutRef.current = setTimeout(() => {
@@ -149,7 +148,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     await handleContentUpdate('metadata', JSON.stringify(newMetadata));
   }, [currentProject, handleContentUpdate]);
 
-  return {
+  return useMemo(() => ({
     projects,
     currentProject,
     currentProjectId,
@@ -187,5 +186,13 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     ...characterActions,
     ...locationActions,
     ...sequenceActions
-  };
+  }), [
+    projects, currentProject, currentProjectId, isProjectLoading, isProjectNotFound,
+    isTyping, isRegenerating, syncStatus, activeStage, stageContents,
+    isDeleting, projectToDelete, refiningBlockId, lastUpdatedPrimitiveId,
+    handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete,
+    handleStageChange, handleMetadataUpdate, handleContentUpdate,
+    handleSubcollectionUpdate, handleRegenerate, handleStageValidate,
+    handleStageRefine, handleStageAnalyze, characterActions, locationActions, sequenceActions
+  ]);
 }

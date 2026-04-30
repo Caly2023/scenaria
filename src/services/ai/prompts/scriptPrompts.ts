@@ -40,30 +40,30 @@ SOURCES (ordre de priorité pour la fidélité narrative) :
 6) Structure en 8 temps (3-Act) et Traitement : pour la progression dramatique et le détail cinématographique
 
 MÉTADONNÉES DU PROJET :
-- Titre : \${ctx.metadata.title}
-- Format : \${ctx.metadata.format}
-- Genre : \${ctx.metadata.genre}
-- Ton : \${ctx.metadata.tone}
-- Langue(s) du dialogue et des didascalies : \${lang}\${duration}
-- Logline : \${ctx.metadata.logline}
+- Titre : ${ctx.metadata.title}
+- Format : ${ctx.metadata.format}
+- Genre : ${ctx.metadata.genre}
+- Ton : ${ctx.metadata.tone}
+- Langue(s) du dialogue et des didascalies : ${lang}${duration}
+- Logline : ${ctx.metadata.logline}
 
 SYNOPSIS (référence narrative) :
-\${ctx.synopsis || '[Non fourni — déduire du reste avec prudence.]'}
+${ctx.synopsis || '[Non fourni — déduire du reste avec prudence.]'}
 
 STRUCTURE (8 temps / 3 actes) :
-\${ctx.structure || '[]'}
+${ctx.structure || '[]'}
 
 TRAITEMENT (prose ciné, présent) :
-\${ctx.treatment || '[Non fourni]'}
+${ctx.treatment || '[Non fourni]'}
 
 BIBLE DES PERSONNAGES (JSON) :
-\${ctx.characterBible || '[]'}
+${ctx.characterBible || '[]'}
 
 BIBLE DES LIEUX (JSON — noms, atmosphère, description ; respecter les lieux nommés pour les sluglines) :
-\${ctx.locationBible || '[]'}
+${ctx.locationBible || '[]'}
 
 SÉQUENCIER — À RESPECTER (une scène du scénario par entrée, même ordre ; si une entrée manque, la créer en restant cohérent avec les entrées voisines) :
-\${ctx.stepOutline || '[Séquencier vide — dériver les scènes du traitement et du synopsis en conservant une progression claire.]'}
+${ctx.stepOutline || '[Séquencier vide — dériver les scènes du traitement et du synopsis en conservant une progression claire.]'}
 
 RÈGLES DE FORMÉ SCÉNARIO (didascalies + dialogues) :
 - Chaque scène commence par une ligne temps-lieu (slugline) au format classique : INT. ou EXT. — LIEU — JOUR/NUIT/CONTINUATION (alignée sur le séquencier et la bible des lieux).

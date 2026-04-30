@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Info, Film, Languages, Clock, Type } from 'lucide-react';
+import { Film, Languages, Clock, Type } from 'lucide-react';
 import { StepLayout } from './StepLayout';
 import { ProjectMetadata, StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
-import { cn } from '@/lib/utils';
+
 
 interface ProjectMetadataStageProps {
   metadata: ProjectMetadata;
@@ -19,7 +19,7 @@ export function ProjectMetadataStage({
   onUpdate, 
   onValidate, 
   insight,
-  isSaving = false 
+  _isSaving = false 
 }: ProjectMetadataStageProps) {
   const { t } = useTranslation();
   const [localMeta, setLocalMeta] = useState<ProjectMetadata>(metadata);

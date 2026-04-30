@@ -38,9 +38,9 @@ type SectionKey = 'menu' | 'general' | 'details' | 'languages' | 'danger';
 export function ProjectDrawer({ isOpen, onClose, onDelete }: ProjectDrawerProps) {
   const project = useProject();
   const { currentProject, handleMetadataUpdate: onUpdate } = project;
-  const metadata = currentProject?.metadata || { 
+  const metadata = useMemo(() => currentProject?.metadata || { 
     title: '', format: '', genre: '', tone: '', languages: [], targetDuration: '', logline: '' 
-  };
+  }, [currentProject?.metadata]);
 
   const { t } = useTranslation();
   const isMobile = useIsMobile();

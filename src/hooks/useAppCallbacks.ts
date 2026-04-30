@@ -3,9 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { 
   Project, 
   WorkflowStage, 
-  Sequence,
-  Character,
-  Location,
 } from '../types';
 import { 
   useAddSubcollectionDocMutation,
@@ -16,10 +13,6 @@ import { classifyError } from '../lib/errorClassifier';
 import { stageRegistry } from '../config/stageRegistry';
 import { ContentPrimitive } from '../types/stageContract';
 
-type BrainstormPrimitive = Sequence & { primitiveType?: string };
-type CharacterCreateTier = Character['tier'];
-type CharacterUpdates = Partial<Character>;
-type LocationUpdates = Partial<Location>;
 
 interface UseAppCallbacksProps {
   currentProject: Project | null;

@@ -3,9 +3,6 @@ import { User } from 'firebase/auth';
 import { 
   Project, 
   WorkflowStage, 
-  Sequence, 
-  Character, 
-  Location, 
   ProjectMetadata, 
   HydrationState,
   ContentPrimitive

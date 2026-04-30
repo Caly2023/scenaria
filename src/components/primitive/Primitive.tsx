@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, useDeferredValue, memo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useDeferredValue, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Maximize2, 

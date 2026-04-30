@@ -23,7 +23,6 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
     hydrationState,
     lastUpdatedPrimitiveId,
     handleStageValidate,
-    handleStageRefine,
     handleStageAnalyze,
     onApplyFix,
     handleRegenerate,

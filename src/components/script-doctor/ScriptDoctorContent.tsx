@@ -3,21 +3,13 @@ import {
   X, 
   Sparkles, 
   Send, 
-  RefreshCw,
   MoreHorizontal,
-  Volume2,
-  CheckCircle2,
-  Bot,
-  ChevronDown,
-  BrainCircuit
+  Bot
 } from 'lucide-react';
-import { motion } from 'motion/react';
-import ReactMarkdown from 'react-markdown';
+
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
 import { ttsService } from '@/services/ttsService';
 import { useProject } from '@/contexts/ProjectContext';
-import { ToolConfirmation } from './ToolConfirmation';
 import { ScriptDoctorTypingIndicator } from './ScriptDoctorTypingIndicator';
 import { ScriptDoctorMessageItem } from './ScriptDoctorMessageItem';
 

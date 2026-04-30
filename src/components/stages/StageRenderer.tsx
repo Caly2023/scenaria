@@ -36,7 +36,7 @@ const StageRendererComponent = ({ CanvasErrorBoundary = DefaultBoundary }: Stage
 
   return (
     <Suspense fallback={<StageSkeleton />}>
-      {renderStage(definition, project, CanvasErrorBoundary, t)}
+      {renderStage(definition, project, CanvasErrorBoundary)}
     </Suspense>
   );
 };
@@ -45,7 +45,6 @@ function renderStage(
   definition: StageDefinition,
   project: ReturnType<typeof useProject>,
   CanvasErrorBoundary: React.ComponentType<{ children: React.ReactNode }>,
-  t: (key: string) => string,
 ) {
   const { currentProject } = project;
   if (!currentProject) return null;

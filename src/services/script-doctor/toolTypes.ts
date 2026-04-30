@@ -1,7 +1,7 @@
 import { WorkflowStage } from "../../types";
 import { ScriptDoctorMessage, ToolResult } from "../../types/scriptDoctor";
 import { ContentPrimitive } from "../../types/stageContract";
-import { Project, Character, Location } from "../../types";
+import { Project } from "../../types";
 
 interface ScriptDoctorToolContext {
   currentProject: Project;

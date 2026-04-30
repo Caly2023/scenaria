@@ -74,7 +74,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Commencez à 
       // Minor guard: if the new content is much shorter, restore selection safely
       try {
         editor.commands.setTextSelection({ from, to });
-      } catch (e) {
+      } catch (_e) {
         // Ignorer si la sélection n'est plus valide
       }
     }

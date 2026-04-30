@@ -12,7 +12,7 @@ Example: [{ "title": "Synopsis", "content": "# Synopsis\\n\\n[Markdown content h
 
 IMPORTANT: The generated synopsis MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
-\${context}`;
+${context}`;
 
 export const CHARACTER_EXTRACTION_PROMPT = (brainstorming: string) => `
 You are a professional script analyst. Based on the following validated brainstorming session (the Source of Truth), extract the core characters and settings. 
@@ -26,7 +26,7 @@ Each primitive MUST have a 'title' (the name) and 'content' (the description and
 IMPORTANT: All extracted content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
 Source of Truth (Brainstorming):
-\${brainstorming}`;
+${brainstorming}`;
 
 export const THREE_ACT_STRUCTURE_PROMPT = (context: string) => `
 # PROMPT: THE 8-BEAT STORY ARCHITECT (BASED ON STUDIOBINDER)
@@ -37,7 +37,7 @@ IMPORTANT: All generated content MUST be written in the project's primary langua
 ${STORY_DEVELOPMENT_BLUEPRINT}
 
 ## CONTEXT:
-\${context}
+${context}
 
 ## THE 8-BEAT FRAMEWORK TO APPLY:
 1. The Hook (0%)
@@ -96,4 +96,4 @@ Each primitive MUST have a 'title' and 'content' formatted in Markdown:
 ]
 
 Context:
-\${context}`;
+${context}`;

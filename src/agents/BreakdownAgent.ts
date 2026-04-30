@@ -62,7 +62,7 @@ export class BreakdownAgent extends BaseStageAgent {
         raw.suggestedPrompt
       );
       return { analysis, state: this.computeState(analysis) };
-    } catch (err) {
+    } catch (_err) {
       return { analysis: this.buildAnalysis('Breakdown present.', [], []), state: 'good' };
     }
   }

@@ -1,13 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   ScriptDoctorMessage,
   ToolCall,
   UseScriptDoctorProps,
-  GeminiPart,
   GeminiHistoryEntry,
 } from "../types/scriptDoctor";
 import {
-  sanitizePartsForHistory,
   sanitizeFinalParts,
   classifyComplexity,
   normalizeHistory,
@@ -267,7 +265,7 @@ export function useScriptDoctor({
   };
 
 
-  return {
+  return useMemo(() => ({
     isDoctorOpen,
     setIsDoctorOpen,
     doctorMessages,
@@ -280,5 +278,17 @@ export function useScriptDoctor({
     pendingToolCall,
     handleConfirmTool,
     handleCancelTool,
-  };
+  }), [
+    isDoctorOpen,
+    doctorMessages,
+    isDoctorTyping,
+    isHeavyThinking,
+    activeTool,
+    aiStatus,
+    pendingToolCall,
+    executeToolCall,
+    handleDoctorMessage,
+    handleConfirmTool,
+    handleCancelTool
+  ]);
 }

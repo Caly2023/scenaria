@@ -1,0 +1,389 @@
+﻿
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\AppContent.tsx
+  4:10  warning  'WorkflowStage' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\AssetAgent.ts
+  21:17  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  44:17  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  65:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\BaseStageAgent.ts
+  114:19   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  173:28   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:100  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\BrainstormingAgent.ts
+  23:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  47:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\BreakdownAgent.ts
+  21:17  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  44:17  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  65:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\CharacterBibleAgent.ts
+  12:76  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\DraftAgent.ts
+  22:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\ExportAgent.ts
+  21:17  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  44:17  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  51:5   warning  'context' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\LocationBibleAgent.ts
+  12:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\LoglineAgent.ts
+  17:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\MetadataAgent.ts
+  27:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\PrevisAgent.ts
+  21:17  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  44:17  warning  Unexpected any. Specify a different type                                        @typescript-eslint/no-explicit-any
+  65:14  warning  'err' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\ScriptAgent.ts
+   40:13  warning  'projectSignal' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   87:17  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  129:17  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\StepOutlineAgent.ts
+  21:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  93:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\StructureAgent.ts
+  23:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  85:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  98:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\SynopsisAgent.ts
+  17:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  39:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\agents\TreatmentAgent.ts
+  12:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\app\api\genkit\[flowName]\route.ts
+  43:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\app\layout.tsx
+   5:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  21:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\layout\MainLayout.tsx
+   2:10  warning  'Bot' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   2:15  warning  'Check' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   2:22  warning  'Wand2' is defined but never used. Allowed unused vars must match /^_/u    @typescript-eslint/no-unused-vars
+   3:10  warning  'motion' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+   6:3   warning  'Project' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  34:9   warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+  57:37  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\layout\sidebar\DesktopSidebar.tsx
+  6:10  warning  'useProject' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  9:11  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\layout\sidebar\MobileBottomNav.tsx
+  7:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\primitive\Primitive.tsx
+  1:31  warning  'useRef' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\primitive\PrimitiveHeader.tsx
+  1:39  warning  'useCallback' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\project-drawer\ProjectDrawer.tsx
+  41:9  warning  The 'metadata' logical expression could make the dependencies of useEffect Hook (at line 67) change on every render. To fix this, wrap the initialization of 'metadata' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\script-doctor\ScriptDoctorContent.tsx
+   6:3   warning  'RefreshCw' is defined but never used. Allowed unused vars must match /^_/u         @typescript-eslint/no-unused-vars
+   8:3   warning  'Volume2' is defined but never used. Allowed unused vars must match /^_/u           @typescript-eslint/no-unused-vars
+   9:3   warning  'CheckCircle2' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  11:3   warning  'ChevronDown' is defined but never used. Allowed unused vars must match /^_/u       @typescript-eslint/no-unused-vars
+  12:3   warning  'BrainCircuit' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  14:10  warning  'motion' is defined but never used. Allowed unused vars must match /^_/u            @typescript-eslint/no-unused-vars
+  15:8   warning  'ReactMarkdown' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  17:10  warning  'cn' is defined but never used. Allowed unused vars must match /^_/u                @typescript-eslint/no-unused-vars
+  20:10  warning  'ToolConfirmation' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\script-doctor\ScriptDoctorMessageItem.tsx
+  23:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\script-doctor\ScriptDoctorTypingIndicator.tsx
+  11:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\stages\PrimitiveAddButton.tsx
+  10:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\stages\PrimitiveList.tsx
+  13:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:99  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\stages\ProjectMetadataStage.tsx
+   3:10  warning  'Save' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   3:16  warning  'Info' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+   7:10  warning  'cn' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars
+  22:3   warning  'isSaving' is assigned a value but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  31:62  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\stages\StageRenderer.tsx
+  48:3  warning  't' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\stages\StepLayout.tsx
+  32:83  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\stages\UnifiedStage.tsx
+  26:5  warning  'handleStageRefine' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\components\ui\RichTextEditor.tsx
+  77:16  warning  'e' is defined but never used. Allowed unused caught errors must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\contexts\ProjectContext.tsx
+    6:3   warning  'Sequence' is defined but never used. Allowed unused vars must match /^_/u                                                      @typescript-eslint/no-unused-vars
+    7:3   warning  'Character' is defined but never used. Allowed unused vars must match /^_/u                                                     @typescript-eslint/no-unused-vars
+    8:3   warning  'Location' is defined but never used. Allowed unused vars must match /^_/u                                                      @typescript-eslint/no-unused-vars
+   36:20  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   41:62  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   46:78  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   61:52  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   62:70  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   68:19  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+   74:20  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  108:71  warning  Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  202:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\actions\useCharacterActions.ts
+  79:21   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:102  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\actions\useLocationActions.ts
+  38:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\actions\useSequenceActions.ts
+  16:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useAppCallbacks.ts
+   19:6   warning  'BrainstormPrimitive' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   20:6   warning  'CharacterCreateTier' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+   21:6   warning  'CharacterUpdates' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+   22:6   warning  'LocationUpdates' is defined but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+   27:82  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+   85:40  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  104:55  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useProjectData.ts
+  59:6  warning  React Hook useEffect has a missing dependency: 'currentProject'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useProjectLifecycle.ts
+   2:34  warning  'ProjectFormat' is defined but never used. Allowed unused vars must match /^_/u        @typescript-eslint/no-unused-vars
+  38:5   warning  'isDeleting' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useProjectSync.ts
+  26:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useProjects.ts
+  15:6   warning  'BrainstormPrimitive' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  44:49  warning  'coll' is defined but never used. Allowed unused args must match /^_/u                 @typescript-eslint/no-unused-vars
+  44:55  warning  'id' is defined but never used. Allowed unused args must match /^_/u                   @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useScriptDoctor.ts
+   6:3  warning  'GeminiPart' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars
+  10:3  warning  'sanitizePartsForHistory' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\hooks\useScriptDoctorTools.ts
+  75:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\lib\firebase.ts
+  25:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\lib\genkit.ts
+  3:10  warning  'retry' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\__tests__\orchestration.test.ts
+  33:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\ai\flows.ts
+   75:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   93:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   94:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  130:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  156:11  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  157:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\ai\prompts\scriptPrompts.ts
+  28:9  warning  'lang' is assigned a value but never used. Allowed unused vars must match /^_/u      @typescript-eslint/no-unused-vars
+  29:9  warning  'duration' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\ai\prompts\stagePrompts.ts
+   3:33  warning  'context' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+  17:45  warning  'brainstorming' is defined but never used. Allowed unused args must match /^_/u  @typescript-eslint/no-unused-vars
+  31:44  warning  'context' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+  65:34  warning  'context' is defined but never used. Allowed unused args must match /^_/u        @typescript-eslint/no-unused-vars
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\ai\script-doctor-agent.ts
+   4:3   warning  'ScriptDoctorMessage' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  11:3   warning  'classifyComplexity' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars
+  12:3   warning  'normalizeHistory' is defined but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars
+  32:57  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  67:21  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  79:26  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+  89:51  warning  Unexpected any. Specify a different type                                               @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\context\cascadingContext.ts
+  17:9   warning  'unlocked' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+  41:61  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\context\index.ts
+  37:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\context\payloadBuilder.ts
+   10:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   30:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   31:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   55:83  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:80  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  138:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  142:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  150:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\context\stageStructure.ts
+   9:94  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\firebase\projectEndpoints.ts
+   39:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   64:17  warning  Empty block statement                     no-empty
+   82:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:17  warning  Empty block statement                     no-empty
+  114:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  157:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  199:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  199:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  232:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\firebase\subcollectionEndpoints.ts
+   22:7   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   35:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:17  warning  Empty block statement                     no-empty
+   68:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  146:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  146:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  187:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  200:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  231:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\firebase\utils.ts
+   7:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   7:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\geminiService.ts
+   10:59   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   31:46   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   66:37   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:27   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:90   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:117  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:133  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:52   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  117:27   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  120:64   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:27   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  124:57   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  125:27   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  128:82   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:53   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  145:27   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  163:78   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  164:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:82   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:96   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  180:62   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:84   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:100  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  187:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:39   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:74   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:30   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\migrationService.ts
+  69:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\orchestration\contextBuilder.ts
+  5:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\script-doctor\primitiveTools.ts
+  45:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  52:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\script-doctor\structureTools.ts
+  33:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  78:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  87:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\script-doctor\toolTypes.ts
+  19:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  22:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\services\telemetryService.ts
+  305:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\types\scriptDoctor.ts
+  16:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\types\stageContract.ts
+  36:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\hp\Desktop\SCENARIA\scenaria\src\utils\retryUtils.ts
+  11:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Ô£û 246 problems (0 errors, 246 warnings)
+

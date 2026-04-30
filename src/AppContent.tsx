@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import type { User } from "firebase/auth";
 import { useWindowSize } from "./hooks/useWindowSize";
-import { WorkflowStage, Project, Toast } from "./types";
+import { Project, Toast } from "./types";
 import { FocusMode } from "./components/ui/FocusMode";
 import { LoadingPage } from "./components/ui/LoadingPage";
 import { OfflinePage, ConnectionErrorPage, NotFoundPage } from "./components/ui/ErrorPages";

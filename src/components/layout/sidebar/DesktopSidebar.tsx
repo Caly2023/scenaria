@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptics';
 import { WorkflowStage } from '@/types';
-import { useProject } from '@/contexts/ProjectContext';
+
 
 interface DesktopSidebarProps {
   stages: any[];

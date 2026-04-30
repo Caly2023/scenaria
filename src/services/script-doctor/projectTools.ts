@@ -1,6 +1,6 @@
 import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
-import { getArgRecord, getArgString } from "../../utils/scriptDoctorUtils";
+import { getArgRecord } from "../../utils/scriptDoctorUtils";
 
 export const fetchProjectState: ToolHandler = async (args, context) => {
   const { currentProject, stageContents, characters, locations } = context;

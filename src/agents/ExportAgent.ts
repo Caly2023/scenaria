@@ -48,7 +48,7 @@ export class ExportAgent extends BaseStageAgent {
 
   async evaluate(
     content: ContentPrimitive[],
-    context: ProjectContext
+    _context: ProjectContext
   ): Promise<Pick<AgentOutput, 'analysis' | 'state'>> {
     const text = content.map(p => p.content).join(' ').trim();
     if (!text) return { analysis: this.buildAnalysis('Export not ready.', ['Incomplete production package'], ['Finalize all previous stages first']), state: 'empty' };

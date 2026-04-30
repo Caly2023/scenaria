@@ -1,9 +1,8 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
-import { Bot, Check, Wand2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import {  } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { 
-  Project, 
   Toast,
 } from '../../types';
 import { Sidebar } from './sidebar/Sidebar';

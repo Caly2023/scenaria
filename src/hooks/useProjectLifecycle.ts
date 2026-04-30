@@ -1,5 +1,5 @@
 import { User } from 'firebase/auth';
-import { Project, WorkflowStage, ProjectFormat } from '../types';
+import { Project, WorkflowStage } from '../types';
 import { ProjectContext } from '../types/stageContract';
 
 // Sub-hooks
@@ -35,7 +35,6 @@ export function useProjectLifecycle(props: UseProjectLifecycleProps) {
   const {
     handleProjectDelete: baseDelete,
     handleProjectCreate,
-    isDeleting
   } = useProjectOperations({
     user: props.user,
     addToast: props.addToast,

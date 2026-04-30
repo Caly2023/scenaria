@@ -38,13 +38,13 @@ const scriptDoctorFlow = ai.defineFlow(
     const response = await ai.generate({
       model: gemini31FlashLite,
       system: Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite'),
-      contents: messages,
-      tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => ({
+      messages,
+      tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => ai.defineTool({
         name: d.name,
         description: d.description,
         inputSchema: z.any(), 
         outputSchema: z.any(),
-      })),
+      }, async () => ({}))),
       config: { 
         temperature: 0.7,
         maxOutputTokens: 8192 

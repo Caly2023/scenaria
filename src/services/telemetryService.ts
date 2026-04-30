@@ -281,7 +281,6 @@ class TelemetryStore {
     }
     return summary;
   }
-}
 
   // ─── Observability & Metrics ─────────────────────────────────────────────
 

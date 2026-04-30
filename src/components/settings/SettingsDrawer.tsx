@@ -1,16 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Contrast,
-  Globe,
-  Loader2,
-  LogOut,
-  Settings2,
-  Sun,
-  UserCircle2,
-  X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -21,6 +10,9 @@ import { ProfileSection } from './ProfileSection';
 import { LanguageSection } from './LanguageSection';
 import { ThemeSection } from './ThemeSection';
 import { AccessibilitySection } from './AccessibilitySection';
+import { SettingsMenu } from './SettingsMenu';
+import { SessionSection } from './SessionSection';
+import { SettingsHeader } from './SettingsHeader';
 
 type ThemeMode = 'dark' | 'light' | 'system';
 
@@ -129,65 +121,6 @@ export function SettingsDrawer({
     }
   };
 
-  const menuItems = [
-    { key: 'profile' as const, title: 'Profil', subtitle: 'Modifier vos informations', icon: UserCircle2 },
-    { key: 'language' as const, title: 'Langue', subtitle: currentLanguage.startsWith('en') ? 'English' : 'Francais', icon: Globe },
-    { key: 'theme' as const, title: 'Apparence', subtitle: theme === 'dark' ? 'Sombre' : theme === 'light' ? 'Clair' : 'Systeme', icon: Sun },
-    { key: 'accessibility' as const, title: 'Accessibilite', subtitle: 'Contraste, texte et animations', icon: Contrast },
-    { key: 'session' as const, title: 'Session', subtitle: 'Deconnexion', icon: LogOut, danger: true },
-  ];
-
-  const renderMenu = () => (
-    <section className="space-y-3">
-      <div className={cn("rounded-2xl border border-white/10 bg-[#161616] p-4 flex items-center gap-4", isMobile && "rounded-3xl p-5")}>
-        {user.photoURL ? (
-          <img
-            src={user.photoURL}
-            alt={user.displayName || 'Avatar'}
-            referrerPolicy="no-referrer"
-            className={cn("w-14 h-14 rounded-2xl object-cover border border-white/10", isMobile && "w-16 h-16 rounded-3xl")}
-          />
-        ) : (
-          <div className={cn("w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center", isMobile && "w-16 h-16 rounded-3xl")}>
-            <UserCircle2 className={cn("w-7 h-7 text-white/40", isMobile && "w-8 h-8")} />
-          </div>
-        )}
-        <div className="min-w-0">
-          <p className={cn("text-base font-semibold text-white truncate", isMobile && "text-lg")}>{user.displayName || 'Utilisateur'}</p>
-          <p className={cn("text-sm text-white/50 truncate", isMobile && "text-[15px]")}>{user.email || 'Aucun email'}</p>
-        </div>
-      </div>
-
-      <div className={cn("rounded-2xl border border-white/10 bg-[#161616] p-2", isMobile && "rounded-3xl p-3")}>
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.key}
-              onClick={() => {
-                triggerHaptic('light');
-                setActiveSection(item.key);
-              }}
-              className={cn(
-                'w-full rounded-xl px-3 py-3.5 flex items-center gap-3 hover:bg-white/5 transition-colors border-none',
-                isMobile && 'rounded-2xl px-4 py-4',
-                item.danger && 'hover:bg-red-500/10'
-              )}
-            >
-              <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center border', isMobile && "w-11 h-11 rounded-xl", item.danger ? 'bg-red-500/10 border-red-500/20' : 'bg-[#111111] border-white/10')}>
-                <Icon className={cn('w-4 h-4', isMobile && "w-5 h-5", item.danger ? 'text-red-400' : 'text-white/60')} />
-              </div>
-              <div className="flex-1 text-left min-w-0">
-                <p className={cn('text-sm font-semibold', isMobile && "text-base", item.danger ? 'text-red-300' : 'text-white')}>{item.title}</p>
-                <p className={cn('text-xs truncate', isMobile && "text-sm", item.danger ? 'text-red-300/60' : 'text-white/45')}>{item.subtitle}</p>
-              </div>
-              <ChevronRight className={cn('w-4 h-4', isMobile && "w-5 h-5", item.danger ? 'text-red-300/60' : 'text-white/30')} />
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
 
   const renderSection = () => {
     switch (activeSection) {
@@ -234,19 +167,11 @@ export function SettingsDrawer({
         );
       case 'session':
         return (
-          <section className={cn("bg-red-500/5 p-4 rounded-2xl border border-red-500/20 space-y-3", isMobile && "rounded-3xl p-5")}>
-            <button
-              onClick={() => {
-                triggerHaptic('warning');
-                handleLogout();
-              }}
-              disabled={isLoggingOut}
-              className={cn("w-full h-12 rounded-2xl bg-red-500/10 text-red-400 font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50", isMobile && "h-14 text-base")}
-            >
-              {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
-              {isLoggingOut ? 'Deconnexion...' : 'Se deconnecter'}
-            </button>
-          </section>
+          <SessionSection
+            isMobile={isMobile}
+            isLoggingOut={isLoggingOut}
+            onLogout={handleLogout}
+          />
         );
       default:
         return null;
@@ -277,56 +202,12 @@ export function SettingsDrawer({
                 : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l',
             )}
           >
-            <div
-              className={cn("h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0", isMobile && "h-20")}
-              style={isMobile ? { paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' } : undefined}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                {activeSection !== 'menu' && (
-                  <button
-                    onClick={() => {
-                      triggerHaptic('light');
-                      setActiveSection('menu');
-                    }}
-                    aria-label="Retour"
-                    className={cn("rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-white/80 border-none", isMobile ? "w-11 h-11" : "w-9 h-9")}
-                  >
-                    <ChevronLeft className={cn("w-4 h-4", isMobile && "w-5 h-5")} />
-                  </button>
-                )}
-                <div className="flex items-center gap-2">
-                  <Settings2 className={cn("w-4 h-4 text-white/60", isMobile && "w-5 h-5")} />
-                  <h3 className={cn("text-base font-semibold tracking-tight text-white", isMobile && "text-lg")}>
-                    {activeSection === 'menu'
-                      ? 'Parametres'
-                      : activeSection === 'profile'
-                        ? 'Profil'
-                        : activeSection === 'language'
-                          ? 'Langue'
-                          : activeSection === 'theme'
-                            ? 'Apparence'
-                            : activeSection === 'accessibility'
-                              ? 'Accessibilite'
-                              : 'Session'}
-                  </h3>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  triggerHaptic('light');
-                  onClose();
-                }}
-                aria-label="Fermer les paramètres"
-                className={cn(
-                  "flex items-center justify-center rounded-full transition-all text-white border-none",
-                  isMobile
-                    ? "w-12 h-12 bg-white/10 hover:bg-white/20 active:scale-95"
-                    : "w-10 h-10 bg-white/5 hover:bg-white/10"
-                )}
-              >
-                <X className={cn("w-5 h-5", isMobile && "w-6 h-6")} />
-              </button>
-            </div>
+            <SettingsHeader
+              isMobile={isMobile}
+              activeSection={activeSection}
+              onBack={() => setActiveSection('menu')}
+              onClose={onClose}
+            />
 
             <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-3 scroll-smooth overscroll-contain">
               <AnimatePresence mode="wait" initial={false}>
@@ -337,7 +218,17 @@ export function SettingsDrawer({
                   exit={{ x: -20, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {activeSection === 'menu' ? renderMenu() : renderSection()}
+                  {activeSection === 'menu' ? (
+                    <SettingsMenu
+                      user={user}
+                      theme={theme}
+                      currentLanguage={currentLanguage}
+                      isMobile={isMobile}
+                      onSectionSelect={setActiveSection}
+                    />
+                  ) : (
+                    renderSection()
+                  )}
                 </motion.div>
               </AnimatePresence>
 

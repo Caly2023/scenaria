@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { User } from "firebase/auth";
 import { useWindowSize } from "./hooks/useWindowSize";
-import { WorkflowStage, Project } from "./types";
+import { WorkflowStage, Project, Toast } from "./types";
 import { FocusMode } from "./components/ui/FocusMode";
 import { LoadingPage } from "./components/ui/LoadingPage";
 import { OfflinePage, ConnectionErrorPage, NotFoundPage } from "./components/ui/ErrorPages";
@@ -12,25 +12,12 @@ import { ScriptDoctor as ScriptDoctorComponent } from "./components/script-docto
 import { ttsService } from "./services/ttsService";
 import { PWAInstallPrompt } from "./components/ui/PWAInstallPrompt";
 import { LoginPage } from "./components/auth/LoginPage";
-import i18n from "./i18n";
 import { signOutUser, updateCurrentUserProfile } from "./lib/firebase";
 import { useProject } from "./contexts/ProjectContext";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { ContentPrimitive } from "./types/stageContract";
 import { stageRegistry } from "./config/stageRegistry";
-
-type ThemeMode = "dark" | "light" | "system";
-type AccessibilitySettings = {
-  highContrast: boolean;
-  largeText: boolean;
-  reducedMotion: boolean;
-};
-
-export type Toast = {
-  id: string;
-  message: string;
-  type: 'error' | 'info' | 'success';
-};
+import { useAppSettings } from "./hooks/useAppSettings";
 
 type AppContentProps = {
   user: User | null;
@@ -55,27 +42,15 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
     isFocusMode, handleCloseFocus, focusedSequenceId
   } = project;
 
+  const {
+    theme, language, accessibilitySettings, setAccessibilitySettings,
+    handleLanguageChange, handleThemeChange
+  } = useAppSettings(addToast);
+
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
-  const [theme, setTheme] = useState<ThemeMode>(() => {
-    const savedTheme = localStorage.getItem("scenaria_theme");
-    return savedTheme === "dark" || savedTheme === "light" || savedTheme === "system" ? savedTheme : "dark";
-  });
-  const [language, setLanguage] = useState(() => localStorage.getItem("scenaria_language") || i18n.resolvedLanguage || "fr");
-  const [accessibilitySettings, setAccessibilitySettings] = useState<AccessibilitySettings>(() => {
-    const saved = localStorage.getItem("scenaria_accessibility");
-    if (!saved) {
-      return { highContrast: false, largeText: false, reducedMotion: false };
-    }
-
-    try {
-      return JSON.parse(saved) as AccessibilitySettings;
-    } catch {
-      return { highContrast: false, largeText: false, reducedMotion: false };
-    }
-  });
 
   const { isMobile } = useWindowSize();
 
@@ -83,33 +58,6 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
   const handleCloseDrawer = useCallback(() => setIsProjectDrawerOpen(false), []);
   const handleOpenSettings = useCallback(() => setIsSettingsDrawerOpen(true), []);
   const handleCloseSettings = useCallback(() => setIsSettingsDrawerOpen(false), []);
-
-  useEffect(() => {
-    localStorage.setItem("scenaria_theme", theme);
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
-    const applyTheme = () => {
-      const resolvedTheme = theme === "system" ? (mediaQuery.matches ? "light" : "dark") : theme;
-      document.documentElement.dataset.theme = resolvedTheme;
-    };
-
-    applyTheme();
-    mediaQuery.addEventListener("change", applyTheme);
-    return () => mediaQuery.removeEventListener("change", applyTheme);
-  }, [theme]);
-
-  useEffect(() => {
-    localStorage.setItem("scenaria_language", language);
-    void i18n.changeLanguage(language);
-  }, [language]);
-
-  useEffect(() => {
-    localStorage.setItem("scenaria_accessibility", JSON.stringify(accessibilitySettings));
-
-    document.body.classList.toggle("accessibility-high-contrast", accessibilitySettings.highContrast);
-    document.body.classList.toggle("accessibility-large-text", accessibilitySettings.largeText);
-    document.body.classList.toggle("accessibility-reduced-motion", accessibilitySettings.reducedMotion);
-  }, [accessibilitySettings]);
 
   useKeyboardShortcuts({
     onProjectSwitch: handleProjectExit, 
@@ -120,23 +68,17 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
     onShowHelp: () => setIsHelpOpen(true)
   });
 
-  const handleLanguageChange = useCallback((nextLanguage: string) => {
-    setLanguage(nextLanguage);
-    addToast(nextLanguage === "fr" ? "Langue definie sur francais" : "Language changed to English", "success");
-  }, [addToast]);
-  const handleThemeChange = useCallback((nextTheme: ThemeMode) => {
-    setTheme(nextTheme);
-    addToast("Theme mis a jour", "success");
-  }, [addToast]);
   const handleProfileSave = useCallback(async (profile: { displayName: string; photoURL: string }) => {
     await updateCurrentUserProfile(profile);
-    addToast("Profil mis a jour", "success");
+    addToast("Profil mis à jour", "success");
   }, [addToast]);
+
   const handleLogout = useCallback(async () => {
     await signOutUser();
     setIsSettingsDrawerOpen(false);
-    addToast("Deconnexion effectuee", "success");
+    addToast("Déconnexion effectuée", "success");
   }, [addToast]);
+
 
 
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);

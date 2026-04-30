@@ -7,7 +7,7 @@
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export interface PrimitiveEntry {
+interface PrimitiveEntry {
   primitive_id: string;
   stage_id: string;
   order_index: number;
@@ -17,7 +17,7 @@ export interface PrimitiveEntry {
   last_synced: number;
 }
 
-export interface StageStructureEntry {
+interface StageStructureEntry {
   stage_id: string;
   stage_name: string;
   primitives: PrimitiveEntry[];
@@ -25,13 +25,6 @@ export interface StageStructureEntry {
   last_fetched: number;
 }
 
-export interface FirebaseErrorClassification {
-  code: number;
-  type: 'PERMISSION_DENIED' | 'NOT_FOUND' | 'SERVER_ERROR' | 'NETWORK' | 'UNKNOWN';
-  message: string;
-  recoverable: boolean;
-  action: 'REPORT' | 'RESYNC_AND_RETRY' | 'MODEL_FALLBACK_RETRY' | 'RETRY';
-}
 
 export interface TelemetryStatus {
   phase: string;

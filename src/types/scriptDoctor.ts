@@ -1,6 +1,6 @@
 import { Project, WorkflowStage, Sequence, Character, Location } from "./index";
 
-export type ScriptDoctorRole = "user" | "assistant" | "tool" | "model";
+type ScriptDoctorRole = "user" | "assistant" | "tool" | "model";
 
 export interface ScriptDoctorMessage {
   id: string;

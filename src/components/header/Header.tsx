@@ -10,7 +10,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { AnimatePresence } from 'motion/react';
-import { AiFlowToggle } from '../ui/AiFlowToggle';
 import { useProject } from '@/contexts/ProjectContext';
 
 // Sub-components
@@ -92,7 +91,6 @@ export function Header({
               </button>
               <div className="h-6 w-[1px] bg-white/10 mx-1" />
               <button onClick={onInfoClick} className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white transition-all flex-shrink-0 border-none"><Info className="w-4 h-4" /></button>
-              <AiFlowToggle />
             </div>
 
             <div className={cn("hidden md:flex transition-all duration-300 items-center overflow-hidden", isCompact ? "w-0 opacity-0" : "w-auto opacity-100")}>

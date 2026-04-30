@@ -1,4 +1,4 @@
-export type ErrorType = 'NetworkError' | 'AuthError' | 'QuotaError' | 'ValidationError' | 'NotFoundError' | 'UnknownError';
+type ErrorType = 'NetworkError' | 'AuthError' | 'QuotaError' | 'ValidationError' | 'NotFoundError' | 'UnknownError';
 
 export interface ClassifiedError {
   type: ErrorType;

@@ -1,4 +1,4 @@
-export type HapticPattern = 'light' | 'medium' | 'success' | 'warning';
+type HapticPattern = 'light' | 'medium' | 'success' | 'warning';
 
 const PATTERNS: Record<HapticPattern, number | number[]> = {
   light: 10,

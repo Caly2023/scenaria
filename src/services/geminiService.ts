@@ -37,13 +37,24 @@ async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
   }
 }
 
+/** Redacts potentially harmful or instruction-overriding strings. */
+function sanitizeInput(input: string): string {
+  return input.replace(/(ignore\s+(all\s+)?(previous\s+)?(instructions|rules|prompts)|override\s+system|system\s+prompt|bypass\s+rules)/gi, '[REDACTED]');
+}
 
+type GeminiOptions = {
+  prompt: string;
+  systemPrompt?: string;
+  jsonMode?: boolean;
+  structuredOutput?: string;
+};
 
-
-
-
-// Unused resiliency helpers and model definitions removed in favor of Genkit server-side handling.
-
+async function callGenericGemini<T>(options: GeminiOptions): Promise<T> {
+  return callGenkitFlow<T>('genericGemini', {
+    ...options,
+    prompt: sanitizeInput(options.prompt)
+  });
+}
 
 export const geminiService = {
   async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
@@ -56,21 +67,11 @@ export const geminiService = {
     });
   },
 
-
-
-
-
-
-
-
   async rewriteSequence(content: string, instruction: string) {
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Rewrite the following script sequence based on this instruction: "${instruction}". Maintain the tone and style of the original.\n\nOriginal:\n${content}`
     });
   },
-
-
-
 
   async generateInitialSequences(storyDump: string, format: string, availableCharacters: any[], availableLocations: any[]) {
     const prompt = `You are a professional screenwriter. Based on this story dump, generate 3-5 initial sequences for a ${format}. 
@@ -89,25 +90,21 @@ export const geminiService = {
     Story Dump:
     ${storyDump}`;
 
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt,
       jsonMode: true,
       structuredOutput: 'sequenceArray',
     });
   },
 
-
-
-
   async generateLoglineDraft(context: string) {
     if (!context || context.trim().length < 20) return "Based on your brainstorming, I will draft a logline here once you provide more details.";
 
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Synthesize a professional 1-2 sentence logline from this project context:\n\n${context}`,
       systemPrompt: 'You are a professional screenwriter. Focus on protagonist, goal, and conflict.'
     });
   },
-
 
   async generateSynopsis(context: string) {
     if (!context || context.trim().length < 50) return "Once the story is more developed, I will generate a full synopsis here.";
@@ -123,7 +120,7 @@ export const geminiService = {
   },
 
   async refine3ActStructure(currentStructure: string, feedback: string) {
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Refine the following 8-beat 3-Act Structure based on this feedback: "${feedback}". Maintain the 8-beat framework. Output in JSON format.\n\nCurrent Structure:\n${currentStructure}`,
       jsonMode: true,
       structuredOutput: 'threeActStructure',
@@ -131,7 +128,7 @@ export const geminiService = {
   },
 
   async generateTreatment(context: string) {
-    return callGenkitFlow<any>('genericGemini', { 
+    return callGenericGemini({ 
       prompt: Prompts.TREATMENT_PROMPT(context),
       jsonMode: true,
       structuredOutput: 'sequenceArray',
@@ -142,25 +139,23 @@ export const geminiService = {
     return callGenkitFlow<any>('generateFullScript', scriptCtx);
   },
 
-
   async rewriteSequenceWithContext(prompt: string) {
-    return callGenkitFlow<any>('genericGemini', { prompt });
+    return callGenericGemini({ prompt });
   },
 
   async generateScriptWithContext(prompt: string) {
-    return callGenkitFlow<any>('genericGemini', { prompt });
+    return callGenericGemini({ prompt });
   },
 
   async refineLoglineDraft(currentLogline: string, feedback: string) {
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Refine the following logline draft based on this feedback: "${feedback}".\n\nCurrent Logline:\n${currentLogline}`,
       systemPrompt: 'The logline must strictly be a 1-2 sentence description that hooks the audience, focusing on the protagonist, their goal, and the central conflict.'
     });
   },
 
-
   async initializeProjectAgent(storyDraft: string, format?: string) {
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `INITIAL STORY IDEA: ${storyDraft}${format ? `\nSELECTED FORMAT: ${format}` : ''}\n\nAnalyze this idea and generate the core project metadata and initial critique. Evaluate if GOOD TO GO or NEEDS WORK.`,
       jsonMode: true,
       structuredOutput: 'initialProject',
@@ -168,25 +163,22 @@ export const geminiService = {
   },
 
   async brainstormDual(userInput: string, currentStory: string, currentMetadata: any) {
-    const safeInput = userInput.replace(/(ignore\s+(all\s+)?(previous\s+)?(instructions|rules|prompts)|override\s+system|system\s+prompt|bypass\s+rules)/gi, '[REDACTED]');
-    return callGenkitFlow<any>('genericGemini', {
-      prompt: `User Input: ${safeInput}\n\nCurrent Story: ${currentStory}\n\nCurrent Metadata: ${JSON.stringify(currentMetadata)}`,
+    return callGenericGemini({
+      prompt: `User Input: ${userInput}\n\nCurrent Story: ${currentStory}\n\nCurrent Metadata: ${JSON.stringify(currentMetadata)}`,
       systemPrompt: 'You are a professional screenwriting consultant and pitch doctor. Provide critique and final pitch.',
       jsonMode: true,
       structuredOutput: 'brainstormDual',
     });
   },
 
-
   async generateCharacterViews(description: string) {
-    // Character views might need specialized handling or just generic for now
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Generate 4 consistent views (Front, Profile, Back, Full-shot) of a character based on this description: "${description}".`
     });
   },
 
   async deepDevelopCharacter(character: any, masterStory: string, otherCharacters: any[]) {
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Deeply develop character ${character.name} based on the Master Story: ${masterStory}. Other characters: ${JSON.stringify(otherCharacters.map(c => c.name))}`,
       jsonMode: true,
       structuredOutput: 'deepCharacter',
@@ -194,14 +186,14 @@ export const geminiService = {
   },
 
   async deepDevelopLocation(location: any, masterStory: string) {
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: `Deeply develop location ${location.name} based on the master story: ${masterStory}.`
     });
   },
 
   async generateStageInsight(stage: string, content: string, context: string) {
     if (!content || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
-    return callGenkitFlow<any>('genericGemini', {
+    return callGenericGemini({
       prompt: Prompts.STAGE_INSIGHT_PROMPT(stage, content, context),
       jsonMode: true,
       structuredOutput: 'stageInsight',
@@ -209,3 +201,4 @@ export const geminiService = {
   }
 
 };
+

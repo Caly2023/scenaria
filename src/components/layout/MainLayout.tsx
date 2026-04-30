@@ -18,6 +18,7 @@ import { DeleteProjectModal } from './DeleteProjectModal';
 import { useProject } from '../../contexts/ProjectContext';
 import { ToastManager } from '../ui/ToastManager';
 import { GlobalOverlay } from '../ui/GlobalOverlay';
+import { ProjectHistorySidebar } from '../header/ProjectHistorySidebar';
 
 // Sub-components
 import { ScriptDoctorFAB } from './ScriptDoctorFAB';
@@ -54,22 +55,26 @@ interface MainLayoutProps {
   language: string;
   renderStage: () => React.ReactNode;
   ScriptDoctor: React.ComponentType<any>;
+  isHistoryOpen: boolean;
+  setIsHistoryOpen: (v: boolean) => void;
 }
 
 const MainLayoutComponent = ({
   user, isMobile, isProjectDrawerOpen, isSettingsDrawerOpen, isHelpOpen, isFirstTime, toasts, accessibilitySettings,
   handleOpenDrawer, handleCloseDrawer, handleOpenSettings, handleCloseSettings, setAccessibilitySettings, setIsHelpOpen, setIsFirstTime, setToasts,
   handleLanguageChange, handleThemeChange, handleProfileSave, handleLogout, theme, language,
-  renderStage, ScriptDoctor
+  renderStage, ScriptDoctor, isHistoryOpen, setIsHistoryOpen
 }: MainLayoutProps) => {
   const project = useProject();
   const {
     currentProject, activeStage, isDoctorOpen, isFocusMode, isTyping, isHeavyThinking, isDeleting, projectToDelete,
-    hydrationState, refiningBlockId, handleOpenDoctor, handleProjectDelete, handleCancelDelete, handleDeleteCurrentProject
+    hydrationState, refiningBlockId, handleOpenDoctor, handleProjectDelete, handleCancelDelete, handleDeleteCurrentProject,
+    projects: projectHistory, handleProjectSelect: onProjectSelect, handleProjectExit: onNewStory,
   } = project;
   
   const [showDoctorBubble, setShowDoctorBubble] = useState(true);
   const lastScrollY = useRef(0);
+  const currentProjectId = currentProject?.id || "";
 
   useEffect(() => {
     if (!isMobile) return;
@@ -82,19 +87,18 @@ const MainLayoutComponent = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [isMobile]);
   
-  if (!currentProject) return null;
 
   return (
     <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
-      {!isMobile && (
+      {!isMobile && currentProject && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-          <div className="pointer-events-auto absolute left-6 top-1/2 -translate-y-1/2 h-[85dvh] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
+          <div className="pointer-events-auto absolute left-6 top-6 h-[calc(100dvh-48px)] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
             <Sidebar variant="sidebar" />
           </div>
         </div>
       )}
 
-      {!isFocusMode && (
+      {!isFocusMode && currentProject && (
         <ScriptDoctorFAB 
           isOpen={isDoctorOpen} 
           isVisible={showDoctorBubble} 
@@ -113,6 +117,8 @@ const MainLayoutComponent = ({
             isTitleOpen={isProjectDrawerOpen}
             onSettingsClick={handleOpenSettings}
             onInfoClick={() => setIsHelpOpen(true)}
+            isHistoryOpen={isHistoryOpen}
+            setIsHistoryOpen={setIsHistoryOpen}
           />
         </div>
 
@@ -135,8 +141,8 @@ const MainLayoutComponent = ({
         </div>
       )}
 
-      {isMobile && <Suspense fallback={null}><ScriptDoctor /></Suspense>}
-      {isMobile && <MobileNav />}
+      {isMobile && currentProject && <Suspense fallback={null}><ScriptDoctor /></Suspense>}
+      {isMobile && currentProject && <MobileNav />}
 
       <FormErrorBoundary>
         <ProjectDrawer isOpen={isProjectDrawerOpen} onClose={handleCloseDrawer} onDelete={handleDeleteCurrentProject} />
@@ -158,6 +164,16 @@ const MainLayoutComponent = ({
       <AnimatePresence>
         {isFirstTime && <OnboardingWizard onComplete={() => { setIsFirstTime(false); localStorage.setItem("scenaria_onboarded", "true"); }} />}
       </AnimatePresence>
+
+      <ProjectHistorySidebar 
+        isOpen={isHistoryOpen} 
+        onClose={() => setIsHistoryOpen(false)}
+        projects={projectHistory}
+        currentProjectId={currentProjectId}
+        onProjectSelect={onProjectSelect}
+        onNewStory={onNewStory}
+        onSettingsClick={handleOpenSettings}
+      />
     </div>
   );
 };

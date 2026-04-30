@@ -49,6 +49,7 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
 
   const [isProjectDrawerOpen, setIsProjectDrawerOpen] = useState(false);
   const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState(!localStorage.getItem("scenaria_onboarded"));
 
@@ -99,20 +100,19 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
   if (isProjectLoading) return <LoadingPage />;
   if (isProjectNotFound) return <NotFoundPage onBackHome={handleProjectExit} />;
 
-  if (!currentProject) {
-    return (
-      <HomePage
-        projects={projects}
-        onProjectSelect={(project: Project) => handleProjectSelect(project.id, project)}
-        onProjectCreate={handleProjectCreate}
-        onProjectDelete={(id: string) => setProjectToDelete(id)}
-      />
-    );
-  }
-
-  const renderStage = () => (
-    <StageRenderer />
-  );
+  const renderStage = () => {
+    if (!currentProject) {
+      return (
+        <HomePage
+          projects={projects}
+          onProjectSelect={(project: Project) => handleProjectSelect(project.id, project)}
+          onProjectCreate={handleProjectCreate}
+          onProjectDelete={(id: string) => setProjectToDelete(id)}
+        />
+      );
+    }
+    return <StageRenderer />;
+  };
 
   return (
     <>
@@ -149,6 +149,8 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
         
         renderStage={renderStage}
         ScriptDoctor={ScriptDoctorComponent}
+        isHistoryOpen={isHistoryOpen}
+        setIsHistoryOpen={setIsHistoryOpen}
       />
       
       {isFocusMode && focusedPrimitiveId && focusedStageId && (

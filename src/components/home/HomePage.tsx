@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
 import { Project, ProjectFormat } from '../../types';
 import { getErrorMessage } from '../../lib/errorClassifier';
-import { FormatSelector } from './FormatSelector';
 import { ProjectInput } from './ProjectInput';
-import { ProjectCard } from './ProjectCard';
 
 interface HomePageProps {
   projects: Project[];
@@ -54,18 +52,12 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
   };
 
   return (
-    <div className="h-dvh w-full bg-[#050505] text-white flex flex-col items-center px-4 md:px-6 relative pb-32 overflow-y-auto scroll-smooth">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-white/[0.03] rounded-full blur-[120px] animate-[mesh-gradient_20s_infinite_alternate]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-white/[0.02] rounded-full blur-[100px] animate-[mesh-gradient_25s_infinite_alternate_reverse]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)]" />
-      </div>
-
+    <div className="w-full flex flex-col items-center">
       <motion.div 
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-        className="mt-20 md:mt-24 mb-12 md:mb-16 flex flex-col items-center gap-10 md:gap-8 z-10 w-full"
+        className="mt-8 md:mt-12 mb-12 md:mb-16 flex flex-col items-center gap-10 md:gap-8 z-10 w-full"
       >
         <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
           <div className="relative group">
@@ -91,11 +83,6 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
       </motion.div>
 
       <div className="w-full max-w-4xl space-y-10 md:space-y-8 z-10">
-        <FormatSelector 
-          selectedFormat={selectedFormat} 
-          setSelectedFormat={setSelectedFormat} 
-        />
-
         <ProjectInput 
           storyIdea={storyIdea}
           setStoryIdea={setStoryIdea}
@@ -108,37 +95,6 @@ export function HomePage({ projects, onProjectCreate, onProjectSelect, onProject
           onSubmit={handleSubmit}
           handleFileImport={handleFileImport}
         />
-
-        <div className="w-full pt-14 md:pt-16 pb-20">
-          <div className="flex items-center justify-between mb-7 md:mb-8 px-4 md:px-6">
-            <div className="flex items-center gap-4">
-              <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-              <h2 className="text-xs uppercase tracking-[0.4em] text-white/30 font-black">{t('common.recentMasterpieces')}</h2>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 md:gap-3 w-full px-2 md:px-4 overflow-y-visible">
-            <AnimatePresence mode="popLayout">
-              {projects.length > 0 ? (
-                projects.map((project, idx) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    idx={idx}
-                    onSelect={() => onProjectSelect(project)}
-                    onDelete={onProjectDelete}
-                  />
-                ))
-              ) : (
-                <div className="py-12 px-6 rounded-[32px] border border-white/5 bg-white/[0.01] text-center">
-                  <p className="text-white/20 italic text-sm tracking-widest uppercase">
-                    {t('common.noProjectsYet', { defaultValue: 'No recent films yet' })}
-                  </p>
-                </div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
       </div>
 
       <motion.div 

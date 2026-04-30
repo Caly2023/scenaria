@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import i18n from '../i18n';
 
-export type ThemeMode = 'dark' | 'light' | 'system';
+type ThemeMode = 'dark' | 'light' | 'system';
 
-export type AccessibilitySettings = {
+type AccessibilitySettings = {
   highContrast: boolean;
   largeText: boolean;
   reducedMotion: boolean;

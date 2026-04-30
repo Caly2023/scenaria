@@ -3,7 +3,7 @@ import { ScriptDoctorMessage, ToolResult } from "../../types/scriptDoctor";
 import { ContentPrimitive } from "../../types/stageContract";
 import { Project, Character, Location } from "../../types";
 
-export interface ScriptDoctorToolContext {
+interface ScriptDoctorToolContext {
   currentProject: Project;
   stageContents: Record<string, ContentPrimitive[]>;
   characters: ContentPrimitive[];

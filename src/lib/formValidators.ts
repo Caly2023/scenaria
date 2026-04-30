@@ -1,6 +1,6 @@
 import { ProjectMetadata } from '../types';
 
-export interface ValidationError {
+interface ValidationError {
   field: keyof ProjectMetadata;
   message: string;
 }

@@ -16,7 +16,7 @@ import { useAppCallbacks } from '../hooks/useAppCallbacks';
 import { useScriptDoctor } from '../hooks/useScriptDoctor';
 import { useTelemetry } from '../hooks/useTelemetry';
 
-export interface ProjectContextType {
+interface ProjectContextType {
   // Data
   projects: Project[];
   currentProject: Project | null;

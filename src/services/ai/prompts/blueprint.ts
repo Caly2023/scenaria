@@ -57,9 +57,3 @@ export const SCREENPLAY_GENERATION_BLUEPRINT = `
 - Enter late, leave early.
 `;
 
-export const CONTINUITY_VALIDATION_BLUEPRINT = `
-### CONTINUITY & VALIDATION STANDARDS:
-- Track props, wardrobe, character position, time of day, and emotional state.
-- Ensure cause-and-effect logic.
-- Verify character behavior consistency.
-`;

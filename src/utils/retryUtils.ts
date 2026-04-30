@@ -3,7 +3,7 @@
  * Implements exponential backoff for async operations.
  */
 
-export interface RetryOptions {
+interface RetryOptions {
   maxRetries?: number;
   initialDelay?: number;
   maxDelay?: number;

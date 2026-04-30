@@ -5,7 +5,7 @@ import { Markdown } from 'tiptap-markdown';
 import Placeholder from '@tiptap/extension-placeholder';
 import { cn } from '@/lib/utils';
 
-export interface RichTextEditorProps {
+interface RichTextEditorProps {
   content: string;
   onChange: (markdown: string) => void;
   placeholder?: string;

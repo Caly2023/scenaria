@@ -7,7 +7,7 @@ import { FormatSelector } from './FormatSelector';
 import { ProjectInput } from './ProjectInput';
 import { ProjectCard } from './ProjectCard';
 
-export interface HomePageProps {
+interface HomePageProps {
   projects: Project[];
   onProjectCreate: (idea: string, format?: ProjectFormat) => Promise<void>;
   onProjectSelect: (project: Project) => void;

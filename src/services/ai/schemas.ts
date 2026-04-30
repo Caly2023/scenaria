@@ -1,15 +1,5 @@
 import { z } from 'zod';
 
-export const PrimitiveSchema = z.object({
-  primitive_id: z.string().optional(),
-  title: z.string().optional(),
-  content: z.string().optional(),
-  name: z.string().optional(),
-  description: z.string().optional(),
-  order: z.number().optional(),
-  type: z.string().optional(),
-}).passthrough();
-
 export const MetadataSchema = z.object({
   title: z.string().optional(),
   format: z.string().optional(),

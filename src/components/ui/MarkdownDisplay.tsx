@@ -2,7 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { memo } from 'react';
 
-export interface MarkdownDisplayProps {
+interface MarkdownDisplayProps {
   content: string;
   className?: string;
 }

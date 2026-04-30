@@ -1,15 +1,12 @@
 import { contextAssembler } from "../context";
 import { telemetryService } from "../telemetryService";
 import {
-  ScriptDoctorMessage,
   ToolCall,
   GeminiPart,
   GeminiHistoryEntry,
 } from "../../types/scriptDoctor";
 import {
   sanitizePartsForHistory,
-  classifyComplexity,
-  normalizeHistory,
   buildFunctionResponsePart,
   extractResponseParts,
 } from "../../utils/scriptDoctorUtils";

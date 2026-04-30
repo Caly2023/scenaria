@@ -1,21 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'motion/react';
-import { Project, ProjectFormat } from '../../types';
+import { motion } from 'motion/react';
+import { ProjectFormat } from '../../types';
 import { getErrorMessage } from '../../lib/errorClassifier';
 import { ProjectInput } from './ProjectInput';
 
 interface HomePageProps {
-  projects: Project[];
   onProjectCreate: (idea: string, format?: ProjectFormat) => Promise<void>;
-  onProjectSelect: (project: Project) => void;
-  onProjectDelete: (id: string) => void;
 }
 
-export function HomePage({ projects, onProjectCreate, onProjectSelect, onProjectDelete }: HomePageProps) {
+export function HomePage({ onProjectCreate }: HomePageProps) {
   const { t } = useTranslation();
   const [storyIdea, setStoryIdea] = useState('');
-  const [selectedFormat, setSelectedFormat] = useState<ProjectFormat | 'Auto'>('Auto');
+  const [selectedFormat] = useState<ProjectFormat | 'Auto'>('Auto');
   const [isFocused, setIsFocused] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [creationStatus, setCreationStatus] = useState<'idle' | 'analyzing' | 'initializing'>('idle');

@@ -11,10 +11,8 @@ import { stageRegistry } from "../../config/stageRegistry";
  */
 export async function buildCascadingContext(
   getStageText: (stageName: string) => string | Promise<string>,
-  currentStage: string,
-  isUnlocked?: (stageName: string) => boolean
+  currentStage: string
 ): Promise<string> {
-  const unlocked = isUnlocked ?? (() => true);
   const currentDef = stageRegistry.get(currentStage);
   const currentOrder = currentDef.order;
   

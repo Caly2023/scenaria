@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { Project } from '../types';
 import { useUpdateProjectFieldMutation, useUpdateSubcollectionDocMutation } from '../services/firebaseService';
 import { classifyError } from '../lib/errorClassifier';
+import { stageRegistry } from '../config/stageRegistry';
+import { mapPrimitiveToDb } from '../utils/primitiveUtils';
 
 type ToastAction = {
   label: string;
@@ -78,8 +80,15 @@ export function useProjectSync(
     };
   });
 
-  const handleSubcollectionUpdate = useCallback((collName: string, id: string, dataOrContent: string | Record<string, unknown>) => {
-    const data = typeof dataOrContent === 'string' ? { content: dataOrContent } : dataOrContent;
+  const handleSubcollectionUpdate = useCallback((collName: string, id: string, dataOrContent: string | Record<string, any>) => {
+    let data = typeof dataOrContent === 'string' ? { content: dataOrContent } : dataOrContent;
+    
+    // Apply mapping for bible stages (Character/Location)
+    const stage = stageRegistry.getByCollection(collName);
+    if (stage) {
+      data = mapPrimitiveToDb(stage.id, data);
+    }
+    
     debouncedSync(collName, id, data);
   }, [debouncedSync]);
 

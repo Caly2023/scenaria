@@ -1,7 +1,8 @@
 /**
- * ORCHESTRATION SERVICE — The Script Doctor's decision-making brain.
+ * ORCHESTRATION SERVICE — The multi-agent workflow decision-making brain.
  *
- * This directory contains the modularized orchestration logic.
+ * This directory contains the logic for interpreting intents and dispatching
+ * tasks to specialized stage agents.
  */
 
 export * from './intentParser';

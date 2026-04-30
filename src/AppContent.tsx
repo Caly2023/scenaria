@@ -104,10 +104,7 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
     if (!currentProject) {
       return (
         <HomePage
-          projects={projects}
-          onProjectSelect={(project: Project) => handleProjectSelect(project.id, project)}
           onProjectCreate={handleProjectCreate}
-          onProjectDelete={(id: string) => setProjectToDelete(id)}
         />
       );
     }

@@ -13,7 +13,8 @@ import {
   Bot,
   Cpu,
   Film,
-  Share
+  Share,
+  Lightbulb
 } from 'lucide-react';
 import { useProject } from '@/contexts/ProjectContext';
 import { stageRegistry } from '@/config/stageRegistry';
@@ -45,8 +46,7 @@ const stageUIMetadata: Record<string, { icon: React.ElementType; estTime: string
   'Production Export': { icon: Share, estTime: '5m' },
 };
 
-// Fixed Lightbulb import
-import { Lightbulb } from 'lucide-react';
+
 
 const stages = stageRegistry.getAll().map(s => ({
   id: s.id,

@@ -71,15 +71,9 @@ export async function buildPromptPayload(
 
   const getStageText = (sName: string) => getStageTextInternal(projectId, sName, allCharacters, allLocations);
 
-  const isUnlocked = (sName: string): boolean => {
-    const state = project.stageStates?.[sName];
-    return !!(state && state !== "empty");
-  };
-
   const cascadingContext = await buildCascadingContext(
     getStageText, 
-    currentStage, 
-    isUnlocked
+    currentStage
   );
 
   const primitives = await getStageStructure(projectId, currentStage);

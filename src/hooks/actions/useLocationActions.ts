@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Project, ContentPrimitive } from '../../types';
+import { ContentPrimitive } from '../../types';
 import { geminiService } from '../../services/geminiService';
 import { stageRegistry } from '../../config/stageRegistry';
 import { useUpdateSubcollectionDocMutation } from '../../services/firebaseService';

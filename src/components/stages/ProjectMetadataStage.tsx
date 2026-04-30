@@ -11,7 +11,6 @@ interface ProjectMetadataStageProps {
   onUpdate: (metadata: Partial<ProjectMetadata>) => void;
   onValidate: () => void;
   insight?: StageInsight | StageAnalysis;
-  isSaving?: boolean;
 }
 
 export function ProjectMetadataStage({ 
@@ -19,7 +18,6 @@ export function ProjectMetadataStage({
   onUpdate, 
   onValidate, 
   insight,
-  isSaving = false 
 }: ProjectMetadataStageProps) {
   const { t } = useTranslation();
   const [localMeta, setLocalMeta] = useState<ProjectMetadata>(metadata);

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Project } from '../types';
 import { useUpdateProjectFieldMutation, useUpdateSubcollectionDocMutation } from '../services/firebaseService';
+import { classifyError } from '../lib/errorClassifier';
 
 type ToastAction = {
   label: string;
@@ -22,6 +23,7 @@ export function useProjectSync(
     if (!currentProject) return;
     setSyncStatus('syncing');
     
+    let lastError: any = null;
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         await updateField({ id: currentProject.id, field, content }).unwrap();
@@ -29,6 +31,7 @@ export function useProjectSync(
         if (onSyncSuccess) onSyncSuccess(field, '');
         return;
       } catch (_error) {
+        lastError = _error;
         if (attempt < MAX_RETRIES - 1) {
           const delay = Math.pow(2, attempt) * 1000;
           await new Promise(r => setTimeout(r, delay));
@@ -36,13 +39,15 @@ export function useProjectSync(
       }
     }
     setSyncStatus('error');
-    addToast('Failed to sync changes', 'error', { label: 'Retry', onClick: () => handleContentUpdate(field, content) });
+    const classification = classifyError(lastError);
+    addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => handleContentUpdate(field, content) });
   };
 
   const syncSubcollectionToDb = async (collName: string, id: string, data: Record<string, unknown>) => {
     if (!currentProject) return;
     setSyncStatus('syncing');
     
+    let lastError: any = null;
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         await updateSubcol({ projectId: currentProject.id, collectionName: collName, docId: id, data, orderByField: 'order' }).unwrap();
@@ -50,6 +55,7 @@ export function useProjectSync(
         if (onSyncSuccess) onSyncSuccess(collName, id);
         return;
       } catch (_error) {
+        lastError = _error;
         if (attempt < MAX_RETRIES - 1) {
           const delay = Math.pow(2, attempt) * 1000;
           await new Promise(r => setTimeout(r, delay));
@@ -57,7 +63,8 @@ export function useProjectSync(
       }
     }
     setSyncStatus('error');
-    addToast('Failed to sync changes', 'error', { label: 'Retry', onClick: () => syncSubcollectionToDb(collName, id, data) });
+    const classification = classifyError(lastError);
+    addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => syncSubcollectionToDb(collName, id, data) });
   };
 
   const [debouncedSync] = useState(() => {

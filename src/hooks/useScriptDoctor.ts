@@ -176,12 +176,6 @@ export function useScriptDoctor({
       /* plain text */
     }
 
-    if (
-      activeStage === "Brainstorming" &&
-      !resolvedContent.includes("[BRAINSTORMING_DOCTOR_SCHEMA]")
-    ) {
-      resolvedContent = `You are fixing "Brainstorming". Update the brainstorming_result primitive. Delete others.\nUser: ${resolvedContent}`;
-    }
 
     const complexity = classifyComplexity(resolvedContent);
     setIsHeavyThinking(complexity === "complex");

@@ -10,6 +10,7 @@ import { useLocationActions } from './actions/useLocationActions';
 import { useSequenceActions } from './actions/useSequenceActions';
 import { buildProjectContext } from '../services/orchestration';
 import { ContentPrimitive } from '../types/stageContract';
+import { classifyError } from '../lib/errorClassifier';
 
 type BrainstormPrimitive = ContentPrimitive & { primitiveType?: string };
 
@@ -135,7 +136,8 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       
       addToast(`Analysis complete for ${stage}`, 'success');
     } catch (error) {
-      addToast(`Analysis failed: ${error}`, 'error');
+      const classification = classifyError(error);
+      addToast(classification.userMessage, 'error');
     } finally {
       setIsTyping(false);
     }

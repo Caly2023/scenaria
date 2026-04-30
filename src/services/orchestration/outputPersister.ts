@@ -105,9 +105,9 @@ export async function persistAgentOutput(
 
     return { success: true, primitiveIds };
   } catch (error: unknown) {
-    const errorObj = error !== null && typeof error === 'object' ? (error as Record<string, unknown>) : {};
-    const errorMessage = typeof errorObj.message === 'string' ? errorObj.message : String(error);
-    telemetryService.setStatus('Error', '❌', `Persist failed for ${stageName}: ${errorMessage}`);
-    return { success: false, primitiveIds, error: errorMessage };
+    const { classifyError } = await import('../../lib/errorClassifier');
+    const classification = classifyError(error);
+    telemetryService.setStatus('Error', '❌', `Persist failed for ${stageName}: ${classification.type}`);
+    return { success: false, primitiveIds, error: classification.userMessage };
   }
 }

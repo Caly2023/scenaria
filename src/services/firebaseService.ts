@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { stageRegistry } from "../config/stageRegistry";
 import { Project } from "../types";
+import { classifyError } from "../lib/errorClassifier";
 
 
 /**
@@ -78,7 +79,7 @@ export const firebaseService = createApi({
             );
           return { data: serializeData(projs) };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onCacheEntryAdded(
@@ -121,7 +122,7 @@ export const firebaseService = createApi({
           const data = { id: snapshot.id, ...snapshot.data() } as Project;
           return { data: serializeData(data) };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onCacheEntryAdded(
@@ -165,7 +166,7 @@ export const firebaseService = createApi({
           const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
           return { data: serializeData(data) };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onCacheEntryAdded(
@@ -203,7 +204,7 @@ export const firebaseService = createApi({
           });
           return { data: undefined };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onQueryStarted(
@@ -237,7 +238,7 @@ export const firebaseService = createApi({
           });
           return { data: undefined };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onQueryStarted({ id, metadata }, { dispatch, queryFulfilled }) {
@@ -277,7 +278,7 @@ export const firebaseService = createApi({
           );
           return { data: undefined };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onQueryStarted(
@@ -320,7 +321,7 @@ export const firebaseService = createApi({
           );
           return { data: docRef.id };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
     }),
@@ -341,7 +342,7 @@ export const firebaseService = createApi({
           );
           return { data: undefined };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       async onQueryStarted(
@@ -385,7 +386,7 @@ export const firebaseService = createApi({
           await deleteDoc(doc(db, "projects", projectId));
           return { data: undefined };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
     }),
@@ -408,7 +409,7 @@ export const firebaseService = createApi({
           
           return { data: undefined };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
     }),
@@ -453,7 +454,7 @@ export const firebaseService = createApi({
           await batch.commit();
           return { data: projectRef.id };
         } catch (error: any) {
-          return { error: { message: error.message } };
+          return { error: classifyError(error) };
         }
       },
       invalidatesTags: ["Project"],

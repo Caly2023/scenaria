@@ -17,6 +17,7 @@ import {
   StageState
 } from '../types/stageContract';
 import { contextAssembler } from '../services/context';
+import { classifyError } from '../lib/errorClassifier';
 
 export abstract class BaseStageAgent implements IStageAgent {
   abstract readonly stageId: string;
@@ -107,13 +108,11 @@ export abstract class BaseStageAgent implements IStageAgent {
       } catch (e: any) {
         if (attempt === maxRetries) throw e;
         
-        const msg = (e.message || e.toString() || '').toLowerCase();
-        const isTransient = /429|timeout|network|econnreset|fetch|rate.?limit/i.test(msg);
+        const classification = classifyError(e);
+        if (!classification.canRetry) throw e; // Non-transient: fail fast
         
-        if (!isTransient) throw e; // Non-transient: fail fast
-        
-        const delay = baseDelay * Math.pow(2, attempt);
-        console.warn(`[${this.stageId}] Retry ${attempt + 1}/${maxRetries} after ${delay}ms — ${msg}`);
+        const delay = (classification.retryDelay || baseDelay) * Math.pow(2, attempt);
+        console.warn(`[${this.stageId}] Retry ${attempt + 1}/${maxRetries} after ${delay}ms — ${classification.type}`);
         await new Promise(r => setTimeout(r, delay));
       }
     }

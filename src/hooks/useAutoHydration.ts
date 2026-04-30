@@ -57,12 +57,6 @@ export function useAutoHydration({
     }
   }, [currentProject, getContext]);
 
-  const generateCharactersAndLocations = useCallback(async () => {
-    await Promise.all([
-      runStageHydration('Character Bible'),
-      runStageHydration('Location Bible')
-    ]);
-  }, [runStageHydration]);
 
   const getHydrationConfig = useCallback((): StageHydrationConfig | null => {
     if (!currentProject) return null;
@@ -74,12 +68,7 @@ export function useAutoHydration({
       stage: activeStage,
       isEmpty: () => (stageContents[activeStage] || []).length === 0,
       generate: async () => {
-        // Special case: Character & Location Bible are extracted together
-        if (activeStage === 'Character Bible' || activeStage === 'Location Bible') {
-          await generateCharactersAndLocations();
-        } else {
-          await runStageHydration(activeStage);
-        }
+        await runStageHydration(activeStage);
       },
       label: def.hydrationLabel,
     };

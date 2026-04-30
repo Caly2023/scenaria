@@ -7,27 +7,32 @@ import { Character, Location, Sequence, WorkflowStage } from "../../types";
 import { buildCascadingContext } from "./cascadingContext";
 import { getStageStructure } from "./stageStructure";
 
+function formatBibleContext(stage: 'Character Bible' | 'Location Bible', items: any[]): string {
+  if (stage === 'Character Bible') {
+    return `[CHARACTER BIBLE]\n${JSON.stringify(items.map(c => ({
+      name: c.name || c.title,
+      role: c.role,
+      description: c.description || c.content,
+      wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || ""
+    })), null, 2)}\n\n`;
+  } else {
+    return `[LOCATION BIBLE]\n${JSON.stringify(items.map(l => ({
+      name: l.name || l.title,
+      atmosphere: l.atmosphere,
+      description: l.description || l.content
+    })), null, 2)}\n\n`;
+  }
+}
+
 async function getStageTextInternal(
   projectId: string, 
   stageName: string, 
   allCharacters: any[], 
   allLocations: any[]
 ): Promise<string> {
-  if (stageName === "__characterBible__") {
-    return `[CHARACTER BIBLE]\n${JSON.stringify(allCharacters.map(c => ({ 
-      name: c.name || c.title, 
-      role: c.role, 
-      description: c.description || c.content, 
-      wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || "" 
-    })), null, 2)}\n\n`;
-  }
-  if (stageName === "__locationBible__") {
-    return `[LOCATION BIBLE]\n${JSON.stringify(allLocations.map(l => ({ 
-      name: l.name || l.title, 
-      atmosphere: l.atmosphere, 
-      description: l.description || l.content 
-    })), null, 2)}\n\n`;
-  }
+  if (stageName === "__characterBible__") return formatBibleContext('Character Bible', allCharacters);
+  if (stageName === "__locationBible__") return formatBibleContext('Location Bible', allLocations);
+  
   const primitives = await getStageStructure(projectId, stageName);
   return primitives.map(p => p.content).join("\n\n");
 }
@@ -140,12 +145,8 @@ export async function buildPayloadFromProjectContext(
   };
 
   const getStageText = (sName: string) => {
-    if (sName === "__characterBible__") {
-      return `[CHARACTER BIBLE]\n${JSON.stringify((stageContents["Character Bible"] || []).map((c: any) => ({ name: c.title || c.name, description: c.content || c.description })), null, 2)}\n\n`;
-    }
-    if (sName === "__locationBible__") {
-      return `[LOCATION BIBLE]\n${JSON.stringify((stageContents["Location Bible"] || []).map((l: any) => ({ name: l.title || l.name, description: l.content || l.description })), null, 2)}\n\n`;
-    }
+    if (sName === "__characterBible__") return formatBibleContext('Character Bible', stageContents["Character Bible"] || []);
+    if (sName === "__locationBible__") return formatBibleContext('Location Bible', stageContents["Location Bible"] || []);
     return (stageContents[sName] || []).map((p: any) => p.content).join("\n\n");
   };
 

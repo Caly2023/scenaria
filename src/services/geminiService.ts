@@ -1,15 +1,18 @@
+import { withRetry } from "../utils/retryUtils";
+import { classifyError } from "../lib/errorClassifier";
 import * as Prompts from "./ai/prompts";
 import type { StageInsight } from "../types";
 
 /**
  * GENKIT FLOW HELPER
- * Calls the server-side Genkit API routes.
+ * Calls the server-side Genkit API routes with built-in retry and error classification.
  */
 async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
   const url = `/api/genkit/${flowName}`;
-  console.log(`[GeminiService] Calling ${url}...`);
-
-  try {
+  
+  return withRetry(async () => {
+    console.log(`[GeminiService] Calling ${url}...`);
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -17,25 +20,27 @@ async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
     });
 
     if (!response.ok) {
-      let errorMsg = `API Error (${flowName}): ${response.status} ${response.statusText}`;
-      try {
-        const error = await response.json();
-        errorMsg = error.error || errorMsg;
-      } catch {
-        // Fallback to status text
+      const errorData = await response.json().catch(() => ({}));
+      const errorMsg = errorData.error || `API Error (${flowName}): ${response.status} ${response.statusText}`;
+      
+      const classified = classifyError({ status: response.status, message: errorMsg });
+      console.error(`[GeminiService] ${classified.type}: ${errorMsg}`);
+      
+      // If it's a fatal error (like Auth or Not Found), don't retry in withRetry
+      if (!classified.canRetry) {
+        const error = new Error(errorMsg) as any;
+        error.isFatal = true;
+        throw error;
       }
-      console.error(`[GeminiService] ${errorMsg}`);
+      
       throw new Error(errorMsg);
     }
 
     return response.json();
-  } catch (error: any) {
-    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
-      console.error(`[GeminiService] Network Error: Could not reach ${url}. Ensure the server is running.`);
-      throw new Error(`Failed to connect to the AI service at ${url}. Please check your connection.`);
-    }
-    throw error;
-  }
+  }, {
+    maxRetries: 2,
+    retryOn: (error) => !error.isFatal,
+  });
 }
 
 /** Redacts potentially harmful or instruction-overriding strings. */

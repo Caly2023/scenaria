@@ -12,17 +12,6 @@ import {
  * Server-side AI workflows for ScénarIA.
  */
 
-/** Maps a Genkit model reference string to its Gemini REST API model name. */
-function getModelRestName(modelId: string): string {
-  const map: Record<string, string> = {
-    'googleai/gemini-3.1-flash-lite-preview': 'gemini-3.1-flash-lite-preview',
-    'googleai/gemini-3-flash-preview':        'gemini-2.5-flash',
-    'googleai/gemini-2.5-flash':              'gemini-2.5-flash',
-    'googleai/gemini-2.5-flash-lite':         'gemini-2.5-flash-lite',
-  };
-  return map[modelId] || 'gemini-2.5-flash-lite';
-}
-
 // ── Flows ─────────────────────────────────────────────────────────────────────
 
 // 1. Script Doctor Flow
@@ -40,67 +29,40 @@ const scriptDoctorFlow = ai.defineFlow(
   },
   async (input) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    const uniqueModels = Array.from(new Set([
-      'gemini-3.1-flash-lite-preview',
-      'gemini-2.5-flash',
-      getModelRestName(gemini31FlashLite),
-    ]));
 
     if (!messages || messages.length === 0) {
       throw new Error('Message history is empty. Please provide a prompt.');
     }
 
-    let lastError: Error | null = null;
-    let data: any = null;
+    // Use ai.generate with automatic retry and fallback
+    const response = await ai.generate({
+      model: gemini31FlashLite,
+      system: Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite'),
+      contents: messages,
+      tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => ({
+        name: d.name,
+        description: d.description,
+        inputSchema: z.any(), 
+        outputSchema: z.any(),
+      })),
+      config: { 
+        temperature: 0.7,
+        maxOutputTokens: 8192 
+      },
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, { models: [gemini3Flash, gemini25Flash] })
+      ],
+    });
 
-    for (const currentModel of uniqueModels) {
-      try {
-        const systemInstruction = Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, currentModel);
-
-        const requestBody = {
-          system_instruction: { parts: [{ text: systemInstruction }] },
-          contents: messages,
-          tools: [{ function_declarations: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
-        };
-
-        console.log(`[scriptDoctorFlow] Calling \${currentModel} with \${messages.length} turns`);
-
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/\${currentModel}:generateContent?key=\${apiKey}`,
-          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) }
-        );
-
-        if (!res.ok) {
-          const errText = await res.text();
-          if (res.status === 429 || res.status >= 500) {
-            console.warn(`[scriptDoctorFlow] Model \${currentModel} failed with \${res.status}. Falling back...`);
-            lastError = new Error(`Gemini API error \${res.status}: \${errText}`);
-            continue;
-          }
-          throw new Error(`Gemini API error \${res.status}: \${errText}`);
-        }
-
-        data = await res.json();
-        break;
-      } catch (err: any) {
-        lastError = err;
-        console.warn(`[scriptDoctorFlow] Fetch error with model \${currentModel}:`, err.message);
-      }
-    }
-
-    if (!data) throw lastError || new Error('All fallback models failed.');
-
-    const parts: any[] = data?.candidates?.[0]?.content?.parts || [];
-    const textPart = parts.find((p: any) => p.text)?.text || '';
+    const parts = response.message?.content || [];
+    const textPart = response.text || '';
 
     return {
-      candidates: data.candidates,
+      candidates: [{ content: { parts } }], 
       parts,
       text: textPart,
-      message: { content: parts },
+      message: response.message,
       reasoning: null,
     };
   }
@@ -186,6 +148,7 @@ const genericGeminiFlow = ai.defineFlow(
       prompt: z.string(),
       jsonMode: z.boolean().optional(),
       systemPrompt: z.string().optional(),
+      model: z.string().optional(),
       structuredOutput: z.enum([
         'object', 'array', 'stageInsight', 'sequenceArray', 'metadata',
         'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure',
@@ -194,7 +157,7 @@ const genericGeminiFlow = ai.defineFlow(
     outputSchema: z.any() as any,
   },
   async (input, { sendChunk }) => {
-    const { prompt, jsonMode = false, systemPrompt, structuredOutput } = input;
+    const { prompt, jsonMode = false, systemPrompt, structuredOutput, model: modelOverride } = input;
 
     const stageInsightSchema = z.object({
       content: z.string(),
@@ -254,13 +217,16 @@ const genericGeminiFlow = ai.defineFlow(
     const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput] : undefined;
 
     const response = await ai.generate({
-      model: gemini31FlashLite,
+      model: modelOverride || gemini31FlashLite,
       prompt,
       system: systemPrompt,
       output: structuredSchema
         ? { schema: structuredSchema }
         : jsonMode ? { format: 'json' } : undefined,
-      use: [retry({ maxRetries: 2 }), fallback(ai, { models: [gemini25FlashLite] })],
+      use: [
+        retry({ maxRetries: 2 }), 
+        fallback(ai, { models: [gemini3Flash, gemini31FlashLite, gemini25Flash, gemini25FlashLite] })
+      ],
       onChunk: (chunk) => { if (sendChunk && chunk.text && !jsonMode) sendChunk(chunk.text); },
     });
 

@@ -61,6 +61,7 @@ export function classifyError(error: unknown): ClassifiedError {
     rawMessage.includes('quota') || 
     errorCode === '429' || 
     rawMessage.includes('rate limit') || 
+    rawMessage.includes('exhausted') ||
     errorCode === 'resource-exhausted'
   ) {
     return {
@@ -68,7 +69,7 @@ export function classifyError(error: unknown): ClassifiedError {
       message: errorDetails?.message || 'Quota exceeded',
       canRetry: true,
       retryDelay: 30000,
-      userMessage: 'API quota exceeded. The AI Architect is taking a brief rest. Please try again in a few moments.',
+      userMessage: 'The AI Architect is taking a brief rest (API Quota hit). We are attempting to switch models...',
       action: 'MODEL_FALLBACK_RETRY'
     };
   }
@@ -79,15 +80,18 @@ export function classifyError(error: unknown): ClassifiedError {
     rawMessage.includes('failed to fetch') || 
     rawMessage.includes('offline') || 
     rawMessage.includes('timeout') || 
+    rawMessage.includes('deadline exceeded') ||
     errorCode === 'unavailable' ||
-    errorCode === 'internal'
+    errorCode === 'internal' ||
+    errorCode === '503' ||
+    errorCode === '504'
   ) {
     return {
       type: 'NetworkError',
       message: errorDetails?.message || 'Network connection failed',
       canRetry: true,
       retryDelay: 5000,
-      userMessage: 'Connection lost or server unavailable. Please check your network and try again.',
+      userMessage: 'Connection lost or server busy. Re-establishing link to AI Core...',
       action: 'RETRY'
     };
   }

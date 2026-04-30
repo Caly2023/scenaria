@@ -43,7 +43,7 @@ export function ProjectInput({
   };
 
   return (
-    <div className="w-full space-y-4 md:space-y-8">
+    <div className="w-full space-y-4 md:space-y-8 fixed inset-x-0 bottom-0 md:relative md:bottom-auto md:static z-10 bg-white/[0.03] backdrop-blur-2xl p-4 md:p-0">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

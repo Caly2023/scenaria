@@ -16,11 +16,12 @@ import {
   StageAnalysis,
   StageState
 } from '../types/stageContract';
+import type { WorkflowStage } from '../types';
 import { contextAssembler } from '../services/context';
 import { classifyError } from '../lib/errorClassifier';
 
 export abstract class BaseStageAgent implements IStageAgent {
-  abstract readonly stageId: string;
+  abstract readonly stageId: WorkflowStage;
 
   abstract generate(context: ProjectContext): Promise<AgentOutput>;
 

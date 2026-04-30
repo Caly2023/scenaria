@@ -5,6 +5,8 @@
  * Every agent must implement: generate, updatePrimitive, evaluate, computeState.
  */
 
+import type { WorkflowStage } from './index';
+
 // ─── Stage State Enum ─────────────────────────────────────────────────────────
 
 export type StageState = 'empty' | 'needs_improvement' | 'good' | 'excellent';
@@ -36,9 +38,6 @@ export interface StageAnalysis {
   evaluation?: string;       // Professional AI narrative evaluation (markdown)
   issues?: string[];         // Identified weaknesses or gaps
   recommendations?: string[]; // Actionable improvement suggestions
-  content?: string;          // Combined insight content
-  isReady?: boolean;         // Global readiness status
-  suggestions?: string[];    // Actionable improvement suggestions (alias for recommendations)
   suggestedPrompt?: string;  // Clear instruction for Script Doctor to fix issues
   updatedAt: number;
 }
@@ -92,7 +91,7 @@ export type OrchestratorAction = 'generate' | 'update' | 'evaluate';
 
 export interface OrchestratorDecision {
   action: OrchestratorAction;
-  targetStage: string;           // Stage name, e.g. 'Logline'
+  targetStage: WorkflowStage;    // Stage name, e.g. 'Logline'
   targetPrimitiveId?: string;   // For update operations
   instruction: string;           // Natural-language instruction for the agent
   requiresContext: string[];     // Which stages to pull context from
@@ -101,7 +100,7 @@ export interface OrchestratorDecision {
 // ─── Agent Interface — Every stage agent MUST implement this ─────────────────
 
 export interface IStageAgent {
-  readonly stageId: string;
+  readonly stageId: WorkflowStage;
 
   /**
    * Generate content from scratch.

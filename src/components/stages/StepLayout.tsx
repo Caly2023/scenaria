@@ -29,14 +29,15 @@ function isStageAnalysis(insight: StageInsight | StageAnalysis): insight is Stag
 }
 
 function getInsightContent(insight: StageInsight | StageAnalysis): string {
-  if (insight.content) return insight.content;
-  if (!isStageAnalysis(insight)) return "";
+  const evaluation = ('evaluation' in insight) ? insight.evaluation : (insight as any).content;
+  
+  if (!isStageAnalysis(insight)) return evaluation || "";
 
   const issues = (insight.issues ?? []).map((issue: string) => `- ${issue}`).join("\n") || "*None*";
   const recommendations =
     (insight.recommendations ?? []).map((rec: string) => `- ${rec}`).join("\n") || "*None*";
 
-  return `${insight.evaluation || ""}\n\n**Issues to Address:**\n${issues}\n\n**Recommendations:**\n${recommendations}`;
+  return `${evaluation || ""}\n\n**Issues to Address:**\n${issues}\n\n**Recommendations:**\n${recommendations}`;
 }
 
 export function StepLayout({

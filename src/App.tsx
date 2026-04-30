@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useAppAuth as useAuth } from "./hooks/useAppAuth";
 import { ProjectProvider } from "./contexts/ProjectContext";
 import { AppContent } from "./AppContent";
-import type { Toast } from "./AppContent";
+import type { Toast } from "./types";
 
 export default function App() {
   const [toasts, setToasts] = useState<Toast[]>([]);

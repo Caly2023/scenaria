@@ -1,7 +1,8 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { WorkflowStage, StageDefinition } from '../../types';
+import { WorkflowStage } from '../../types';
+import { StageDefinition } from '../../config/stageRegistry';
 
 interface PrimitiveAddButtonProps {
   stage: WorkflowStage;

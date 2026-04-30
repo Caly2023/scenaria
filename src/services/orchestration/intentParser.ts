@@ -14,9 +14,11 @@ const EVALUATE_KEYWORDS = [
   'analyser', 'évaluer', 'examiner', 'vérifier',
 ];
 
+import type { WorkflowStage } from '../../types';
+
 export function interpretIntent(
   message: string,
-  activeStage: string,
+  activeStage: WorkflowStage,
   targetPrimitiveId?: string
 ): OrchestratorDecision {
   const lower = message.toLowerCase();

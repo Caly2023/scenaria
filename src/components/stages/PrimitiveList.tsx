@@ -1,7 +1,9 @@
 import React from 'react';
 import { AnimatePresence } from 'motion/react';
+import { useTranslation } from 'react-i18next';
 import { Primitive } from '../primitive/Primitive';
-import { ContentPrimitive, WorkflowStage, StageDefinition } from '../../types';
+import { ContentPrimitive, WorkflowStage } from '../../types';
+import { StageDefinition } from '../../config/stageRegistry';
 
 interface PrimitiveListProps {
   primitives: ContentPrimitive[];
@@ -53,7 +55,7 @@ export const PrimitiveList: React.FC<PrimitiveListProps> = ({
             onFocus={onFocus ? () => onFocus(prim.id) : undefined}
             onRegenerate={onRegenerate}
             onImageClick={onImageClick}
-            images={prim.metadata?.views ? Object.values(prim.metadata.views) as string[] : prim.images}
+            images={prim.metadata?.views ? Object.values(prim.metadata.views) as string[] : (prim.metadata?.images || [])}
             isGenerating={isGenerating}
             mode={isGallery ? "split" : (primitives.length > 1 ? "stacked" : "single")}
             visualPrompt={prim.visualPrompt}

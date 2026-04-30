@@ -74,7 +74,7 @@ export function useAutoHydration({
     };
   }, [
     activeStage, currentProject, stageContents,
-    generateCharactersAndLocations, runStageHydration
+    runStageHydration
   ]);
 
   useEffect(() => {

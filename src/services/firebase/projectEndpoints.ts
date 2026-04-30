@@ -120,7 +120,7 @@ export const projectApi = baseApi.injectEndpoints({
             [field]: content,
             updatedAt: serverTimestamp(),
           });
-          return { data: null };
+          return { data: undefined };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -155,7 +155,7 @@ export const projectApi = baseApi.injectEndpoints({
             metadata,
             updatedAt: serverTimestamp(),
           });
-          return { data: null };
+          return { data: undefined };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -190,7 +190,7 @@ export const projectApi = baseApi.injectEndpoints({
             }
           }
           await deleteDoc(doc(db, "projects", projectId));
-          return { data: null };
+          return { data: undefined };
         } catch (error: any) {
           return { error: classifyError(error) };
         }

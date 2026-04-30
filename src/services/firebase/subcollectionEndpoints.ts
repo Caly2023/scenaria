@@ -81,7 +81,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
               updatedAt: serverTimestamp(),
             },
           );
-          return { data: null };
+          return { data: undefined };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -189,7 +189,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
           await deleteDoc(
             doc(db, "projects", projectId, collectionName, docId),
           );
-          return { data: null };
+          return { data: undefined };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -230,13 +230,13 @@ export const subcollectionApi = baseApi.injectEndpoints({
           const snap = await getDocs(
             collection(db, "projects", projectId, collectionName),
           );
-          if (snap.empty) return { data: null };
+          if (snap.empty) return { data: undefined };
           
           const batch = writeBatch(db);
           snap.docs.forEach((d) => batch.delete(d.ref));
           await batch.commit();
           
-          return { data: null };
+          return { data: undefined };
         } catch (error: any) {
           return { error: classifyError(error) };
         }

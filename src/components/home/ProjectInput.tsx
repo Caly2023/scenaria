@@ -43,7 +43,6 @@ export function ProjectInput({
   };
 
   return (
-  return (
     <div className="w-full space-y-4 md:space-y-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

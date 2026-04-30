@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { ProjectFormat } from '../../types';
 import { getErrorMessage } from '../../lib/errorClassifier';
+import { cn } from '@/lib/utils';
 import { ProjectInput } from './ProjectInput';
 
 interface HomePageProps {

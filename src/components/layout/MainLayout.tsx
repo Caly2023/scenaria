@@ -14,7 +14,7 @@ import { OnboardingWizard } from './OnboardingWizard';
 import { OrbitingLoader } from '../ui/OrbitingLoader';
 import { FormErrorBoundary } from '../ui/FormErrorBoundary';
 import { StageSkeleton } from '../stages/StageSkeleton';
-import { DeleteProjectModal } from './DeleteProjectModal';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { useProject } from '../../contexts/ProjectContext';
 import { ToastManager } from '../ui/ToastManager';
 import { GlobalOverlay } from '../ui/GlobalOverlay';
@@ -22,7 +22,6 @@ import { ProjectHistorySidebar } from '../header/ProjectHistorySidebar';
 
 // Sub-components
 import { ScriptDoctorFAB } from './ScriptDoctorFAB';
-import { MobileNav } from './MobileNav';
 
 type AccessibilitySettings = {
   highContrast: boolean;
@@ -142,7 +141,7 @@ const MainLayoutComponent = ({
       )}
 
       {isMobile && currentProject && <Suspense fallback={null}><ScriptDoctor /></Suspense>}
-      {isMobile && currentProject && <MobileNav />}
+      {isMobile && currentProject && <Sidebar variant="bottom-nav" />}
 
       <FormErrorBoundary>
         <ProjectDrawer isOpen={isProjectDrawerOpen} onClose={handleCloseDrawer} onDelete={handleDeleteCurrentProject} />
@@ -153,9 +152,16 @@ const MainLayoutComponent = ({
         onThemeChange={handleThemeChange} onLanguageChange={handleLanguageChange} onAccessibilityChange={setAccessibilitySettings} onSaveProfile={handleProfileSave} onLogout={handleLogout}
       />
 
-      <AnimatePresence>
-        {projectToDelete && <DeleteProjectModal projectId={projectToDelete} isDeleting={isDeleting} onCancel={handleCancelDelete} onConfirm={handleProjectDelete} />}
-      </AnimatePresence>
+      <ConfirmationModal
+        isOpen={!!projectToDelete}
+        onClose={handleCancelDelete}
+        onConfirm={() => projectToDelete && handleProjectDelete(projectToDelete)}
+        title="Supprimer le projet ?"
+        description="Cette action est irréversible. Toutes les données associées seront perdues."
+        variant="danger"
+        isReady={!isDeleting}
+        confirmLabel={isDeleting ? 'Suppression...' : 'Supprimer'}
+      />
 
       <ToastManager toasts={toasts} setToasts={setToasts} />
       <GlobalOverlay isTyping={isTyping} isHydrating={hydrationState.isHydrating} hydratingLabel={hydrationState.hydratingLabel} isHeavyThinking={isHeavyThinking} activeStage={activeStage} refiningBlockId={refiningBlockId} />

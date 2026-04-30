@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { triggerHaptic } from '@/lib/haptics';
+import { cn } from '@/lib/utils';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface ConfirmationModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   isReady?: boolean;
+  variant?: 'default' | 'danger';
 }
 
 export function ConfirmationModal({
@@ -22,7 +24,8 @@ export function ConfirmationModal({
   description,
   confirmLabel,
   cancelLabel,
-  isReady = true
+  isReady = true,
+  variant = 'default'
 }: ConfirmationModalProps) {
   const { t } = useTranslation();
 
@@ -64,11 +67,17 @@ export function ConfirmationModal({
               </button>
               <button
                 onClick={() => {
-                  triggerHaptic('success');
+                  triggerHaptic(variant === 'danger' ? 'warning' : 'success');
                   onClose();
                   onConfirm();
                 }}
-                className="flex-1 h-11 rounded-2xl bg-white text-black font-semibold hover:bg-[#e5e5e5] transition-all border-none"
+                disabled={!isReady}
+                className={cn(
+                  "flex-1 h-11 rounded-2xl font-semibold transition-all border-none disabled:opacity-50",
+                  variant === 'danger' 
+                    ? "bg-red-500 text-white hover:bg-red-600" 
+                    : "bg-white text-black hover:bg-[#e5e5e5]"
+                )}
                 aria-label={confirmLabel || t('common.confirm', { defaultValue: 'Confirmer' })}
               >
                 {confirmLabel || t('common.confirm', { defaultValue: 'Confirmer' })}

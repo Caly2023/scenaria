@@ -1,13 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { firebaseApi } from '../services/firebaseApi';
+import { firebaseService } from '../services/firebaseService';
 
 export const store = configureStore({
   reducer: {
-    [firebaseApi.reducerPath]: firebaseApi.reducer,
+    [firebaseService.reducerPath]: firebaseService.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(firebaseApi.middleware),
+    getDefaultMiddleware().concat(firebaseService.middleware),
 });
+
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

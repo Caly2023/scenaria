@@ -1,5 +1,5 @@
 import { store } from "../../store";
-import { firebaseApi } from "../firebaseApi";
+import { firebaseService } from "../firebaseService";
 import { telemetryService } from "../telemetryService";
 import { stageRegistry } from "../../config/stageRegistry";
 import { PromptPayload } from "../../types/context";
@@ -37,14 +37,14 @@ export async function buildPromptPayload(
   currentStage: WorkflowStage, 
   activePrimitiveId?: string
 ): Promise<PromptPayload> {
-  const projectResult = await store.dispatch(firebaseApi.endpoints.getProjectById.initiate(projectId));
+  const projectResult = await store.dispatch(firebaseService.endpoints.getProjectById.initiate(projectId));
   const project = projectResult.data;
   if (!project) throw new Error("Project not found");
 
-  const charResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: "characters" }));
+  const charResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "characters" }));
   const allCharacters = (charResult.data || []) as Character[];
   
-  const locResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: "locations" }));
+  const locResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "locations" }));
   const allLocations = (locResult.data || []) as Location[];
 
   telemetryService.hydrateStage("Character Bible", "characters", allCharacters as any);
@@ -85,7 +85,7 @@ export async function buildPromptPayload(
 
   if (activePrimitiveId && (currentStage === "Step Outline" || currentStage === "Script" || currentStage === "Treatment")) {
     const collName = stageRegistry.getCollectionName(currentStage) || "sequences";
-    const seqsResult = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ projectId, collectionName: collName, orderByField: "order" }));
+    const seqsResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: collName, orderByField: "order" }));
     const allSeqs = (seqsResult.data || []) as Sequence[];
     const currentSeqIndex = allSeqs.findIndex(s => s.id === activePrimitiveId);
     

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Project } from '../types';
-import { useUpdateProjectFieldMutation, useUpdateSubcollectionDocMutation } from '../services/firebaseApi';
+import { useUpdateProjectFieldMutation, useUpdateSubcollectionDocMutation } from '../services/firebaseService';
 
 type ToastAction = {
   label: string;

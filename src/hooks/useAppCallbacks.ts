@@ -11,7 +11,7 @@ import {
   useAddSubcollectionDocMutation,
   useUpdateSubcollectionDocMutation,
   useDeleteSubcollectionDocMutation
-} from '../services/firebaseApi';
+} from '../services/firebaseService';
 import { classifyError } from '../lib/errorClassifier';
 import { stageRegistry } from '../config/stageRegistry';
 import { ContentPrimitive } from '../types/stageContract';

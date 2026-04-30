@@ -72,7 +72,7 @@ export function useScriptDoctor({
     if (!currentProject) return;
 
     try {
-      const { scriptDoctorAgent } = await import("../services/ai/scriptDoctorAgent");
+      const { scriptDoctorAgent } = await import("../services/ai/script-doctor-agent");
       
       const result = await scriptDoctorAgent.runAgentLoop(
         currentProject.id,

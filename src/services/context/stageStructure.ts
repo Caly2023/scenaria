@@ -1,5 +1,5 @@
 import { store } from "../../store";
-import { firebaseApi } from "../firebaseApi";
+import { firebaseService } from "../firebaseService";
 import { telemetryService } from "../telemetryService";
 import { stageRegistry } from "../../config/stageRegistry";
 
@@ -19,7 +19,7 @@ export async function getStageStructure(
     
     if (subcollection) {
       const stageDef = stageRegistry.get(stageName);
-      const snap = await store.dispatch(firebaseApi.endpoints.getSubcollection.initiate({ 
+      const snap = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ 
         projectId, 
         collectionName: subcollection, 
         orderByField: stageDef.orderField 

@@ -8,7 +8,7 @@ import { classifyError } from '../lib/errorClassifier';
 import { 
   useDeleteProjectMutation,
   useInitializeProjectWithPrimitivesMutation 
-} from '../services/firebaseApi';
+} from '../services/firebaseService';
 import { Project, WorkflowStage, ProjectFormat } from '../types';
 
 interface UseProjectOperationsProps {

@@ -1,6 +1,6 @@
 import { serverTimestamp } from 'firebase/firestore';
 import { store } from '../../store';
-import { firebaseApi } from '../firebaseApi';
+import { firebaseService } from '../firebaseService';
 import { AgentOutput, PersistResult } from '../../types/stageContract';
 import { stageRegistry } from '../../config/stageRegistry';
 import { telemetryService } from '../telemetryService';
@@ -24,7 +24,7 @@ export async function persistAgentOutput(
   try {
     // ── STEP 1: Write Analysis ────────────────────────────────────────────────
     telemetryService.setStatus('persist_analysis', '📊', `Writing analysis for ${stageName}...`);
-    await store.dispatch(firebaseApi.endpoints.updateProjectField.initiate({
+    await store.dispatch(firebaseService.endpoints.updateProjectField.initiate({
       id: projectId,
       field: `stageAnalyses.${stageName}`,
       content: output.analysis
@@ -43,7 +43,7 @@ export async function persistAgentOutput(
     if (stageDef && output.content.length > 0) {
       if (options.replaceAll) {
         // Delete existing before writing new ones
-        await store.dispatch(firebaseApi.endpoints.clearSubcollection.initiate({ projectId, collectionName: stageDef.collectionName })).unwrap();
+        await store.dispatch(firebaseService.endpoints.clearSubcollection.initiate({ projectId, collectionName: stageDef.collectionName })).unwrap();
       }
 
       // Write all content primitives in parallel
@@ -80,7 +80,7 @@ export async function persistAgentOutput(
               && !prim.id.startsWith('export_') && !prim.id.startsWith('storyboard_')) {
             // Real Firestore ID — update existing document
             try {
-              await store.dispatch(firebaseApi.endpoints.updateSubcollectionDoc.initiate({
+              await store.dispatch(firebaseService.endpoints.updateSubcollectionDoc.initiate({
                 projectId,
                 collectionName: stageDef.collectionName,
                 docId: prim.id,
@@ -93,7 +93,7 @@ export async function persistAgentOutput(
           }
 
           // Create new document
-          const newRefId = await store.dispatch(firebaseApi.endpoints.addSubcollectionDoc.initiate({
+          const newRefId = await store.dispatch(firebaseService.endpoints.addSubcollectionDoc.initiate({
             projectId,
             collectionName: stageDef.collectionName,
             data
@@ -108,7 +108,7 @@ export async function persistAgentOutput(
 
     // ── STEP 3: Write State ───────────────────────────────────────────────────
     telemetryService.setStatus('persist_state', '✅', `State: ${output.state} for ${stageName}`);
-    await store.dispatch(firebaseApi.endpoints.updateProjectField.initiate({
+    await store.dispatch(firebaseService.endpoints.updateProjectField.initiate({
       id: projectId,
       field: `stageStates.${stageName}`,
       content: output.state

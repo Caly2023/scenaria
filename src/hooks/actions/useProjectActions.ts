@@ -3,8 +3,8 @@ import { Project, WorkflowStage } from '../../types';
 import { classifyError } from '../../lib/errorClassifier';
 import { 
   useUpdateProjectMetadataMutation 
-} from '../../services/firebaseApi';
-import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../../services/orchestrator';
+} from '../../services/firebaseService';
+import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../../services/orchestration';
 import { ContentPrimitive } from '../../types/stageContract';
 
 interface UseProjectActionsProps {

@@ -65,7 +65,7 @@ export function useScriptDoctorTools({
         t
       };
 
-      const { scriptDoctorToolHandlers } = await import("../services/scriptDoctor");
+      const { scriptDoctorToolHandlers } = await import("../services/script-doctor");
 
       if (scriptDoctorToolHandlers[name]) {
         return await scriptDoctorToolHandlers[name](args, contextPayload);

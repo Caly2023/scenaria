@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { User } from 'firebase/auth';
 import { Project, WorkflowStage } from '../types';
-import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery } from '../services/firebaseApi';
+import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery } from '../services/firebaseService';
 import { buildStageContentsMap, RawCollections } from '../lib/stageContent';
 import type { ContentPrimitive } from '../types/stageContract';
 import { stageRegistry } from '../config/stageRegistry';

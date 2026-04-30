@@ -1,5 +1,5 @@
 /**
- * ORCHESTRATOR SERVICE — The Script Doctor's decision-making brain.
+ * ORCHESTRATION SERVICE — The Script Doctor's decision-making brain.
  *
  * This directory contains the modularized orchestration logic.
  */

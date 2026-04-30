@@ -3,11 +3,11 @@ import { Project, WorkflowStage } from '../types';
 import { 
   useUpdateProjectFieldMutation, 
   useClearSubcollectionMutation 
-} from '../services/firebaseApi';
+} from '../services/firebaseService';
 import { classifyError } from '../lib/errorClassifier';
 import { stageRegistry } from '../config/stageRegistry';
 import { agentRegistry } from '../agents/agentRegistry';
-import { persistAgentOutput, buildProjectContext } from '../services/orchestrator';
+import { persistAgentOutput, buildProjectContext } from '../services/orchestration';
 import { ProjectContext } from '../types/stageContract';
 
 interface UseStageLifecycleProps {

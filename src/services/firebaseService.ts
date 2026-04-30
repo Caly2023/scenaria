@@ -19,8 +19,8 @@ import { stageRegistry } from "../config/stageRegistry";
 import { Project } from "../types";
 import { serializeData } from "../lib/firebaseUtils";
 
-export const firebaseApi = createApi({
-  reducerPath: "firebaseApi",
+export const firebaseService = createApi({
+  reducerPath: "firebaseService",
   baseQuery: fakeBaseQuery(),
   tagTypes: [
     "Project",
@@ -182,7 +182,7 @@ export const firebaseApi = createApi({
         { dispatch, queryFulfilled },
       ) {
         const patchResult = dispatch(
-          firebaseApi.util.updateQueryData("getProjectById", id, (draft) => {
+          firebaseService.util.updateQueryData("getProjectById", id, (draft) => {
             if (draft) {
               (draft as any)[field] = content;
             }
@@ -213,7 +213,7 @@ export const firebaseApi = createApi({
       },
       async onQueryStarted({ id, metadata }, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
-          firebaseApi.util.updateQueryData("getProjectById", id, (draft) => {
+          firebaseService.util.updateQueryData("getProjectById", id, (draft) => {
             if (draft) {
               draft.metadata = metadata;
             }
@@ -256,7 +256,7 @@ export const firebaseApi = createApi({
         { dispatch, queryFulfilled },
       ) {
         const patchResult = dispatch(
-          firebaseApi.util.updateQueryData(
+          firebaseService.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
             (draft) => {
@@ -320,7 +320,7 @@ export const firebaseApi = createApi({
         { dispatch, queryFulfilled },
       ) {
         const patchResult = dispatch(
-          firebaseApi.util.updateQueryData(
+          firebaseService.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
             (draft) => {
@@ -394,7 +394,7 @@ export const firebaseApi = createApi({
     >({
       async queryFn({ projectId, projectData, primitives }) {
         try {
-          console.log("[FirebaseApi] Initializing project with primitives:", {
+          console.log("[FirebaseService] Initializing project with primitives:", {
             projectId,
             projectData,
             primitivesCount: primitives.length,
@@ -445,4 +445,5 @@ export const {
   useDeleteProjectMutation,
   useClearSubcollectionMutation,
   useInitializeProjectWithPrimitivesMutation,
-} = firebaseApi;
+} = firebaseService;
+

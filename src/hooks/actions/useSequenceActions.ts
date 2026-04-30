@@ -7,7 +7,7 @@ import { stageRegistry } from '../../config/stageRegistry';
 import { 
   useUpdateSubcollectionDocMutation, 
   useAddSubcollectionDocMutation 
-} from '../../services/firebaseApi';
+} from '../../services/firebaseService';
 
 interface UseSequenceActionsProps {
   currentProject: Project | null;

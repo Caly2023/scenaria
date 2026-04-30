@@ -3,7 +3,7 @@ import { Project, ContentPrimitive } from '../../types';
 import { geminiService } from '../../services/geminiService';
 import { classifyError } from '../../lib/errorClassifier';
 import { stageRegistry } from '../../config/stageRegistry';
-import { useUpdateSubcollectionDocMutation } from '../../services/firebaseApi';
+import { useUpdateSubcollectionDocMutation } from '../../services/firebaseService';
 
 interface UseCharacterActionsProps {
   currentProject: Project | null;

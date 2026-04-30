@@ -8,18 +8,17 @@ export class BreakdownAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = "Generate a technical breakdown for the script. Identify shots, camera movements, and equipment needed for each scene.";
+      const prompt = this.getPrompt('generate', "Generate a technical breakdown for the script. Identify shots, camera movements, and equipment needed for each scene.");
       
       const raw = await geminiService.generateStageContent(this.stageId, prompt, unifiedCtx);
-      
       const content: ContentPrimitive[] = [
         this.buildPrimitive('breakdown_1', 'Technical Breakdown', raw, 'breakdown', 1),
       ];
       
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -31,7 +30,8 @@ export class BreakdownAgent extends BaseStageAgent {
   ): Promise<AgentOutput> {
     try {
       const current = currentContent.find(p => p.id === primitiveId) || currentContent[0];
-      const prompt = `Update the technical breakdown: "${current?.content || ''}". \nInstruction: ${instruction}`;
+      const basePrompt = this.getPrompt('magic', 'Update the technical breakdown');
+      const prompt = `${basePrompt}: "${current?.content || ''}". \nInstruction: ${instruction}`;
       
       const refined = await geminiService.generateStageContent(this.stageId, prompt, await this.getUnifiedContext(context));
       
@@ -41,8 +41,8 @@ export class BreakdownAgent extends BaseStageAgent {
       
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 

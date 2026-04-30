@@ -7,7 +7,9 @@ export class CharacterBibleAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = await await this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
+      const prompt = this.getPrompt('generate', 'Extract and develop complex characters from the current story context.');
+      
       const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
       const content: ContentPrimitive[] = extraction.characters.map((char: any, i: number) =>
         this.buildPrimitive(
@@ -21,8 +23,8 @@ export class CharacterBibleAgent extends BaseStageAgent {
       );
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -39,8 +41,8 @@ export class CharacterBibleAgent extends BaseStageAgent {
       const updated = currentContent.map(p => p.id === primitiveId ? { ...p, content: refined } : p);
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 
@@ -56,7 +58,7 @@ export class CharacterBibleAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `**${p.title}**: ${p.content.substring(0, 200)}`).join('\n');
     try {
-      const unifiedCtx = await await this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Character Bible', fullText, unifiedCtx));
       const hasTier1 = content.some(p => p.metadata?.tier === 1);
       const issues = raw.isReady && hasTier1 ? [] : ['No Tier-1 (main) character defined'];
@@ -67,8 +69,8 @@ export class CharacterBibleAgent extends BaseStageAgent {
         raw.suggestedPrompt
       );
       return { analysis, state: this.computeState(analysis) };
-    } catch (err) {
-      console.warn(`[CharacterBibleAgent] evaluate() AI call failed, using heuristic fallback:`, err);
+    } catch (err: unknown) {
+      console.warn(`[CharacterBibleAgent] evaluate() AI call failed:`, err);
       const analysis = this.buildAnalysis(
         `${content.length} character(s) defined.`,
         content.length < 2 ? ['Too few characters'] : [],

@@ -7,7 +7,9 @@ export class LocationBibleAgent extends BaseStageAgent {
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
-      const unifiedCtx = await await this.getUnifiedContext(context);
+      const unifiedCtx = await this.getUnifiedContext(context);
+      const prompt = this.getPrompt('generate', 'Identify and build out key locations that serve the story’s mood.');
+      
       const extraction = await this.retryWithBackoff(() => geminiService.extractCharactersAndSettings(unifiedCtx));
       const content: ContentPrimitive[] = extraction.settings.map((loc: any, i: number) =>
         this.buildPrimitive(
@@ -21,8 +23,8 @@ export class LocationBibleAgent extends BaseStageAgent {
       );
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -39,8 +41,8 @@ export class LocationBibleAgent extends BaseStageAgent {
       const updated = currentContent.map(p => p.id === primitiveId ? { ...p, content: refined } : p);
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 
@@ -56,8 +58,8 @@ export class LocationBibleAgent extends BaseStageAgent {
     }
     const fullText = content.map(p => `**${p.title}**: ${p.content.substring(0, 200)}`).join('\n');
     try {
-      const unifiedCtx = await await this.getUnifiedContext(context);
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Location Bible', fullText, unifiedCtx));
+      const unifiedCtx = await this.getUnifiedContext(context);
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight(this.stageId, fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
         raw.content, 
         raw.isReady ? [] : ['Locations need more detail'], 
@@ -65,8 +67,8 @@ export class LocationBibleAgent extends BaseStageAgent {
         raw.suggestedPrompt
       );
       return { analysis, state: this.computeState(analysis) };
-    } catch (err) {
-      console.warn(`[LocationBibleAgent] evaluate() AI call failed, using heuristic fallback:`, err);
+    } catch (err: unknown) {
+      console.warn(`[LocationBibleAgent] evaluate() AI call failed:`, err);
       const analysis = this.buildAnalysis(
         `${content.length} location(s) defined.`,
         content.length < 1 ? ['No locations defined'] : [],

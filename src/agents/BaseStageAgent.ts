@@ -20,6 +20,7 @@ import type { WorkflowStage } from '../types';
 import { contextAssembler } from '../services/context';
 import { classifyError } from '../lib/errorClassifier';
 import { telemetryService } from '../services/telemetryService';
+import { stageRegistry } from '../config/stageRegistry';
 
 
 export abstract class BaseStageAgent implements IStageAgent {
@@ -226,6 +227,22 @@ export abstract class BaseStageAgent implements IStageAgent {
       console.warn(`[${this.stageId}] Verification pass failed, proceeding with initial draft.`, e);
       return initialContent; // Fallback to the initial draft if verification fails
     }
+  }
+
+  /**
+   * Standardized error handling for agent operations.
+   */
+  protected handleError(e: unknown, fallbackContent: ContentPrimitive[] = []): AgentOutput {
+    const message = e instanceof Error ? e.message : String(e);
+    return this.buildFallbackOutput(message, fallbackContent);
+  }
+
+  /**
+   * Helper to get a prompt from the registry or fallback to a default.
+   */
+  protected getPrompt(type: 'generate' | 'magic' | 'refine', defaultPrompt: string): string {
+    const def = stageRegistry.get(this.stageId);
+    return def.prompts?.[type] || defaultPrompt;
   }
 }
 

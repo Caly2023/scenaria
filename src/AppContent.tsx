@@ -155,7 +155,7 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
         <FocusMode
           isOpen={isFocusMode}
           onClose={handleCloseFocus}
-          onContentChange={(c) => handleSubcollectionUpdate("sequences", focusedSequenceId, { content: c })}
+          onContentChange={(c) => handleSubcollectionUpdate(stageRegistry.getCollectionName("Step Outline"), focusedSequenceId, { content: c })}
           onAiMagic={() => handleAiMagic(focusedSequenceId)}
           onTts={() => handleTts(focusedSequenceId, (stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.content || "")}
           title={(stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.title || "Sequence"}

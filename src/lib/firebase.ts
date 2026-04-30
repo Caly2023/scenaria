@@ -18,8 +18,6 @@ export const updateCurrentUserProfile = (profile: { displayName?: string; photoU
   return updateProfile(auth.currentUser, profile);
 };
 
-
-
 export async function testConnection() {
   try {
     // Attempt to fetch a non-existent doc to test connectivity and permissions

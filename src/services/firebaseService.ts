@@ -307,7 +307,7 @@ export const firebaseService = createApi({
 
     addSubcollectionDoc: builder.mutation<
       string,
-      { projectId: string; collectionName: string; data: any }
+      { projectId: string; collectionName: string; data: any; orderByField?: string }
     >({
       async queryFn({ projectId, collectionName, data }) {
         try {
@@ -322,6 +322,48 @@ export const firebaseService = createApi({
           return { data: docRef.id };
         } catch (error: any) {
           return { error: classifyError(error) };
+        }
+      },
+      async onQueryStarted(
+        { projectId, collectionName, data, orderByField },
+        { dispatch, queryFulfilled },
+      ) {
+        const tempId = `temp-${Math.random().toString(36).substring(7)}`;
+        const patchResult = dispatch(
+          firebaseService.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName, orderByField },
+            (draft) => {
+              draft.push({ 
+                id: tempId, 
+                ...data, 
+                isOptimistic: true,
+                createdAt: Date.now() 
+              });
+              // Maintain order if possible
+              if (orderByField) {
+                draft.sort((a: any, b: any) => (a[orderByField] > b[orderByField] ? 1 : -1));
+              }
+            },
+          ),
+        );
+        try {
+          const { data: realId } = await queryFulfilled;
+          dispatch(
+            firebaseService.util.updateQueryData(
+              "getSubcollection",
+              { projectId, collectionName, orderByField },
+              (draft) => {
+                const index = draft.findIndex((item: any) => item.id === tempId);
+                if (index !== -1) {
+                  draft[index].id = realId;
+                  delete draft[index].isOptimistic;
+                }
+              },
+            ),
+          );
+        } catch {
+          patchResult.undo();
         }
       },
     }),

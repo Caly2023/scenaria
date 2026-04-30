@@ -19,6 +19,8 @@ import {
 import type { WorkflowStage } from '../types';
 import { contextAssembler } from '../services/context';
 import { classifyError } from '../lib/errorClassifier';
+import { telemetryService } from '../services/telemetryService';
+
 
 export abstract class BaseStageAgent implements IStageAgent {
   abstract readonly stageId: WorkflowStage;
@@ -103,14 +105,23 @@ export abstract class BaseStageAgent implements IStageAgent {
     maxRetries: number = 2,
     baseDelay: number = 1000
   ): Promise<T> {
+    const startTime = Date.now();
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        return await fn();
+        const result = await fn();
+        telemetryService.trackAiOperation(this.stageId, Date.now() - startTime, true);
+        return result;
       } catch (e: any) {
-        if (attempt === maxRetries) throw e;
+        if (attempt === maxRetries) {
+          telemetryService.trackAiOperation(this.stageId, Date.now() - startTime, false);
+          throw e;
+        }
         
         const classification = classifyError(e);
-        if (!classification.canRetry) throw e; // Non-transient: fail fast
+        if (!classification.canRetry) {
+          telemetryService.trackAiOperation(this.stageId, Date.now() - startTime, false);
+          throw e; // Non-transient: fail fast
+        }
         
         const delay = (classification.retryDelay || baseDelay) * Math.pow(2, attempt);
         console.warn(`[${this.stageId}] Retry ${attempt + 1}/${maxRetries} after ${delay}ms — ${classification.type}`);
@@ -180,4 +191,41 @@ export abstract class BaseStageAgent implements IStageAgent {
     const payload = await contextAssembler.buildPayloadFromProjectContext(context, this.stageId as any);
     return contextAssembler.formatPrompt(payload, "");
   }
+
+  /**
+   * Standardized "Plan-Execute-Verify" pass.
+   * Runs the generated content against the Stage Insight verifier.
+   * If it fails quality checks and provides a suggested prompt, it will trigger a refinement pass.
+   */
+  protected async verifyAndRefine(
+    initialContent: ContentPrimitive[],
+    context: ProjectContext,
+    refineCallback: (suggestion: string) => Promise<ContentPrimitive[]>
+  ): Promise<ContentPrimitive[]> {
+    if (!initialContent.length) return initialContent;
+
+    try {
+      const fullText = initialContent.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
+      const unifiedCtx = await this.getUnifiedContext(context);
+      
+      const verification = await this.retryWithBackoff(async () => {
+        // We use dynamic import or require to avoid circular dependencies if any,
+        // but since geminiService is likely imported in child classes, we can import it here.
+        const { geminiService } = await import('../services/geminiService');
+        return geminiService.generateStageInsight(this.stageId as string, fullText, unifiedCtx);
+      });
+
+      if (!verification.isReady && verification.suggestedPrompt) {
+        console.log(`[${this.stageId}] Verification failed. Triggering refinement pass with: "${verification.suggestedPrompt}"`);
+        const refinedContent = await refineCallback(verification.suggestedPrompt);
+        return refinedContent.length > 0 ? refinedContent : initialContent;
+      }
+
+      return initialContent;
+    } catch (e) {
+      console.warn(`[${this.stageId}] Verification pass failed, proceeding with initial draft.`, e);
+      return initialContent; // Fallback to the initial draft if verification fails
+    }
+  }
 }
+

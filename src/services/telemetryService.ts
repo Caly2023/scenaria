@@ -283,5 +283,39 @@ class TelemetryStore {
   }
 }
 
+  // ─── Observability & Metrics ─────────────────────────────────────────────
+
+  private _stageMetrics: Map<string, { totalLatency: number; requestCount: number; errors: number }> = new Map();
+
+  /**
+   * Track latency and errors for AI operations per stage.
+   * Useful for dashboarding or identifying slow workflows.
+   */
+  trackAiOperation(stageName: string, durationMs: number, isSuccess: boolean) {
+    const current = this._stageMetrics.get(stageName) || { totalLatency: 0, requestCount: 0, errors: 0 };
+    current.requestCount++;
+    if (isSuccess) {
+      current.totalLatency += durationMs;
+    } else {
+      current.errors++;
+    }
+    this._stageMetrics.set(stageName, current);
+  }
+
+  getStageMetricsSummary() {
+    const summary: Record<string, any> = {};
+    for (const [stage, metrics] of this._stageMetrics.entries()) {
+      summary[stage] = {
+        averageLatencyMs: metrics.requestCount - metrics.errors > 0 
+          ? Math.round(metrics.totalLatency / (metrics.requestCount - metrics.errors)) 
+          : 0,
+        successRate: Math.round(((metrics.requestCount - metrics.errors) / metrics.requestCount) * 100) + '%',
+        totalRequests: metrics.requestCount
+      };
+    }
+    return summary;
+  }
+}
+
 // Singleton export
 export const telemetryService = new TelemetryStore();

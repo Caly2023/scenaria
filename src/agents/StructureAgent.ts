@@ -23,7 +23,7 @@ export class StructureAgent extends BaseStageAgent {
       const parsed = this.safeParseJson<{ blocks?: any[]; [k: string]: any }>(raw);
       const blocks = parsed?.blocks || (Array.isArray(parsed) ? parsed : []);
 
-      const content: ContentPrimitive[] = blocks.length > 0
+      let content: ContentPrimitive[] = blocks.length > 0
         ? blocks.map((beat: any, i: number) =>
             this.buildPrimitive(
               `beat_${i}`,
@@ -35,6 +35,30 @@ export class StructureAgent extends BaseStageAgent {
             )
           )
         : this._parseLegacyText(raw);
+
+      // Automated Verification Pass
+      content = await this.verifyAndRefine(content, context, async (suggestion) => {
+        const currentJson = JSON.stringify({
+          blocks: content.map(p => ({ title: p.title, content: p.content })),
+        });
+        const refinedRaw = await geminiService.refine3ActStructure(currentJson, suggestion);
+        const refinedParsed = this.safeParseJson<{ blocks?: any[] }>(refinedRaw);
+        const refinedBlocks = refinedParsed?.blocks || [];
+        
+        if (Array.isArray(refinedBlocks) && refinedBlocks.length > 0) {
+          return refinedBlocks.map((beat: any, i: number) =>
+            this.buildPrimitive(
+              content[i]?.id || `beat_${i}`,
+              beat.title || BEAT_TITLES[i] || `Beat ${i + 1}`,
+              beat.content || '',
+              'beat',
+              i + 1,
+              { visualPrompt: beat.visualPrompt }
+            )
+          );
+        }
+        return content;
+      });
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };

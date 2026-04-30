@@ -51,7 +51,8 @@ export function useAppCallbacks({
         || pitchPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id // backward compat
         || pitchPrimitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.id
         || pitchPrimitives.find((p) => p.order === 1)?.id;
-      if (pitchId) handleSubcollectionUpdate("pitch_primitives", pitchId, { content: c });
+      const collectionName = stageRegistry.getCollectionName('Brainstorming');
+      if (pitchId) handleSubcollectionUpdate(collectionName, pitchId, { content: c });
       handleContentUpdate("brainstorming_result", c);
     },
     [stageContents, handleSubcollectionUpdate, handleContentUpdate],
@@ -61,8 +62,9 @@ export function useAppCallbacks({
     (c: string) => {
       const loglinePrimitives = stageContents['Logline'] || [];
       const id = loglinePrimitives[0]?.id;
+      const collectionName = stageRegistry.getCollectionName('Logline');
       if (id) {
-        handleSubcollectionUpdate("logline_primitives", id, { content: c });
+        handleSubcollectionUpdate(collectionName, id, { content: c });
       }
     },
     [stageContents, handleSubcollectionUpdate],

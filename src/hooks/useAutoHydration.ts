@@ -49,7 +49,7 @@ export function useAutoHydration({
     if (!context || !currentProject) return;
 
     try {
-      const decision = interpretIntent('', stageName);
+      const decision = interpretIntent('generate', stageName);
       const agentOutput = await dispatchToAgent(decision, context, []);
       await persistAgentOutput(currentProject.id, stageName, agentOutput);
     } catch (e) {

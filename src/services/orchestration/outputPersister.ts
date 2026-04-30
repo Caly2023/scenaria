@@ -4,6 +4,7 @@ import { firebaseService } from '../firebaseService';
 import { AgentOutput, PersistResult } from '../../types/stageContract';
 import { stageRegistry } from '../../config/stageRegistry';
 import { telemetryService } from '../telemetryService';
+import { stripUndefined, isTemporaryId } from '../../utils/primitiveUtils';
 
 /**
  * Persists an AgentOutput to Firestore in strict order:
@@ -49,7 +50,7 @@ export async function persistAgentOutput(
       // Write all content primitives in parallel
       const writeResults = await Promise.all(
         output.content.map(async (prim, i) => {
-          const data: Record<string, unknown> = {
+          const data = stripUndefined({
             title: prim.title,
             content: prim.content,
             order: prim.order ?? i,
@@ -58,26 +59,12 @@ export async function persistAgentOutput(
             agentVersion: prim.agentVersion ?? '2.0',
             projectId,
             updatedAt: serverTimestamp(),
-          };
-          if (prim.visualPrompt) data.visualPrompt = prim.visualPrompt;
-          if (prim.metadata) Object.assign(data, prim.metadata);
-
-          // IMPORTANT: Firestore throws synchronous errors if any field is undefined.
-          // Strip undefined values from data before passing to Firestore operations
-          Object.keys(data).forEach(key => {
-            if (data[key] === undefined) {
-              delete data[key];
-            }
+            visualPrompt: prim.visualPrompt,
+            ...(prim.metadata || {})
           });
-
+          
           // If primitive has a real Firestore ID (not a temp one) → update
-          if (prim.id && !prim.id.startsWith('beat_') && !prim.id.startsWith('treatment_')
-              && !prim.id.startsWith('scene_') && !prim.id.startsWith('script_')
-              && !prim.id.startsWith('synopsis_') && !prim.id.startsWith('char_gen_')
-              && !prim.id.startsWith('loc_gen_') && !prim.id.startsWith('logline_')
-              && !prim.id.startsWith('draft_') && !prim.id.startsWith('breakdown_')
-              && !prim.id.startsWith('asset_') && !prim.id.startsWith('previs_')
-              && !prim.id.startsWith('export_') && !prim.id.startsWith('storyboard_')) {
+          if (prim.id && !isTemporaryId(prim.id)) {
             // Real Firestore ID — update existing document
             try {
               await store.dispatch(firebaseService.endpoints.updateSubcollectionDoc.initiate({

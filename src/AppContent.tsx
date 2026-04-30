@@ -39,7 +39,7 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
     setProjectToDelete,
     handleAiMagic,
     handleToggleDoctor,
-    isFocusMode, handleCloseFocus, focusedSequenceId
+    isFocusMode, handleCloseFocus, focusedPrimitiveId, focusedStageId
   } = project;
 
   const {
@@ -151,15 +151,15 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
         ScriptDoctor={ScriptDoctorComponent}
       />
       
-      {isFocusMode && focusedSequenceId && (
+      {isFocusMode && focusedPrimitiveId && focusedStageId && (
         <FocusMode
           isOpen={isFocusMode}
           onClose={handleCloseFocus}
-          onContentChange={(c) => handleSubcollectionUpdate(stageRegistry.getCollectionName("Step Outline"), focusedSequenceId, { content: c })}
-          onAiMagic={() => handleAiMagic(focusedSequenceId)}
-          onTts={() => handleTts(focusedSequenceId, (stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.content || "")}
-          title={(stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.title || "Sequence"}
-          content={(stageContents["Step Outline"] || []).find((s: ContentPrimitive) => s.id === focusedSequenceId)?.content || ""}
+          onContentChange={(c) => handleSubcollectionUpdate(stageRegistry.getCollectionName(focusedStageId), focusedPrimitiveId, { content: c })}
+          onAiMagic={() => handleAiMagic(focusedPrimitiveId)}
+          onTts={() => handleTts(focusedPrimitiveId, (stageContents[focusedStageId] || []).find((s: ContentPrimitive) => s.id === focusedPrimitiveId)?.content || "")}
+          title={(stageContents[focusedStageId] || []).find((s: ContentPrimitive) => s.id === focusedPrimitiveId)?.title || "Element"}
+          content={(stageContents[focusedStageId] || []).find((s: ContentPrimitive) => s.id === focusedPrimitiveId)?.content || ""}
         />
       )}
 

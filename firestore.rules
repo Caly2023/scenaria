@@ -199,6 +199,49 @@ service cloud.firestore {
         allow delete: if isProjectMember(projectId);
       }
 
+
+      match /beat_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /doctoring_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /breakdown_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /asset_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /previs_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /export_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
       match /storyboard_frames/{primitiveId} {
         allow read: if isProjectMember(projectId);
         allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);

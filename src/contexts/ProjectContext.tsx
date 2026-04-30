@@ -84,9 +84,11 @@ export interface ProjectContextType {
   // Focus Mode
   isFocusMode: boolean;
   setIsFocusMode: (val: boolean) => void;
-  focusedSequenceId: string | null;
-  setFocusedSequenceId: (id: string | null) => void;
-  handleFocusMode: (id: string) => void;
+  focusedPrimitiveId: string | null;
+  setFocusedPrimitiveId: (id: string | null) => void;
+  focusedStageId: WorkflowStage | null;
+  setFocusedStageId: (stage: WorkflowStage | null) => void;
+  handleFocusMode: (id: string, stage?: WorkflowStage) => void;
   handleCloseFocus: () => void;
 
   // Action States
@@ -145,14 +147,20 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
   const handleCloseDoctor = useCallback(() => doctor.setIsDoctorOpen(false), [doctor]);
 
   const [isFocusMode, setIsFocusMode] = React.useState(false);
-  const [focusedSequenceId, setFocusedSequenceId] = React.useState<string | null>(null);
+  const [focusedPrimitiveId, setFocusedPrimitiveId] = React.useState<string | null>(null);
+  const [focusedStageId, setFocusedStageId] = React.useState<WorkflowStage | null>(null);
 
-  const handleFocusMode = useCallback((id: string) => {
-    setFocusedSequenceId(id);
+  const handleFocusMode = useCallback((id: string, stage?: WorkflowStage) => {
+    setFocusedPrimitiveId(id);
+    setFocusedStageId(stage || activeStage);
     setIsFocusMode(true);
-  }, []);
+  }, [activeStage]);
 
-  const handleCloseFocus = useCallback(() => setIsFocusMode(false), []);
+  const handleCloseFocus = useCallback(() => {
+    setIsFocusMode(false);
+    setFocusedPrimitiveId(null);
+    setFocusedStageId(null);
+  }, []);
 
   const handleDeleteCurrentProject = useCallback(() => {
     if (projectHook.currentProject) {
@@ -177,8 +185,10 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     handleCloseDoctor,
     isFocusMode,
     setIsFocusMode,
-    focusedSequenceId,
-    setFocusedSequenceId,
+    focusedPrimitiveId,
+    setFocusedPrimitiveId,
+    focusedStageId,
+    setFocusedStageId,
     handleFocusMode,
     handleCloseFocus,
     handleDeleteCurrentProject,

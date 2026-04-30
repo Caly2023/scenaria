@@ -17,7 +17,7 @@ import { WorkflowStage } from "../../types";
 
 interface AgentIterationResult {
   finalResponse: string;
-  lastParts: GeminiPart[];-=
+  lastParts: GeminiPart[];
   iterationsReached: boolean;
 }
 

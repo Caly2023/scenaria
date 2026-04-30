@@ -23,6 +23,11 @@ export interface StageDefinition {
   orderField: string;
   isCustom?: boolean;
   displayMode?: 'list' | 'gallery' | 'canvas';
+  prompts?: {
+    magic?: string;
+    generate?: string;
+    refine?: string;
+  };
 }
 
 const STAGES: StageDefinition[] = [
@@ -40,7 +45,11 @@ const STAGES: StageDefinition[] = [
     triggers: 'Initial Draft',
     orderField: 'order',
     isCustom: true,
-    displayMode: 'canvas'
+    displayMode: 'canvas',
+    prompts: {
+      magic: 'Refine the core project metadata to ensure a solid foundation for the narrative.',
+      generate: 'Initialize the project with industry-standard metadata based on your vision.'
+    }
   },
   {
     id: 'Initial Draft',
@@ -55,6 +64,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Project Metadata'],
     triggers: 'Brainstorming',
     orderField: 'order',
+    prompts: {
+      magic: 'Polish the initial spark to make the premise more compelling and clear.',
+      generate: 'Draft a strong initial premise that defines the protagonist and core conflict.'
+    }
   },
   {
     id: 'Brainstorming',
@@ -69,6 +82,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Initial Draft'],
     triggers: 'Logline',
     orderField: 'order',
+    prompts: {
+      magic: 'Expand the narrative possibilities and deepen the thematic resonance of your story ideas.',
+      generate: 'Generate multiple creative directions and story options based on the initial draft.'
+    }
   },
   {
     id: 'Logline',
@@ -83,6 +100,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Brainstorming'],
     triggers: '3-Act Structure',
     orderField: 'order',
+    prompts: {
+      magic: 'Sharpen the hook and ensure the logline perfectly captures the protagonist, goal, and stakes.',
+      generate: 'Synthesize the brainstorming results into one punchy, professional logline.'
+    }
   },
   {
     id: '3-Act Structure',
@@ -97,6 +118,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Logline'],
     triggers: '8-Beat Structure',
     orderField: 'order',
+    prompts: {
+      magic: 'Strengthen the backbone by refining the inciting incident, midpoint, and climax.',
+      generate: 'Architect a solid 3-act structure to define the primary narrative arc.'
+    }
   },
   {
     id: '8-Beat Structure',
@@ -111,6 +136,10 @@ const STAGES: StageDefinition[] = [
     requires: ['3-Act Structure'],
     triggers: 'Synopsis',
     orderField: 'order',
+    prompts: {
+      magic: 'Deepen the dramatic turns and emotional beats for maximum audience impact.',
+      generate: 'Develop eight essential dramatic beats to flesh out the story structure.'
+    }
   },
   {
     id: 'Synopsis',
@@ -125,6 +154,10 @@ const STAGES: StageDefinition[] = [
     requires: ['8-Beat Structure'],
     triggers: 'Character Bible',
     orderField: 'order',
+    prompts: {
+      magic: 'Enrich the narrative flow and thematic depth of the full story summary.',
+      generate: 'Write a detailed synopsis that captures the full emotional and dramatic journey.'
+    }
   },
   {
     id: 'Character Bible',
@@ -139,7 +172,11 @@ const STAGES: StageDefinition[] = [
     requires: ['Synopsis'],
     triggers: 'Location Bible',
     orderField: 'order',
-    displayMode: 'gallery'
+    displayMode: 'gallery',
+    prompts: {
+      magic: 'Flesh out character depth, visual appearance, and emotional arcs.',
+      generate: 'Extract and develop complex characters from the current story context.'
+    }
   },
   {
     id: 'Location Bible',
@@ -154,7 +191,11 @@ const STAGES: StageDefinition[] = [
     requires: ['Character Bible'],
     triggers: 'Treatment',
     orderField: 'order',
-    displayMode: 'gallery'
+    displayMode: 'gallery',
+    prompts: {
+      magic: 'Enhance atmospheric details and visual texture of your locations.',
+      generate: 'Identify and build out key locations that serve the story’s mood.'
+    }
   },
   {
     id: 'Treatment',
@@ -169,6 +210,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Location Bible'],
     triggers: 'Step Outline',
     orderField: 'order',
+    prompts: {
+      magic: 'Refine the cinematic prose to better capture the tone and emotional flow.',
+      generate: 'Generate a professional cinematic treatment that expands the synopsis into narrative prose.'
+    }
   },
   {
     id: 'Step Outline',
@@ -183,7 +228,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Treatment'],
     triggers: 'Script',
     orderField: 'order',
-    displayMode: 'canvas'
+    displayMode: 'canvas',
+    prompts: {
+      magic: 'Rewrite this scene to be more dramatic and cinematic. Maintain continuity with the previous and next scenes.'
+    }
   },
   {
     id: 'Script',
@@ -198,6 +246,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Step Outline'],
     triggers: 'Global Script Doctoring',
     orderField: 'order',
+    prompts: {
+      magic: 'Polish the dialogue, pacing, and subtext to achieve professional screenwriting standards.',
+      generate: 'Convert the step outline into a full screenplay with professional formatting and dialogue.'
+    }
   },
   {
     id: 'Global Script Doctoring',
@@ -212,6 +264,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Script'],
     triggers: 'Technical Breakdown',
     orderField: 'order',
+    prompts: {
+      magic: 'Fix architectural inconsistencies and strengthen the thematic unity of the full script.',
+      generate: 'Perform a comprehensive audit of the script to ensure structural integrity and quality.'
+    }
   },
   {
     id: 'Technical Breakdown',
@@ -226,6 +282,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Global Script Doctoring'],
     triggers: 'Visual Assets',
     orderField: 'order',
+    prompts: {
+      magic: 'Optimize shot composition and technical feasibility for every scene.',
+      generate: 'Transform the script scenes into a technical shot list for production.'
+    }
   },
   {
     id: 'Visual Assets',
@@ -240,6 +300,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Technical Breakdown'],
     triggers: 'AI Previs',
     orderField: 'order',
+    prompts: {
+      magic: 'Polish the aesthetic consistency and visual detail of your cinematic assets.',
+      generate: 'Generate high-fidelity visual assets for characters and environments.'
+    }
   },
   {
     id: 'AI Previs',
@@ -254,6 +318,10 @@ const STAGES: StageDefinition[] = [
     requires: ['Visual Assets'],
     triggers: 'Production Export',
     orderField: 'order',
+    prompts: {
+      magic: 'Refine visual storytelling and shot transitions in the previs sequence.',
+      generate: 'Generate a comprehensive AI previs (storyboard) to visualize the script.'
+    }
   },
   {
     id: 'Production Export',
@@ -267,6 +335,10 @@ const STAGES: StageDefinition[] = [
     hydrationLabel: 'Preparing Production Export...',
     requires: ['AI Previs'],
     orderField: 'order',
+    prompts: {
+      magic: 'Final check of all production deliverables for packaging and export.',
+      generate: 'Prepare the finalized production export containing all script and visual assets.'
+    }
   },
 ];
 

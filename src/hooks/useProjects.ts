@@ -124,29 +124,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     try {
       const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestration');
       
-      let currentContent: ContentPrimitive[] = [];
-      if (stage === 'Brainstorming') {
-        const typedBrainstorming = stageContents.Brainstorming as BrainstormPrimitive[];
-        const existing =
-          typedBrainstorming.find((p) => p.primitiveType === 'brainstorming_result') ||
-          typedBrainstorming.find((p) => p.primitiveType === 'pitch_result') ||
-          typedBrainstorming.find((p) => p.order === 1) ||
-          typedBrainstorming[0];
-
-        currentContent = existing
-          ? [
-              {
-                ...existing,
-                title: existing.title || 'Brainstorming Result',
-                primitiveType: 'brainstorming_result',
-                order: 1,
-              },
-            ]
-          : [];
-      }
-      else {
-        currentContent = stageContents[stage] || [];
-      }
+      const currentContent = stageContents[stage] || [];
 
       const context = getProjectContext();
       if (!context) throw new Error("Project context is not available.");

@@ -70,7 +70,7 @@ export function useSequenceActions({
 
     setIsTyping(true);
     try {
-      const instruction = "Rewrite this scene to be more dramatic and cinematic. Maintain continuity with the previous and next scenes.";
+      const instruction = stageRegistry.get('Step Outline').prompts?.magic || "Refine this content for better cinematic quality.";
       
       const payload = await contextAssembler.buildPromptPayload(currentProject.id, 'Step Outline', id);
       const prompt = contextAssembler.formatPrompt(payload, instruction);

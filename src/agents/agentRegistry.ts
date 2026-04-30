@@ -1,9 +1,19 @@
-/**
- * AGENT REGISTRY — Maps stage IDs to their agent instances.
- * All agents are singletons built with dynamic imports for code-splitting.
- */
-
 import { IStageAgent } from '../types/stageContract';
+import { DraftAgent } from './DraftAgent';
+import { MetadataAgent } from './MetadataAgent';
+import { BrainstormingAgent } from './BrainstormingAgent';
+import { LoglineAgent } from './LoglineAgent';
+import { StructureAgent } from './StructureAgent';
+import { SynopsisAgent } from './SynopsisAgent';
+import { CharacterBibleAgent } from './CharacterBibleAgent';
+import { LocationBibleAgent } from './LocationBibleAgent';
+import { TreatmentAgent } from './TreatmentAgent';
+import { StepOutlineAgent } from './StepOutlineAgent';
+import { ScriptAgent } from './ScriptAgent';
+import { BreakdownAgent } from './BreakdownAgent';
+import { AssetAgent } from './AssetAgent';
+import { PrevisAgent } from './PrevisAgent';
+import { ExportAgent } from './ExportAgent';
 
 type AgentFactory = () => Promise<IStageAgent>;
 
@@ -14,23 +24,23 @@ class AgentRegistry {
   constructor() {
     this._instances = new Map();
     this._agents = new Map<string, AgentFactory>([
-      ['Project Metadata', async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
-      ['Initial Draft',    async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
-      ['Brainstorming',    async () => new (await import('./BrainstormingAgent')).BrainstormingAgent()],
-      ['Logline',          async () => new (await import('./LoglineAgent')).LoglineAgent()],
-      ['3-Act Structure',  async () => new (await import('./StructureAgent')).StructureAgent()],
-      ['8-Beat Structure', async () => new (await import('./StructureAgent')).StructureAgent()], // Placeholder
-      ['Synopsis',         async () => new (await import('./SynopsisAgent')).SynopsisAgent()],
-      ['Character Bible',  async () => new (await import('./CharacterBibleAgent')).CharacterBibleAgent()],
-      ['Location Bible',   async () => new (await import('./LocationBibleAgent')).LocationBibleAgent()],
-      ['Treatment',        async () => new (await import('./TreatmentAgent')).TreatmentAgent()],
-      ['Step Outline',     async () => new (await import('./StepOutlineAgent')).StepOutlineAgent()],
-      ['Script',           async () => new (await import('./ScriptAgent')).ScriptAgent()],
-      ['Global Script Doctoring', async () => new (await import('./ScriptAgent')).ScriptAgent()], // Placeholder
-      ['Technical Breakdown',     async () => new (await import('./ScriptAgent')).ScriptAgent()], // Placeholder
-      ['Visual Assets',           async () => new (await import('./CharacterBibleAgent')).CharacterBibleAgent()], // Placeholder
-      ['AI Previs',               async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
-      ['Production Export',       async () => new (await import('./LoglineAgent')).LoglineAgent()], // Placeholder
+      ['Project Metadata', async () => new MetadataAgent()],
+      ['Initial Draft',    async () => new DraftAgent()],
+      ['Brainstorming',    async () => new BrainstormingAgent()],
+      ['Logline',          async () => new LoglineAgent()],
+      ['3-Act Structure',  async () => new StructureAgent()],
+      ['8-Beat Structure', async () => new StructureAgent()],
+      ['Synopsis',         async () => new SynopsisAgent()],
+      ['Character Bible',  async () => new CharacterBibleAgent()],
+      ['Location Bible',   async () => new LocationBibleAgent()],
+      ['Treatment',        async () => new TreatmentAgent()],
+      ['Step Outline',     async () => new StepOutlineAgent()],
+      ['Script',           async () => new ScriptAgent()],
+      ['Global Script Doctoring', async () => new ScriptAgent()],
+      ['Technical Breakdown',     async () => new BreakdownAgent()],
+      ['Visual Assets',           async () => new AssetAgent()],
+      ['AI Previs',               async () => new PrevisAgent()],
+      ['Production Export',       async () => new ExportAgent()],
     ]);
   }
 

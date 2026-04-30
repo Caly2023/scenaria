@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { StepLayout } from './StepLayout';
 import { useProject } from '@/contexts/ProjectContext';
 import { StageDefinition } from '@/config/stageRegistry';
 import { PrimitiveList } from './PrimitiveList';
 import { PrimitiveAddButton } from './PrimitiveAddButton';
+import { Lightbox } from '../ui/Lightbox';
 
 interface UnifiedStageProps {
   definition: StageDefinition;
@@ -89,30 +89,11 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
         )}
       </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {fullscreenImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-12"
-            onClick={() => setFullscreenImage(null)}
-          >
-            <button className="absolute top-12 right-12 p-4 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all">
-              <X className="w-8 h-8" />
-            </button>
-            <motion.img 
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              src={fullscreenImage} 
-              className="max-w-full max-h-full rounded-2xl shadow-2xl"
-              referrerPolicy="no-referrer"
-              alt="Fullscreen character view"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Lightbox 
+        image={fullscreenImage} 
+        onClose={() => setFullscreenImage(null)} 
+        alt="Fullscreen character view"
+      />
     </StepLayout>
   );
 }

@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { User } from 'firebase/auth';
 import { Project, WorkflowStage } from '../types';
-import { useGetProjectsQuery, useGetProjectByIdQuery, useGetSubcollectionQuery } from '../services/firebaseService';
-import { buildStageContentsMap, RawCollections } from '../lib/stageContent';
+import { useGetProjectsQuery, useGetProjectByIdQuery } from '../services/firebaseService';
+import { buildStageContentsMap } from '../lib/stageContent';
 import type { ContentPrimitive } from '../types/stageContract';
 import { stageRegistry } from '../config/stageRegistry';
+import { useStageGatedSubcollections } from './useStageGatedSubcollections';
+
 interface ProjectDataState {
   projects: Project[];
   currentProject: Project | null;
@@ -65,51 +67,10 @@ export function useProjectData(user: User | null): ProjectDataState {
   }, [activeStage]);
 
   // ── Stage-gated subcollection fetches ──────────────────────────────────────
-  // Each hook fires only when the active stage order >= the gate's minOrder.
-  // Collection names and gate orders come from stageRegistry — add new stages there.
-  // RTK Query deduplicates identical queries and caches results.
-
-  const { data: pitchPrimitives     = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Brainstorming'),     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Brainstorming').order });
-  const { data: draftPrimitives     = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Initial Draft'),     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Initial Draft').order });
-  const { data: loglinePrimitives   = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Logline'),           orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Logline').order });
-  const { data: structurePrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('3-Act Structure'),   orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('3-Act Structure').order });
-  const { data: beatPrimitives      = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('8-Beat Structure'),   orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('8-Beat Structure').order });
-  const { data: synopsisPrimitives  = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Synopsis'),          orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Synopsis').order });
-  const { data: characters          = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Character Bible')                                }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Character Bible').order });
-  const { data: locations           = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Location Bible')                                 }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Location Bible').order });
-  const { data: treatmentSequences  = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Treatment'),       orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Treatment').order });
-  const { data: sequences           = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Step Outline'),     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Step Outline').order });
-  const { data: scriptScenes        = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Script'),           orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Script').order });
-  const { data: doctoringPrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Global Script Doctoring'), orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Global Script Doctoring').order });
-  const { data: breakdownPrimitives = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Technical Breakdown'), orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Technical Breakdown').order });
-  const { data: assetPrimitives     = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Visual Assets'),     orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Visual Assets').order });
-  const { data: previsPrimitives    = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('AI Previs'),        orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('AI Previs').order });
-  const { data: exportPrimitives    = [] } = useGetSubcollectionQuery({ projectId: currentProjectId || '', collectionName: stageRegistry.getCollectionName('Production Export'), orderByField: 'order' }, { skip: !currentProjectId || activeStageOrder < stageRegistry.get('Production Export').order });
-
-  const rawCollections = useMemo<RawCollections>(() => ({
-    [stageRegistry.getCollectionName('Brainstorming')]:           pitchPrimitives,
-    [stageRegistry.getCollectionName('Initial Draft')]:           draftPrimitives,
-    [stageRegistry.getCollectionName('Logline')]:                 loglinePrimitives,
-    [stageRegistry.getCollectionName('3-Act Structure')]:         structurePrimitives,
-    [stageRegistry.getCollectionName('8-Beat Structure')]:         beatPrimitives,
-    [stageRegistry.getCollectionName('Synopsis')]:                synopsisPrimitives,
-    [stageRegistry.getCollectionName('Character Bible')]:         characters,
-    [stageRegistry.getCollectionName('Location Bible')]:          locations,
-    [stageRegistry.getCollectionName('Treatment')]:               treatmentSequences,
-    [stageRegistry.getCollectionName('Step Outline')]:            sequences,
-    [stageRegistry.getCollectionName('Script')]:                  scriptScenes,
-    [stageRegistry.getCollectionName('Global Script Doctoring')]: doctoringPrimitives,
-    [stageRegistry.getCollectionName('Technical Breakdown')]:     breakdownPrimitives,
-    [stageRegistry.getCollectionName('Visual Assets')]:           assetPrimitives,
-    [stageRegistry.getCollectionName('AI Previs')]:               previsPrimitives,
-    [stageRegistry.getCollectionName('Production Export')]:       exportPrimitives,
-  }), [
-    pitchPrimitives, draftPrimitives, loglinePrimitives, structurePrimitives,
-    beatPrimitives, synopsisPrimitives, characters, locations,
-    treatmentSequences, sequences, scriptScenes,
-    doctoringPrimitives, breakdownPrimitives, assetPrimitives,
-    previsPrimitives, exportPrimitives,
-  ]);
+  const rawCollections = useStageGatedSubcollections({
+    projectId: currentProjectId,
+    activeStageOrder
+  });
 
   const stageContents = useMemo(
     () => buildStageContentsMap(rawCollections),

@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { Project, WorkflowStage } from '../../types';
-import { classifyError } from '../../lib/errorClassifier';
 import { 
   useUpdateProjectMetadataMutation 
 } from '../../services/firebaseService';
 import { interpretIntent, buildProjectContext, dispatchToAgent, persistAgentOutput } from '../../services/orchestration';
 import { ContentPrimitive } from '../../types/stageContract';
+import { runAsyncAction } from '@/utils/actionUtils';
 
 interface UseProjectActionsProps {
   currentProject: Project | null;
@@ -29,42 +29,41 @@ export function useProjectActions({
 
   const handleStageRefine = async (stage: WorkflowStage, feedback: string, blockId?: string) => {
     if (!currentProject) return;
-    setIsTyping(true);
-    if (blockId) setRefiningBlockId(blockId);
-    
-    try {
-      const decision = interpretIntent(feedback, stage, blockId);
-      const currentContent: ContentPrimitive[] = stageContents[stage] || [];
-      
-      const context = buildProjectContext(
-        currentProject.id,
-        currentProject.metadata,
-        stageContents,
-        currentProject.stageAnalyses || {}
-      );
 
-      const agentOutput = await dispatchToAgent(decision, context, currentContent);
-      await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Brainstorming' });
-      
-      // Handle special metadata updates (like Logline/Brainstorming)
-      if (agentOutput.metadataUpdates) {
-        const newMeta = { ...currentProject.metadata, ...agentOutput.metadataUpdates };
-        await updateMetadata({ id: currentProject.id, metadata: newMeta });
-      }
+    await runAsyncAction(
+      async () => {
+        const decision = interpretIntent(feedback, stage, blockId);
+        const currentContent: ContentPrimitive[] = stageContents[stage] || [];
+        
+        const context = buildProjectContext(
+          currentProject.id,
+          currentProject.metadata,
+          stageContents,
+          currentProject.stageAnalyses || {}
+        );
 
-      if (blockId) {
-        setLastUpdatedPrimitiveId(blockId);
-        setTimeout(() => setLastUpdatedPrimitiveId(null), 2000);
+        const agentOutput = await dispatchToAgent(decision, context, currentContent);
+        await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Brainstorming' });
+        
+        // Handle special metadata updates (like Logline/Brainstorming)
+        if (agentOutput.metadataUpdates) {
+          const newMeta = { ...currentProject.metadata, ...agentOutput.metadataUpdates };
+          await updateMetadata({ id: currentProject.id, metadata: newMeta }).unwrap();
+        }
+
+        if (blockId) {
+          setLastUpdatedPrimitiveId(blockId);
+          setTimeout(() => setLastUpdatedPrimitiveId(null), 2000);
+        }
+      },
+      {
+        setIsTyping,
+        setRefiningId: setRefiningBlockId,
+        refiningId: blockId,
+        addToast,
+        successMessage: t('common.refinedSuccessfully', { stage })
       }
-      
-      addToast(t('common.refinedSuccessfully', { stage }), 'success');
-    } catch (error) {
-      const classified = classifyError(error);
-      addToast(classified.userMessage, 'error');
-    } finally {
-      setIsTyping(false);
-      setRefiningBlockId(null);
-    }
+    );
   };
 
   return {

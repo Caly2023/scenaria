@@ -19,7 +19,7 @@ export function ProjectMetadataStage({
   onUpdate, 
   onValidate, 
   insight,
-  _isSaving = false 
+  isSaving = false 
 }: ProjectMetadataStageProps) {
   const { t } = useTranslation();
   const [localMeta, setLocalMeta] = useState<ProjectMetadata>(metadata);

@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Project, ContentPrimitive } from '../../types';
 import { geminiService } from '../../services/geminiService';
-import { classifyError } from '../../lib/errorClassifier';
 import { stageRegistry } from '../../config/stageRegistry';
 import { useUpdateSubcollectionDocMutation } from '../../services/firebaseService';
+import { runAsyncAction } from '@/utils/actionUtils';
 
 interface UseLocationActionsProps {
   currentProject: Project | null;
@@ -29,30 +29,30 @@ export function useLocationActions({
     const loc = locations.find(l => l.id === id);
     if (!loc) return;
 
-    setIsTyping(true);
-    setRefiningBlockId(id);
-    try {
-      const brainstorming = stageContents['Brainstorming'] || [];
-      const bStory = brainstorming.map(p => p.content).join('\n\n');
-      const developed = await geminiService.deepDevelopLocation(
-        { name: loc.title, description: loc.content } as any, 
-        bStory
-      );
-      const collectionName = stageRegistry.getCollectionName('Location Bible');
-      await updateSubcol({
-        projectId: currentProject.id,
-        collectionName,
-        docId: id,
-        data: { description: developed }
-      }).unwrap();
-      addToast(t('common.locationDeveloped', { defaultValue: 'Location developed!' }), 'success');
-    } catch (error) {
-      const classified = classifyError(error);
-      addToast(classified.userMessage, 'error');
-    } finally {
-      setIsTyping(false);
-      setRefiningBlockId(null);
-    }
+    await runAsyncAction(
+      async () => {
+        const brainstorming = stageContents['Brainstorming'] || [];
+        const bStory = brainstorming.map(p => p.content).join('\n\n');
+        const developed = await geminiService.deepDevelopLocation(
+          { name: loc.title, description: loc.content } as any, 
+          bStory
+        );
+        const collectionName = stageRegistry.getCollectionName('Location Bible');
+        await updateSubcol({
+          projectId: currentProject.id,
+          collectionName,
+          docId: id,
+          data: { description: developed }
+        }).unwrap();
+      },
+      {
+        setIsTyping,
+        setRefiningId: setRefiningBlockId,
+        refiningId: id,
+        addToast,
+        successMessage: t('common.locationDeveloped', { defaultValue: 'Location developed!' })
+      }
+    );
   };
 
   return {

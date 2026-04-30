@@ -114,12 +114,13 @@ export const projectApi = baseApi.injectEndpoints({
       { id: string; field: string; content: any }
     >({
       async queryFn({ id, field, content }) {
+        if (!id || !field) return { error: { message: "Missing id or field", status: 400 } };
         try {
           await updateDoc(doc(db, "projects", id), {
             [field]: content,
             updatedAt: serverTimestamp(),
           });
-          return { data: undefined };
+          return { data: null };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -148,12 +149,13 @@ export const projectApi = baseApi.injectEndpoints({
       { id: string; metadata: any }
     >({
       async queryFn({ id, metadata }) {
+        if (!id) return { error: { message: "Missing id", status: 400 } };
         try {
           await updateDoc(doc(db, "projects", id), {
             metadata,
             updatedAt: serverTimestamp(),
           });
-          return { data: undefined };
+          return { data: null };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -176,6 +178,7 @@ export const projectApi = baseApi.injectEndpoints({
 
     deleteProject: builder.mutation<void, string>({
       async queryFn(projectId) {
+        if (!projectId) return { error: { message: "Missing projectId", status: 400 } };
         try {
           const subcollections = stageRegistry.getAllCollectionNames();
           for (const sub of subcollections) {
@@ -187,7 +190,7 @@ export const projectApi = baseApi.injectEndpoints({
             }
           }
           await deleteDoc(doc(db, "projects", projectId));
-          return { data: undefined };
+          return { data: null };
         } catch (error: any) {
           return { error: classifyError(error) };
         }

@@ -70,6 +70,9 @@ export const subcollectionApi = baseApi.injectEndpoints({
       }
     >({
       async queryFn({ projectId, collectionName, docId, data }) {
+        if (!projectId || !collectionName || !docId) {
+          return { error: { message: "Missing required fields", status: 400 } };
+        }
         try {
           await updateDoc(
             doc(db, "projects", projectId, collectionName, docId),
@@ -78,7 +81,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
               updatedAt: serverTimestamp(),
             },
           );
-          return { data: undefined };
+          return { data: null };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -179,11 +182,14 @@ export const subcollectionApi = baseApi.injectEndpoints({
       }
     >({
       async queryFn({ projectId, collectionName, docId }) {
+        if (!projectId || !collectionName || !docId) {
+          return { error: { message: "Missing required fields", status: 400 } };
+        }
         try {
           await deleteDoc(
             doc(db, "projects", projectId, collectionName, docId),
           );
-          return { data: undefined };
+          return { data: null };
         } catch (error: any) {
           return { error: classifyError(error) };
         }
@@ -217,17 +223,20 @@ export const subcollectionApi = baseApi.injectEndpoints({
       { projectId: string; collectionName: string }
     >({
       async queryFn({ projectId, collectionName }) {
+        if (!projectId || !collectionName) {
+          return { error: { message: "Missing projectId or collectionName", status: 400 } };
+        }
         try {
           const snap = await getDocs(
             collection(db, "projects", projectId, collectionName),
           );
-          if (snap.empty) return { data: undefined };
+          if (snap.empty) return { data: null };
           
           const batch = writeBatch(db);
           snap.docs.forEach((d) => batch.delete(d.ref));
           await batch.commit();
           
-          return { data: undefined };
+          return { data: null };
         } catch (error: any) {
           return { error: classifyError(error) };
         }

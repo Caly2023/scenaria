@@ -91,6 +91,8 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     // 1. Update Project Level Analysis (Atomic)
     const analysisData = stripUndefined({
       evaluation: insight.evaluation || insight.content || insight.analysis || "",
+      isReady: !!insight.isReady,
+      score: insight.score,
       issues: insight.issues || [],
       recommendations: insight.recommendations || insight.suggestions || [],
       suggestedPrompt: insight.suggestedPrompt || "",
@@ -127,6 +129,20 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
         content: newState
       })
     ).unwrap();
+
+    // 2.5 Update validatedStages (Legacy Compatibility)
+    if (newState === "good" || newState === "excellent") {
+      const newValidatedStages = Array.from(
+        new Set([...(currentProject.validatedStages || []), stage as WorkflowStage])
+      );
+      await store.dispatch(
+        firebaseService.endpoints.updateProjectField.initiate({
+          id: currentProject.id,
+          field: "validatedStages",
+          content: newValidatedStages,
+        })
+      ).unwrap();
+    }
 
     // 3. AI Insight Primitive Alignment (Consistency with production UI)
     const sub = stageRegistry.getCollectionName(stage);

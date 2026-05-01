@@ -16,6 +16,8 @@ export type StageState = 'empty' | 'needs_improvement' | 'good' | 'excellent';
 
 export interface StageAnalysis {
   evaluation?: string;       // Professional AI narrative evaluation (markdown)
+  isReady?: boolean;         // Whether the stage passes quality gates
+  score?: number;            // Quality score (0-100)
   issues?: string[];         // Identified weaknesses or gaps
   recommendations?: string[]; // Actionable improvement suggestions
   suggestedPrompt?: string;  // Clear instruction for Script Doctor to fix issues

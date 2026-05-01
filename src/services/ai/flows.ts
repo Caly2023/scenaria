@@ -44,7 +44,11 @@ const scriptDoctorFlow = ai.defineFlow(
         description: d.description,
         inputSchema: z.any(), 
         outputSchema: z.any(),
-      }, async () => ({}))),
+      }, async () => ({
+        // Tools are implemented client-side in scriptDoctorToolHandlers.
+        // Genkit flow only needs the schema to return functionCall objects
+        // to the client, which executes the real tool logic.
+      }))),
       config: { 
         temperature: 0.7,
         maxOutputTokens: 8192 

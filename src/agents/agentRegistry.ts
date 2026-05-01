@@ -14,6 +14,8 @@ import { BreakdownAgent } from './BreakdownAgent';
 import { AssetAgent } from './AssetAgent';
 import { PrevisAgent } from './PrevisAgent';
 import { ExportAgent } from './ExportAgent';
+import { Structure8BeatAgent } from './Structure8BeatAgent';
+import { GlobalScriptDoctorAgent } from './GlobalScriptDoctorAgent';
 
 type AgentFactory = () => Promise<IStageAgent>;
 
@@ -29,14 +31,14 @@ class AgentRegistry {
       ['Brainstorming',    async () => new BrainstormingAgent()],
       ['Logline',          async () => new LoglineAgent()],
       ['3-Act Structure',  async () => new StructureAgent()],
-      ['8-Beat Structure', async () => new StructureAgent()],
+      ['8-Beat Structure', async () => new Structure8BeatAgent()],
       ['Synopsis',         async () => new SynopsisAgent()],
       ['Character Bible',  async () => new CharacterBibleAgent()],
       ['Location Bible',   async () => new LocationBibleAgent()],
       ['Treatment',        async () => new TreatmentAgent()],
       ['Step Outline',     async () => new StepOutlineAgent()],
       ['Script',           async () => new ScriptAgent()],
-      ['Global Script Doctoring', async () => new ScriptAgent()],
+      ['Global Script Doctoring', async () => new GlobalScriptDoctorAgent()],
       ['Technical Breakdown',     async () => new BreakdownAgent()],
       ['Visual Assets',           async () => new AssetAgent()],
       ['AI Previs',               async () => new PrevisAgent()],

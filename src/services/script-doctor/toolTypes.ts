@@ -1,3 +1,4 @@
+import React from "react";
 import { WorkflowStage } from "../../types";
 import { ScriptDoctorMessage, ToolResult } from "../../types/scriptDoctor";
 import { ContentPrimitive } from "../../types/stageContract";

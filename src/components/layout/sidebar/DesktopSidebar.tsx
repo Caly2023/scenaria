@@ -76,11 +76,11 @@ export function DesktopSidebar({ stages, activeStage, onStageChange, isStageUnlo
     if (el) {
       el.addEventListener('scroll', checkScroll);
       window.addEventListener('resize', checkScroll);
-      return () => {
-        el.removeEventListener('scroll', checkScroll);
-        window.removeEventListener('resize', checkScroll);
-      };
     }
+    return () => {
+      if (el) el.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
   }, [stages]);
 
   useEffect(() => {

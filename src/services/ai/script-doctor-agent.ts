@@ -11,6 +11,7 @@ import {
   extractResponseParts,
 } from "../../utils/scriptDoctorUtils";
 import { WorkflowStage } from "../../types";
+import { geminiService } from "../geminiService";
 
 interface AgentIterationResult {
   finalResponse: string;
@@ -31,7 +32,6 @@ class ScriptDoctorAgent {
       onIterationComplete?: (parts: GeminiPart[], toolResults: GeminiPart[]) => void;
     }
   ): Promise<AgentIterationResult> {
-    const { geminiService } = await import("../geminiService");
     const payload = await contextAssembler.buildPromptPayload(projectId, activeStage);
     const context = contextAssembler.formatPrompt(payload, "");
 

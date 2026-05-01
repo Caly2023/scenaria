@@ -4,6 +4,7 @@ import { contextAssembler } from "../context";
 import { getArgString, getArgArray } from "../../utils/scriptDoctorUtils";
 import { mapPrimitiveToDb } from "../../utils/primitiveUtils";
 import { WorkflowStage } from "../../types";
+import { stageRegistry } from "../../config/stageRegistry";
 
 export const getStageStructure: ToolHandler = async (args, context) => {
   const { currentProject } = context;
@@ -31,17 +32,13 @@ export const researchContext: ToolHandler = async (args, context) => {
   telemetryService.setStatus("research_context", "🔍", `Context search: ${stageName}...`);
   
   let items: any[] = [];
-  const localDataMap: Record<string, any[]> = {
-    Brainstorming: stageContents["Brainstorming"] || [],
-    "Character Bible": characters,
-    "Location Bible": locations,
-    "Step Outline": stageContents["Step Outline"] || [],
-    Treatment: stageContents["Treatment"] || [],
-    Script: stageContents["Script"] || [],
-  };
-
-  if (localDataMap[stageName] && localDataMap[stageName].length > 0) {
-    items = localDataMap[stageName];
+  
+  if (stageName === "Character Bible") {
+      items = characters;
+  } else if (stageName === "Location Bible") {
+      items = locations;
+  } else if (stageContents[stageName] && stageContents[stageName].length > 0) {
+      items = stageContents[stageName];
   } else {
     items = await contextAssembler.getStageStructure(currentProject.id, stageName);
   }

@@ -76,7 +76,7 @@ export const restructureStage: ToolHandler = async (args, context) => {
 
   try {
     const existingItems = stageContents[stage] || [];
-    const newIds = new Set(primitives.map((p: any) => p.id || p.primitive_id).filter(Boolean));
+    const newIds = new Set(primitives.map((p: any) => (p && (p.id || p.primitive_id))).filter(Boolean));
 
     for (const item of existingItems) {
       if (!newIds.has(item.id)) {
@@ -95,8 +95,8 @@ export const restructureStage: ToolHandler = async (args, context) => {
       const id = p.id || p.primitive_id;
       
       const safe = mapPrimitiveToDb(stage, {
-        title: p.title || p.name || "Untitled",
-        content: p.content || p.description || "",
+        title: (p && (p.title || p.name)) || "Untitled",
+        content: (p && (p.content || p.description)) || "",
         order: i,
         ...p,
       });

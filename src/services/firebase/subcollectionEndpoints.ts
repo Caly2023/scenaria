@@ -242,6 +242,63 @@ export const subcollectionApi = baseApi.injectEndpoints({
         }
       },
     }),
+
+    setSubcollectionDoc: builder.mutation<
+      void,
+      {
+        projectId: string;
+        collectionName: string;
+        docId: string;
+        data: any;
+        orderByField?: string;
+      }
+    >({
+      async queryFn({ projectId, collectionName, docId, data }) {
+        if (!projectId || !collectionName || !docId) {
+          return { error: { message: "Missing required fields", status: 400 } };
+        }
+        try {
+          const { setDoc } = await import("firebase/firestore");
+          await setDoc(
+            doc(db, "projects", projectId, collectionName, docId),
+            {
+              ...data,
+              updatedAt: serverTimestamp(),
+            },
+          );
+          return { data: undefined };
+        } catch (error: any) {
+          return { error: classifyError(error) };
+        }
+      },
+      async onQueryStarted(
+        { projectId, collectionName, docId, data, orderByField },
+        { dispatch, queryFulfilled },
+      ) {
+        const patchResult = dispatch(
+          subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName, orderByField },
+            (draft) => {
+              const index = draft.findIndex((item: any) => item.id === docId);
+              if (index !== -1) {
+                draft[index] = { ...draft[index], ...data };
+              } else {
+                draft.push({ id: docId, ...data });
+                if (orderByField) {
+                  draft.sort((a: any, b: any) => (a[orderByField] > b[orderByField] ? 1 : -1));
+                }
+              }
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
   }),
 });
 

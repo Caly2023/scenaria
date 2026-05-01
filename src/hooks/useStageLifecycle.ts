@@ -82,6 +82,7 @@ export function useStageLifecycle({
       }
     } catch (error) {
       console.error(`[StageGeneration] Failed for "${targetStage}":`, error);
+      throw error; // Rethrow so tool handlers can detect failure
     }
   };
 

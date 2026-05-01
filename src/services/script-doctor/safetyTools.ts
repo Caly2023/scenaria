@@ -77,11 +77,12 @@ export const undoLastAction: ToolHandler = async (args, context) => {
         })
       ).unwrap();
 
-    } else if (lastAction.type === "delete" && lastAction.collectionName && lastAction.previousData) {
+    } else if (lastAction.type === "delete" && lastAction.collectionName && lastAction.docId && lastAction.previousData) {
       await store.dispatch(
-        firebaseService.endpoints.addSubcollectionDoc.initiate({
+        (firebaseService.endpoints as any).setSubcollectionDoc.initiate({
           projectId: lastAction.projectId,
           collectionName: lastAction.collectionName,
+          docId: lastAction.docId,
           data: lastAction.previousData,
         })
       ).unwrap();

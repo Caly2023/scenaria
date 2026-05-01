@@ -147,3 +147,37 @@ export const readUserPreferences: ToolHandler = async (args, context) => {
     return { success: false, error: error.message };
   }
 };
+
+/**
+ * update_agent_memory
+ * Permet à l'agent de persister ses propres notes ou réflexions ("scratchpad")
+ * au sein du projet, pour les retrouver lors d'une session ultérieure.
+ */
+export const updateAgentMemory: ToolHandler = async (args, context) => {
+  const { currentProject, addToast } = context;
+  const memory = getArgString(args, "memory") ?? "";
+
+  telemetryService.setStatus("update_agent_memory", "🧠", "Updating agent scratchpad...");
+
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../firebaseService");
+
+  try {
+    // We store this in a special key in metadata to ensure persistence
+    await store.dispatch(
+      firebaseService.endpoints.updateProjectMetadata.initiate({
+        id: currentProject.id,
+        metadata: { 
+          ...currentProject.metadata, 
+          agent_scratchpad: memory 
+        } as any
+      })
+    ).unwrap();
+
+    telemetryService.setStatus("update_agent_memory", "✅", "Memory persisted.");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+

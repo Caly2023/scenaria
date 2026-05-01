@@ -75,3 +75,30 @@ export const focusElement: ToolHandler = async (args, context) => {
     return { success: false, error: error.message };
   }
 };
+
+/**
+ * toggle_ui_panel
+ * Permet à l'agent de manipuler l'interface utilisateur en ouvrant ou fermant
+ * des panneaux spécifiques (chat, settings, sidebar, help).
+ */
+export const toggleUiPanel: ToolHandler = async (args, context) => {
+  const panel = getArgString(args, "panel") ?? "";
+  const state = getArgString(args, "state") ?? "toggle"; // "open" | "close" | "toggle"
+
+  if (!panel) return { success: false, error: "panel argument is required" };
+
+  telemetryService.setStatus("toggle_ui_panel", "🖥️", `${state}ing panel: ${panel}...`);
+
+  try {
+    const event = new CustomEvent("scenaria:ui_panel_control", {
+      detail: { panel, state },
+      bubbles: true,
+    });
+    document.dispatchEvent(event);
+
+    return { success: true, panel, state };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+

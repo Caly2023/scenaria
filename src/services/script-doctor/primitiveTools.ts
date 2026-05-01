@@ -7,7 +7,7 @@ import { WorkflowStage } from "../../types";
 import { registerUndoableAction } from "./safetyTools";
 
 export const proposePatch: ToolHandler = async (args, context) => {
-  const { currentProject, subcollectionMap, setRefiningBlockId, handleStageAnalyze, setLastUpdatedPrimitiveId, addToast, t } = context;
+  const { currentProject, subcollectionMap, stageContents, setRefiningBlockId, handleStageAnalyze, setLastUpdatedPrimitiveId, addToast, t } = context;
   const id = getArgString(args, "id") ?? "";
   const stage = getArgString(args, "stage") ?? "";
   const updates = getArgRecord(args, "updates") ?? {};
@@ -56,7 +56,7 @@ export const proposePatch: ToolHandler = async (args, context) => {
 };
 
 export const executeMultiStageFix: ToolHandler = async (args, context) => {
-  const { currentProject, subcollectionMap, handleStageAnalyze, addToast, t } = context;
+  const { currentProject, subcollectionMap, stageContents, handleStageAnalyze, addToast, t } = context;
   const fixes = getArgArray(args, "fixes") ?? [];
   telemetryService.setStatus("execute_multi_stage_fix", "🔗", `Coordinating multi-stage architectural fix...`);
   
@@ -91,7 +91,7 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
 };
 
 export const addPrimitive: ToolHandler = async (args, context) => {
-  const { currentProject, subcollectionMap, handleStageAnalyze, addToast, t } = context;
+  const { currentProject, subcollectionMap, stageContents, handleStageAnalyze, addToast, t } = context;
   const stage = getArgString(args, "stage") ?? "";
   const primitive = getArgRecord(args, "primitive") ?? {};
   
@@ -136,7 +136,7 @@ export const addPrimitive: ToolHandler = async (args, context) => {
 };
 
 export const deletePrimitive: ToolHandler = async (args, context) => {
-  const { currentProject, subcollectionMap, handleStageAnalyze, addToast, t } = context;
+  const { currentProject, subcollectionMap, stageContents, handleStageAnalyze, addToast, t } = context;
   const id = getArgString(args, "id") ?? "";
   const stage = getArgString(args, "stage") ?? "";
   

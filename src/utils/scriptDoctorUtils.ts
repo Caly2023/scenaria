@@ -80,21 +80,21 @@ export function buildFunctionResponsePart(name: string, output: unknown): Gemini
  * normalizeHistory — converts ScriptDoctorMessage[] to Gemini REST API "contents" format.
  *
  * Gemini multi-turn format:
- *   { role: "user",  parts: [{ text }] }
- *   { role: "model", parts: [{ text } | { functionCall }] }
- *   { role: "user",  parts: [{ functionResponse }] }   ← tool results!
+ *   { role: "user",  content: [{ text }] }
+ *   { role: "model", content: [{ text } | { functionCall }] }
+ *   { role: "user",  content: [{ functionResponse }] }   ← tool results!
  *
  * IMPORTANT: In the Gemini REST API, function responses go in a "user" role turn,
  * NOT a "tool" role turn. This function handles the conversion automatically.
  */
-export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; parts: GeminiPart[] }> {
+export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role: string; content: GeminiPart[] }> {
   if (!messages || messages.length === 0) return [];
 
-  const history: Array<{ role: string; parts: GeminiPart[] }> = [];
+  const history: Array<{ role: string; content: GeminiPart[] }> = [];
 
   for (const msg of messages) {
     if (msg.role === "user") {
-      history.push({ role: "user", parts: [{ text: msg.content || "" }] });
+      history.push({ role: "user", content: [{ text: msg.content || "" }] });
       continue;
     }
 
@@ -119,23 +119,23 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
         }
       }
 
-      if (modelParts.length > 0) history.push({ role: "model", parts: modelParts });
-      if (toolResultParts.length > 0) history.push({ role: "user", parts: toolResultParts });
+      if (modelParts.length > 0) history.push({ role: "model", content: modelParts });
+      if (toolResultParts.length > 0) history.push({ role: "user", content: toolResultParts });
       continue;
     }
 
     // Plain assistant text message
-    history.push({ role: "model", parts: [{ text: msg.content || "" }] });
+    history.push({ role: "model", content: [{ text: msg.content || "" }] });
   }
 
   // Merge consecutive same-role entries
-  const merged: Array<{ role: string; parts: GeminiPart[] }> = [];
+  const merged: Array<{ role: string; content: GeminiPart[] }> = [];
   for (const entry of history) {
     const last = merged[merged.length - 1];
     if (last && last.role === entry.role) {
-      last.parts.push(...entry.parts);
+      last.content.push(...entry.content);
     } else {
-      merged.push({ role: entry.role, parts: [...entry.parts] });
+      merged.push({ role: entry.role, content: [...entry.content] });
     }
   }
 
@@ -151,7 +151,7 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
     const lastUserMsg = safeMessages.reverse().find(m => m && m.role === "user");
     merged.push({ 
       role: "user", 
-      parts: [{ text: lastUserMsg?.content || "Continue" }] 
+      content: [{ text: lastUserMsg?.content || "Continue" }] 
     });
   }
 

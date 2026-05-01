@@ -12,6 +12,7 @@ interface ProjectDataState {
   currentProject: Project | null;
   currentProjectId: string | null;
   isProjectLoading: boolean;
+  isStageLoading: boolean;
   isProjectNotFound: boolean;
   stageContents: Record<string, ContentPrimitive[]>;
   handleProjectSelect: (id: string, projectObj?: Project) => void;

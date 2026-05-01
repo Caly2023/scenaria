@@ -41,4 +41,4 @@ export interface UseScriptDoctorProps {
 }
 
 export type GeminiPart = Record<string, unknown>;
-export type GeminiHistoryEntry = { role: string; parts: GeminiPart[] };
+export type GeminiHistoryEntry = { role: string; content: GeminiPart[] };

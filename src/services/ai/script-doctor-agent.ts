@@ -43,7 +43,7 @@ class ScriptDoctorAgent {
 
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
       if (!conversationHistory || conversationHistory.length === 0) {
-        conversationHistory = [{ role: "user", parts: [{ text: "Continue" }] }];
+        conversationHistory = [{ role: "user", content: [{ text: "Continue" }] }];
       }
 
       const result = await geminiService.scriptDoctorAgent(
@@ -121,8 +121,8 @@ class ScriptDoctorAgent {
 
       conversationHistory = [
         ...conversationHistory,
-        { role: "model", parts: modelTurnParts },
-        { role: "user", parts: toolResponseParts },
+        { role: "model", content: modelTurnParts },
+        { role: "user", content: toolResponseParts },
       ];
 
       if (iteration === MAX_ITERATIONS - 1) {

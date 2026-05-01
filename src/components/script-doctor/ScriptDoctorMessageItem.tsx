@@ -6,7 +6,9 @@ import {
   CheckCircle2,
   Bot,
   ChevronDown,
-  BrainCircuit
+  BrainCircuit,
+  AlertCircle,
+  Construction
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -78,14 +80,62 @@ export function ScriptDoctorMessageItem({
           </details>
         )}
 
-        <div className={cn(
-          "scenaria-markdown",
-          msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5 prose-headings:text-white prose-strong:text-white prose-em:text-white/70" : ""
-        )}>
-          <ReactMarkdown>
-            {String(displayContent)}
-          </ReactMarkdown>
-        </div>
+        {msg.status === "❌ Error" || String(displayContent).startsWith("Error:") ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 backdrop-blur-md relative overflow-hidden group/error"
+          >
+            {/* Background Glow */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/20 rounded-full blur-3xl opacity-50 group-hover/error:opacity-80 transition-opacity duration-700" />
+            
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-500 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-red-400">System Diagnostic Error</h4>
+                  <div className="h-1px flex-1 bg-red-500/10" />
+                </div>
+                <div className="text-sm font-medium leading-relaxed text-red-100/90 pr-4">
+                  <ReactMarkdown>
+                    {String(displayContent).replace(/^Error:\s*/, '')}
+                  </ReactMarkdown>
+                </div>
+                
+                <div className="pt-3 flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 text-[10px] text-red-400/60 font-bold uppercase tracking-wider">
+                    <Construction className="w-3 h-3" />
+                    <span>Resolution required</span>
+                  </div>
+                  {String(displayContent).toLowerCase().includes('billing') && (
+                    <a 
+                      href="https://aistudio.google.com/app/apikey" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-2 py-1 rounded bg-red-500/20 text-red-300 text-[9px] font-bold uppercase hover:bg-red-500/40 transition-colors flex items-center gap-1"
+                    >
+                      Check Billing status
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Decorative element */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
+          </motion.div>
+        ) : (
+          <div className={cn(
+            "scenaria-markdown",
+            msg.role === 'assistant' ? "prose-p:leading-relaxed prose-pre:bg-white/5 prose-headings:text-white prose-strong:text-white prose-em:text-white/70" : ""
+          )}>
+            <ReactMarkdown>
+              {String(displayContent)}
+            </ReactMarkdown>
+          </div>
+        )}
 
         {msg.role === 'assistant' && isPendingForThis && pendingToolCall && (
           <ToolConfirmation 

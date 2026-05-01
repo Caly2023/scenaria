@@ -156,7 +156,7 @@ export function useScriptDoctor({
       setDoctorMessages((prev) =>
         prev.map((m) =>
           m.id === botMsgId
-            ? { ...m, content: `Error: ${message}`, status: "❌ Error" }
+            ? { ...m, content: `Error: ${message}`, status: "❌ Error", suggested_actions: ['Retry'] }
             : m
         )
       );

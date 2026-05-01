@@ -78,6 +78,20 @@ export function useProjectData(user: User | null): ProjectDataState {
     [rawCollections],
   );
 
+  // ── Sync Telemetry ID-Map ──────────────────────────────────────────────────
+  // Keeps the Script Doctor's "eyes" in sync with the RTK Query cache.
+  useEffect(() => {
+    if (!currentProjectId || !stageContents) return;
+    
+    // Hydrate each stage into the telemetry service
+    Object.entries(stageContents).forEach(([stageName, primitives]) => {
+      const collectionName = stageRegistry.getCollectionName(stageName);
+      import('../services/telemetryService').then(({ telemetryService }) => {
+        telemetryService.hydrateStage(stageName, collectionName, primitives);
+      });
+    });
+  }, [currentProjectId, stageContents]);
+
   const handleProjectExit = () => {
     setCurrentProjectId(null);
     window.location.hash = '';

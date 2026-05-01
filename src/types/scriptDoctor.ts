@@ -38,6 +38,10 @@ export interface UseScriptDoctorProps {
   setRefiningBlockId: (id: string | null) => void;
   setLastUpdatedPrimitiveId?: (id: string | null) => void;
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
+  /** Optional: allows the agent to navigate the UI to a specific stage */
+  handleStageChange?: (stage: WorkflowStage) => void;
+  /** Optional: allows the agent to trigger AI generation for a stage */
+  triggerStageGeneration?: (stage: WorkflowStage) => Promise<void>;
 }
 
 export type GeminiPart = Record<string, unknown>;

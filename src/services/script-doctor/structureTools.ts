@@ -33,16 +33,21 @@ export const researchContext: ToolHandler = async (args, context) => {
   
   let items: any[] = [];
   
-  const sDef = stageRegistry.get(stageName);
-  
-  if (sDef.collectionName === "characters") {
-      items = characters;
-  } else if (sDef.collectionName === "locations") {
-      items = locations;
-  } else if (stageContents[stageName] && stageContents[stageName].length > 0) {
-      items = stageContents[stageName];
-  } else {
-    items = await contextAssembler.getStageStructure(currentProject.id, stageName);
+  try {
+    const sDef = stageRegistry.get(stageName);
+    
+    if (sDef.collectionName === "characters") {
+        items = characters;
+    } else if (sDef.collectionName === "locations") {
+        items = locations;
+    } else if (stageContents[stageName] && stageContents[stageName].length > 0) {
+        items = stageContents[stageName];
+    } else {
+      items = await contextAssembler.getStageStructure(currentProject.id, stageName);
+    }
+  } catch (error) {
+    console.warn(`[research_context] Stage not found or inaccessible: ${stageName}`);
+    return { success: false, error: `Stage context not found: ${stageName}` };
   }
 
   return {

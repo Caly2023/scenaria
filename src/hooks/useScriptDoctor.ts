@@ -36,10 +36,7 @@ export function useScriptDoctor({
   handleStageAnalyze,
   handleStageChange,
   triggerStageGeneration,
-}: UseScriptDoctorProps & {
-  handleStageChange?: (stage: import("../types").WorkflowStage) => void;
-  triggerStageGeneration?: (stage: import("../types").WorkflowStage) => Promise<void>;
-}) {
+}: UseScriptDoctorProps) {
   const [isDoctorOpen, setIsDoctorOpen] = useState(false);
   const [doctorMessages, setDoctorMessages] = useState<ScriptDoctorMessage[]>([]);
   const [isDoctorTyping, setIsDoctorTyping] = useState(false);
@@ -167,17 +164,19 @@ export function useScriptDoctor({
     }
   };
 
-  const handleDoctorMessage = async (content: string) => {
+  const handleDoctorMessage = useCallback(async (content: string) => {
     if (!currentProject) return;
 
     let resolvedContent = content;
     try {
-      const parsed = JSON.parse(content);
-      if (parsed?.type === "apply_suggestion") {
-        setDoctorMessages(prev => prev.map(m => m.id === parsed.msgId ? { ...m, status: "Applying..." } : m));
-        const referencedMsg = Array.isArray(doctorMessages) ? doctorMessages.find((m) => m.id === parsed.msgId) : undefined;
-        const extra = referencedMsg ? `\nContext: ${referencedMsg.content}` : "";
-        resolvedContent = `Apply suggestion: ${parsed.action}${extra}. Use tools directly.`;
+      if (content.startsWith('{')) {
+        const parsed = JSON.parse(content);
+        if (parsed?.type === "apply_suggestion") {
+          setDoctorMessages(prev => prev.map(m => m.id === parsed.msgId ? { ...m, status: "Applying..." } : m));
+          const referencedMsg = Array.isArray(doctorMessages) ? doctorMessages.find((m) => m.id === parsed.msgId) : undefined;
+          const extra = referencedMsg ? `\nContext: ${referencedMsg.content}` : "";
+          resolvedContent = `Apply suggestion: ${parsed.action}${extra}. Use tools directly.`;
+        }
       }
     } catch {
       /* plain text */
@@ -208,9 +207,9 @@ export function useScriptDoctor({
     // Build Gemini-format history (excludes the new bot placeholder)
     const history = normalizeHistory([...messagesRef.current, newUserMsg]);
     await runAgentLoop(history, botMsgId, complexity);
-  };
+  }, [currentProject, doctorMessages, runAgentLoop]);
 
-  const handleConfirmTool = async () => {
+  const handleConfirmTool = useCallback(async () => {
     if (!pendingToolCall || !currentProject) return;
 
     const { call, botMsgId } = pendingToolCall;
@@ -255,9 +254,9 @@ export function useScriptDoctor({
       setIsDoctorTyping(false);
       setActiveTool(null);
     }
-  };
+  }, [pendingToolCall, currentProject, executeToolCall, runAgentLoop]);
 
-  const handleCancelTool = () => {
+  const handleCancelTool = useCallback(() => {
     if (!pendingToolCall) return;
     const { botMsgId } = pendingToolCall;
     setPendingToolCall(null);
@@ -271,7 +270,7 @@ export function useScriptDoctor({
           : m
       )
     );
-  };
+  }, [pendingToolCall]);
 
 
   return useMemo(() => ({

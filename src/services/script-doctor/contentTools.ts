@@ -15,8 +15,14 @@ export const searchProjectContent: ToolHandler = async (args, context) => {
   return {
     success: true,
     data: {
-      characters: characters.filter(c => c.title.toLowerCase().includes(q) || c.content.toLowerCase().includes(q)),
-      locations: locations.filter(l => l.title.toLowerCase().includes(q) || l.content.toLowerCase().includes(q)),
+      characters: characters.filter(c => 
+        (c.title || (c as any).name || "").toLowerCase().includes(q) || 
+        (c.content || (c as any).description || "").toLowerCase().includes(q)
+      ),
+      locations: locations.filter(l => 
+        (l.title || (l as any).name || "").toLowerCase().includes(q) || 
+        (l.content || (l as any).description || "").toLowerCase().includes(q)
+      ),
     }
   };
 };

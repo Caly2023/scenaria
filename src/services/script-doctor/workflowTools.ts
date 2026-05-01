@@ -135,7 +135,7 @@ export const approveStage: ToolHandler = async (args, context) => {
       })
     ).unwrap();
 
-    // 2. Advance to the next stage
+    // 3. Advance to the next stage
     const allStageIds = stageRegistry.getAllIds();
     const currentIndex = allStageIds.indexOf(stage);
     const nextStage = allStageIds[currentIndex + 1] as WorkflowStage | undefined;

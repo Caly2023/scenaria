@@ -27,6 +27,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     currentProject,
     currentProjectId,
     isProjectLoading,
+    isStageLoading,
     isProjectNotFound,
     handleProjectSelect,
     handleProjectExit,
@@ -41,11 +42,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleContentUpdate,
     handleSubcollectionUpdate
   } = useProjectSync(currentProject, addToast, (_coll, _id) => {
-    // Auto-trigger analysis when content changes, with a longer debounce
-    if (autoAnalyzeTimeoutRef.current) clearTimeout(autoAnalyzeTimeoutRef.current);
-    autoAnalyzeTimeoutRef.current = setTimeout(() => {
-      handleStageAnalyze(activeStage);
-    }, 3000); // 3 second delay after last sync
+    // Sync complete - no automatic AI calls here to minimize tokens
   });
 
   const getProjectContext = useCallback(() => {
@@ -154,6 +151,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     currentProject,
     currentProjectId,
     isProjectLoading,
+    isStageLoading,
     isProjectNotFound,
     isTyping,
     setIsTyping,
@@ -189,7 +187,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     ...locationActions,
     ...sequenceActions
   }), [
-    projects, currentProject, currentProjectId, isProjectLoading, isProjectNotFound,
+    projects, currentProject, currentProjectId, isProjectLoading, isStageLoading, isProjectNotFound,
     isTyping, isRegenerating, syncStatus, activeStage, stageContents,
     isDeleting, projectToDelete, refiningBlockId, lastUpdatedPrimitiveId,
     handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete,

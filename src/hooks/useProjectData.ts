@@ -67,7 +67,7 @@ export function useProjectData(user: User | null): ProjectDataState {
   }, [activeStage]);
 
   // ── Stage-gated subcollection fetches ──────────────────────────────────────
-  const rawCollections = useStageGatedSubcollections({
+  const { data: rawCollections, isLoading: isStageLoading } = useStageGatedSubcollections({
     projectId: currentProjectId,
     activeStageOrder
   });
@@ -107,6 +107,7 @@ export function useProjectData(user: User | null): ProjectDataState {
     currentProject: returnedProject,
     currentProjectId,
     isProjectLoading: loading,
+    isStageLoading,
     isProjectNotFound,
     stageContents,
     handleProjectSelect,

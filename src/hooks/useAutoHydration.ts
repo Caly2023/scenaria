@@ -15,6 +15,7 @@ interface UseAutoHydrationProps {
   currentProject: Project | null;
   stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  isStageLoading: boolean;
   onStageAnalyze: (stage: WorkflowStage) => Promise<void>;
 }
 
@@ -23,6 +24,7 @@ export function useAutoHydration({
   currentProject,
   stageContents,
   addToast,
+  isStageLoading,
   onStageAnalyze,
 }: UseAutoHydrationProps): HydrationState {
   const [hydrationState, setHydrationState] = useState<HydrationState>({
@@ -78,7 +80,7 @@ export function useAutoHydration({
   ]);
 
   useEffect(() => {
-    if (!currentProject) return;
+    if (!currentProject || isStageLoading) return;
 
     const config = getHydrationConfig();
     if (!config) return;
@@ -123,7 +125,7 @@ export function useAutoHydration({
           hydratingLabel: null,
         });
       });
-  }, [activeStage, currentProject, getHydrationConfig, addToast, onStageAnalyze, stageContents]);
+  }, [activeStage, currentProject, getHydrationConfig, addToast, onStageAnalyze, stageContents, isStageLoading]);
 
   useEffect(() => {
     checkedStages.current.clear();

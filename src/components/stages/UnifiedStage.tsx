@@ -20,6 +20,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
   const {
     currentProject,
     isTyping,
+    isStageLoading,
     hydrationState,
     lastUpdatedPrimitiveId,
     handleStageValidate,
@@ -36,6 +37,10 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
   } = project;
 
   if (!currentProject) return null;
+  
+  if (isStageLoading && !project.stageContents[definition.id]?.length) {
+    return <div className="flex-1 flex items-center justify-center py-20"><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full" /></div>;
+  }
 
   const analysis = currentProject.stageAnalyses?.[definition.id];
   const primitives = project.stageContents[definition.id] || [];

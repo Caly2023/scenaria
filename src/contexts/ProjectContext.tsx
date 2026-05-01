@@ -23,6 +23,7 @@ interface ProjectContextType {
 
   // States
   isProjectLoading: boolean;
+  isStageLoading: boolean;
   isProjectNotFound: boolean;
   isTyping: boolean;
   isRegenerating: boolean;
@@ -116,6 +117,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     currentProject,
     stageContents,
     addToast,
+    isStageLoading: projectHook.isStageLoading,
     onStageAnalyze: handleStageAnalyze
   });
 

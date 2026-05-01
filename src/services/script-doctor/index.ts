@@ -1,5 +1,5 @@
 import { ToolHandler } from "./toolTypes";
-import { fetchProjectState, syncMetadata } from "./projectTools";
+import { fetchProjectState, syncMetadata, updateStageInsight } from "./projectTools";
 import { getStageStructure, researchContext, restructureStage } from "./structureTools";
 import { fetchCharacterDetails, searchProjectContent } from "./contentTools";
 import { proposePatch, executeMultiStageFix, addPrimitive, deletePrimitive } from "./primitiveTools";
@@ -19,6 +19,7 @@ export const scriptDoctorToolHandlers: Record<string, ToolHandler> = {
   delete_primitive: deletePrimitive,
   update_agent_status: updateAgentStatus,
   set_suggested_actions: setSuggestedActions,
+  update_stage_insight: updateStageInsight,
 };
 
 export * from "./toolTypes";

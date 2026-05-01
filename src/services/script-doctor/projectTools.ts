@@ -1,6 +1,6 @@
 import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
-import { getArgRecord } from "../../utils/scriptDoctorUtils";
+import { getArgRecord, getArgString } from "../../utils/scriptDoctorUtils";
 import { stageRegistry } from "../../config/stageRegistry";
 
 export const fetchProjectState: ToolHandler = async (args, context) => {
@@ -56,5 +56,57 @@ export const syncMetadata: ToolHandler = async (args, context) => {
   
   addToast(context.t("common.metadataSynced"), "success");
   telemetryService.setStatus("sync_metadata", "✅", `Metadata synchronization complete.`);
+  return { success: true };
+};
+
+export const updateStageInsight: ToolHandler = async (args, context) => {
+  const { currentProject, addToast } = context;
+  const stage = getArgString(args, "stage") ?? "";
+  const insight = getArgRecord(args, "insight") as Record<string, any> ?? {};
+  
+  telemetryService.setStatus("update_stage_insight", "📊", `Saving insight for ${stage}...`);
+  
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
+
+  try {
+    const updatedAnalyses = {
+      ...(currentProject.stageAnalyses || {}),
+      [stage]: {
+        evaluation: insight.content || "",
+        issues: [],
+        recommendations: insight.suggestions || [],
+        suggestedPrompt: insight.suggestedPrompt || "",
+        updatedAt: Date.now()
+      }
+    };
+    
+    await store.dispatch(
+      firebaseService.endpoints.updateProjectField.initiate({
+        id: currentProject.id,
+        field: "stageAnalyses",
+        content: updatedAnalyses
+      })
+    ).unwrap();
+    
+    const updatedStates = {
+      ...(currentProject.stageStates || {}),
+      [stage]: insight.isReady ? "good" : "needs_improvement"
+    };
+    
+    await store.dispatch(
+      firebaseService.endpoints.updateProjectField.initiate({
+        id: currentProject.id,
+        field: "stageStates",
+        content: updatedStates
+      })
+    ).unwrap();
+    
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+  
+  addToast(context.t("common.insightUpdated"), "success");
+  telemetryService.setStatus("update_stage_insight", "✅", `Insight saved.`);
   return { success: true };
 };

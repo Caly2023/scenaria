@@ -114,7 +114,9 @@ export const fr = {
       metadataSynced: 'Métadonnées du projet synchronisées',
       primitiveAdded: 'Nouvel élément ajouté au projet',
       primitiveDeleted: 'Élément supprimé du projet',
-      stageRestructured: 'Étape restructurée avec succès'
+      stageRestructured: 'Étape restructurée avec succès',
+      newProject: 'Nouveau projet',
+      newStory: 'Nouvelle histoire'
     },
     stages: {
       'Project Metadata': {

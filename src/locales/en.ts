@@ -114,7 +114,9 @@ export const en = {
       metadataSynced: 'Project metadata synced',
       primitiveAdded: 'New element added to project',
       primitiveDeleted: 'Element removed from project',
-      stageRestructured: 'Stage restructured successfully'
+      stageRestructured: 'Stage restructured successfully',
+      newProject: 'New Project',
+      newStory: 'New Story'
     },
     stages: {
       'Project Metadata': {

@@ -50,75 +50,95 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center min-h-[60dvh] md:min-h-0 pb-40 md:pb-0">
-      {/* Main Content Area - Centered on mobile */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full py-12 md:py-0">
+    <div className="w-full min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4">
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#D4AF37]/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/5 blur-[120px] rounded-full" />
+        <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full" />
+      </div>
+
+      <div className="w-full max-w-5xl z-10 flex flex-col items-center">
+        {/* Logo & Brand */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="flex flex-col items-center gap-6 md:gap-8 z-10 w-full"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
+          className="flex flex-col items-center gap-6 mb-12 md:mb-20"
         >
           <div className="relative group">
-            <div className="absolute inset-0 bg-[#D4AF37]/10 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-1000 scale-150 pointer-events-none" />
-            <img 
-              src="/logo.png" 
-              alt="ScénarIA" 
-              className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.2)] relative z-10" 
-            />
+            <div className="absolute inset-0 bg-[#D4AF37]/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-150 pointer-events-none" />
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/10 to-transparent" />
+              <img 
+                src="/logo.png" 
+                alt="ScénarIA" 
+                className="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] relative z-10" 
+              />
+            </div>
           </div>
           
-          <div className="flex flex-col items-center text-center space-y-4 px-6">
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight opacity-95 [font-family:'Poppins',sans-serif]">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <h1 className="text-4xl md:text-7xl font-black tracking-tight [font-family:'Poppins',sans-serif] bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40">
               Scenar<span className="text-[#D4AF37]">ia</span>
             </h1>
-            <p className="text-lg md:text-xl text-white/90 font-medium max-w-md leading-tight">
+            <div className="h-px w-12 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent mb-2" />
+            <p className="text-lg md:text-2xl text-white/80 font-light max-w-xl leading-relaxed tracking-wide">
               {t('common.whatsTheStory')}
-            </p>
-            <p className="text-sm md:text-base text-white/50 leading-relaxed font-light tracking-wide max-w-lg">
-              {t('common.helperText')}
             </p>
           </div>
         </motion.div>
+
+        {/* Input Area */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          className={cn(
+            "w-full transition-all duration-500",
+            "fixed bottom-0 left-0 right-0 p-4 md:relative md:bottom-auto md:p-0",
+            "bg-gradient-to-t from-background via-background/90 to-transparent md:bg-none"
+          )}
+        >
+          <ProjectInput 
+            storyIdea={storyIdea}
+            setStoryIdea={setStoryIdea}
+            isFocused={isFocused}
+            setIsFocused={setIsFocused}
+            isCreating={isCreating}
+            creationStatus={creationStatus}
+            creationError={creationError}
+            setCreationError={setCreationError}
+            onSubmit={handleSubmit}
+            handleFileImport={handleFileImport}
+          />
+          
+          {/* Subtle Tip */}
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="hidden md:block text-center mt-8 text-xs font-medium text-white/20 uppercase tracking-[0.4em]"
+          >
+            {t('common.helperText')}
+          </motion.p>
+        </motion.div>
       </div>
 
-      {/* Input Area - Fixed at bottom on mobile */}
-      <div className={cn(
-        "w-full max-w-4xl z-20 transition-all duration-300",
-        "md:relative md:mt-12",
-        "fixed bottom-0 left-0 right-0 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] bg-gradient-to-t from-background via-background/95 to-transparent md:bg-none md:p-0 md:pb-0"
-      )}>
-        <ProjectInput 
-          storyIdea={storyIdea}
-          setStoryIdea={setStoryIdea}
-          isFocused={isFocused}
-          setIsFocused={setIsFocused}
-          isCreating={isCreating}
-          creationStatus={creationStatus}
-          creationError={creationError}
-          setCreationError={setCreationError}
-          onSubmit={handleSubmit}
-          handleFileImport={handleFileImport}
-        />
-        
-        {/* Mobile footer hint */}
-        <div className="md:hidden mt-2 text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-white/20 font-bold">
-            Powered by Gemini 2.0
-          </p>
-        </div>
-      </div>
-
-      {/* Desktop footer */}
+      {/* Footer Branding */}
       <motion.div 
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        className="hidden md:flex mt-32 pb-12 flex flex-col items-center gap-4"
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-30 hover:opacity-100 transition-opacity duration-500 hidden md:flex"
       >
-        <div className="w-8 h-[1px] bg-white/20" />
-        <p className="text-xs uppercase tracking-[0.6em] text-white/50 font-bold">
-          Powered by Gemini 2.0
-        </p>
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+          <p className="text-[10px] font-black uppercase tracking-[0.6em] text-white">
+            Powered by ScénarIA Intelligence
+          </p>
+          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+        </div>
       </motion.div>
     </div>
   );

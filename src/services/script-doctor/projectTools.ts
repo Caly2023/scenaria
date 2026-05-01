@@ -131,10 +131,17 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     ).unwrap();
 
     // 2.5 Update validatedStages (Legacy Compatibility)
+    const currentValidated = currentProject.validatedStages || [];
+    let newValidatedStages: WorkflowStage[];
+    
     if (newState === "good" || newState === "excellent") {
-      const newValidatedStages = Array.from(
-        new Set([...(currentProject.validatedStages || []), stage as WorkflowStage])
-      );
+      newValidatedStages = Array.from(new Set([...currentValidated, stage as WorkflowStage]));
+    } else {
+      // Remove from validated stages if it's no longer good/excellent
+      newValidatedStages = currentValidated.filter(s => s !== stage);
+    }
+
+    if (JSON.stringify(newValidatedStages) !== JSON.stringify(currentValidated)) {
       await store.dispatch(
         firebaseService.endpoints.updateProjectField.initiate({
           id: currentProject.id,

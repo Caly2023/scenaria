@@ -41,32 +41,33 @@ const scriptDoctorFlow = ai.defineFlow(
       messages,
       tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => {
         const buildZodSchema = (props: any, required: string[] = []): z.ZodObject<any> => {
-          return z.object(Object.fromEntries(
-            Object.entries(props || {}).map(([k, v]: [string, any]) => {
-              let schema: z.ZodTypeAny;
-              
-              if (v.type === 'ARRAY') {
-                schema = z.array(z.any());
-              } else if (v.type === 'OBJECT') {
-                // Recursive call for nested objects
-                schema = v.properties 
-                  ? buildZodSchema(v.properties, v.required || [])
-                  : z.record(z.any());
-              } else if (v.type === 'NUMBER') {
-                schema = z.number();
-              } else if (v.type === 'BOOLEAN') {
-                schema = z.boolean();
-              } else {
-                schema = z.string();
-              }
+          const shape: Record<string, z.ZodTypeAny> = {};
+          
+          for (const [k, v] of Object.entries(props || {})) {
+            const val = v as any;
+            let schema: z.ZodTypeAny;
+            
+            if (val.type === 'ARRAY') {
+              schema = z.array(z.any());
+            } else if (val.type === 'OBJECT') {
+              schema = val.properties 
+                ? buildZodSchema(val.properties, val.required || [])
+                : z.record(z.any());
+            } else if (val.type === 'NUMBER') {
+              schema = z.number();
+            } else if (val.type === 'BOOLEAN') {
+              schema = z.boolean();
+            } else {
+              schema = z.string();
+            }
 
-              if (!required.includes(k)) {
-                schema = schema.optional();
-              }
-
-              return [k, schema];
-            })
-          )).passthrough();
+            if (!required.includes(k)) {
+              schema = schema.optional();
+            }
+            shape[k] = schema;
+          }
+          
+          return z.object(shape).passthrough();
         };
 
         return ai.defineTool({

@@ -148,6 +148,9 @@ export const approveStage: ToolHandler = async (args, context) => {
           content: nextStage,
         })
       ).unwrap();
+      if (handleStageChange) {
+        handleStageChange(nextStage);
+      }
       addToast(`✅ ${stage} approuvé. Passage à ${nextStage}.`, "success");
       if (triggerFn) {
         await triggerFn(nextStage);

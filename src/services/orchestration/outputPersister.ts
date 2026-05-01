@@ -4,7 +4,7 @@ import { firebaseService } from '../firebaseService';
 import { AgentOutput, PersistResult } from '../../types/stageContract';
 import { stageRegistry } from '../../config/stageRegistry';
 import { telemetryService } from '../telemetryService';
-import { stripUndefined, isTemporaryId } from '../../utils/primitiveUtils';
+import { stripUndefined, isTemporaryId, mapPrimitiveToDb } from '../../utils/primitiveUtils';
 
 /**
  * Persists an AgentOutput to Firestore in strict order:
@@ -50,7 +50,7 @@ export async function persistAgentOutput(
       // Write all content primitives in parallel
       const writeResults = await Promise.all(
         output.content.map(async (prim, i) => {
-          const data = stripUndefined({
+          const data = stripUndefined(mapPrimitiveToDb(stageName, {
             title: prim.title,
             content: prim.content,
             order: prim.order ?? i,
@@ -61,7 +61,7 @@ export async function persistAgentOutput(
             updatedAt: serverTimestamp(),
             visualPrompt: prim.visualPrompt,
             ...(prim.metadata || {})
-          });
+          }));
           
           // If primitive has a real Firestore ID (not a temp one) → update
           if (prim.id && !isTemporaryId(prim.id)) {

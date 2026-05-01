@@ -2,6 +2,14 @@ export const en = {
   translation: {
     common: {
       project: 'Project',
+      title: 'Title',
+      format: 'Format',
+      genre: 'Genre',
+      tone: 'Tone',
+      targetDuration: 'Target Duration',
+      languages: 'Languages',
+      projectSettings: 'Project Settings',
+      deleteProject: 'Delete Project',
       search: 'Search...',
       synced: 'Synced',
       syncing: 'Syncing...',

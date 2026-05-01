@@ -39,40 +39,47 @@ const scriptDoctorFlow = ai.defineFlow(
       model: gemini31FlashLite,
       system: Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite'),
       messages,
-      tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => ai.defineTool({
-        name: d.name,
-        description: d.description,
-        inputSchema: d.parameters.type === 'OBJECT' 
-          ? z.object(Object.fromEntries(
-              Object.entries(d.parameters.properties || {}).map(([k, v]: [string, any]) => {
-                let schema: z.ZodTypeAny;
-                
-                if (v.type === 'ARRAY') {
-                  schema = z.array(z.any());
-                } else if (v.type === 'OBJECT') {
-                  schema = z.record(z.any());
-                } else if (v.type === 'NUMBER') {
-                  schema = z.number();
-                } else if (v.type === 'BOOLEAN') {
-                  schema = z.boolean();
-                } else {
-                  schema = z.string();
-                }
+      tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => {
+        const buildZodSchema = (props: any, required: string[] = []): z.ZodObject<any> => {
+          return z.object(Object.fromEntries(
+            Object.entries(props || {}).map(([k, v]: [string, any]) => {
+              let schema: z.ZodTypeAny;
+              
+              if (v.type === 'ARRAY') {
+                schema = z.array(z.any());
+              } else if (v.type === 'OBJECT') {
+                // Recursive call for nested objects
+                schema = v.properties 
+                  ? buildZodSchema(v.properties, v.required || [])
+                  : z.record(z.any());
+              } else if (v.type === 'NUMBER') {
+                schema = z.number();
+              } else if (v.type === 'BOOLEAN') {
+                schema = z.boolean();
+              } else {
+                schema = z.string();
+              }
 
-                // Mark as optional if not in the required list
-                const isRequired = (d.parameters.required || []).includes(k);
-                if (!isRequired) {
-                  schema = schema.optional();
-                }
+              if (!required.includes(k)) {
+                schema = schema.optional();
+              }
 
-                return [k, schema];
-              })
-            )).passthrough()
-          : z.any(), 
-        outputSchema: z.any(),
-      }, async () => ({
-        // Tools are implemented client-side in scriptDoctorToolHandlers.
-      }))),
+              return [k, schema];
+            })
+          )).passthrough();
+        };
+
+        return ai.defineTool({
+          name: d.name,
+          description: d.description,
+          inputSchema: d.parameters.type === 'OBJECT' 
+            ? buildZodSchema(d.parameters.properties, d.parameters.required || [])
+            : z.any(), 
+          outputSchema: z.any(),
+        }, async () => ({
+          // Tools are implemented client-side in scriptDoctorToolHandlers.
+        }));
+      }),
       config: { 
         temperature: 0.7,
         maxOutputTokens: 8192,

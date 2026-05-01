@@ -17,12 +17,23 @@ export const proposePatch: ToolHandler = async (args, context) => {
   const sub = subcollectionMap[stage];
   if (!sub) return { success: false, error: `Invalid stage: ${stage}` };
 
-  const { db } = await import("../../lib/firebase");
-  const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore");
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
 
-  const docRef = doc(db, "projects", currentProject.id, sub, id);
-  const safeUpdates = mapPrimitiveToDb(stage, updates);
-  await updateDoc(docRef, { ...safeUpdates, updatedAt: serverTimestamp() });
+  try {
+    const safeUpdates = mapPrimitiveToDb(stage, updates);
+    await store.dispatch(
+      firebaseService.endpoints.updateSubcollectionDoc.initiate({
+        projectId: currentProject.id,
+        collectionName: sub,
+        docId: id,
+        data: safeUpdates
+      })
+    ).unwrap();
+  } catch (error: any) {
+    setRefiningBlockId(null);
+    return { success: false, error: error.message };
+  }
   
   await contextAssembler.getStageStructure(currentProject.id, stage);
   await handleStageAnalyze(stage as WorkflowStage);
@@ -39,14 +50,25 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
   const fixes = getArgArray(args, "fixes") ?? [];
   telemetryService.setStatus("execute_multi_stage_fix", "🔗", `Coordinating multi-stage architectural fix...`);
   
-  const { db } = await import("../../lib/firebase");
-  const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore");
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
 
-  for (const fix of fixes as any[]) {
-    const sub = subcollectionMap[fix.stage];
-    if (!sub) continue;
-    const safe = mapPrimitiveToDb(fix.stage, fix.updates);
-    await updateDoc(doc(db, "projects", currentProject.id, sub, fix.id), { ...safe, updatedAt: serverTimestamp() });
+  try {
+    for (const fix of fixes as any[]) {
+      const sub = subcollectionMap[fix.stage];
+      if (!sub) continue;
+      const safe = mapPrimitiveToDb(fix.stage, fix.updates);
+      await store.dispatch(
+        firebaseService.endpoints.updateSubcollectionDoc.initiate({
+          projectId: currentProject.id,
+          collectionName: sub,
+          docId: fix.id,
+          data: safe
+        })
+      ).unwrap();
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
   
   const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
@@ -67,25 +89,35 @@ export const addPrimitive: ToolHandler = async (args, context) => {
   const sub = subcollectionMap[stage];
   if (!sub) return { success: false, error: "Unsupported stage" };
 
-  const { db } = await import("../../lib/firebase");
-  const { collection, addDoc, serverTimestamp } = await import("firebase/firestore");
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
 
   const safeData = mapPrimitiveToDb(stage, {
     title: primitive.title || primitive.name || "Untitled",
     content: primitive.content || primitive.description || "",
     order: getArgNumber(args, "position") ?? primitive.order ?? 0,
-    projectId: currentProject.id,
-    createdAt: serverTimestamp(),
     ...primitive,
   });
   
-  const newDoc = await addDoc(collection(db, "projects", currentProject.id, sub), safeData);
+  let newDocId = "";
+  try {
+    newDocId = await store.dispatch(
+      firebaseService.endpoints.addSubcollectionDoc.initiate({
+        projectId: currentProject.id,
+        collectionName: sub,
+        data: safeData
+      })
+    ).unwrap();
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+  
   await contextAssembler.getStageStructure(currentProject.id, stage);
   await handleStageAnalyze(stage as WorkflowStage);
   
   addToast(t("common.primitiveAdded"), "success");
   telemetryService.setStatus("add_primitive", "✅", `New element successfully integrated.`);
-  return { success: true, primitive_id: newDoc.id };
+  return { success: true, primitive_id: newDocId };
 };
 
 export const deletePrimitive: ToolHandler = async (args, context) => {
@@ -97,10 +129,21 @@ export const deletePrimitive: ToolHandler = async (args, context) => {
   const sub = subcollectionMap[stage];
   if (!sub) return { success: false, error: "Unsupported stage" };
 
-  const { db } = await import("../../lib/firebase");
-  const { doc, deleteDoc } = await import("firebase/firestore");
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
 
-  await deleteDoc(doc(db, "projects", currentProject.id, sub, id));
+  try {
+    await store.dispatch(
+      firebaseService.endpoints.deleteSubcollectionDoc.initiate({
+        projectId: currentProject.id,
+        collectionName: sub,
+        docId: id
+      })
+    ).unwrap();
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+  
   await contextAssembler.getStageStructure(currentProject.id, stage);
   await handleStageAnalyze(stage as WorkflowStage);
   

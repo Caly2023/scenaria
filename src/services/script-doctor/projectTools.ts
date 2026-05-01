@@ -40,16 +40,20 @@ export const syncMetadata: ToolHandler = async (args, context) => {
   const metadata = getArgRecord(args, "metadata") ?? {};
   telemetryService.setStatus("sync_metadata", "🧬", `Recalibrating project DNA...`);
   
-  const { db } = await import("../../lib/firebase");
-  const { doc, updateDoc, serverTimestamp } = await import("firebase/firestore");
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
 
-  await updateDoc(doc(db, "projects", currentProject.id), {
-    metadata: { ...currentProject.metadata, ...metadata },
-    updatedAt: serverTimestamp(),
-  });
+  try {
+    await store.dispatch(
+      firebaseService.endpoints.updateProjectMetadata.initiate({
+        id: currentProject.id,
+        metadata: { ...currentProject.metadata, ...metadata }
+      })
+    ).unwrap();
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
   
-  // NOTE: i18n translation needs to be handled either by passing t() in context, or using a simple string.
-  // We'll assume the addToast msg works for now.
   addToast(context.t("common.metadataSynced"), "success");
   telemetryService.setStatus("sync_metadata", "✅", `Metadata synchronization complete.`);
   return { success: true };

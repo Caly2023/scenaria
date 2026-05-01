@@ -56,7 +56,7 @@ export const researchContext: ToolHandler = async (args, context) => {
 };
 
 export const restructureStage: ToolHandler = async (args, context) => {
-  const { currentProject, subcollectionMap, handleStageAnalyze, addToast, t } = context;
+  const { currentProject, stageContents, subcollectionMap, handleStageAnalyze, addToast, t } = context;
   const stage = getArgString(args, "stage") ?? "";
   const primitives = getArgArray(args, "primitives") ?? [];
   const sub = subcollectionMap[stage];
@@ -64,44 +64,59 @@ export const restructureStage: ToolHandler = async (args, context) => {
 
   telemetryService.setStatus("restructure_stage", "🧠", `Re-organizing ${stage}...`);
 
-  const { db } = await import("../../lib/firebase");
-  const { collection, getDocs, writeBatch, doc, serverTimestamp } = await import("firebase/firestore");
+  const { store } = await import("../../store");
+  const { firebaseService } = await import("../../services/firebaseService");
 
-  const stageRef = collection(db, "projects", currentProject.id, sub);
-  const existingSnap = await getDocs(stageRef);
-  const existingDocs = existingSnap.docs;
-  
-  const batch = writeBatch(db);
-  const newIds = new Set(primitives.map((p: any) => p.id).filter(Boolean));
-  
-  existingDocs.forEach(d => {
-    if (!newIds.has(d.id)) {
-      batch.delete(d.ref);
+  try {
+    const existingItems = stageContents[stage] || [];
+    const newIds = new Set(primitives.map((p: any) => p.id || p.primitive_id).filter(Boolean));
+
+    for (const item of existingItems) {
+      if (!newIds.has(item.id)) {
+        await store.dispatch(
+          firebaseService.endpoints.deleteSubcollectionDoc.initiate({
+            projectId: currentProject.id,
+            collectionName: sub,
+            docId: item.id
+          })
+        ).unwrap();
+      }
     }
-  });
 
-  for (let i = 0; i < primitives.length; i++) {
-    const p = primitives[i] as any;
-    const id = p.id || p.primitive_id;
-    
-    const safe = mapPrimitiveToDb(stage, {
-      title: p.title || p.name || "Untitled",
-      content: p.content || p.description || "",
-      order: i,
-      projectId: currentProject.id,
-      updatedAt: serverTimestamp(),
-    });
+    for (let i = 0; i < primitives.length; i++) {
+      const p = primitives[i] as any;
+      const id = p.id || p.primitive_id;
+      
+      const safe = mapPrimitiveToDb(stage, {
+        title: p.title || p.name || "Untitled",
+        content: p.content || p.description || "",
+        order: i,
+        ...p,
+      });
 
-    if (id) {
-      const docRef = doc(db, "projects", currentProject.id, sub, id);
-      batch.set(docRef, safe, { merge: true });
-    } else {
-      const newDocRef = doc(collection(db, "projects", currentProject.id, sub));
-      batch.set(newDocRef, { ...safe, createdAt: serverTimestamp() });
+      if (id) {
+        await store.dispatch(
+          firebaseService.endpoints.updateSubcollectionDoc.initiate({
+            projectId: currentProject.id,
+            collectionName: sub,
+            docId: id,
+            data: safe
+          })
+        ).unwrap();
+      } else {
+        await store.dispatch(
+          firebaseService.endpoints.addSubcollectionDoc.initiate({
+            projectId: currentProject.id,
+            collectionName: sub,
+            data: safe
+          })
+        ).unwrap();
+      }
     }
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 
-  await batch.commit();
   await contextAssembler.getStageStructure(currentProject.id, stage);
   await handleStageAnalyze(stage as WorkflowStage);
   addToast(t("common.stageRestructured"), "success");

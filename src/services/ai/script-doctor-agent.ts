@@ -54,11 +54,11 @@ class ScriptDoctorAgent {
         telemetryService.getIdMapContext()
       );
 
-      const responseParts = extractResponseParts(result);
+      const responseParts = extractResponseParts(result) || [];
       lastParts = responseParts;
 
       // Extract reasoning
-      const thoughtPart = responseParts.find((p) => p.reasoning || p.thought);
+      const thoughtPart = Array.isArray(responseParts) ? responseParts.find((p) => p.reasoning || p.thought) : undefined;
       const thought =
         (typeof thoughtPart?.reasoning === "string" ? thoughtPart.reasoning : undefined) ||
         ((result as any)?.reasoning as string | undefined);
@@ -66,15 +66,19 @@ class ScriptDoctorAgent {
         callbacks.onThought(thought);
       }
 
-      const toolCallParts = responseParts.filter((p) => p?.functionCall || p?.toolRequest);
+      const toolCallParts = Array.isArray(responseParts) ? responseParts.filter((p) => p?.functionCall || p?.toolRequest) : [];
 
       if (toolCallParts.length === 0) {
-        finalResponse = responseParts
-          .filter((p) => typeof p?.text === "string")
-          .map((p) => p.text as string)
-          .join("")
-          || ((result as any)?.text as string | undefined)
-          || "";
+        finalResponse = Array.isArray(responseParts) 
+          ? responseParts
+              .filter((p) => typeof p?.text === "string")
+              .map((p) => p.text as string)
+              .join("")
+          : "";
+        
+        if (!finalResponse) {
+           finalResponse = ((result as any)?.text as string | undefined) || "";
+        }
         break;
       }
 

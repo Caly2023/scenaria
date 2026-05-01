@@ -175,7 +175,7 @@ export function useScriptDoctor({
       const parsed = JSON.parse(content);
       if (parsed?.type === "apply_suggestion") {
         setDoctorMessages(prev => prev.map(m => m.id === parsed.msgId ? { ...m, status: "Applying..." } : m));
-        const referencedMsg = doctorMessages.find((m) => m.id === parsed.msgId);
+        const referencedMsg = Array.isArray(doctorMessages) ? doctorMessages.find((m) => m.id === parsed.msgId) : undefined;
         const extra = referencedMsg ? `\nContext: ${referencedMsg.content}` : "";
         resolvedContent = `Apply suggestion: ${parsed.action}${extra}. Use tools directly.`;
       }

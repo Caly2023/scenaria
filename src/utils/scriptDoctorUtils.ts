@@ -146,7 +146,7 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
 
   // If we ended up with nothing but had messages, add a fallback user message
   // This is critical to prevent "Message history is empty" errors.
-  if (merged.length === 0 && messages.length > 0) {
+  if (merged.length === 0 && Array.isArray(messages) && messages.length > 0) {
     const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
     merged.push({ 
       role: "user", 
@@ -158,19 +158,27 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
 }
 
 export function extractResponseParts(result: unknown): GeminiPart[] {
-  const asRecord = (result ?? {}) as Record<string, unknown>;
+  if (!result) return [];
+  const asRecord = result as Record<string, unknown>;
+  
   // Direct parts array (our normalized return)
-  if (Array.isArray(asRecord.parts) && asRecord.parts.length > 0) return asRecord.parts;
+  if (Array.isArray(asRecord.parts)) return asRecord.parts;
+  
   // From candidates[0].content.parts (Gemini REST native)
   const candidates = asRecord.candidates as Array<Record<string, unknown>> | undefined;
-  const candidateParts =
-    candidates?.[0]?.content && typeof candidates[0].content === "object"
-      ? (candidates[0].content as Record<string, unknown>).parts
-      : undefined;
-  if (Array.isArray(candidateParts)) return candidateParts as GeminiPart[];
+  if (Array.isArray(candidates) && candidates.length > 0) {
+    const content = candidates[0].content as Record<string, unknown> | undefined;
+    if (content && Array.isArray(content.parts)) {
+      return content.parts as GeminiPart[];
+    }
+  }
+
   // From message.content (our normalized return)
   const message = asRecord.message as Record<string, unknown> | undefined;
-  if (Array.isArray(message?.content)) return message.content as GeminiPart[];
+  if (message && Array.isArray(message.content)) {
+    return message.content as GeminiPart[];
+  }
+  
   // Fallback
   return [];
 }

@@ -118,11 +118,18 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
   const handleStageAnalyze = useCallback(async (stage: WorkflowStage) => {
     if (!currentProject) return;
+
+    // Skip analysis if the stage has no content yet — nothing to analyze.
+    // Auto-hydration will generate content first; user can trigger analysis manually after.
+    const currentContent = stageContents[stage] || [];
+    if (currentContent.length === 0) {
+      console.debug(`[StageAnalyze] Skipped for "${stage}" — no content yet.`);
+      return;
+    }
+
     setIsTyping(true);
     try {
       const { interpretIntent, dispatchToAgent, persistAgentOutput } = await import('../services/orchestration');
-      
-      const currentContent = stageContents[stage] || [];
 
       const context = getProjectContext();
       if (!context) throw new Error("Project context is not available.");

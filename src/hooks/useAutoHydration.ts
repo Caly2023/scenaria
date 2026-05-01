@@ -16,8 +16,36 @@ interface UseAutoHydrationProps {
   stageContents: Record<string, import('../types/stageContract').ContentPrimitive[]>;
   addToast: (message: string, type: 'success' | 'error' | 'info') => void;
   isStageLoading: boolean;
+  /** Kept for API compatibility — no longer called automatically to avoid redundant Gemini calls. */
   onStageAnalyze: (stage: WorkflowStage) => Promise<void>;
 }
+
+// ── SessionStorage helpers ────────────────────────────────────────────────────
+// Persists which stages have been confirmed non-empty across component remounts.
+// Key format: `scenaria_hydration_${projectId}` → JSON array of hydrationKeys.
+
+function sessionKey(projectId: string) {
+  return `scenaria_hydration_${projectId}`;
+}
+
+function getPersistedChecked(projectId: string): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(sessionKey(projectId));
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function persistChecked(projectId: string, set: Set<string>) {
+  try {
+    sessionStorage.setItem(sessionKey(projectId), JSON.stringify([...set]));
+  } catch {
+    // ignore quota errors
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function useAutoHydration({
   activeStage,
@@ -25,7 +53,6 @@ export function useAutoHydration({
   stageContents,
   addToast,
   isStageLoading,
-  onStageAnalyze,
 }: UseAutoHydrationProps): HydrationState {
   const [hydrationState, setHydrationState] = useState<HydrationState>({
     isHydrating: false,
@@ -34,7 +61,6 @@ export function useAutoHydration({
   });
 
   const activeHydrations = useRef<Set<string>>(new Set());
-  const checkedStages = useRef<Set<string>>(new Set());
 
   const getContext = useCallback(() => {
     if (!currentProject) return null;
@@ -86,57 +112,71 @@ export function useAutoHydration({
     if (!config) return;
 
     const hydrationKey = `${currentProject.id}:${config.stage}`;
+    const projectId = currentProject.id;
 
+    // Skip if already hydrating or confirmed as populated this session
     if (activeHydrations.current.has(hydrationKey)) return;
-    if (checkedStages.current.has(hydrationKey)) return;
-    
-    if (!config.isEmpty()) {
-      checkedStages.current.add(hydrationKey);
-      return;
-    }
+    const checked = getPersistedChecked(projectId);
+    if (checked.has(hydrationKey)) return;
 
-    activeHydrations.current.add(hydrationKey);
-    setTimeout(() => {
+    // ── Debounce 600ms to let RTK Query settle before deciding stage is empty ──
+    // This prevents false-positive "empty" reads during the brief window between
+    // isStageLoading becoming false and stageContents being populated from cache.
+    const timer = setTimeout(() => {
+      // Re-read contents after debounce — may have arrived
+      if (!config.isEmpty()) {
+        const latest = getPersistedChecked(projectId);
+        latest.add(hydrationKey);
+        persistChecked(projectId, latest);
+        return;
+      }
+
+      // Truly empty → generate
+      if (activeHydrations.current.has(hydrationKey)) return;
+      activeHydrations.current.add(hydrationKey);
+
       setHydrationState({
         isHydrating: true,
         hydratingStage: config.stage,
         hydratingLabel: config.label,
       });
-    }, 0);
 
-    addToast(config.label, 'info');
+      addToast(config.label, 'info');
 
-    config.generate()
-      .then(async () => {
-        addToast(`${config.stage} generated successfully`, 'success');
-        checkedStages.current.add(hydrationKey);
-        await onStageAnalyze(config.stage);
-      })
-      .catch((error) => {
-        console.error(`Auto-hydration failed for ${config.stage}:`, error);
-        addToast(`Failed to auto-generate ${config.stage}`, 'error');
-        checkedStages.current.add(hydrationKey);
-      })
-      .finally(() => {
-        activeHydrations.current.delete(hydrationKey);
-        setHydrationState({
-          isHydrating: false,
-          hydratingStage: null,
-          hydratingLabel: null,
+      config.generate()
+        .then(() => {
+          addToast(`${config.stage} generated successfully`, 'success');
+          const latest = getPersistedChecked(projectId);
+          latest.add(hydrationKey);
+          persistChecked(projectId, latest);
+        })
+        .catch((error) => {
+          console.error(`[AutoHydration] Failed for ${config.stage}:`, error);
+          addToast(`Failed to auto-generate ${config.stage}`, 'error');
+          // Do NOT mark as checked on failure — allow retry on next visit
+        })
+        .finally(() => {
+          activeHydrations.current.delete(hydrationKey);
+          setHydrationState({ isHydrating: false, hydratingStage: null, hydratingLabel: null });
         });
-      });
-  }, [activeStage, currentProject, getHydrationConfig, addToast, onStageAnalyze, stageContents, isStageLoading]);
+    }, 600);
 
+    return () => clearTimeout(timer);
+  }, [activeStage, currentProject, getHydrationConfig, addToast, isStageLoading]);
+
+  // Clear in-flight state when project changes
   useEffect(() => {
-    checkedStages.current.clear();
     activeHydrations.current.clear();
   }, [currentProject?.id]);
 
   const resetHydration = useCallback((stage: WorkflowStage) => {
     if (!currentProject) return;
     const hydrationKey = `${currentProject.id}:${stage}`;
-    checkedStages.current.delete(hydrationKey);
     activeHydrations.current.delete(hydrationKey);
+    // Clear from sessionStorage so the next visit re-evaluates (used after manual regenerate)
+    const checked = getPersistedChecked(currentProject.id);
+    checked.delete(hydrationKey);
+    persistChecked(currentProject.id, checked);
   }, [currentProject]);
 
   return {

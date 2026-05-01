@@ -107,7 +107,7 @@ const MainLayoutComponent = ({
       )}
 
       <div className={cn("flex-1 flex flex-col relative transition-all duration-500 z-10 min-w-0", isMobile ? "h-auto" : "h-full")}>
-        <div className={cn(isMobile && "fixed top-0 left-0 right-0 z-50")}>
+        <div className={cn("relative z-50 flex-shrink-0", isMobile && "fixed top-0 left-0 right-0")}>
           <Header
             isCompact={isDoctorOpen}
             accessibilitySettings={accessibilitySettings}

@@ -22,15 +22,10 @@ export type WorkflowStage =
   | 'AI Previs'
   | 'Production Export';
 
-export interface StageInsight {
-  content?: string;
-  evaluation?: string;
-  issues?: string[];
-  recommendations?: string[];
-  isReady: boolean;
-  suggestedPrompt?: string;
-  updatedAt?: number;
-  score?: number;
+import type { StageAnalysis } from './stageContract';
+
+export interface StageInsight extends StageAnalysis {
+  content?: string; // Optional field for the plain text evaluation if needed by UI
 }
 
 

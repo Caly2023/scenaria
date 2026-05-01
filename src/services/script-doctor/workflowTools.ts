@@ -102,7 +102,7 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
  * Met à jour validatedStages + activeStage dans Firestore via le service RTK.
  */
 export const approveStage: ToolHandler = async (args, context) => {
-  const { currentProject, addToast, t, triggerStageGeneration: triggerFn } = context;
+  const { currentProject, addToast, t, triggerStageGeneration: triggerFn, handleStageChange } = context;
   const stage = getArgString(args, "stage") as WorkflowStage ?? "";
 
   if (!stage) return { success: false, error: "stage argument is required" };

@@ -28,7 +28,7 @@ export async function persistAgentOutput(
     await store.dispatch(firebaseService.endpoints.updateProjectField.initiate({
       id: projectId,
       field: `stageAnalyses.${stageName}`,
-      content: output.analysis
+      content: { ...output.analysis, updatedAt: output.analysis.updatedAt || Date.now() }
     })).unwrap();
 
     // ── STEP 2: Write Content (subcollection) ─────────────────────────────────

@@ -65,7 +65,7 @@ export const restructureStage: ToolHandler = async (args, context) => {
   telemetryService.setStatus("restructure_stage", "🧠", `Re-organizing ${stage}...`);
 
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   try {
     const existingItems = stageContents[stage] || [];

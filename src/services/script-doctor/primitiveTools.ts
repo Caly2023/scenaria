@@ -19,7 +19,7 @@ export const proposePatch: ToolHandler = async (args, context) => {
   if (!sub) return { success: false, error: `Invalid stage: ${stage}` };
 
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   // Capture previous data for undo
   const previousItem = (stageContents[stage] || []).find(p => p.id === id);
@@ -61,7 +61,7 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
   telemetryService.setStatus("execute_multi_stage_fix", "🔗", `Coordinating multi-stage architectural fix...`);
   
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   try {
     for (const fix of fixes as any[]) {
@@ -100,7 +100,7 @@ export const addPrimitive: ToolHandler = async (args, context) => {
   if (!sub) return { success: false, error: "Unsupported stage" };
 
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   const safeData = mapPrimitiveToDb(stage, {
     title: primitive.title || primitive.name || "Untitled",
@@ -145,7 +145,7 @@ export const deletePrimitive: ToolHandler = async (args, context) => {
   if (!sub) return { success: false, error: "Unsupported stage" };
 
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   const previousItem = (stageContents[stage] || []).find(p => p.id === id);
 

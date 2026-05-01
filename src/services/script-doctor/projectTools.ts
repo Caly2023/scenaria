@@ -67,7 +67,7 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
   telemetryService.setStatus("update_stage_insight", "📊", `Saving insight for ${stage}...`);
   
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   try {
     const updatedAnalyses = {
@@ -101,12 +101,47 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
         content: updatedStates
       })
     ).unwrap();
+
+    // ─── AI Insight Primitive Alignment ───
+    // Every stage must have a primitive at order 0 containing the AI analysis.
+    const sub = stageRegistry.getCollectionName(stage);
+    if (sub) {
+      const existingPrimitives = context.stageContents[stage] || [];
+      const insightPrimitive = existingPrimitives.find(p => p.order === 0);
+      const insightData = {
+        title: "AI Analysis",
+        content: insight.content || "",
+        order: 0,
+        type: "ai_insight",
+        isReady: insight.isReady,
+        score: insight.score || 0
+      };
+
+      if (insightPrimitive) {
+        await store.dispatch(
+          firebaseService.endpoints.updateSubcollectionDoc.initiate({
+            projectId: currentProject.id,
+            collectionName: sub,
+            docId: insightPrimitive.id,
+            data: insightData
+          })
+        ).unwrap();
+      } else {
+        await store.dispatch(
+          firebaseService.endpoints.addSubcollectionDoc.initiate({
+            projectId: currentProject.id,
+            collectionName: sub,
+            data: insightData
+          })
+        ).unwrap();
+      }
+    }
     
   } catch (error: any) {
     return { success: false, error: error.message };
   }
   
-  telemetryService.setStatus("update_stage_insight", "✅", `Insight saved.`);
+  telemetryService.setStatus("update_stage_insight", "✅", `Insight and AI Analysis primitive saved.`);
   return { success: true };
 };
 

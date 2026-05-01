@@ -91,7 +91,7 @@ const MainLayoutComponent = ({
     <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
       {!isMobile && currentProject && (
         <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-          <div className="pointer-events-auto absolute left-6 top-6 h-[calc(100dvh-48px)] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
+          <div className="pointer-events-auto absolute left-6 top-24 h-[calc(100dvh-120px)] w-20 hover:w-64 group bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col transition-all duration-300 z-[60]">
             <Sidebar variant="sidebar" />
           </div>
         </div>

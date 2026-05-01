@@ -4,7 +4,7 @@ import { getStageStructure, researchContext, restructureStage } from "./structur
 import { fetchCharacterDetails, searchProjectContent } from "./contentTools";
 import { proposePatch, executeMultiStageFix, addPrimitive, deletePrimitive } from "./primitiveTools";
 import { updateAgentStatus, setSuggestedActions } from "./uiTools";
-import { triggerStageGeneration, approveStage } from "./workflowTools";
+import { triggerStageGenerationHandler, approveStage } from "./workflowTools";
 import { navigateToStage, focusElement, toggleUiPanel } from "./navigationTools";
 import { undoLastAction, requestUserApproval } from "./safetyTools";
 import { exportProjectDocument, readUserPreferences, updateAgentMemory } from "./platformTools";
@@ -34,7 +34,7 @@ export const scriptDoctorToolHandlers: Record<string, ToolHandler> = {
   set_suggested_actions: setSuggestedActions,
 
   // ── Workflow / Orchestration ──────────────────────────────────────────────
-  trigger_stage_generation: triggerStageGeneration,
+  trigger_stage_generation: triggerStageGenerationHandler,
   approve_stage: approveStage,
 
   // ── UI Navigation ─────────────────────────────────────────────────────────

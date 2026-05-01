@@ -4,7 +4,7 @@ import { getArgRecord, getArgString } from "../../utils/scriptDoctorUtils";
 import { stageRegistry } from "../../config/stageRegistry";
 
 export const fetchProjectState: ToolHandler = async (args, context) => {
-  const { currentProject, stageContents, characters, locations } = context;
+  const { currentProject, stageContents, characters, locations, triggerStageGeneration: triggerFn } = context;
   telemetryService.setStatus("fetch_project_state", "🧠", "Loading full project state...");
   const idMapSnapshot = telemetryService.getIdMapSnapshot();
   
@@ -51,7 +51,7 @@ export const fetchProjectState: ToolHandler = async (args, context) => {
 };
 
 export const syncMetadata: ToolHandler = async (args, context) => {
-  const { currentProject, addToast } = context;
+  const { currentProject, addToast, triggerStageGeneration: triggerFn } = context;
   const metadata = getArgRecord(args, "metadata") ?? {};
   telemetryService.setStatus("sync_metadata", "🧬", `Recalibrating project DNA...`);
   
@@ -75,7 +75,7 @@ export const syncMetadata: ToolHandler = async (args, context) => {
 };
 
 export const updateStageInsight: ToolHandler = async (args, context) => {
-  const { currentProject, addToast } = context;
+  const { currentProject, addToast, triggerStageGeneration: triggerFn } = context;
   const stage = getArgString(args, "stage") ?? "";
   const insight = getArgRecord(args, "insight") as Record<string, any> ?? {};
   
@@ -170,7 +170,7 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
  * les trous narratifs, ou les ruptures de ton.
  */
 export const runProjectDiagnostics: ToolHandler = async (args, context) => {
-  const { currentProject, stageContents, characters, locations } = context;
+  const { currentProject, stageContents, characters, locations, triggerStageGeneration: triggerFn } = context;
   telemetryService.setStatus("run_project_diagnostics", "🔍", "Running deep project diagnostics...");
 
   const issues: string[] = [];

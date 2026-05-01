@@ -9,7 +9,7 @@ import { WorkflowStage } from "../../types";
  * L'agent peut ainsi initier la création de contenu pour n'importe quelle étape
  * sans intervention manuelle de l'utilisateur.
  */
-export const triggerStageGeneration: ToolHandler = async (args, context) => {
+export const triggerStageGenerationHandler: ToolHandler = async (args, context) => {
   const { currentProject, addToast, t, triggerStageGeneration: triggerFn } = context;
   const stage = getArgString(args, "stage") as WorkflowStage ?? "";
   const force = getArgBoolean(args, "force") ?? false;
@@ -102,7 +102,7 @@ export const triggerStageGeneration: ToolHandler = async (args, context) => {
  * Met à jour validatedStages + activeStage dans Firestore via le service RTK.
  */
 export const approveStage: ToolHandler = async (args, context) => {
-  const { currentProject, addToast, t } = context;
+  const { currentProject, addToast, t, triggerStageGeneration: triggerFn } = context;
   const stage = getArgString(args, "stage") as WorkflowStage ?? "";
 
   if (!stage) return { success: false, error: "stage argument is required" };
@@ -149,6 +149,9 @@ export const approveStage: ToolHandler = async (args, context) => {
         })
       ).unwrap();
       addToast(`✅ ${stage} approuvé. Passage à ${nextStage}.`, "success");
+      if (triggerFn) {
+        await triggerFn(nextStage);
+      }
       telemetryService.setStatus("approve_stage", "✅", `${stage} → ${nextStage}`);
       return { success: true, approved_stage: stage, next_stage: nextStage };
     }

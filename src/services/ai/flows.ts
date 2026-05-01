@@ -43,15 +43,26 @@ const scriptDoctorFlow = ai.defineFlow(
         name: d.name,
         description: d.description,
         inputSchema: d.parameters.type === 'OBJECT' 
-          ? z.record(z.any()) // More specific than z.any(), though we could do better with a full mapper
+          ? z.object(Object.fromEntries(
+              Object.entries(d.parameters.properties || {}).map(([k, v]: [string, any]) => [
+                k, 
+                v.type === 'ARRAY' ? z.array(z.any()) : 
+                v.type === 'OBJECT' ? z.record(z.any()) : 
+                v.type === 'NUMBER' ? z.number() : 
+                v.type === 'BOOLEAN' ? z.boolean() : 
+                z.string()
+              ])
+            )).passthrough()
           : z.any(), 
         outputSchema: z.any(),
       }, async () => ({
         // Tools are implemented client-side in scriptDoctorToolHandlers.
+        // We return a placeholder, but maxSteps: 1 ensures the client gets the call first.
       }))),
       config: { 
         temperature: 0.7,
-        maxOutputTokens: 8192 
+        maxOutputTokens: 8192,
+        maxSteps: 1 // CRITICAL: Stop after model generates tool calls so client can execute them
       },
       use: [
         retry({ maxRetries: 2 }),

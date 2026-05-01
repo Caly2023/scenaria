@@ -106,7 +106,20 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     ).unwrap();
     
     // 2. Update Stage State (Atomic)
-    const newState = insight.isReady ? "good" : (insight.state || "needs_improvement");
+    let newState: string = "needs_improvement";
+    const issues = insight.issues || [];
+    const recs = insight.recommendations || [];
+    
+    if (insight.isReady) {
+      if (issues.length === 0 && recs.length === 0) {
+        newState = "excellent";
+      } else {
+        newState = "good";
+      }
+    } else if (insight.state) {
+      newState = insight.state;
+    }
+    
     await store.dispatch(
       firebaseService.endpoints.updateProjectField.initiate({
         id: currentProject.id,
@@ -121,7 +134,9 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     if (sub && sub !== "characters" && sub !== "locations" && sub !== "metadata_primitives") {
       const primitivesForStage = context.stageContents[stage];
       const existingPrimitives = Array.isArray(primitivesForStage) ? primitivesForStage : [];
-      const insightPrimitive = existingPrimitives.find(p => p && (p.primitiveType === "ai_insight" || p.order === 0));
+      
+      // CRITICAL FIX: Only target primitives explicitly marked as ai_insight to avoid overwriting content at order 0
+      const insightPrimitive = existingPrimitives.find(p => p && p.primitiveType === "ai_insight");
       
       const insightData = stripUndefined({
         title: "AI Analysis",
@@ -191,9 +206,14 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
   const allStages = stageRegistry.getAll();
   allStages.forEach(s => {
     const state = stageStates[s.id] || "empty";
+    
+    // Count only REAL content primitives (ignore AI insights)
+    const primitives = stageContents[s.id] || [];
+    const contentPrimitives = primitives.filter(p => p && p.primitiveType !== "ai_insight");
+    
     const contentCount = s.collectionName === 'characters' ? characters.length : 
                          s.collectionName === 'locations' ? locations.length :
-                         (stageContents[s.id] || []).length;
+                         contentPrimitives.length;
 
     if (state === "good" || state === "excellent") {
        if (contentCount === 0) {

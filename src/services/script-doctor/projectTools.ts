@@ -90,7 +90,7 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
   try {
     // 1. Update Project Level Analysis (Atomic)
     const analysisData = stripUndefined({
-      evaluation: insight.content || insight.evaluation || insight.analysis || "",
+      evaluation: insight.evaluation || insight.content || insight.analysis || "",
       issues: insight.issues || [],
       recommendations: insight.recommendations || insight.suggestions || [],
       suggestedPrompt: insight.suggestedPrompt || "",
@@ -131,6 +131,7 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
         metadata: {
           isReady: !!insight.isReady,
           score: insight.score || (insight.isReady ? 80 : 40),
+          issues: insight.issues || [],
           recommendations: insight.recommendations || insight.suggestions || []
         }
       });

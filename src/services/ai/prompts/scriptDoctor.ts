@@ -112,10 +112,9 @@ ${context}
 Contenu à analyser (Etape: ${stage}) :
 ${content}
 
-RÈGLES D'ANALYSE :
-1. Ton analyse doit être constructive, professionnelle et rédigée en Markdown.
-2. Identifie les points forts et les points faibles selon les standards du blueprint.
-3. Détermine si l'étape est prête (isReady: true/false). Pour être "Ready", elle doit passer la "Quality Gate" de son niveau.
-4. Propose des suggestions concrètes d'amélioration si nécessaire.
+1. Ton évaluation narrative (evaluation) doit être constructive, professionnelle et rédigée en Markdown.
+2. Identifie les problèmes ou faiblesses (issues) selon les standards du blueprint.
+3. Propose des recommandations concrètes d'amélioration (recommendations).
+4. Détermine si l'étape est prête (isReady: true/false). Pour être "Ready", elle doit passer la "Quality Gate" de son niveau.
 5. Suggère un prompt (suggestedPrompt) que l'utilisateur pourrait utiliser pour améliorer ce contenu via l'agent.
 `;

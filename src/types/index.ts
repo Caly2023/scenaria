@@ -23,10 +23,14 @@ export type WorkflowStage =
   | 'Production Export';
 
 export interface StageInsight {
-  content: string;
+  content?: string;
+  evaluation?: string;
+  issues?: string[];
+  recommendations?: string[];
   isReady: boolean;
   suggestedPrompt?: string;
   updatedAt?: number;
+  score?: number;
 }
 
 

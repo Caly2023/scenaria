@@ -42,12 +42,12 @@ const scriptDoctorFlow = ai.defineFlow(
       tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => ai.defineTool({
         name: d.name,
         description: d.description,
-        inputSchema: z.any(), 
+        inputSchema: d.parameters.type === 'OBJECT' 
+          ? z.record(z.any()) // More specific than z.any(), though we could do better with a full mapper
+          : z.any(), 
         outputSchema: z.any(),
       }, async () => ({
         // Tools are implemented client-side in scriptDoctorToolHandlers.
-        // Genkit flow only needs the schema to return functionCall objects
-        // to the client, which executes the real tool logic.
       }))),
       config: { 
         temperature: 0.7,
@@ -164,9 +164,10 @@ const genericGeminiFlow = ai.defineFlow(
     const { prompt, jsonMode = false, systemPrompt, structuredOutput, model: modelOverride } = input;
 
     const stageInsightSchema = z.object({
-      content: z.string(),
+      evaluation: z.string(),
       isReady: z.boolean(),
-      suggestions: z.array(z.string()).optional(),
+      issues: z.array(z.string()).optional(),
+      recommendations: z.array(z.string()).optional(),
       suggestedPrompt: z.string().optional(),
       score: z.number().optional(),
     });

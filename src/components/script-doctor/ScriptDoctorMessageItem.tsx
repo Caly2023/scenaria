@@ -53,15 +53,15 @@ export function ScriptDoctorMessageItem({
     <div 
       id={`msg-${msg.id}`}
       className={cn(
-        "flex flex-col gap-2 w-full",
-        msg.role === 'user' ? "ml-auto items-end max-w-[85%]" : "mr-auto items-start w-full"
+        "flex flex-col gap-1.5 w-full",
+        msg.role === 'user' ? "items-end" : "items-start"
       )}
     >
       <div className={cn(
-        "text-sm leading-relaxed font-sans relative group w-full transition-all duration-300",
+        "text-sm leading-relaxed font-sans relative group transition-all duration-300",
         msg.role === 'user' 
-          ? "p-4 rounded-2xl bg-gradient-to-br from-white to-[#f0f0f0] text-black font-medium shadow-[0_4px_12px_rgba(255,255,255,0.1)]" 
-          : "text-white/90"
+          ? "p-3.5 px-4 rounded-2xl rounded-tr-sm bg-gradient-to-br from-white to-[#f0f0f0] text-black font-medium shadow-[0_4px_15px_rgba(255,255,255,0.05)] w-fit max-w-[85%]" 
+          : "text-white/90 w-fit max-w-full"
       )}>
         {msg.role === 'assistant' && (msg.reasoning || msg.thinking) && (
           <details className="mb-5 group/thinking bg-white/5 rounded-xl border border-white/10 overflow-hidden">

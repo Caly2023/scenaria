@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { 
   X, 
   Sparkles, 
@@ -37,13 +37,42 @@ export function ScriptDoctorContent() {
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState<string | null>(null);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (inputValue.trim()) {
       onSendMessage(inputValue);
       setInputValue('');
+      // Reset height
+      if (inputRef.current) {
+        inputRef.current.style.height = 'auto';
+      }
     }
   };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [inputValue]);
+
+  // Autofocus on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 300); // Small delay to ensure transitions are finished
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleApply = async (msgId: string, action: string) => {
     setIsApplying(msgId);
@@ -106,16 +135,16 @@ export function ScriptDoctorContent() {
   return (
     <div className="h-full w-full bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="h-16 md:h-14 bg-background flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0">
+      <div className="h-16 md:h-14 bg-background/80 backdrop-blur-xl flex items-center justify-between px-5 border-b border-white/5 flex-shrink-0 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center">
-            <Bot className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-white to-[#d0d0d0] text-black flex items-center justify-center shadow-lg shadow-white/5">
+            <Bot className="w-4.5 h-4.5" />
           </div>
           <div className="flex flex-col leading-none">
             <h3 className="text-sm font-bold tracking-tight text-white">{t('common.scriptDoctor')}</h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-[10px] uppercase tracking-widest text-secondary font-bold">
+            <div className="flex items-center gap-1.5 mt-1">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+              <span className="text-[9px] uppercase font-black tracking-widest text-white/40">
                 {t('common.analyzing', { stage: t(`stages.${activeStage}.label`, { defaultValue: activeStage }) })}
               </span>
             </div>
@@ -128,10 +157,10 @@ export function ScriptDoctorContent() {
           </button>
           <button 
             onClick={onClose}
-            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all text-white border-none shadow-lg active:scale-95"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-all text-white/60 hover:text-white border border-white/10 active:scale-95"
             aria-label="Close"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -142,10 +171,15 @@ export function ScriptDoctorContent() {
         className="flex-1 overflow-y-auto overflow-x-hidden p-5 space-y-6 scroll-smooth overscroll-none touch-action-pan-y"
       >
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-30">
-            <Sparkles className="w-10 h-10 mb-2" />
-            <p className="text-sm font-medium">{t('common.analyzingScript')}</p>
-            <p className="text-xs">{t('common.askForAdvice')}</p>
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-6 px-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-white/10 blur-3xl rounded-full animate-pulse" />
+              <Sparkles className="w-16 h-16 text-white/20 relative z-10" />
+            </div>
+            <div className="space-y-2 relative z-10">
+              <p className="text-base font-bold text-white/60 tracking-tight">{t('common.analyzingScript')}</p>
+              <p className="text-xs text-white/30 max-w-[200px] mx-auto leading-relaxed">{t('common.askForAdvice')}</p>
+            </div>
           </div>
         )}
 
@@ -186,19 +220,22 @@ export function ScriptDoctorContent() {
         className="p-4 bg-background flex-shrink-0 border-t border-white/5"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
       >
-        <div className="relative">
-          <input 
-            type="text" 
+        <div className="relative flex items-end gap-2 bg-surface/50 backdrop-blur-md border border-white/10 rounded-[24px] p-1.5 pl-4 transition-all focus-within:border-white/20 focus-within:bg-surface/80 shadow-2xl">
+          <textarea
+            ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder={t('common.askTheDoctor')} 
-            className="yt-input w-full pr-12 bg-surface border-white/10 !text-base appearance-none"
+            onKeyDown={handleKeyDown}
+            placeholder={t('common.askTheDoctor')}
+            rows={1}
+            autoFocus
+            className="flex-1 bg-transparent border-none outline-none py-2.5 resize-none text-white placeholder:text-white/30 text-base leading-relaxed max-h-[200px] overflow-y-auto"
             style={{ fontSize: '16px' }}
           />
           <button 
             type="submit"
             disabled={!inputValue.trim() || isTyping}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-95 disabled:opacity-50 disabled:scale-100 border-none"
+            className="flex-shrink-0 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-95 disabled:opacity-30 disabled:scale-100 border-none shadow-lg mb-0.5"
           >
             <Send className="w-4 h-4" />
           </button>

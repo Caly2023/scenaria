@@ -35,30 +35,34 @@ export function ToolConfirmation({ call, onConfirm, onCancel }: { call: ToolCall
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-4 p-4 rounded-2xl bg-white/5 border border-white/10 space-y-4"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="mt-6 p-5 rounded-2xl bg-white/[0.03] backdrop-blur-md border border-white/10 space-y-5 shadow-2xl relative overflow-hidden group/tool"
     >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
-          <Sparkles className="w-5 h-5" />
+      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/tool:opacity-20 transition-opacity">
+        <Sparkles className="w-12 h-12" />
+      </div>
+
+      <div className="flex items-center gap-4 relative z-10">
+        <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center shadow-inner">
+          <Sparkles className="w-6 h-6 animate-pulse" />
         </div>
-        <div className="flex flex-col">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Approval Required</span>
-          <span className="text-sm font-medium text-white/90">{getToolDescription()}</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500/80">Approval Required</span>
+          <span className="text-sm font-bold text-white tracking-tight">{getToolDescription()}</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3 relative z-10">
         <button 
           onClick={onConfirm}
-          className="flex-1 h-10 rounded-xl bg-white text-black text-xs font-bold hover:bg-[#e5e5e5] transition-all active:scale-95 border-none"
+          className="flex-1 h-11 rounded-xl bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-[#f0f0f0] transition-all active:scale-95 border-none shadow-xl"
         >
           Approve & Execute
         </button>
         <button 
           onClick={onCancel}
-          className="flex-1 h-10 rounded-xl bg-white/10 text-white text-xs font-bold hover:bg-white/20 transition-all active:scale-95 border-none"
+          className="px-6 h-11 rounded-xl bg-white/5 text-white/60 text-xs font-bold hover:bg-white/10 hover:text-white transition-all active:scale-95 border border-white/10"
         >
           Cancel
         </button>

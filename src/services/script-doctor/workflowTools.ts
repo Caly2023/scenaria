@@ -70,7 +70,7 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
     const projectContext = buildProjectContext(
       currentProject.id,
       currentProject.metadata,
-      {},
+      context.stageContents,
       currentProject.stageAnalyses || {}
     );
 

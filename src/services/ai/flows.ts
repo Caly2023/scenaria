@@ -44,20 +44,34 @@ const scriptDoctorFlow = ai.defineFlow(
         description: d.description,
         inputSchema: d.parameters.type === 'OBJECT' 
           ? z.object(Object.fromEntries(
-              Object.entries(d.parameters.properties || {}).map(([k, v]: [string, any]) => [
-                k, 
-                v.type === 'ARRAY' ? z.array(z.any()) : 
-                v.type === 'OBJECT' ? z.record(z.any()) : 
-                v.type === 'NUMBER' ? z.number() : 
-                v.type === 'BOOLEAN' ? z.boolean() : 
-                z.string()
-              ])
+              Object.entries(d.parameters.properties || {}).map(([k, v]: [string, any]) => {
+                let schema: z.ZodTypeAny;
+                
+                if (v.type === 'ARRAY') {
+                  schema = z.array(z.any());
+                } else if (v.type === 'OBJECT') {
+                  schema = z.record(z.any());
+                } else if (v.type === 'NUMBER') {
+                  schema = z.number();
+                } else if (v.type === 'BOOLEAN') {
+                  schema = z.boolean();
+                } else {
+                  schema = z.string();
+                }
+
+                // Mark as optional if not in the required list
+                const isRequired = (d.parameters.required || []).includes(k);
+                if (!isRequired) {
+                  schema = schema.optional();
+                }
+
+                return [k, schema];
+              })
             )).passthrough()
           : z.any(), 
         outputSchema: z.any(),
       }, async () => ({
         // Tools are implemented client-side in scriptDoctorToolHandlers.
-        // We return a placeholder, but maxSteps: 1 ensures the client gets the call first.
       }))),
       config: { 
         temperature: 0.7,

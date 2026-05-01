@@ -22,6 +22,8 @@ const SENSITIVE_TOOLS = new Set([
   "delete_primitive",
   "restructure_stage",
   "sync_metadata",
+  "trigger_stage_generation",
+  "approve_stage",
 ]);
 
 export function useScriptDoctor({
@@ -32,7 +34,12 @@ export function useScriptDoctor({
   setRefiningBlockId,
   setLastUpdatedPrimitiveId,
   handleStageAnalyze,
-}: UseScriptDoctorProps) {
+  handleStageChange,
+  triggerStageGeneration,
+}: UseScriptDoctorProps & {
+  handleStageChange?: (stage: import("../types").WorkflowStage) => void;
+  triggerStageGeneration?: (stage: import("../types").WorkflowStage) => Promise<void>;
+}) {
   const [isDoctorOpen, setIsDoctorOpen] = useState(false);
   const [doctorMessages, setDoctorMessages] = useState<ScriptDoctorMessage[]>([]);
   const [isDoctorTyping, setIsDoctorTyping] = useState(false);
@@ -57,6 +64,8 @@ export function useScriptDoctor({
     setActiveTool,
     setAiStatus,
     setDoctorMessages,
+    handleStageChange,
+    triggerStageGeneration,
   });
 
   /**

@@ -4,6 +4,7 @@ import { contextAssembler } from "../context";
 import { getArgString, getArgRecord, getArgArray, getArgNumber } from "../../utils/scriptDoctorUtils";
 import { mapPrimitiveToDb } from "../../utils/primitiveUtils";
 import { WorkflowStage } from "../../types";
+import { registerUndoableAction } from "./safetyTools";
 
 export const proposePatch: ToolHandler = async (args, context) => {
   const { currentProject, subcollectionMap, setRefiningBlockId, handleStageAnalyze, setLastUpdatedPrimitiveId, addToast, t } = context;
@@ -20,6 +21,9 @@ export const proposePatch: ToolHandler = async (args, context) => {
   const { store } = await import("../../store");
   const { firebaseService } = await import("../../services/firebaseService");
 
+  // Capture previous data for undo
+  const previousItem = (stageContents[stage] || []).find(p => p.id === id);
+
   try {
     const safeUpdates = mapPrimitiveToDb(stage, updates);
     await store.dispatch(
@@ -30,6 +34,12 @@ export const proposePatch: ToolHandler = async (args, context) => {
         data: safeUpdates
       })
     ).unwrap();
+
+    registerUndoableAction(currentProject.id, "update", {
+      collectionName: sub,
+      docId: id,
+      previousData: previousItem
+    });
   } catch (error: any) {
     setRefiningBlockId(null);
     return { success: false, error: error.message };
@@ -108,6 +118,11 @@ export const addPrimitive: ToolHandler = async (args, context) => {
         data: safeData
       })
     ).unwrap();
+
+    registerUndoableAction(currentProject.id, "add", {
+      collectionName: sub,
+      docId: newDocId
+    });
   } catch (error: any) {
     return { success: false, error: error.message };
   }
@@ -132,6 +147,8 @@ export const deletePrimitive: ToolHandler = async (args, context) => {
   const { store } = await import("../../store");
   const { firebaseService } = await import("../../services/firebaseService");
 
+  const previousItem = (stageContents[stage] || []).find(p => p.id === id);
+
   try {
     await store.dispatch(
       firebaseService.endpoints.deleteSubcollectionDoc.initiate({
@@ -140,6 +157,12 @@ export const deletePrimitive: ToolHandler = async (args, context) => {
         docId: id
       })
     ).unwrap();
+
+    registerUndoableAction(currentProject.id, "delete", {
+      collectionName: sub,
+      docId: id,
+      previousData: previousItem
+    });
   } catch (error: any) {
     return { success: false, error: error.message };
   }

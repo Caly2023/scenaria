@@ -1,3 +1,4 @@
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { stageRegistry } from "../config/stageRegistry";
 import { contextAssembler } from "../services/context";
@@ -17,6 +18,10 @@ interface UseScriptDoctorToolsProps {
   setActiveTool: (name: string | null) => void;
   setAiStatus: (status: string | null) => void;
   setDoctorMessages: React.Dispatch<React.SetStateAction<ScriptDoctorMessage[]>>;
+  /** Optional: allows the agent to navigate the UI to a specific stage */
+  handleStageChange?: (stage: WorkflowStage) => void;
+  /** Optional: allows the agent to trigger AI generation for a stage */
+  triggerStageGeneration?: (stage: WorkflowStage) => Promise<void>;
 }
 
 export function useScriptDoctorTools({
@@ -29,6 +34,8 @@ export function useScriptDoctorTools({
   setActiveTool,
   setAiStatus,
   setDoctorMessages,
+  handleStageChange,
+  triggerStageGeneration,
 }: UseScriptDoctorToolsProps) {
   const { t } = useTranslation();
   const subcollectionMap = stageRegistry.getSubcollectionMap();
@@ -62,7 +69,9 @@ export function useScriptDoctorTools({
         setAiStatus,
         setDoctorMessages,
         botMsgId,
-        t
+        t,
+        handleStageChange,
+        triggerStageGeneration,
       };
 
       const { scriptDoctorToolHandlers } = await import("../services/script-doctor");
@@ -86,3 +95,4 @@ export function useScriptDoctorTools({
 
   return { executeToolCall };
 }
+

@@ -92,27 +92,26 @@ export function useStageLifecycle({
     }
   };
 
-  const triggerProactiveGeneration = async (targetStage: WorkflowStage, project: Project) => {
+  const triggerStageGeneration = async (targetStage: WorkflowStage, project?: Project) => {
+    const proj = project || currentProject;
+    if (!proj) return;
     try {
       const agent = await agentRegistry.get(targetStage);
       if (!agent) return;
 
-      const context = getProjectContext?.() || buildProjectContext(project.id, project.metadata, {}, project.stageAnalyses || {});
+      const context = getProjectContext?.() || buildProjectContext(proj.id, proj.metadata, {}, proj.stageAnalyses || {});
       
-      const existingContent = context.stageContents[targetStage];
-      if (existingContent && existingContent.length > 0) return;
-
       addToast(`🧠 Drafting ${targetStage}...`, 'info');
       const output = await agent.generate(context);
-      const result = await persistAgentOutput(project.id, targetStage, output, { replaceAll: true });
+      const result = await persistAgentOutput(proj.id, targetStage, output, { replaceAll: true });
 
       if (result.success) {
         addToast(`✅ ${targetStage} draft ready!`, 'success');
       }
     } catch (error) {
-      console.error(`[ProactiveGen] Failed for "${targetStage}":`, error);
+      console.error(`[StageGeneration] Failed for "${targetStage}":`, error);
     }
   };
 
-  return { handleRegenerate, handleStageValidate };
+  return { handleRegenerate, handleStageValidate, triggerStageGeneration };
 }

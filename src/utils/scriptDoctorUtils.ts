@@ -44,6 +44,11 @@ export function getArgArray(args: Record<string, unknown>, key: string): unknown
   return Array.isArray(value) ? value : undefined;
 }
 
+export function getArgBoolean(args: Record<string, unknown>, key: string): boolean | undefined {
+  const value = args[key];
+  return typeof value === "boolean" ? value : undefined;
+}
+
 export function classifyComplexity(content: string): "simple" | "moderate" | "complex" {
   const lower = content.toLowerCase();
   const wordCount = content.split(/\s+/).filter(Boolean).length;

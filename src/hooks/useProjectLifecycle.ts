@@ -77,6 +77,7 @@ export function useProjectLifecycle(props: UseProjectLifecycleProps) {
     handleRegenerate,
     handleProjectDelete,
     handleProjectCreate,
-    handleStageValidate
+    handleStageValidate,
+    triggerStageGeneration
   };
 }

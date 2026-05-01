@@ -45,6 +45,7 @@ interface ProjectContextType {
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
   handleStageRefine: (stage: WorkflowStage, feedback: string, blockId?: string) => Promise<void>;
   handleStageAnalyze: (stage: WorkflowStage) => Promise<void>;
+  triggerStageGeneration: (stage: WorkflowStage) => Promise<void>;
   
   // Specific Handlers
   handleAiMagic: (id: string) => Promise<void>;
@@ -107,7 +108,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
   const { 
     currentProject, activeStage, handleStageAnalyze, handleSubcollectionUpdate,
     handleContentUpdate, handleStageValidate, setRefiningBlockId, setLastUpdatedPrimitiveId,
-    stageContents
+    stageContents, triggerStageGeneration
   } = projectHook;
 
   const hydrationState = useAutoHydration({
@@ -134,7 +135,9 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     addToast,
     setRefiningBlockId,
     setLastUpdatedPrimitiveId,
-    handleStageAnalyze
+    handleStageAnalyze,
+    handleStageChange,
+    triggerStageGeneration
   });
 
   const telemetryStatus = useTelemetry();

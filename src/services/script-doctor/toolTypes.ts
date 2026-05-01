@@ -18,6 +18,8 @@ interface ScriptDoctorToolContext {
   setDoctorMessages: React.Dispatch<React.SetStateAction<ScriptDoctorMessage[]>>;
   botMsgId?: string | null;
   t: (key: string, options?: any) => string;
+  handleStageChange?: (stage: WorkflowStage) => void;
+  triggerStageGeneration?: (stage: WorkflowStage) => Promise<void>;
 }
 
 export type ToolHandler = (args: Record<string, any>, context: ScriptDoctorToolContext) => Promise<ToolResult>;

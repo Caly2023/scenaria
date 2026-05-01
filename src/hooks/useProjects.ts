@@ -171,6 +171,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleStageValidate,
     handleStageRefine,
     handleStageAnalyze,
+    triggerStageGeneration,
     activeStage,
     stageContents,
     // Modal & Action states
@@ -193,6 +194,6 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete,
     handleStageChange, handleMetadataUpdate, handleContentUpdate,
     handleSubcollectionUpdate, handleRegenerate, handleStageValidate,
-    handleStageRefine, handleStageAnalyze, characterActions, locationActions, sequenceActions
+    handleStageRefine, handleStageAnalyze, triggerStageGeneration, characterActions, locationActions, sequenceActions
   ]);
 }

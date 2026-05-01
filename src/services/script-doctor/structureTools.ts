@@ -33,9 +33,11 @@ export const researchContext: ToolHandler = async (args, context) => {
   
   let items: any[] = [];
   
-  if (stageName === "Character Bible") {
+  const sDef = stageRegistry.get(stageName);
+  
+  if (sDef.collectionName === "characters") {
       items = characters;
-  } else if (stageName === "Location Bible") {
+  } else if (sDef.collectionName === "locations") {
       items = locations;
   } else if (stageContents[stageName] && stageContents[stageName].length > 0) {
       items = stageContents[stageName];

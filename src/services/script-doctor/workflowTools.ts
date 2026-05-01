@@ -114,7 +114,16 @@ export const approveStage: ToolHandler = async (args, context) => {
   const { stageRegistry } = await import("../../config/stageRegistry");
 
   try {
-    // 1. Add to validatedStages
+    // 1. Update Stage State to 'good'
+    await store.dispatch(
+      firebaseService.endpoints.updateProjectField.initiate({
+        id: currentProject.id,
+        field: `stageStates.${stage}`,
+        content: "good",
+      })
+    ).unwrap();
+
+    // 2. Add to validatedStages (legacy support)
     const newValidatedStages = Array.from(
       new Set([...(currentProject.validatedStages || []), stage])
     );

@@ -2,6 +2,7 @@ import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
 import { getArgString } from "../../utils/scriptDoctorUtils";
 import { WorkflowStage } from "../../types";
+import { stageRegistry } from "../../config/stageRegistry";
 
 /**
  * export_project_document
@@ -30,14 +31,18 @@ export const exportProjectDocument: ToolHandler = async (args, context) => {
         stages: {},
       };
 
-      if (stage === "all") {
-        for (const [stageName, primitives] of Object.entries(stageContents)) {
-          exportData.stages[stageName] = primitives;
+      const stagesToExport = stage === "all"
+        ? stageRegistry.getAll()
+        : [stageRegistry.get(stage)];
+
+      for (const sDef of stagesToExport) {
+        if (sDef.collectionName === "characters") {
+          exportData.stages[sDef.id] = characters;
+        } else if (sDef.collectionName === "locations") {
+          exportData.stages[sDef.id] = locations;
+        } else {
+          exportData.stages[sDef.id] = stageContents[sDef.id] ?? [];
         }
-        exportData.stages["Character Bible"] = characters;
-        exportData.stages["Location Bible"] = locations;
-      } else {
-        exportData.stages[stage] = stageContents[stage] ?? [];
       }
 
       content = JSON.stringify(exportData, null, 2);
@@ -63,19 +68,19 @@ export const exportProjectDocument: ToolHandler = async (args, context) => {
       }
 
       const stagesToExport = stage === "all"
-        ? Object.keys(stageContents)
-        : [stage];
+        ? stageRegistry.getAll()
+        : [stageRegistry.get(stage)];
 
-      for (const stageName of stagesToExport) {
-        const primitives = stageName === "Character Bible"
+      for (const sDef of stagesToExport) {
+        const primitives = sDef.collectionName === "characters"
           ? characters
-          : stageName === "Location Bible"
+          : sDef.collectionName === "locations"
           ? locations
-          : stageContents[stageName] ?? [];
+          : stageContents[sDef.id] ?? [];
 
         if (!primitives || primitives.length === 0) continue;
 
-        lines.push(`## ${stageName}`);
+        lines.push(`## ${sDef.id}`);
         lines.push("");
 
         for (const p of primitives) {
@@ -89,7 +94,7 @@ export const exportProjectDocument: ToolHandler = async (args, context) => {
       }
 
       content = lines.join("\n");
-      filename = `${title.replace(/\s+/g, "_")}_${stage === "all" ? "complet" : stage}_${timestamp}.${format === "txt" ? "txt" : "md"}`;
+      filename = `${title.replace(/\s+/g, "_")}_${stage === "all" ? "complet" : stage.replace(/\s+/g, "_")}_${timestamp}.${format === "txt" ? "txt" : "md"}`;
     }
 
     // Trigger browser download

@@ -17,11 +17,18 @@ export const fetchProjectState: ToolHandler = async (args, context) => {
     } else if (stage === "Location Bible") {
       stagesCount[stage] = locations.length;
     } else if (stage === "Project Metadata") {
-        stagesCount[stage] = currentProject.metadata ? 1 : 0;
-    } else if (stage === "Initial Draft" || stage === "Brainstorming" || stage === "Logline" || stage === "3-Act Structure" || stage === "8-Beat Structure" || stage === "Synopsis" || stage === "Treatment" || stage === "Step Outline" || stage === "Script" || stage === "Global Script Doctoring" || stage === "Technical Breakdown" || stage === "Visual Assets" || stage === "AI Previs" || stage === "Production Export") {
-        stagesCount[stage] = currentProject.stageStates?.[stage] !== "empty" ? (stageContents[stage] || []).length || 1 : 0;
+      stagesCount[stage] = currentProject.metadata ? 1 : 0;
     } else {
-         stagesCount[stage] = (stageContents[stage] || []).length;
+      // Logic: if stage exists in stageContents, use that length. 
+      // If it's a structural stage and has a non-empty state, ensure count is at least 1 if content is empty (AI analysis block)
+      const content = stageContents[stage] || [];
+      const state = currentProject.stageStates?.[stage] || "empty";
+      
+      if (state !== "empty" && content.length === 0) {
+        stagesCount[stage] = 1; // Minimal state representation
+      } else {
+        stagesCount[stage] = content.length;
+      }
     }
   });
 
@@ -41,7 +48,7 @@ export const syncMetadata: ToolHandler = async (args, context) => {
   telemetryService.setStatus("sync_metadata", "🧬", `Recalibrating project DNA...`);
   
   const { store } = await import("../../store");
-  const { firebaseService } = await import("../../services/firebaseService");
+  const { firebaseService } = await import("../firebaseService");
 
   try {
     await store.dispatch(
@@ -70,51 +77,48 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
   const { firebaseService } = await import("../firebaseService");
 
   try {
-    const updatedAnalyses = {
-      ...(currentProject.stageAnalyses || {}),
-      [stage]: {
-        evaluation: insight.content || "",
-        issues: [],
-        recommendations: insight.suggestions || [],
-        suggestedPrompt: insight.suggestedPrompt || "",
-        updatedAt: Date.now()
-      }
+    // 1. Update Project Level Analysis (Atomic)
+    const analysisData = {
+      evaluation: insight.content || insight.evaluation || "",
+      issues: insight.issues || [],
+      recommendations: insight.recommendations || insight.suggestions || [],
+      suggestedPrompt: insight.suggestedPrompt || "",
+      updatedAt: Date.now()
     };
     
     await store.dispatch(
       firebaseService.endpoints.updateProjectField.initiate({
         id: currentProject.id,
-        field: "stageAnalyses",
-        content: updatedAnalyses
+        field: `stageAnalyses.${stage}`,
+        content: analysisData
       })
     ).unwrap();
     
-    const updatedStates = {
-      ...(currentProject.stageStates || {}),
-      [stage]: insight.isReady ? "good" : "needs_improvement"
-    };
-    
+    // 2. Update Stage State (Atomic)
     await store.dispatch(
       firebaseService.endpoints.updateProjectField.initiate({
         id: currentProject.id,
-        field: "stageStates",
-        content: updatedStates
+        field: `stageStates.${stage}`,
+        content: insight.isReady ? "good" : (insight.state || "needs_improvement")
       })
     ).unwrap();
 
-    // ─── AI Insight Primitive Alignment ───
-    // Every stage must have a primitive at order 0 containing the AI analysis.
+    // 3. AI Insight Primitive Alignment (Consistency with production UI)
     const sub = stageRegistry.getCollectionName(stage);
-    if (sub) {
+    if (sub && sub !== "characters" && sub !== "locations" && sub !== "metadata_primitives") {
       const existingPrimitives = context.stageContents[stage] || [];
       const insightPrimitive = existingPrimitives.find(p => p.order === 0);
+      
       const insightData = {
         title: "AI Analysis",
-        content: insight.content || "",
+        content: insight.content || insight.evaluation || "",
         order: 0,
-        type: "ai_insight",
-        isReady: insight.isReady,
-        score: insight.score || 0
+        primitiveType: "ai_insight",
+        metadata: {
+          isReady: insight.isReady,
+          score: insight.score || 0,
+          recommendations: insight.recommendations || insight.suggestions || []
+        }
       };
 
       if (insightPrimitive) {
@@ -160,9 +164,11 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
   // plus some automated checks.
 
   const issues: string[] = [];
+  const metadata = currentProject.metadata || {};
 
   // Basic structural checks
-  if (!currentProject.metadata.logline) issues.push("Missing logline in metadata.");
+  if (!metadata.logline) issues.push("Missing logline in metadata.");
+  if (!metadata.title) issues.push("Project title is not defined.");
   if (characters.length === 0) issues.push("Character Bible is empty.");
   
   // Dependency checks

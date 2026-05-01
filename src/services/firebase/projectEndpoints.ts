@@ -132,7 +132,17 @@ export const projectApi = baseApi.injectEndpoints({
         const patchResult = dispatch(
           projectApi.util.updateQueryData("getProjectById", id, (draft) => {
             if (draft) {
-              (draft as any)[field] = content;
+              if (field.includes(".")) {
+                const parts = field.split(".");
+                let current = draft as any;
+                for (let i = 0; i < parts.length - 1; i++) {
+                  if (!current[parts[i]]) current[parts[i]] = {};
+                  current = current[parts[i]];
+                }
+                current[parts[parts.length - 1]] = content;
+              } else {
+                (draft as any)[field] = content;
+              }
             }
           }),
         );

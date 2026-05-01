@@ -83,7 +83,7 @@ export const exportProjectDocument: ToolHandler = async (args, context) => {
         lines.push(`## ${sDef.id}`);
         lines.push("");
 
-        for (const p of primitives) {
+        for (const p of primitives as any[]) {
           const heading = p.title || p.name || "";
           if (heading) lines.push(`### ${heading}`);
           if (p.content || p.description) {

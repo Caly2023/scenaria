@@ -103,9 +103,9 @@ export const addPrimitive: ToolHandler = async (args, context) => {
   const { firebaseService } = await import("../firebaseService");
 
   const safeData = mapPrimitiveToDb(stage, {
-    title: primitive.title || primitive.name || "Untitled",
-    content: primitive.content || primitive.description || "",
-    order: getArgNumber(args, "position") ?? primitive.order ?? 0,
+    title: (primitive as any).title || (primitive as any).name || "Untitled",
+    content: (primitive as any).content || (primitive as any).description || "",
+    order: getArgNumber(args, "position") ?? (primitive as any).order ?? 0,
     ...primitive,
   });
   

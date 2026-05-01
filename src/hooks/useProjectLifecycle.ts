@@ -47,7 +47,8 @@ export function useProjectLifecycle(props: UseProjectLifecycleProps) {
 
   const {
     handleRegenerate,
-    handleStageValidate
+    handleStageValidate,
+    triggerStageGeneration
   } = useStageLifecycle({
     currentProject: props.currentProject,
     setIsTyping: props.setIsTyping,

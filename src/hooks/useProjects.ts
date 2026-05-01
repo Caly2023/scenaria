@@ -62,7 +62,8 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleRegenerate,
     handleProjectDelete,
     handleProjectCreate,
-    handleStageValidate
+    handleStageValidate,
+    triggerStageGeneration
   } = useProjectLifecycle({
     user,
     currentProject,

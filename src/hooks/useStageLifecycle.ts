@@ -79,7 +79,7 @@ export function useStageLifecycle({
         await updateField({ id: currentProject.id, field: 'activeStage', content: nextStage }).unwrap();
         handleStageChange(nextStage);
         addToast(`✅ ${stage} validé. Passage à ${nextStage}...`, 'success');
-        triggerProactiveGeneration(nextStage, currentProject);
+        triggerStageGeneration(nextStage, currentProject);
       }
       setSyncStatus('synced');
     } catch (error) {

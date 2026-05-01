@@ -106,7 +106,7 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider: React.FC<{ user: User | null; addToast: any; children: ReactNode }> = ({ user, addToast, children }) => {
   const projectHook = useProjects(user, addToast);
   const { 
-    currentProject, activeStage, handleStageAnalyze, handleSubcollectionUpdate,
+    currentProject, activeStage, handleStageChange, handleStageAnalyze, handleSubcollectionUpdate,
     handleContentUpdate, handleStageValidate, setRefiningBlockId, setLastUpdatedPrimitiveId,
     stageContents, triggerStageGeneration
   } = projectHook;

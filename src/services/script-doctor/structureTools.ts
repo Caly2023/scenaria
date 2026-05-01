@@ -16,7 +16,7 @@ export const getStageStructure: ToolHandler = async (args, context) => {
     data: {
       stage_id,
       total_count: structure.length,
-      primitives: structure.map((p) => ({
+      primitives: structure.map((p: any) => ({
         primitive_id: p.id,
         title: p.title || p.name,
         content: p.content || p.description,

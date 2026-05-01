@@ -119,9 +119,9 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     const sub = stageRegistry.getCollectionName(stage);
     // Avoid adding insight primitives to Bible or Metadata collections which have strict schemas
     if (sub && sub !== "characters" && sub !== "locations" && sub !== "metadata_primitives") {
-      const existingPrimitives = context.stageContents[stage] || [];
-      // Insight usually occupies order 0 or is the only one in empty stages
-      const insightPrimitive = existingPrimitives.find(p => p.primitiveType === "ai_insight" || p.order === 0);
+      const primitivesForStage = context.stageContents[stage];
+      const existingPrimitives = Array.isArray(primitivesForStage) ? primitivesForStage : [];
+      const insightPrimitive = existingPrimitives.find(p => p && (p.primitiveType === "ai_insight" || p.order === 0));
       
       const insightData = stripUndefined({
         title: "AI Analysis",

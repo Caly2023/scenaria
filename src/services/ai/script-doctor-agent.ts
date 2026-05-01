@@ -54,19 +54,20 @@ class ScriptDoctorAgent {
         telemetryService.getIdMapContext()
       );
 
-      const responseParts = extractResponseParts(result) || [];
+      const responseParts = Array.isArray(extractResponseParts(result)) ? extractResponseParts(result) : [];
       lastParts = responseParts;
 
-      // Extract reasoning
-      const thoughtPart = Array.isArray(responseParts) ? responseParts.find((p) => p.reasoning || p.thought) : undefined;
+      // Extract reasoning with ultra-defensive check
+      const thoughtPart = responseParts.find((p) => p && (p.reasoning || p.thought));
       const thought =
-        (typeof thoughtPart?.reasoning === "string" ? thoughtPart.reasoning : undefined) ||
+        (thoughtPart && typeof thoughtPart.reasoning === "string" ? thoughtPart.reasoning : undefined) ||
         ((result as any)?.reasoning as string | undefined);
       if (thought && callbacks.onThought) {
         callbacks.onThought(thought);
       }
 
-      const toolCallParts = Array.isArray(responseParts) ? responseParts.filter((p) => p?.functionCall || p?.toolRequest) : [];
+      // Filter tool calls
+      const toolCallParts = responseParts.filter((p) => p && (p.functionCall || p.toolRequest));
 
       if (toolCallParts.length === 0) {
         finalResponse = Array.isArray(responseParts) 

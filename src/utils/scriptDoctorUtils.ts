@@ -147,7 +147,8 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
   // If we ended up with nothing but had messages, add a fallback user message
   // This is critical to prevent "Message history is empty" errors.
   if (merged.length === 0 && Array.isArray(messages) && messages.length > 0) {
-    const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+    const safeMessages = Array.isArray(messages) ? [...messages] : [];
+    const lastUserMsg = safeMessages.reverse().find(m => m && m.role === "user");
     merged.push({ 
       role: "user", 
       parts: [{ text: lastUserMsg?.content || "Continue" }] 

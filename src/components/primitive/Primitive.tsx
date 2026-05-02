@@ -128,6 +128,11 @@ export const Primitive = memo(function Primitive({
         type === 'ai_insight' ? "bg-white/5 border border-white/10 shadow-none" : "bg-[#212121] shadow-2xl border border-white/5",
         (type === 'analysis' || type === 'analysis_block') && "border-white/20 bg-white/5",
         (type === 'pitch_result' || type === 'brainstorming_result') && "border-white/10 bg-[#252525]",
+        
+        // Mobile Overrides: Clean edition (No background, No border, No shadow)
+        // EXCEPT for AI Analysis primitives which remain the same
+        !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:bg-transparent max-md:border-none max-md:shadow-none max-md:rounded-none",
+        
         isEmpty && type !== 'ai_insight' && "border-amber-500/30 bg-amber-500/[0.02]",
         showGlow && "ring-2 ring-white/10 shadow-[0_0_30px_rgba(255,255,255,0.05)]",
         mode === 'single' ? "min-h-[400px] md:min-h-[600px] flex flex-col" : "mb-4 md:mb-6"
@@ -164,7 +169,10 @@ export const Primitive = memo(function Primitive({
           >
             {/* Horizontal Image Gallery */}
             {type === 'gallery' && images.length > 0 && (
-              <div className="px-5 py-4 md:px-10 border-b border-white/5 bg-black/10">
+              <div className={cn(
+                "px-5 py-4 md:px-10 border-b border-white/5 bg-black/10",
+                !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:px-0"
+              )}>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                   {images.map((url, i) => (
                     <motion.div
@@ -201,7 +209,10 @@ export const Primitive = memo(function Primitive({
             )}
 
             <div className="flex-1 flex flex-col">
-              <div className="p-5 md:p-12 space-y-6 md:space-y-12">
+              <div className={cn(
+                "p-5 md:p-12 space-y-6 md:space-y-12",
+                !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:px-0"
+              )}>
                 <div className="relative group/text">
                   {onContentChange ? (
                     <RichTextEditor
@@ -240,7 +251,10 @@ export const Primitive = memo(function Primitive({
               </div>
 
               {type === 'gallery' && images.length === 0 && (
-                <div className="px-5 pb-6 md:px-10 md:pb-10">
+                <div className={cn(
+                  "px-5 pb-6 md:px-10 md:pb-10",
+                  !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:px-0"
+                )}>
                   <div 
                     onClick={onGenerateImage}
                     className="aspect-video rounded-3xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center gap-4 opacity-40 cursor-pointer hover:bg-white/5 transition-all"

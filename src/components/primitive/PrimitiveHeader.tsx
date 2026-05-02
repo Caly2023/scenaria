@@ -69,7 +69,10 @@ export const PrimitiveHeader = ({
   }, [isMenuOpen]);
 
   return (
-    <div className="flex items-center justify-between px-5 py-4 md:px-12 md:py-10 border-b border-white/5">
+    <div className={cn(
+      "flex items-center justify-between px-5 py-4 md:px-12 md:py-10 border-b border-white/5",
+      !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:px-0 max-md:border-none"
+    )}>
       <div className="flex items-center gap-4 md:gap-5 flex-1 min-w-0">
         {type === 'ai_insight' ? (
           <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-blue-400 shrink-0" />

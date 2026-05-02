@@ -67,11 +67,12 @@ export function classifyComplexity(content: string): "simple" | "moderate" | "co
  * Build a Gemini REST API "functionResponse" part.
  * In the Gemini multi-turn spec, function results are wrapped in role:"user" turns.
  */
-export function buildFunctionResponsePart(name: string, output: unknown): GeminiPart {
+export function buildFunctionResponsePart(name: string, output: unknown, ref?: string): GeminiPart {
   return {
-    functionResponse: {
+    toolResponse: {
       name,
-      response: typeof output === "object" && output !== null ? output : { result: output },
+      ref,
+      output: typeof output === "object" && output !== null ? output : { result: output },
     },
   };
 }
@@ -106,22 +107,22 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
       for (const p of msg.content_parts) {
         if (!p || typeof p !== "object") continue;
 
-        if (p.functionCall) {
+        if (p.functionCall || p.toolRequest) {
           modelParts.push(p);
-        } else if (p.functionResponse) {
-          toolResultParts.push(p);
-        } else if (p.toolResponse) {
-          const tr = p.toolResponse as any;
-          toolResultParts.push(
-            buildFunctionResponsePart(tr.name, tr.output)
-          );
+        } else if (p.functionResponse || p.toolResponse) {
+          if (p.toolResponse) {
+             toolResultParts.push(p);
+          } else if (p.functionResponse) {
+             const fr = p.functionResponse as any;
+             toolResultParts.push(buildFunctionResponsePart(fr.name, fr.response));
+          }
         } else if (p.text !== undefined) {
           modelParts.push(p);
         }
       }
 
       if (modelParts.length > 0) history.push({ role: "model", content: modelParts });
-      if (toolResultParts.length > 0) history.push({ role: "user", content: toolResultParts });
+      if (toolResultParts.length > 0) history.push({ role: "tool", content: toolResultParts });
       continue;
     }
 

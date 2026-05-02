@@ -41,25 +41,26 @@ const scriptDoctorFlow = ai.defineFlow(
       messages,
       tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => {
         const buildZodSchema = (props: any, required: string[] = []): z.ZodObject<any> => {
-          const shape: Record<string, z.ZodTypeAny> = {};
-          
-          for (const [k, v] of Object.entries(props || {})) {
-            const val = v as any;
-            let schema: z.ZodTypeAny;
-            
+          const getTypeSchema = (val: any): z.ZodTypeAny => {
             if (val.type === 'ARRAY') {
-              schema = z.array(z.any());
+              return z.array(val.items ? getTypeSchema(val.items) : z.any());
             } else if (val.type === 'OBJECT') {
-              schema = val.properties 
+              return val.properties 
                 ? buildZodSchema(val.properties, val.required || [])
                 : z.record(z.any());
             } else if (val.type === 'NUMBER') {
-              schema = z.number();
+              return z.number();
             } else if (val.type === 'BOOLEAN') {
-              schema = z.boolean();
+              return z.boolean();
             } else {
-              schema = z.string();
+              return z.string();
             }
+          };
+
+          const shape: Record<string, z.ZodTypeAny> = {};
+          
+          for (const [k, v] of Object.entries(props || {})) {
+            let schema = getTypeSchema(v);
 
             if (!required.includes(k)) {
               schema = schema.optional();
@@ -84,8 +85,8 @@ const scriptDoctorFlow = ai.defineFlow(
       config: { 
         temperature: 0.7,
         maxOutputTokens: 8192,
-        maxSteps: 1 // CRITICAL: Stop after model generates tool calls so client can execute them
       },
+      returnToolRequests: true, // CRITICAL: Stop after model generates tool calls so client can execute them
       use: [
         retry({ maxRetries: 2 }),
         fallback(ai, { models: [gemini3Flash, gemini25Flash] })

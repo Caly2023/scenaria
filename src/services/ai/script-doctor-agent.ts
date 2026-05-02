@@ -108,7 +108,7 @@ class ScriptDoctorAgent {
           pausedAtAny = true;
           break;
         }
-        toolResponseParts.push(buildFunctionResponsePart(call.name, toolResult));
+        toolResponseParts.push(buildFunctionResponsePart(call.name, toolResult, call.ref));
       }
 
       if (pausedAtAny) {
@@ -122,7 +122,7 @@ class ScriptDoctorAgent {
       conversationHistory = [
         ...conversationHistory,
         { role: "model", content: modelTurnParts },
-        { role: "user", content: toolResponseParts },
+        { role: "tool", content: toolResponseParts },
       ];
 
       if (iteration === MAX_ITERATIONS - 1) {

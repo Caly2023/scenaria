@@ -221,7 +221,7 @@ export function useScriptDoctor({
       const res = await executeToolCall(call, 0, botMsgId);
 
       // Build the functionResponse part in Gemini format
-      const fnResponsePart = buildFunctionResponsePart(call.name, res);
+      const fnResponsePart = buildFunctionResponsePart(call.name, res, call.ref);
 
       // Use the Ref to get the absolute latest state across async boundaries
       const nextMessages = messagesRef.current.map((m) =>

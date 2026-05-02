@@ -43,7 +43,7 @@ export function useScriptDoctorTools({
   const characters = stageContents["Character Bible"] || [];
   const locations = stageContents["Location Bible"] || [];
 
-  const executeToolCall = async (
+  const executeToolCall = useCallback(async (
     call: ToolCall,
     retryAttempt: number = 0,
     botMsgId?: string | null,
@@ -91,7 +91,11 @@ export function useScriptDoctorTools({
       }
       return { success: false, error: classification.userMessage, error_code: 0 };
     }
-  };
+  }, [
+    currentProject, stageContents, characters, locations, subcollectionMap,
+    addToast, setRefiningBlockId, setLastUpdatedPrimitiveId, handleStageAnalyze,
+    setAiStatus, setDoctorMessages, t, handleStageChange, triggerStageGeneration
+  ]);
 
   return { executeToolCall };
 }

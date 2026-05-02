@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Project, WorkflowStage } from '../types';
 import { 
@@ -41,7 +42,7 @@ export function useStageLifecycle({
   const [updateField] = useUpdateProjectFieldMutation();
   const [clearSubcol] = useClearSubcollectionMutation();
 
-  const handleRegenerate = async (stage: WorkflowStage) => {
+  const handleRegenerate = useCallback(async (stage: WorkflowStage) => {
     if (!currentProject || isRegenerating) return;
     setIsRegenerating(true);
     setIsTyping(true);
@@ -62,11 +63,13 @@ export function useStageLifecycle({
       setIsTyping(false);
       setIsHeavyThinking(false);
     }
-  };
+  }, [currentProject, isRegenerating, setIsRegenerating, setIsTyping, setIsHeavyThinking, clearSubcol, addToast, hydrationState]);
 
-  const triggerStageGeneration = async (targetStage: WorkflowStage, project?: Project) => {
+  const triggerStageGeneration = useCallback(async (targetStage: WorkflowStage, project?: Project) => {
     const proj = project || currentProject;
     if (!proj) return;
+    
+    setIsTyping(true);
     try {
       const agent = await agentRegistry.get(targetStage);
       if (!agent) return;
@@ -82,11 +85,13 @@ export function useStageLifecycle({
       }
     } catch (error) {
       console.error(`[StageGeneration] Failed for "${targetStage}":`, error);
-      throw error; // Rethrow so tool handlers can detect failure
+      throw error; 
+    } finally {
+      setIsTyping(false);
     }
-  };
+  }, [currentProject, setIsTyping, getProjectContext, addToast]);
 
-  const handleStageValidate = async (stage: WorkflowStage) => {
+  const handleStageValidate = useCallback(async (stage: WorkflowStage) => {
     if (!currentProject) return;
     setSyncStatus('syncing');
     setIsTyping(true);
@@ -101,7 +106,7 @@ export function useStageLifecycle({
         await updateField({ id: currentProject.id, field: 'activeStage', content: nextStage }).unwrap();
         handleStageChange(nextStage);
         addToast(`✅ ${stage} validé. Passage à ${nextStage}...`, 'success');
-        triggerStageGeneration(nextStage, currentProject);
+        await triggerStageGeneration(nextStage, currentProject);
       }
       setSyncStatus('synced');
     } catch (error) {
@@ -112,7 +117,7 @@ export function useStageLifecycle({
     } finally {
       setIsTyping(false);
     }
-  };
+  }, [currentProject, setSyncStatus, setIsTyping, updateField, handleStageChange, addToast, triggerStageGeneration, t]);
 
   return { handleRegenerate, handleStageValidate, triggerStageGeneration };
 }

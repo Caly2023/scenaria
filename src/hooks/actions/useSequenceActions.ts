@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Project, ContentPrimitive, Sequence } from '../../types';
 import { geminiService } from '../../services/geminiService';
@@ -28,7 +29,7 @@ export function useSequenceActions({
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
   const [addSubcol] = useAddSubcollectionDocMutation();
 
-  const handleSequenceUpdate = (id: string, updates: Partial<Sequence>) => {
+  const handleSequenceUpdate = useCallback((id: string, updates: Partial<Sequence>) => {
     if (!currentProject) return;
     const collectionName = stageRegistry.getCollectionName('Step Outline');
     
@@ -44,9 +45,9 @@ export function useSequenceActions({
         orderByField: 'order' 
       }).catch(console.error);
     }
-  };
+  }, [currentProject, handleSubcollectionUpdate, updateSubcol]);
 
-  const handleSequenceAdd = async () => {
+  const handleSequenceAdd = useCallback(async () => {
     if (!currentProject) return;
     const sequences = stageContents['Step Outline'] || [];
     const collectionName = stageRegistry.getCollectionName('Step Outline');
@@ -60,9 +61,9 @@ export function useSequenceActions({
       const classified = classifyError(error);
       addToast(classified.userMessage, 'error');
     }
-  };
+  }, [currentProject, stageContents, addSubcol, t, addToast]);
 
-  const handleAiMagic = async (id: string) => {
+  const handleAiMagic = useCallback(async (id: string) => {
     if (!currentProject) return;
     const sequences = stageContents['Step Outline'] || [];
     const seq = sequences.find(s => s.id === id);
@@ -83,11 +84,11 @@ export function useSequenceActions({
     } finally {
       setIsTyping(false);
     }
-  };
+  }, [currentProject, stageContents, setIsTyping, handleSequenceUpdate, addToast]);
 
-  return {
+  return useMemo(() => ({
     handleSequenceUpdate,
     handleSequenceAdd,
     handleAiMagic
-  };
+  }), [handleSequenceUpdate, handleSequenceAdd, handleAiMagic]);
 }

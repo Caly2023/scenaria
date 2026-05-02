@@ -68,7 +68,7 @@ export function useScriptDoctor({
   /**
    * Main agentic loop.
    */
-  const runAgentLoop = async (
+  const runAgentLoop = useCallback(async (
     history: GeminiHistoryEntry[],
     botMsgId: string,
     complexity: "simple" | "moderate" | "complex"
@@ -86,7 +86,7 @@ export function useScriptDoctor({
         {
           onThought: (thought) => {
             setDoctorMessages((prev) =>
-              prev.map((m) =>
+              (prev || []).map((m) =>
                 m.id === botMsgId
                   ? { ...m, reasoning: (m.reasoning ? m.reasoning + "\n" : "") + thought }
                   : m
@@ -96,7 +96,7 @@ export function useScriptDoctor({
           onToolCall: async (call) => {
             if (SENSITIVE_TOOLS.has(call.name)) {
               setDoctorMessages((prev) =>
-                prev.map((m) =>
+                (prev || []).map((m) =>
                   m.id === botMsgId
                     ? { ...m, status: "⏳ Awaiting Approval..." }
                     : m
@@ -112,7 +112,7 @@ export function useScriptDoctor({
           },
           onIterationComplete: (modelParts, toolResults) => {
             setDoctorMessages((prev) =>
-              prev.map((m) =>
+              (prev || []).map((m) =>
                 m.id === botMsgId
                   ? {
                       ...m,
@@ -131,7 +131,7 @@ export function useScriptDoctor({
 
       // Finalize the message
       setDoctorMessages((prev) =>
-        prev.map((m) =>
+        (prev || []).map((m) =>
           m.id === botMsgId
             ? {
                 ...m,
@@ -151,7 +151,7 @@ export function useScriptDoctor({
       const message = error instanceof Error ? error.message : "Unknown ScriptDoctor error";
       console.error("[ScriptDoctor] Agent failed:", error);
       setDoctorMessages((prev) =>
-        prev.map((m) =>
+        (prev || []).map((m) =>
           m.id === botMsgId
             ? { ...m, content: `Error: ${message}`, status: "❌ Error", suggested_actions: ['Retry'] }
             : m
@@ -162,7 +162,7 @@ export function useScriptDoctor({
       setActiveTool(null);
       setAiStatus(null);
     }
-  };
+  }, [currentProject, activeStage, executeToolCall]);
 
   const handleDoctorMessage = useCallback(async (content: string) => {
     if (!currentProject) return;
@@ -196,7 +196,7 @@ export function useScriptDoctor({
       timestamp: Date.now(),
     };
 
-    setDoctorMessages((prev) => [...prev, newUserMsg, {
+    setDoctorMessages((prev) => [...(prev || []), newUserMsg, {
       id: botMsgId,
       role: "assistant",
       content: "...",
@@ -207,7 +207,7 @@ export function useScriptDoctor({
     // Build Gemini-format history (excludes the new bot placeholder)
     const history = normalizeHistory([...messagesRef.current, newUserMsg]);
     await runAgentLoop(history, botMsgId, complexity);
-  }, [currentProject, doctorMessages, runAgentLoop]);
+  }, [currentProject, runAgentLoop]);
 
   const handleConfirmTool = useCallback(async () => {
     if (!pendingToolCall || !currentProject) return;

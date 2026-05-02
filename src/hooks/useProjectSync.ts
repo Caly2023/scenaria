@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Project } from '../types';
 import { useUpdateProjectFieldMutation, useUpdateSubcollectionDocMutation } from '../services/firebaseService';
 import { classifyError } from '../lib/errorClassifier';
@@ -21,7 +21,7 @@ export function useProjectSync(
 
   const MAX_RETRIES = 3;
 
-  const handleContentUpdate = async (field: string, content: string) => {
+  const handleContentUpdate = useCallback(async (field: string, content: string) => {
     if (!currentProject) return;
     setSyncStatus('syncing');
     
@@ -43,9 +43,9 @@ export function useProjectSync(
     setSyncStatus('error');
     const classification = classifyError(lastError);
     addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => handleContentUpdate(field, content) });
-  };
+  }, [currentProject, updateField, onSyncSuccess, addToast]);
 
-  const syncSubcollectionToDb = async (collName: string, id: string, data: Record<string, unknown>) => {
+  const syncSubcollectionToDb = useCallback(async (collName: string, id: string, data: Record<string, unknown>) => {
     if (!currentProject) return;
     setSyncStatus('syncing');
     
@@ -67,18 +67,20 @@ export function useProjectSync(
     setSyncStatus('error');
     const classification = classifyError(lastError);
     addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => syncSubcollectionToDb(collName, id, data) });
-  };
+  }, [currentProject, updateSubcol, onSyncSuccess, addToast]);
 
-  const [debouncedSync] = useState(() => {
-    let timeout: NodeJS.Timeout;
-    return (collName: string, id: string, data: Record<string, unknown>) => {
-      setSyncStatus('syncing');
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        syncSubcollectionToDb(collName, id, data);
-      }, 500);
-    };
-  });
+  const syncRef = React.useRef(syncSubcollectionToDb);
+  syncRef.current = syncSubcollectionToDb;
+
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedSync = useCallback((collName: string, id: string, data: Record<string, unknown>) => {
+    setSyncStatus('syncing');
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      syncRef.current(collName, id, data);
+    }, 500);
+  }, []);
 
   const handleSubcollectionUpdate = useCallback((collName: string, id: string, dataOrContent: string | Record<string, any>) => {
     let data = typeof dataOrContent === 'string' ? { content: dataOrContent } : dataOrContent;

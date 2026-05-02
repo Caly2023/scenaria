@@ -23,7 +23,7 @@ export function useCharacterActions({
   const { t } = useTranslation();
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
 
-  const handleGenerateViews = async (id: string) => {
+  const handleGenerateViews = useCallback(async (id: string) => {
     if (!currentProject) return;
     const characters = stageContents['Character Bible'] || [];
     const char = characters.find(c => c.id === id);
@@ -53,9 +53,9 @@ export function useCharacterActions({
         successMessage: t('common.viewsGenerated', { defaultValue: 'Character views generated!' })
       }
     );
-  };
+  }, [currentProject, stageContents, setIsTyping, addToast, t, updateSubcol]);
 
-  const handleCharacterDeepDevelop = async (id: string) => {
+  const handleCharacterDeepDevelop = useCallback(async (id: string) => {
     if (!currentProject) return;
     const characters = stageContents['Character Bible'] || [];
     const char = characters.find(c => c.id === id);
@@ -112,10 +112,10 @@ ${deepData.relationshipMap}
         successMessage: t('common.deepDeveloped', { name: char.title, defaultValue: 'Character deep developed!' })
       }
     );
-  };
+  }, [currentProject, stageContents, setIsTyping, setRefiningBlockId, addToast, t, updateSubcol]);
 
-  return {
+  return useMemo(() => ({
     handleGenerateViews,
     handleCharacterDeepDevelop
-  };
+  }), [handleGenerateViews, handleCharacterDeepDevelop]);
 }

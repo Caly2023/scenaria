@@ -174,10 +174,20 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     projectHook.setProjectToDelete(null);
   }, [projectHook]);
 
-  const value: ProjectContextType = {
+  const handleStoryChange = useCallback((c: string) => {
+    if (currentProject) callbacks.handleStoryChange(c);
+  }, [currentProject, callbacks]);
+
+  const onLoglineChange = useCallback((c: string) => {
+    if (currentProject) callbacks.onLoglineChange(c);
+  }, [currentProject, callbacks]);
+
+  const value = useMemo<ProjectContextType>(() => ({
     ...projectHook,
     ...doctor,
     ...callbacks,
+    handleStoryChange,
+    onLoglineChange,
     onValidateStage: callbacks.onValidateStage,
     hydrationState,
     telemetryStatus,
@@ -196,7 +206,25 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     handleDeleteCurrentProject,
     handleCancelDelete,
     onApplyFix: doctor.handleDoctorMessage
-  };
+  }), [
+    projectHook,
+    doctor,
+    callbacks,
+    handleStoryChange,
+    onLoglineChange,
+    hydrationState,
+    telemetryStatus,
+    handleToggleDoctor,
+    handleOpenDoctor,
+    handleCloseDoctor,
+    isFocusMode,
+    focusedPrimitiveId,
+    focusedStageId,
+    handleFocusMode,
+    handleCloseFocus,
+    handleDeleteCurrentProject,
+    handleCancelDelete
+  ]);
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 };

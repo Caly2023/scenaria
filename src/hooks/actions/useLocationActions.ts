@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Project, ContentPrimitive } from '../../types';
 import { geminiService } from '../../services/geminiService';
@@ -23,7 +24,7 @@ export function useLocationActions({
   const { t } = useTranslation();
   const [updateSubcol] = useUpdateSubcollectionDocMutation();
 
-  const handleLocationDeepDevelop = async (id: string) => {
+  const handleLocationDeepDevelop = useCallback(async (id: string) => {
     if (!currentProject) return;
     const locations = stageContents['Location Bible'] || [];
     const loc = locations.find(l => l.id === id);
@@ -53,9 +54,9 @@ export function useLocationActions({
         successMessage: t('common.locationDeveloped', { defaultValue: 'Location developed!' })
       }
     );
-  };
+  }, [currentProject, stageContents, setIsTyping, setRefiningBlockId, addToast, t, updateSubcol]);
 
-  return {
+  return useMemo(() => ({
     handleLocationDeepDevelop
-  };
+  }), [handleLocationDeepDevelop]);
 }

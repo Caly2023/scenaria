@@ -402,16 +402,16 @@ class StageRegistry {
     let def = this._stages.get(stageId as WorkflowStage);
     
     if (!def) {
-      // Fallback for AI occasionally using French translations instead of exact IDs
+      // Fallback for AI occasionally using French translations or kebab-case instead of exact IDs
       const normalized = String(stageId).toLowerCase();
-      if (normalized.includes('structure en 3 actes')) def = this._stages.get('3-Act Structure');
-      else if (normalized.includes('structure en 8 beats')) def = this._stages.get('8-Beat Structure');
-      else if (normalized.includes('bible des personnages')) def = this._stages.get('Character Bible');
-      else if (normalized.includes('bible des lieux')) def = this._stages.get('Location Bible');
-      else if (normalized.includes('traitement')) def = this._stages.get('Treatment');
-      else if (normalized.includes('séquencier')) def = this._stages.get('Step Outline');
-      else if (normalized.includes('scénario')) def = this._stages.get('Script');
-      else if (normalized.includes('brouillon')) def = this._stages.get('Initial Draft');
+      if (normalized.includes('structure en 3 actes') || normalized.includes('3-act-structure') || normalized.includes('3-act structure')) def = this._stages.get('3-Act Structure');
+      else if (normalized.includes('structure en 8 beats') || normalized.includes('8-beat-structure') || normalized.includes('8-beat structure')) def = this._stages.get('8-Beat Structure');
+      else if (normalized.includes('bible des personnages') || normalized.includes('character bible')) def = this._stages.get('Character Bible');
+      else if (normalized.includes('bible des lieux') || normalized.includes('location bible')) def = this._stages.get('Location Bible');
+      else if (normalized.includes('traitement') || normalized.includes('treatment')) def = this._stages.get('Treatment');
+      else if (normalized.includes('séquencier') || normalized.includes('step outline')) def = this._stages.get('Step Outline');
+      else if (normalized.includes('scénario') || normalized.includes('script')) def = this._stages.get('Script');
+      else if (normalized.includes('brouillon') || normalized.includes('initial draft')) def = this._stages.get('Initial Draft');
     }
 
     if (!def) throw new Error(`[StageRegistry] Unknown stage: "${stageId}"`);

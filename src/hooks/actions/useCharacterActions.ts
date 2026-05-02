@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Project, ContentPrimitive } from '../../types';
 import { geminiService } from '../../services/geminiService';

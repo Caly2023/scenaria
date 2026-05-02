@@ -68,10 +68,10 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
           className="w-full space-y-2"
         >
-          <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
             {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
           </h1>
-          <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
             Prêt à créer votre prochain chef-d'œuvre ?
           </h2>
         </motion.div>
@@ -99,9 +99,9 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
           transition={{ delay: 0.5, duration: 1 }}
           className="w-full flex flex-wrap justify-center gap-6 pt-2"
         >
-          <span className="text-[11px] font-medium text-white/30 uppercase tracking-widest">Format Cinéma</span>
-          <span className="text-[11px] font-medium text-white/30 uppercase tracking-widest">Analyse IA</span>
-          <span className="text-[11px] font-medium text-white/30 uppercase tracking-widest">Script Doctoring</span>
+          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Format Cinéma</span>
+          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Analyse IA</span>
+          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Script Doctoring</span>
         </motion.div>
       </div>
 

@@ -55,9 +55,9 @@ export function ProjectInput({
           isFocused ? "bg-[#252525] border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : "shadow-xl"
         )}
       >
-        <div className="flex flex-col min-h-[140px]">
+        <div className="flex flex-col min-h-[100px]">
           {/* Input Area */}
-          <div className="p-5 md:p-6 pb-2">
+          <div className="p-4 md:p-5 pb-1">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -71,8 +71,8 @@ export function ProjectInput({
               onKeyDown={handleKeyDown}
               placeholder={t('common.homePlaceholder')}
               className={cn(
-                "w-full bg-transparent border-none font-medium leading-relaxed placeholder:text-white/20 px-2 resize-none no-scrollbar text-white selection:bg-[#D4AF37]/30 outline-none transition-all",
-                "text-base md:text-lg min-h-[50px]"
+                "w-full bg-transparent border-none font-semibold leading-relaxed placeholder:text-white/40 px-2 resize-none no-scrollbar text-white selection:bg-[#D4AF37]/30 outline-none transition-all",
+                "text-base md:text-lg min-h-[40px]"
               )}
             />
           </div>
@@ -92,7 +92,7 @@ export function ProjectInput({
                   triggerHaptic('light');
                   fileInputRef.current?.click();
                 }}
-                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-all flex items-center justify-center border-none"
+                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-all flex items-center justify-center border-none"
                 title={t('common.importText')}
               >
                 <Plus className="w-5 h-5" />

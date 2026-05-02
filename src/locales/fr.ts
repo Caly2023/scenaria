@@ -44,7 +44,7 @@ export const fr = {
       professionalStudio: 'Studio d\'écriture de scénario professionnel par IA',
       projectNameOptional: 'Nom du projet (optionnel)',
       whatsTheStory: 'Votre prochain film commence ici.',
-      homePlaceholder: 'Collez votre histoire ou décrivez le court métrage sur lequel vous voulez bosser...',
+      homePlaceholder: 'Écrivez votre idée ou collez votre scénario...',
       signIn: 'Connectez-vous pour commencer votre voyage d\'écriture professionnel.',
       signInWithGoogle: 'Se connecter avec Google',
       step: 'Étape',

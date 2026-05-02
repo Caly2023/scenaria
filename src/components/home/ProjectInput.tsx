@@ -72,7 +72,7 @@ export function ProjectInput({
               placeholder={t('common.homePlaceholder')}
               className={cn(
                 "w-full bg-transparent border-none font-medium leading-relaxed placeholder:text-white/20 px-2 resize-none no-scrollbar text-white selection:bg-[#D4AF37]/30 outline-none transition-all",
-                "text-lg md:text-xl min-h-[60px]"
+                "text-base md:text-lg min-h-[50px]"
               )}
             />
           </div>

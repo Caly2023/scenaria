@@ -44,7 +44,7 @@ export const en = {
       professionalStudio: 'Professional AI Screenwriting Studio',
       projectNameOptional: 'Project name (optional)',
       whatsTheStory: 'Your next film starts here.',
-      homePlaceholder: 'Paste your story or describe the short film you want to work on...',
+      homePlaceholder: 'Write your idea or paste your script...',
       signIn: 'Sign in to start your professional screenwriting journey.',
       signInWithGoogle: 'Sign in with Google',
       step: 'Step',

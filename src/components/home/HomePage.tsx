@@ -11,13 +11,6 @@ interface HomePageProps {
   userDisplayName?: string;
 }
 
-const QUICK_ACTIONS = [
-  { id: 'short', icon: '🎬', text: 'Court-métrage de fiction' },
-  { id: 'documentary', icon: '📽️', text: 'Documentaire court' },
-  { id: 'commercial', icon: '📺', text: 'Spot publicitaire AI' },
-  { id: 'script', icon: '📝', text: 'Analyse de scénario' },
-  { id: 'pitch', icon: '💡', text: 'Pitch de série' },
-];
 
 export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const { t } = useTranslation();
@@ -74,13 +67,13 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="w-full space-y-2"
+          className="w-full space-y-1"
         >
-          <h1 className="text-4xl md:text-6xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
+          <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
             {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
           </h1>
-          <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-white/40">
-            Par où commencer ?
+          <h2 className="text-xl md:text-2xl font-medium tracking-tight text-white/40">
+            Prêt à créer votre prochain chef-d'œuvre ?
           </h2>
         </motion.div>
 
@@ -100,30 +93,16 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
           />
         </div>
 
-        {/* Quick Action Pills */}
+        {/* Small text below field */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
-          className="w-full flex flex-wrap justify-center gap-3 pt-4"
+          className="w-full flex flex-wrap justify-center gap-6 pt-2"
         >
-          {QUICK_ACTIONS.map((action, i) => (
-            <motion.button
-              key={action.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.6 + i * 0.1 }}
-              onClick={() => {
-                const text = `Je souhaite créer un ${action.text.toLowerCase()}`;
-                setStoryIdea(text);
-                handleSubmit(text);
-              }}
-              className="flex items-center gap-3 px-4 py-3 md:px-6 md:py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium text-white/80 group"
-            >
-              <span className="text-xl group-hover:scale-110 transition-transform">{action.icon}</span>
-              <span>{action.text}</span>
-            </motion.button>
-          ))}
+          <span className="text-[11px] font-medium text-white/30 uppercase tracking-widest">Format Cinéma</span>
+          <span className="text-[11px] font-medium text-white/30 uppercase tracking-widest">Analyse IA</span>
+          <span className="text-[11px] font-medium text-white/30 uppercase tracking-widest">Script Doctoring</span>
         </motion.div>
       </div>
 

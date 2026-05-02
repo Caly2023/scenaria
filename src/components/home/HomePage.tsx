@@ -62,17 +62,16 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
       </div>
 
       <div className="w-full max-w-3xl z-10 flex flex-col items-start md:items-center space-y-12">
-        {/* Gemini-style Greeting */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="w-full space-y-1"
+          className="w-full space-y-2"
         >
           <h1 className="text-2xl md:text-3xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
             {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
           </h1>
-          <h2 className="text-xl md:text-2xl font-medium tracking-tight text-white/40">
+          <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
             Prêt à créer votre prochain chef-d'œuvre ?
           </h2>
         </motion.div>

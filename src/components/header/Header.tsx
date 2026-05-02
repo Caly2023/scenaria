@@ -78,33 +78,40 @@ export function Header({
           "flex items-center justify-between px-4 md:px-6 w-full relative",
           isCompact ? "h-14 md:h-14" : "h-14 md:h-16"
         )}>
-          {/* Left — Burger + Project name */}
-          <div className="flex items-center gap-2 md:gap-4 min-w-0">
-            <button 
-              onClick={() => setIsHistoryOpen(true)}
-              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/5 transition-all border-none group/menu"
-            >
-              <div className="flex flex-col items-start gap-1">
-                <span className="h-[2px] w-5 rounded-full bg-white/40 group-hover/menu:bg-white transition-colors" />
-                <span className="h-[2px] w-3 rounded-full bg-white/40 group-hover/menu:bg-white transition-colors" />
-              </div>
-            </button>
-
+          {/* Left — Logo + Project name */}
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
             {!currentProject ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-medium tracking-tight text-white/90">ScénarIA</span>
-                <div className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10">
-                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">Alpha</span>
+              <button 
+                onClick={() => setIsHistoryOpen(true)}
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity border-none bg-transparent p-0"
+              >
+                <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black tracking-[0.4em] text-white/90 uppercase">SCENARIA</span>
+                  <div className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10">
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">Alpha</span>
+                  </div>
                 </div>
-              </div>
+              </button>
             ) : (
-              <div className="flex items-center gap-4 min-w-0">
-                <button onClick={onTitleClick} className="flex items-center gap-2 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-sm font-bold tracking-tight text-white truncate max-w-[200px]">{projectName}</span>
-                    <ChevronRight className={cn("w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-90 text-white")} />
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsHistoryOpen(true)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/5 transition-all border-none group/menu"
+                >
+                  <div className="flex flex-col items-start gap-1">
+                    <span className="h-[2px] w-5 rounded-full bg-white/40 group-hover/menu:bg-white transition-colors" />
+                    <span className="h-[2px] w-3 rounded-full bg-white/40 group-hover/menu:bg-white transition-colors" />
                   </div>
                 </button>
+                <div className="flex items-center gap-4 min-w-0">
+                  <button onClick={onTitleClick} className="flex items-center gap-2 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-sm font-bold tracking-tight text-white truncate max-w-[200px]">{projectName}</span>
+                      <ChevronRight className={cn("w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-90 text-white")} />
+                    </div>
+                  </button>
+                </div>
               </div>
             )}
           </div>

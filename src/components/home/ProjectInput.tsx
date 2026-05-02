@@ -50,9 +50,9 @@ export function ProjectInput({
         transition={{ delay: 0.3 }}
         className={cn(
           "relative w-full transition-all duration-700 ease-[0.23, 1, 0.32, 1]",
-          "bg-[#1e1e1e] border border-white/5",
+          "bg-[#1e1e1e] border border-white/10",
           "rounded-[28px] md:rounded-[32px]",
-          isFocused ? "bg-[#252525] border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : "shadow-xl"
+          isFocused ? "bg-[#252525] border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : "shadow-xl"
         )}
       >
         <div className="flex flex-col min-h-[140px]">

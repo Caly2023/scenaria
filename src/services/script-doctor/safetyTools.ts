@@ -93,8 +93,9 @@ export const undoLastAction: ToolHandler = async (args, context) => {
     addToast(`↩️ ${t("common.actionReverted")}`, "info");
     telemetryService.setStatus("undo_last_action", "✅", `Action reverted.`);
     return { success: true, reverted: lastAction.type, timestamp: lastAction.timestamp };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };
 

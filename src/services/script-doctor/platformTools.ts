@@ -111,9 +111,10 @@ export const exportProjectDocument: ToolHandler = async (args, context) => {
     addToast(`📄 Export téléchargé: ${filename}`, "success");
     telemetryService.setStatus("export_project_document", "✅", `Exported as ${filename}`);
     return { success: true, filename, format, stage };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     telemetryService.setStatus("export_project_document", "❌", "Export failed.");
-    return { success: false, error: error.message };
+    return { success: false, error: message };
   }
 };
 
@@ -148,8 +149,9 @@ export const readUserPreferences: ToolHandler = async (args, context) => {
 
     telemetryService.setStatus("read_user_preferences", "✅", "Preferences loaded.");
     return { success: true, data: preferences };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };
 
@@ -181,8 +183,9 @@ export const updateAgentMemory: ToolHandler = async (args, context) => {
 
     telemetryService.setStatus("update_agent_memory", "✅", "Memory persisted.");
     return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };
 

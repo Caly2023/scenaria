@@ -81,7 +81,7 @@ export function useScriptDoctorTools({
       }
       
       return { success: false, error: `Unknown tool: ${name}` };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`[ScriptDoctor] Tool ${name} failed:`, error);
       const { classifyError } = await import("../lib/errorClassifier");
       const classification = classifyError(error);

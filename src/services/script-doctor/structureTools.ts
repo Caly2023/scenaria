@@ -120,8 +120,9 @@ export const restructureStage: ToolHandler = async (args, context) => {
         ).unwrap();
       }
     }
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 
   await contextAssembler.getStageStructure(currentProject.id, stage);

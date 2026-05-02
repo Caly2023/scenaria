@@ -28,8 +28,9 @@ export const navigateToStage: ToolHandler = async (args, context) => {
     addToast(`🧭 Viewing: ${stage}`, "info");
     telemetryService.setStatus("navigate_to_stage", "✅", `UI navigated to ${stage}.`);
     return { success: true, navigated_to: stage };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };
 
@@ -71,8 +72,9 @@ export const focusElement: ToolHandler = async (args, context) => {
 
     telemetryService.setStatus("focus_element", "✅", `Element ${primitiveId} highlighted.`);
     return { success: true, primitive_id: primitiveId, found_in_dom: !!el };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };
 
@@ -97,8 +99,9 @@ export const toggleUiPanel: ToolHandler = async (args, context) => {
     document.dispatchEvent(event);
 
     return { success: true, panel, state };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };
 

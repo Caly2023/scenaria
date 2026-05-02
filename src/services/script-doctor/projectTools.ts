@@ -65,8 +65,9 @@ export const syncMetadata: ToolHandler = async (args, context) => {
         metadata: { ...currentProject.metadata, ...metadata }
       })
     ).unwrap();
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
   
   addToast(context.t("common.metadataSynced"), "success");
@@ -155,11 +156,11 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     const sub = stageRegistry.getCollectionName(stage);
     // Avoid adding insight primitives to Bible or Metadata collections which have strict schemas
     if (sub && sub !== "characters" && sub !== "locations" && sub !== "metadata_primitives") {
-      const primitivesForStage = context.stageContents[stage];
+      const primitivesForStage = (context.stageContents || {})[stage];
       const existingPrimitives = Array.isArray(primitivesForStage) ? primitivesForStage : [];
       
       // CRITICAL FIX: Only target primitives explicitly marked as ai_insight to avoid overwriting content at order 0
-      const insightPrimitive = existingPrimitives.find(p => p && p.primitiveType === "ai_insight");
+      const insightPrimitive = (existingPrimitives || []).find(p => p && p.primitiveType === "ai_insight");
       
       const insightData = stripUndefined({
         title: "AI Analysis",
@@ -194,8 +195,9 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
       }
     }
     
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
   
   telemetryService.setStatus("update_stage_insight", "✅", `Insight and AI Analysis primitive saved.`);

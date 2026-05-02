@@ -25,8 +25,9 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
       addToast(t("common.stageGenerationStarted", { stage }), "info");
       telemetryService.setStatus("trigger_stage_generation", "✅", `Generation dispatched for ${stage}.`);
       return { success: true, stage };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      return { success: false, error: message };
     }
   }
 
@@ -36,6 +37,12 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
     const { persistAgentOutput, buildProjectContext } = await import("../orchestration");
     const { store } = await import("../../store");
     const { firebaseService } = await import("../firebaseService");
+    const { stageRegistry } = await import("../../config/stageRegistry");
+
+    // Validate stage exists
+    if (!stageRegistry.exists(stage)) {
+      return { success: false, error: `Invalid stage: ${stage}` };
+    }
 
     const agent = await agentRegistry.get(stage);
     if (!agent) {
@@ -55,7 +62,6 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
 
     // Clear existing content if force
     if (force) {
-      const { stageRegistry } = await import("../../config/stageRegistry");
       const collectionName = stageRegistry.getCollectionName(stage);
       if (collectionName) {
         await store.dispatch(
@@ -88,11 +94,12 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
     return {
       success: true,
       stage,
-      primitives_created: result.primitiveIds?.length ?? 0,
+      primitives_created: (result.primitiveIds || []).length,
     };
-  } catch (error: any) {
-    telemetryService.setStatus("trigger_stage_generation", "❌", `Generation failed for ${stage}.`);
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    telemetryService.setStatus("trigger_stage_generation", "❌", `Generation failed for ${stage}: ${message}`);
+    return { success: false, error: message };
   }
 };
 
@@ -138,6 +145,11 @@ export const approveStage: ToolHandler = async (args, context) => {
     // 3. Advance to the next stage
     const allStageIds = stageRegistry.getAllIds();
     const currentIndex = allStageIds.indexOf(stage);
+    
+    if (currentIndex === -1) {
+      return { success: false, error: `Invalid stage: ${stage}` };
+    }
+
     const nextStage = allStageIds[currentIndex + 1] as WorkflowStage | undefined;
 
     if (nextStage) {
@@ -162,7 +174,8 @@ export const approveStage: ToolHandler = async (args, context) => {
     addToast(`✅ ${stage} approuvé. Projet finalisé !`, "success");
     telemetryService.setStatus("approve_stage", "✅", `${stage} is the final stage.`);
     return { success: true, approved_stage: stage, next_stage: null };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
 };

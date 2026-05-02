@@ -40,9 +40,10 @@ export const proposePatch: ToolHandler = async (args, context) => {
       docId: id,
       previousData: previousItem
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     setRefiningBlockId(null);
-    return { success: false, error: error.message };
+    return { success: false, error: message };
   }
   
   await contextAssembler.getStageStructure(currentProject.id, stage);
@@ -77,8 +78,9 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
         })
       ).unwrap();
     }
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
   
   const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
@@ -123,8 +125,9 @@ export const addPrimitive: ToolHandler = async (args, context) => {
       collectionName: sub,
       docId: newDocId
     });
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
   
   await contextAssembler.getStageStructure(currentProject.id, stage);
@@ -163,8 +166,9 @@ export const deletePrimitive: ToolHandler = async (args, context) => {
       docId: id,
       previousData: previousItem
     });
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, error: message };
   }
   
   await contextAssembler.getStageStructure(currentProject.id, stage);

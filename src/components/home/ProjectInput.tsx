@@ -43,15 +43,15 @@ export function ProjectInput({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full md:max-w-4xl md:mx-auto md:space-y-6">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className={cn(
           "relative w-full transition-all duration-700 ease-[0.23, 1, 0.32, 1]",
-          "bg-white/[0.03] backdrop-blur-3xl border border-white/10",
-          "rounded-[32px] md:rounded-[40px]",
+          "bg-background md:bg-white/[0.03] backdrop-blur-3xl border-t border-x border-white/10 md:border",
+          "rounded-t-[24px] md:rounded-[40px] rounded-b-none md:rounded-b-[40px]",
           isFocused ? "border-white/20 bg-white/[0.05] shadow-[0_0_80px_rgba(212,175,55,0.05)] ring-1 ring-white/10" : "shadow-2xl"
         )}
       >
@@ -63,7 +63,7 @@ export function ProjectInput({
 
         <div className="flex flex-col">
           {/* Input Area */}
-          <div className="p-6 md:p-10 pb-2 md:pb-4">
+          <div className="p-4 md:p-10 pb-1 md:pb-4">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -78,14 +78,14 @@ export function ProjectInput({
               placeholder={t('common.whatsTheStory')}
               className={cn(
                 "w-full bg-transparent border-none font-medium leading-relaxed placeholder:text-white/20 px-2 resize-none no-scrollbar text-white selection:bg-[#D4AF37]/30 outline-none transition-all",
-                "text-lg md:text-2xl min-h-[100px] md:min-h-[160px]"
+                "text-base md:text-2xl min-h-[60px] md:min-h-[160px]"
               )}
             />
           </div>
 
           {/* Action Bar */}
-          <div className="px-6 md:px-10 pb-6 md:pb-8 pt-2 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 md:gap-3 p-1.5 bg-white/5 rounded-2xl border border-white/5 shrink-0">
+          <div className="px-4 md:px-10 pb-4 md:pb-8 pt-1 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 md:gap-3 p-1 bg-white/5 rounded-xl md:rounded-2xl border border-white/5 shrink-0">
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -98,7 +98,7 @@ export function ProjectInput({
                   triggerHaptic('light');
                   fileInputRef.current?.click();
                 }}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center group relative border-none"
+                className="w-9 h-9 md:w-12 md:h-12 rounded-lg md:rounded-xl hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center group relative border-none"
                 title={t('common.importText')}
               >
                 <Plus className="w-5 h-5 md:w-6 md:h-6" />
@@ -107,7 +107,7 @@ export function ProjectInput({
                 </div>
               </button>
               
-              <div className="w-px h-6 bg-white/10 mx-1" />
+              <div className="w-px h-6 bg-white/10 mx-0.5 md:mx-1" />
               
               <DictationButton 
                 onResult={(text) => setStoryIdea(prev => prev + (prev ? ' ' : '') + text)}
@@ -122,7 +122,7 @@ export function ProjectInput({
               }}
               disabled={!storyIdea.trim() || isCreating}
               className={cn(
-                "h-12 md:h-16 px-8 md:px-12 rounded-2xl md:rounded-3xl flex items-center gap-3 md:gap-4 transition-all duration-500 border-none relative overflow-hidden group",
+                "h-10 md:h-16 px-6 md:px-12 rounded-xl md:rounded-3xl flex items-center gap-2 md:gap-4 transition-all duration-500 border-none relative overflow-hidden group",
                 storyIdea.trim() && !isCreating
                   ? "bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_20px_40px_rgba(255,255,255,0.1)]" 
                   : "bg-white/5 text-white/10 cursor-not-allowed border border-white/10"
@@ -132,11 +132,12 @@ export function ProjectInput({
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
               )}
               
-              <span className="text-xs md:text-sm font-black uppercase tracking-[0.25em] relative z-10">
+              <span className="text-[10px] md:text-sm font-black uppercase tracking-[0.2em] md:tracking-[0.25em] relative z-10">
                 {isCreating ? creationStatus : (
-                  <span className="flex items-center gap-3">
-                    <span>Begin Journey</span>
-                    <ArrowUp className="w-5 h-5" />
+                  <span className="flex items-center gap-2 md:gap-3">
+                    <span className="hidden sm:inline">Begin Journey</span>
+                    <span className="sm:hidden">Begin</span>
+                    <ArrowUp className="w-4 h-4 md:w-5 md:h-5" />
                   </span>
                 )}
               </span>

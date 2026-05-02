@@ -68,22 +68,18 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
         >
           <div className="relative group">
             <div className="absolute inset-0 bg-[#D4AF37]/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-150 pointer-events-none" />
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/10 to-transparent" />
               <img 
                 src="/logo.png" 
                 alt="ScénarIA" 
-                className="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] relative z-10" 
+                className="w-14 h-14 md:w-20 md:h-20 object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] relative z-10" 
               />
             </div>
           </div>
           
-          <div className="flex flex-col items-center text-center space-y-4">
-            <h1 className="text-4xl md:text-7xl font-black tracking-tight [font-family:'Poppins',sans-serif] bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/40">
-              Scenar<span className="text-[#D4AF37]">ia</span>
-            </h1>
-            <div className="h-px w-12 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent mb-2" />
-            <p className="text-lg md:text-2xl text-white/80 font-light max-w-xl leading-relaxed tracking-wide">
+          <div className="flex flex-col items-center text-center space-y-2">
+            <p className="text-2xl md:text-4xl font-medium tracking-tight text-white">
               {t('common.whatsTheStory')}
             </p>
           </div>
@@ -96,8 +92,8 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
           className={cn(
             "w-full transition-all duration-500",
-            "fixed bottom-0 left-0 right-0 p-4 md:relative md:bottom-auto md:p-0",
-            "bg-gradient-to-t from-background via-background/90 to-transparent md:bg-none"
+            "fixed bottom-0 left-0 right-0 md:relative md:bottom-auto",
+            "bg-gradient-to-t from-background via-background/90 to-transparent md:bg-none z-50"
           )}
         >
           <ProjectInput 

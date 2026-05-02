@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { 
-  ChevronDown, 
+  ChevronRight, 
   RefreshCw,
   Info,
   Accessibility,
@@ -90,7 +90,7 @@ export function Header({
                 <button onClick={onTitleClick} className="flex items-center gap-2 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm font-bold tracking-tight text-white truncate max-w-[200px]">{projectName}</span>
-                    <ChevronDown className={cn("w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-180 text-white")} />
+                    <ChevronRight className={cn("w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-90 text-white")} />
                   </div>
                 </button>
                 <div className="h-6 w-[1px] bg-white/10 mx-1" />
@@ -112,9 +112,12 @@ export function Header({
           {/* Mobile project name */}
           {currentProject && (
             <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[44%]">
-              <button onClick={onTitleClick} className="flex items-center gap-1.5 min-w-0 border-none bg-transparent p-0">
-                <span className="text-[15px] font-semibold tracking-tight text-white truncate">{projectName}</span>
-                <ChevronDown className={cn("w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-180 text-white")} />
+              <button 
+                onClick={onTitleClick} 
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 min-w-0 hover:bg-white/10 transition-all"
+              >
+                <span className="text-[13px] font-semibold tracking-tight text-white/90 truncate">{projectName}</span>
+                <ChevronRight className={cn("w-3 h-3 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-90 text-white")} />
               </button>
             </div>
           )}

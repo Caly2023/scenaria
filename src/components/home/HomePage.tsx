@@ -67,13 +67,12 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
           className="flex flex-col items-center gap-6 mb-12 md:mb-20"
         >
           <div className="relative group">
-            <div className="absolute inset-0 bg-[#D4AF37]/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-150 pointer-events-none" />
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/10 to-transparent" />
+            <div className="absolute inset-0 bg-[#D4AF37]/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-125 pointer-events-none" />
+            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full flex items-center justify-center relative overflow-hidden">
               <img 
                 src="/logo.png" 
                 alt="ScénarIA" 
-                className="w-14 h-14 md:w-20 md:h-20 object-contain drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] relative z-10" 
+                className="w-full h-full object-contain drop-shadow-[0_0_25px_rgba(212,175,55,0.3)] relative z-10" 
               />
             </div>
           </div>

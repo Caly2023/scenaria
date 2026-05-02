@@ -50,7 +50,7 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4">
+    <div className="w-full h-[100dvh] flex flex-col items-center relative overflow-hidden px-4">
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#D4AF37]/5 blur-[120px] rounded-full animate-pulse" />
@@ -58,17 +58,17 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
         <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full" />
       </div>
 
-      <div className="w-full max-w-5xl z-10 flex flex-col items-center">
+      <div className="w-full max-w-5xl z-10 flex-1 flex flex-col items-center justify-center pb-[120px] md:pb-0">
         {/* Logo & Brand */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-          className="flex flex-col items-center gap-6 mb-12 md:mb-20"
+          className="flex flex-col items-center gap-6"
         >
           <div className="relative group">
             <div className="absolute inset-0 bg-[#D4AF37]/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-125 pointer-events-none" />
-            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full flex items-center justify-center relative overflow-hidden">
+            <div className="w-24 h-24 md:w-48 md:h-48 rounded-full flex items-center justify-center relative overflow-hidden">
               <img 
                 src="/logo.png" 
                 alt="ScénarIA" 
@@ -78,47 +78,47 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
           </div>
           
           <div className="flex flex-col items-center text-center space-y-2">
-            <p className="text-2xl md:text-4xl font-medium tracking-tight text-white">
+            <h1 className="text-xl md:text-4xl font-medium tracking-tight text-white max-w-[280px] md:max-w-none">
               {t('common.whatsTheStory')}
-            </p>
+            </h1>
           </div>
         </motion.div>
-
-        {/* Input Area */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-          className={cn(
-            "w-full transition-all duration-500",
-            "fixed bottom-0 left-0 right-0 md:relative md:bottom-auto",
-            "bg-gradient-to-t from-background via-background/90 to-transparent md:bg-none z-50"
-          )}
-        >
-          <ProjectInput 
-            storyIdea={storyIdea}
-            setStoryIdea={setStoryIdea}
-            isFocused={isFocused}
-            setIsFocused={setIsFocused}
-            isCreating={isCreating}
-            creationStatus={creationStatus}
-            creationError={creationError}
-            setCreationError={setCreationError}
-            onSubmit={handleSubmit}
-            handleFileImport={handleFileImport}
-          />
-          
-          {/* Subtle Tip */}
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="hidden md:block text-center mt-8 text-xs font-medium text-white/20 uppercase tracking-[0.4em]"
-          >
-            {t('common.helperText')}
-          </motion.p>
-        </motion.div>
       </div>
+
+      {/* Input Area */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        className={cn(
+          "w-full transition-all duration-500",
+          "fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:max-w-5xl md:mx-auto md:mb-20",
+          "bg-gradient-to-t from-background via-background/90 to-transparent md:bg-none z-50"
+        )}
+      >
+        <ProjectInput 
+          storyIdea={storyIdea}
+          setStoryIdea={setStoryIdea}
+          isFocused={isFocused}
+          setIsFocused={setIsFocused}
+          isCreating={isCreating}
+          creationStatus={creationStatus}
+          creationError={creationError}
+          setCreationError={setCreationError}
+          onSubmit={handleSubmit}
+          handleFileImport={handleFileImport}
+        />
+        
+        {/* Subtle Tip */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="hidden md:block text-center mt-8 text-xs font-medium text-white/20 uppercase tracking-[0.4em]"
+        >
+          {t('common.helperText')}
+        </motion.p>
+      </motion.div>
 
       {/* Footer Branding */}
       <motion.div 

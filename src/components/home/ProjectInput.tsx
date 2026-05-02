@@ -75,7 +75,7 @@ export function ProjectInput({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               onKeyDown={handleKeyDown}
-              placeholder={t('common.whatsTheStory')}
+              placeholder={t('common.homePlaceholder')}
               className={cn(
                 "w-full bg-transparent border-none font-medium leading-relaxed placeholder:text-white/20 px-2 resize-none no-scrollbar text-white selection:bg-[#D4AF37]/30 outline-none transition-all",
                 "text-base md:text-xl min-h-[40px] md:min-h-[28px]"

@@ -59,7 +59,7 @@ export function useProjectData(user: User | null): ProjectDataState {
     if (currentProject?.id) {
       import('../services/migrationService').then(m => m.migrateProjectIfNeeded(currentProject));
     }
-  }, [currentProject?.id]);
+  }, [currentProject]);
 
   // Derive the numeric order of the current stage for gate comparisons
   const activeStageOrder = useMemo(() => {

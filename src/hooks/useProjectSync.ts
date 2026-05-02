@@ -21,11 +21,11 @@ export function useProjectSync(
 
   const MAX_RETRIES = 3;
 
-  const handleContentUpdate = useCallback(async (field: string, content: string) => {
+  const handleContentUpdate = useCallback(async function update(field: string, content: string) {
     if (!currentProject) return;
     setSyncStatus('syncing');
     
-    let lastError: any = null;
+    let lastError: unknown = null;
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         await updateField({ id: currentProject.id, field, content }).unwrap();
@@ -42,14 +42,14 @@ export function useProjectSync(
     }
     setSyncStatus('error');
     const classification = classifyError(lastError);
-    addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => handleContentUpdate(field, content) });
+    addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => update(field, content) });
   }, [currentProject, updateField, onSyncSuccess, addToast]);
 
-  const syncSubcollectionToDb = useCallback(async (collName: string, id: string, data: Record<string, unknown>) => {
+  const syncSubcollectionToDb = useCallback(async function sync(collName: string, id: string, data: Record<string, unknown>) {
     if (!currentProject) return;
     setSyncStatus('syncing');
     
-    let lastError: any = null;
+    let lastError: unknown = null;
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         await updateSubcol({ projectId: currentProject.id, collectionName: collName, docId: id, data, orderByField: 'order' }).unwrap();
@@ -66,7 +66,7 @@ export function useProjectSync(
     }
     setSyncStatus('error');
     const classification = classifyError(lastError);
-    addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => syncSubcollectionToDb(collName, id, data) });
+    addToast(classification.userMessage, 'error', { label: 'Retry', onClick: () => sync(collName, id, data) });
   }, [currentProject, updateSubcol, onSyncSuccess, addToast]);
 
   const syncRef = React.useRef(syncSubcollectionToDb);

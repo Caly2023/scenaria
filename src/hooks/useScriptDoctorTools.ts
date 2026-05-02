@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { stageRegistry } from "../config/stageRegistry";
 import { contextAssembler } from "../services/context";

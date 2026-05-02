@@ -13,7 +13,7 @@ export interface ScriptDoctorMessage {
   active_tool?: string;
   timestamp: number;
   /** Preserves Genkit/Gemini raw parts for multi-turn consistency (including thoughts and signatures) */
-  content_parts?: any[];
+  content_parts?: GeminiPart[];
 }
 
 export interface ToolCall {

@@ -20,7 +20,6 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [refiningBlockId, setRefiningBlockId] = useState<string | null>(null);
   const [lastUpdatedPrimitiveId, setLastUpdatedPrimitiveId] = useState<string | null>(null);
-  const autoAnalyzeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const {
     projects,
@@ -200,6 +199,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete,
     handleStageChange, handleMetadataUpdate, handleContentUpdate,
     handleSubcollectionUpdate, handleRegenerate, handleStageValidate,
-    handleStageRefine, handleStageAnalyze, triggerStageGeneration, characterActions, locationActions, sequenceActions
+    handleStageRefine, handleStageAnalyze, triggerStageGeneration, characterActions, locationActions, sequenceActions,
+    setSyncStatus
   ]);
 }

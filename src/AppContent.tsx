@@ -32,11 +32,10 @@ type AppContentProps = {
 export function AppContent({ user, isAuthReady, isOffline, connectionError, toasts, setToasts, addToast }: AppContentProps) {
   const project = useProject();
   const { 
-    currentProject, activeStage, projects, isProjectLoading, isProjectNotFound,
-    handleProjectSelect, handleProjectExit, handleProjectCreate,
+    currentProject, activeStage, isProjectLoading, isProjectNotFound,
+    handleProjectExit, handleProjectCreate,
     handleStageChange, handleSubcollectionUpdate,
     stageContents,
-    setProjectToDelete,
     handleAiMagic,
     handleToggleDoctor,
     isFocusMode, handleCloseFocus, focusedPrimitiveId, focusedStageId

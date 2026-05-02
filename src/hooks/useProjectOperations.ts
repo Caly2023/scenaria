@@ -33,10 +33,8 @@ export function useProjectOperations({
   const { t } = useTranslation();
   const [deleteProject] = useDeleteProjectMutation();
   const [initProjectWithPrims] = useInitializeProjectWithPrimitivesMutation();
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleProjectDelete = async (projectId: string) => {
-    setIsDeleting(true);
     try {
       await deleteProject(projectId).unwrap();
       addToast(t('common.projectDeleted', { defaultValue: 'Project deleted' }), 'success');
@@ -46,8 +44,6 @@ export function useProjectOperations({
     } catch (error) {
       console.error('Error deleting project:', error);
       addToast(t('common.errorDeletingProject', { defaultValue: 'Error deleting project' }), 'error');
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -136,6 +132,5 @@ export function useProjectOperations({
   return {
     handleProjectDelete,
     handleProjectCreate,
-    isDeleting
   };
 }

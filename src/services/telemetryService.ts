@@ -34,6 +34,12 @@ export interface TelemetryStatus {
   primitiveId?: string;
 }
 
+interface StageMetricSummary {
+  averageLatencyMs: number;
+  successRate: string;
+  totalRequests: number;
+}
+
 // ─── ID-Map Store ────────────────────────────────────────────────────────────
 
 class TelemetryStore {
@@ -302,7 +308,7 @@ class TelemetryStore {
   }
 
   getStageMetricsSummary() {
-    const summary: Record<string, any> = {};
+    const summary: Record<string, StageMetricSummary> = {};
     for (const [stage, metrics] of this._stageMetrics.entries()) {
       summary[stage] = {
         averageLatencyMs: metrics.requestCount - metrics.errors > 0 

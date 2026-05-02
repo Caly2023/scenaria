@@ -56,7 +56,7 @@ export class PrevisAgent extends BaseStageAgent {
     try {
       const raw = await geminiService.generateStageInsight(this.stageId, text, await this.getUnifiedContext(context));
       const analysis = this.buildAnalysis(
-        raw.content,
+        raw.evaluation || raw.content || '',
         raw.isReady ? [] : ['Previs lacks clear shot-to-shot transitions'],
         raw.isReady ? [] : ['Clarify eyelines and character blocking in key frames'],
         raw.suggestedPrompt

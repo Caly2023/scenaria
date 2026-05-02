@@ -111,8 +111,9 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
         } else if (p.functionResponse) {
           toolResultParts.push(p);
         } else if (p.toolResponse) {
+          const tr = p.toolResponse as any;
           toolResultParts.push(
-            buildFunctionResponsePart(p.toolResponse.name, p.toolResponse.output)
+            buildFunctionResponsePart(tr.name, tr.output)
           );
         } else if (p.text !== undefined) {
           modelParts.push(p);

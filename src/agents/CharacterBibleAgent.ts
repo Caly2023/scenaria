@@ -64,7 +64,7 @@ export class CharacterBibleAgent extends BaseStageAgent {
       const hasTier1 = content.some(p => p.metadata?.tier === 1);
       const issues = raw.isReady && hasTier1 ? [] : ['No Tier-1 (main) character defined'];
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         issues, 
         raw.isReady ? [] : ['Ensure at least one main character with deep development'],
         raw.suggestedPrompt

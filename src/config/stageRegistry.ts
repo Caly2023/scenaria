@@ -392,6 +392,11 @@ class StageRegistry {
     this._ordered = [...stages].sort((a, b) => a.order - b.order);
   }
 
+  /** Check if a stage exists */
+  has(stageId: string): boolean {
+    return this._stages.has(stageId as WorkflowStage);
+  }
+
   /** Get definition for a stage by ID. Throws if unknown. */
   get(stageId: WorkflowStage | string): StageDefinition {
     const def = this._stages.get(stageId as WorkflowStage);

@@ -40,7 +40,7 @@ export const triggerStageGenerationHandler: ToolHandler = async (args, context) 
     const { stageRegistry } = await import("../../config/stageRegistry");
 
     // Validate stage exists
-    if (!stageRegistry.exists(stage)) {
+    if (!stageRegistry.has(stage)) {
       return { success: false, error: `Invalid stage: ${stage}` };
     }
 

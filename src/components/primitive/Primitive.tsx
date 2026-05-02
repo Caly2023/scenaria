@@ -171,7 +171,7 @@ export const Primitive = memo(function Primitive({
             {type === 'gallery' && images.length > 0 && (
               <div className={cn(
                 "px-5 py-4 md:px-10 border-b border-white/5 bg-black/10",
-                !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:px-0"
+                "max-md:px-0"
               )}>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                   {images.map((url, i) => (
@@ -253,7 +253,7 @@ export const Primitive = memo(function Primitive({
               {type === 'gallery' && images.length === 0 && (
                 <div className={cn(
                   "px-5 pb-6 md:px-10 md:pb-10",
-                  !(type === 'analysis' || type === 'analysis_block' || type === 'ai_insight') && "max-md:px-0"
+                  "max-md:px-0"
                 )}>
                   <div 
                     onClick={onGenerateImage}

@@ -62,7 +62,7 @@ export class LocationBibleAgent extends BaseStageAgent {
       const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight(this.stageId, fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         raw.isReady ? [] : ['Locations need more detail'], 
         raw.isReady ? [] : ['Add atmosphere and narrative significance to each location'],
         raw.suggestedPrompt

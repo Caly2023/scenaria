@@ -66,7 +66,7 @@ export class TreatmentAgent extends BaseStageAgent {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Treatment', fullText, unifiedCtx));
       const issues = raw.isReady && content.length >= 5 ? [] : [`Only ${content.length} sections (minimum 5 recommended)`];
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         issues, 
         raw.isReady ? [] : ['Add more detailed cinematic sections'],
         raw.suggestedPrompt

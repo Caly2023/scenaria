@@ -1,5 +1,6 @@
 import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
+import { WorkflowStage } from "../../types";
 import { getArgRecord, getArgString } from "../../utils/scriptDoctorUtils";
 import { stageRegistry } from "../../config/stageRegistry";
 

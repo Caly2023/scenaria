@@ -3,9 +3,10 @@ import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageCon
 import { geminiService } from '../services/geminiService';
 import * as Prompts from '../services/ai/prompts';
 import type { ScriptGenerationContext } from '../services/ai/prompts';
+import { WorkflowStage } from '../types';
 
 export class ScriptAgent extends BaseStageAgent {
-  readonly stageId = 'Script';
+  readonly stageId: WorkflowStage = 'Script';
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
@@ -145,7 +146,7 @@ ${JSON.stringify(scenes, null, 2)}`;
       const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Script', fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         raw.isReady ? [] : ['Script needs refinement'], 
         raw.isReady ? [] : ['Review dialogue, action lines, and scene structure'],
         raw.suggestedPrompt

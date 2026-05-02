@@ -63,7 +63,7 @@ export class BrainstormingAgent extends BaseStageAgent {
     try {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Brainstorming', fullText, context.metadata.logline || ''));
       const analysis = this.buildAnalysis(
-        raw.content,
+        raw.evaluation || raw.content || '',
         raw.isReady ? [] : ['Content may need strengthening'],
         raw.isReady ? [] : ['Expand on the core conflict and protagonist motivation'],
         raw.suggestedPrompt

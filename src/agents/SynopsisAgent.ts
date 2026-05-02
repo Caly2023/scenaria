@@ -58,7 +58,7 @@ export class SynopsisAgent extends BaseStageAgent {
       const wordCount = text.split(/\s+/).length;
       const issues = raw.isReady && wordCount >= 200 ? [] : ['Synopsis may be too brief'];
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         issues, 
         raw.isReady ? [] : ['Expand to ~500 words covering the full narrative arc'],
         raw.suggestedPrompt

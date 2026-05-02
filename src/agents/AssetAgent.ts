@@ -56,7 +56,7 @@ export class AssetAgent extends BaseStageAgent {
     try {
       const raw = await geminiService.generateStageInsight(this.stageId, text, await this.getUnifiedContext(context));
       const analysis = this.buildAnalysis(
-        raw.content,
+        raw.evaluation || raw.content || '',
         raw.isReady ? [] : ['Assets lack detailed visual prompts'],
         raw.isReady ? [] : ['Add specific lighting and texture descriptions for key assets'],
         raw.suggestedPrompt

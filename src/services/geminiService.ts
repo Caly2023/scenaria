@@ -34,7 +34,7 @@ export const geminiService = {
   },
 
   async generateStageInsight(stage: string, content: string, context: string): Promise<StageInsight> {
-    if (!content || typeof content !== 'string' || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false };
+    if (!content || typeof content !== 'string' || content.trim().length < 5) return { content: "Please start writing to generate insight.", isReady: false, updatedAt: Date.now() };
     return callGenericGemini({
       prompt: Prompts.STAGE_INSIGHT_PROMPT(stage, content, context),
       jsonMode: true,

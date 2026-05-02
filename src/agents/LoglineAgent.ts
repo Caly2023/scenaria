@@ -55,7 +55,7 @@ export class LoglineAgent extends BaseStageAgent {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Logline', loglineText, unifiedCtx));
       const issues = raw.isReady ? [] : ['Logline may lack a clear protagonist or conflict'];
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         issues, 
         raw.isReady ? [] : ['Tighten to 1-2 sentences with protagonist, goal, conflict'],
         raw.suggestedPrompt

@@ -69,7 +69,7 @@ export class StepOutlineAgent extends BaseStageAgent {
       const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Step Outline', fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         raw.isReady ? [] : ['Scenes need more detail'], 
         raw.isReady ? [] : ['Flesh out each scene with more action information'],
         raw.suggestedPrompt

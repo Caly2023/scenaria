@@ -67,7 +67,7 @@ export class DraftAgent extends BaseStageAgent {
       const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight(this.stageId, text, context.metadata.logline || ''));
       const issues = raw.isReady ? [] : ['Premise might be too vague or lacks conflict'];
       const analysis = this.buildAnalysis(
-        raw.content,
+        raw.evaluation || raw.content || '',
         issues,
         raw.isReady ? [] : ['Focus on one protagonist with a clear emotional need'],
         raw.suggestedPrompt

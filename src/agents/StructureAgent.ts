@@ -1,6 +1,7 @@
 import { BaseStageAgent } from './BaseStageAgent';
 import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageContract';
 import { geminiService } from '../services/geminiService';
+import { WorkflowStage } from '../types';
 
 const BEAT_TITLES = [
   'The Hook',
@@ -14,7 +15,7 @@ const BEAT_TITLES = [
 ];
 
 export class StructureAgent extends BaseStageAgent {
-  readonly stageId = '3-Act Structure';
+  readonly stageId: WorkflowStage = '3-Act Structure';
 
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
@@ -115,7 +116,7 @@ export class StructureAgent extends BaseStageAgent {
       const beatCount = content.filter(p => p.primitiveType === 'beat').length;
       const issues = raw.isReady && beatCount >= 8 ? [] : [`Only ${beatCount}/8 beats defined`];
       const analysis = this.buildAnalysis(
-        raw.content, 
+        raw.evaluation || raw.content || '', 
         issues, 
         raw.isReady ? [] : ['Complete all 8 beats'],
         raw.suggestedPrompt

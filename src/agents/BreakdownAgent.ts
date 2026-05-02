@@ -56,7 +56,7 @@ export class BreakdownAgent extends BaseStageAgent {
     try {
       const raw = await geminiService.generateStageInsight(this.stageId, text, await this.getUnifiedContext(context));
       const analysis = this.buildAnalysis(
-        raw.content,
+        raw.evaluation || raw.content || '',
         raw.isReady ? [] : ['Technical breakdown lacks specific lens or movement details'],
         raw.isReady ? [] : ['Define camera angles and lighting strategy for key shots'],
         raw.suggestedPrompt

@@ -8,9 +8,18 @@ import { ProjectInput } from './ProjectInput';
 
 interface HomePageProps {
   onProjectCreate: (idea: string, format?: ProjectFormat) => Promise<void>;
+  userDisplayName?: string;
 }
 
-export function HomePage({ onProjectCreate }: HomePageProps) {
+const QUICK_ACTIONS = [
+  { id: 'short', icon: '🎬', text: 'Court-métrage de fiction' },
+  { id: 'documentary', icon: '📽️', text: 'Documentaire court' },
+  { id: 'commercial', icon: '📺', text: 'Spot publicitaire AI' },
+  { id: 'script', icon: '📝', text: 'Analyse de scénario' },
+  { id: 'pitch', icon: '💡', text: 'Pitch de série' },
+];
+
+export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const { t } = useTranslation();
   const [storyIdea, setStoryIdea] = useState('');
   const [selectedFormat] = useState<ProjectFormat | 'Auto'>('Auto');
@@ -19,13 +28,14 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
   const [creationStatus, setCreationStatus] = useState<'idle' | 'analyzing' | 'initializing'>('idle');
   const [creationError, setCreationError] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
-    if (storyIdea.trim() && !isCreating) {
+  const handleSubmit = async (customIdea?: string) => {
+    const ideaToSubmit = customIdea || storyIdea;
+    if (ideaToSubmit.trim() && !isCreating) {
       setIsCreating(true);
       setCreationStatus('analyzing');
       setCreationError(null);
       try {
-        await onProjectCreate(storyIdea, selectedFormat === 'Auto' ? undefined : selectedFormat);
+        await onProjectCreate(ideaToSubmit, selectedFormat === 'Auto' ? undefined : selectedFormat);
         setStoryIdea('');
       } catch (error: unknown) {
         console.error('Creation failed:', error);
@@ -49,91 +59,84 @@ export function HomePage({ onProjectCreate }: HomePageProps) {
     }
   };
 
+  const firstName = userDisplayName?.split(' ')[0] || '';
+
   return (
-    <div className="w-full h-[100dvh] flex flex-col items-center relative overflow-hidden px-4">
-      {/* Dynamic Background Elements */}
+    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
+      {/* Background stays subtle */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#D4AF37]/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 left-1/4 w-[600px] h-[600px] bg-purple-500/5 blur-[120px] rounded-full" />
-        <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full" />
       </div>
 
-      <div className="w-full max-w-5xl z-10 flex-1 flex flex-col items-center justify-center pb-[120px] md:pb-0">
-        {/* Logo & Brand */}
+      <div className="w-full max-w-3xl z-10 flex flex-col items-start md:items-center space-y-12">
+        {/* Gemini-style Greeting */}
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-          className="flex flex-col items-center gap-6"
+          transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+          className="w-full space-y-2"
         >
-          <div className="relative group">
-            <div className="absolute inset-0 bg-[#D4AF37]/10 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 scale-125 pointer-events-none" />
-            <div className="w-24 h-24 md:w-48 md:h-48 rounded-full flex items-center justify-center relative overflow-hidden">
-              <img 
-                src="/logo.png" 
-                alt="ScénarIA" 
-                className="w-full h-full object-contain drop-shadow-[0_0_25px_rgba(212,175,55,0.3)] relative z-10" 
-              />
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-center text-center space-y-2">
-            <h1 className="text-xl md:text-4xl font-medium tracking-tight text-white max-w-[280px] md:max-w-none">
-              {t('common.whatsTheStory')}
-            </h1>
-          </div>
+          <h1 className="text-4xl md:text-6xl font-medium tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
+            {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
+          </h1>
+          <h2 className="text-3xl md:text-5xl font-medium tracking-tight text-white/40">
+            Par où commencer ?
+          </h2>
+        </motion.div>
+
+        {/* Input Area */}
+        <div className="w-full">
+          <ProjectInput 
+            storyIdea={storyIdea}
+            setStoryIdea={setStoryIdea}
+            isFocused={isFocused}
+            setIsFocused={setIsFocused}
+            isCreating={isCreating}
+            creationStatus={creationStatus}
+            creationError={creationError}
+            setCreationError={setCreationError}
+            onSubmit={() => handleSubmit()}
+            handleFileImport={handleFileImport}
+          />
+        </div>
+
+        {/* Quick Action Pills */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="w-full flex flex-wrap justify-center gap-3 pt-4"
+        >
+          {QUICK_ACTIONS.map((action, i) => (
+            <motion.button
+              key={action.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6 + i * 0.1 }}
+              onClick={() => {
+                const text = `Je souhaite créer un ${action.text.toLowerCase()}`;
+                setStoryIdea(text);
+                handleSubmit(text);
+              }}
+              className="flex items-center gap-3 px-4 py-3 md:px-6 md:py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-sm font-medium text-white/80 group"
+            >
+              <span className="text-xl group-hover:scale-110 transition-transform">{action.icon}</span>
+              <span>{action.text}</span>
+            </motion.button>
+          ))}
         </motion.div>
       </div>
 
-      {/* Input Area */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
-        className={cn(
-          "w-full transition-all duration-500",
-          "fixed bottom-0 left-0 right-0 md:relative md:bottom-auto md:max-w-5xl md:mx-auto md:mb-20",
-          "bg-gradient-to-t from-background via-background/90 to-transparent md:bg-none z-50"
-        )}
-      >
-        <ProjectInput 
-          storyIdea={storyIdea}
-          setStoryIdea={setStoryIdea}
-          isFocused={isFocused}
-          setIsFocused={setIsFocused}
-          isCreating={isCreating}
-          creationStatus={creationStatus}
-          creationError={creationError}
-          setCreationError={setCreationError}
-          onSubmit={handleSubmit}
-          handleFileImport={handleFileImport}
-        />
-        
-        {/* Subtle Tip */}
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="hidden md:block text-center mt-8 text-xs font-medium text-white/20 uppercase tracking-[0.4em]"
-        >
-          {t('common.helperText')}
-        </motion.p>
-      </motion.div>
-
-      {/* Footer Branding */}
+      {/* Simplified Footer Branding */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-30 hover:opacity-100 transition-opacity duration-500 hidden md:flex"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-20 hidden md:block"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-          <p className="text-[10px] font-black uppercase tracking-[0.6em] text-white">
-            Powered by ScénarIA Intelligence
-          </p>
-          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white">
+          Powered by ScénarIA Intelligence
+        </p>
       </motion.div>
     </div>
   );

@@ -88,46 +88,68 @@ const MainLayoutComponent = ({
   
 
   return (
-    <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
-      {!isMobile && currentProject && (
-        <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden">
-          <div className="pointer-events-auto absolute left-6 top-24 h-[calc(100dvh-120px)] w-20 bg-[#111]/90 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.5)] flex flex-col transition-all duration-300 z-[60]">
-            <Sidebar variant="sidebar" />
-          </div>
-        </div>
+    <div className={cn("w-full flex flex-col md:flex-row bg-[#0f0f0f] relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
+      {/* Gemini-style Sidebar (Left) */}
+      {!isMobile && (
+        <aside className="w-16 h-full flex flex-col items-center py-4 bg-[#111] border-r border-white/5 transition-all duration-300 z-[60] flex-shrink-0">
+          <button 
+            onClick={() => setIsHistoryOpen(true)}
+            className="w-10 h-10 rounded-full hover:bg-white/5 transition-all flex items-center justify-center mb-4 border-none"
+          >
+            <div className="flex flex-col items-start gap-1">
+              <span className="h-[2px] w-5 rounded-full bg-white/40" />
+              <span className="h-[2px] w-3 rounded-full bg-white/40" />
+            </div>
+          </button>
+          
+          <button 
+            onClick={onNewStory}
+            className="w-10 h-10 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all flex items-center justify-center mb-auto border-none"
+            title="Nouveau projet"
+          >
+            <span className="text-xl">+</span>
+          </button>
+
+          {currentProject && (
+            <div className="w-10 flex-1 flex flex-col items-center py-4 space-y-4 overflow-y-auto no-scrollbar">
+              <Sidebar variant="sidebar" />
+            </div>
+          )}
+
+          <button 
+            onClick={handleOpenSettings}
+            className="w-10 h-10 rounded-full hover:bg-white/5 text-white/40 hover:text-white transition-all flex items-center justify-center border-none relative group"
+            title="Paramètres"
+          >
+            <div className="w-5 h-5 rounded-full border border-white/20 group-hover:border-white transition-colors flex items-center justify-center">
+              <div className="w-1 h-1 rounded-full bg-white/40 group-hover:bg-white" />
+            </div>
+          </button>
+        </aside>
       )}
 
-      {!isFocusMode && currentProject && (
-        <ScriptDoctorFAB 
-          isOpen={isDoctorOpen} 
-          isVisible={showDoctorBubble} 
-          isMobile={isMobile} 
-          onOpen={handleOpenDoctor} 
-        />
-      )}
-
+      {/* Main Content Area */}
       <div className={cn("flex-1 flex flex-col relative transition-all duration-500 z-10 min-w-0", isMobile ? "h-auto" : "h-full")}>
-        <div className={cn("relative z-50 flex-shrink-0", isMobile && "fixed top-0 left-0 right-0")}>
-          <Header
-            isCompact={isDoctorOpen}
-            accessibilitySettings={accessibilitySettings}
-            onAccessibilityChange={setAccessibilitySettings}
-            onTitleClick={handleOpenDrawer}
-            isTitleOpen={isProjectDrawerOpen}
-            onSettingsClick={handleOpenSettings}
-            onInfoClick={() => setIsHelpOpen(true)}
-            isHistoryOpen={isHistoryOpen}
-            setIsHistoryOpen={setIsHistoryOpen}
-          />
-        </div>
+        <Header
+          isCompact={isDoctorOpen}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={setAccessibilitySettings}
+          onTitleClick={handleOpenDrawer}
+          isTitleOpen={isProjectDrawerOpen}
+          onSettingsClick={handleOpenSettings}
+          onInfoClick={() => setIsHelpOpen(true)}
+          isHistoryOpen={isHistoryOpen}
+          setIsHistoryOpen={setIsHistoryOpen}
+          user={user}
+        />
 
-        <div className={cn("flex-1 flex flex-col relative w-full", isMobile ? "overflow-visible" : "overflow-hidden")}>
-          <div className={cn("w-full relative", isMobile ? "overflow-visible scroll-smooth" : "flex-1 flex flex-col overflow-y-auto no-scrollbar scroll-smooth overscroll-none", isMobile && "pb-safe-nav")}>
-            <div className={cn("w-full max-w-4xl mx-auto flex flex-col justify-start relative", isMobile ? "px-3 pb-2 pt-[calc(var(--header-top-padding)+64px)]" : "flex-1 px-6 py-12 md:pl-32 md:pr-12")}>
+        <main className={cn("flex-1 flex flex-col relative w-full", isMobile ? "overflow-visible" : "overflow-hidden")}>
+          <div className={cn("w-full relative h-full", isMobile ? "overflow-visible scroll-smooth" : "overflow-y-auto no-scrollbar scroll-smooth overscroll-none", isMobile && "pb-safe-nav")}>
+            <div className={cn("w-full h-full max-w-5xl mx-auto flex flex-col justify-start relative", isMobile ? "px-3 pb-2 pt-4" : "px-6 py-6")}>
               <Suspense fallback={<StageSkeleton />}>{renderStage()}</Suspense>
             </div>
           </div>
-        </div>
+        </main>
       </div>
 
       {!isMobile && (

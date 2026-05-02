@@ -36,7 +36,7 @@ export function DictationButton({ onResult, className, size = 'md' }: DictationB
       className={cn(
         "rounded-full flex items-center justify-center transition-all group relative",
         sizeClasses[size],
-        isListening ? "bg-red-500 text-white animate-pulse" : "bg-white/10 text-white hover:bg-white/20",
+        isListening ? "bg-red-500 text-white animate-pulse" : "bg-transparent text-white/60 hover:text-white hover:bg-white/5",
         className
       )}
       title={t('common.dictation', { defaultValue: 'Dictation' })}

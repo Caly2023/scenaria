@@ -104,6 +104,7 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
       return (
         <HomePage
           onProjectCreate={handleProjectCreate}
+          userDisplayName={user?.displayName || ''}
         />
       );
     }

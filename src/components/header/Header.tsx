@@ -5,7 +5,8 @@ import {
   Info,
   Accessibility,
   Search,
-  Users
+  Users,
+  Sparkles
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -85,12 +86,8 @@ export function Header({
                 onClick={() => setIsHistoryOpen(true)}
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity border-none bg-transparent p-0"
               >
-                <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-black tracking-[0.4em] text-white/90 uppercase">SCENARIA</span>
-                  <div className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10">
-                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">Alpha</span>
-                  </div>
+                  <span className="text-xl font-medium tracking-tight text-white/90">ScénarIA</span>
                 </div>
               </button>
             ) : (
@@ -119,9 +116,9 @@ export function Header({
           {/* Right */}
           <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
             {!currentProject && (
-              <button className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] text-xs font-bold hover:bg-[#D4AF37]/20 transition-all border-none">
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Passer à Pro</span>
+              <button className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#004a77]/30 text-[#c2e7ff] text-[14px] font-medium hover:bg-[#004a77]/50 transition-all border-none">
+                <Sparkles className="w-4 h-4" />
+                <span>Passez à ScénarIA Pro</span>
               </button>
             )}
 
@@ -135,14 +132,25 @@ export function Header({
             )}
 
             <button 
+              className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-all border-none text-white/70"
+            >
+              <div className="grid grid-cols-2 gap-0.5 opacity-60">
+                <div className="w-1.5 h-1.5 rounded-[1px] border border-current" />
+                <div className="w-1.5 h-1.5 rounded-[1px] border border-current" />
+                <div className="w-1.5 h-1.5 rounded-[1px] border border-current" />
+                <div className="w-1.5 h-1.5 rounded-[1px] border border-current" />
+              </div>
+            </button>
+
+            <button 
               onClick={onSettingsClick}
-              className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-purple-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center hover:scale-105 transition-all overflow-hidden"
+              className="w-8 h-8 rounded-full border-none flex items-center justify-center hover:opacity-90 transition-all overflow-hidden"
             >
               {user?.photoURL ? (
                 <img src={user.photoURL} alt={user.displayName || 'Profile'} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-white/5">
-                  <span className="text-xs font-bold text-white/40">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-purple-500 to-blue-500">
+                  <span className="text-xs font-bold text-white">
                     {user?.displayName?.[0] || 'U'}
                   </span>
                 </div>

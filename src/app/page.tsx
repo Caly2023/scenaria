@@ -7,7 +7,7 @@ function SplashScreen() {
   return (
     <div
       style={{
-        backgroundColor: '#0f0f0f',
+        backgroundColor: '#020202',
         height: '100dvh',
         width: '100vw',
         display: 'flex',
@@ -63,7 +63,7 @@ function SplashScreen() {
             zIndex: 20,
             width: '80px',
             height: '80px',
-            backgroundColor: '#212121',
+            backgroundColor: '#262626',
             borderRadius: '28px',
             border: '1px solid rgba(255,255,255,0.1)',
             overflow: 'hidden',

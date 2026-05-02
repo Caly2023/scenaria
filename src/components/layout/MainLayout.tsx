@@ -88,10 +88,10 @@ const MainLayoutComponent = ({
   
 
   return (
-    <div className={cn("w-full flex flex-col md:flex-row bg-[#0f0f0f] relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
+    <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
       {/* Gemini-style Sidebar (Left) */}
       {!isMobile && (
-        <aside className="w-16 h-full flex flex-col items-center py-4 bg-[#111] border-r border-white/5 transition-all duration-300 z-[60] flex-shrink-0">
+        <aside className="w-16 h-full flex flex-col items-center py-4 bg-background border-r border-white/5 transition-all duration-300 z-[60] flex-shrink-0">
           <button 
             onClick={() => setIsHistoryOpen(true)}
             className="w-10 h-10 rounded-full hover:bg-white/5 transition-all flex items-center justify-center mb-4 border-none"

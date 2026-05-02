@@ -26,7 +26,7 @@ export const GlobalOverlay = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-[#0f0f0f]/80 backdrop-blur-sm z-[90] flex flex-col items-center justify-center gap-6"
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[90] flex flex-col items-center justify-center gap-6"
       >
         <div className="w-16 h-16 border-4 border-white/10 border-t-white rounded-full animate-spin" />
         <div className="text-center space-y-2">

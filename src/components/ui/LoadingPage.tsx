@@ -3,7 +3,7 @@ import { OrbitingLoader } from './OrbitingLoader';
 
 export const LoadingPage: React.FC = () => {
   return (
-    <div className="min-h-dvh bg-[#0f0f0f] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Premium Background Atmosphere */}
       <div className="absolute top-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#D4AF37]/[0.03] rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-white/[0.02] rounded-full blur-[100px]" />

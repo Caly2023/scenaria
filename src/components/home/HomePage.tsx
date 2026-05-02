@@ -66,13 +66,13 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-          className="w-full space-y-2"
+          className="w-full space-y-1"
         >
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
+          <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-white/90">
             {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
           </h1>
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-[#D4AF37]">
-            Prêt à créer votre prochain chef-d'œuvre ?
+          <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-white/40">
+            Par où commencer ?
           </h2>
         </motion.div>
 
@@ -92,16 +92,28 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
           />
         </div>
 
-        {/* Small text below field */}
+        {/* Gemini Style Pills */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
-          className="w-full flex flex-wrap justify-center gap-6 pt-2"
+          className="w-full flex flex-wrap justify-center gap-3 pt-2"
         >
-          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Format Cinéma</span>
-          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Analyse IA</span>
-          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-widest">Script Doctoring</span>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+            <span className="text-[14px] text-white/90">Créer une image</span>
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+            <span className="text-[14px] text-white/90">Créer de la musique</span>
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+            <span className="text-[14px] text-white/90">Rédiger</span>
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+            <span className="text-[14px] text-white/90">Donne du peps à ma journée</span>
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+            <span className="text-[14px] text-white/90">Aide-moi à apprendre</span>
+          </button>
         </motion.div>
       </div>
 

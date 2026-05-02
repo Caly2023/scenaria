@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, ArrowUp } from 'lucide-react';
+import { Plus, ArrowUp, ChevronDown, Wand2, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptics';
@@ -49,15 +49,15 @@ export function ProjectInput({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className={cn(
-          "relative w-full transition-all duration-700 ease-[0.23, 1, 0.32, 1]",
-          "bg-[#1e1e1e] border border-white/10",
-          "rounded-[28px] md:rounded-[32px]",
-          isFocused ? "bg-[#252525] border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4)]" : "shadow-xl"
+          "relative w-full transition-all duration-300",
+          "bg-[#1e1f20] border-none",
+          "rounded-[32px]",
+          isFocused ? "shadow-[0_4px_20px_rgba(0,0,0,0.5)]" : "shadow-lg"
         )}
       >
-        <div className="flex flex-col min-h-[100px]">
-          {/* Input Area */}
-          <div className="p-4 md:p-5 pb-1">
+        <div className="flex flex-col">
+          {/* Row 1: Input Area */}
+          <div className="px-5 pt-5 pb-2">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -71,15 +71,15 @@ export function ProjectInput({
               onKeyDown={handleKeyDown}
               placeholder={t('common.homePlaceholder')}
               className={cn(
-                "w-full bg-transparent border-none font-semibold leading-relaxed placeholder:text-white/40 px-2 resize-none no-scrollbar text-white selection:bg-[#D4AF37]/30 outline-none transition-all",
-                "text-base md:text-lg min-h-[40px]"
+                "w-full bg-transparent border-none font-medium leading-relaxed placeholder:text-gray-400 px-1 resize-none no-scrollbar text-white outline-none transition-all",
+                "text-base md:text-[17px] min-h-[44px]"
               )}
             />
           </div>
 
-          {/* Action Bar */}
-          <div className="px-4 md:px-6 pb-4 pt-2 flex items-center justify-between gap-3 mt-auto">
-            <div className="flex items-center gap-2">
+          {/* Row 2: Action Bar */}
+          <div className="px-4 pb-4 pt-1 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -92,40 +92,51 @@ export function ProjectInput({
                   triggerHaptic('light');
                   fileInputRef.current?.click();
                 }}
-                className="w-10 h-10 rounded-full hover:bg-white/10 text-white/80 hover:text-white transition-all flex items-center justify-center border-none"
+                className="w-10 h-10 rounded-full hover:bg-white/10 text-gray-300 hover:text-white transition-all flex items-center justify-center border-none"
                 title={t('common.importText')}
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-[22px] h-[22px]" />
               </button>
               
-              <DictationButton 
-                onResult={(text) => setStoryIdea(prev => prev + (prev ? ' ' : '') + text)}
-                size="md"
-              />
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-white/10 text-gray-300 hover:text-white cursor-pointer transition-all">
+                <Wand2 className="w-4 h-4" />
+                <span className="text-[13px] font-medium">Outils</span>
+              </div>
             </div>
 
-            <button 
-              onClick={() => {
-                triggerHaptic('medium');
-                onSubmit();
-              }}
-              disabled={!storyIdea.trim() || isCreating}
-              className={cn(
-                "h-10 px-6 rounded-full flex items-center gap-2 transition-all duration-300 border-none relative overflow-hidden group",
-                storyIdea.trim() && !isCreating
-                  ? "bg-white text-black hover:bg-white/90 scale-100 hover:scale-[1.02]" 
-                  : "bg-white/5 text-white/10 cursor-not-allowed"
-              )}
-            >
-              <span className="text-xs font-bold uppercase tracking-widest relative z-10">
-                {isCreating ? creationStatus : (
-                  <span className="flex items-center gap-2">
-                    <span>Envoyer</span>
-                    <ArrowUp className="w-4 h-4" />
-                  </span>
+            <div className="flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-1 px-3 py-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white cursor-pointer transition-all">
+                <span className="text-[13px] font-medium">Raisonnement</span>
+                <ChevronDown className="w-4 h-4 opacity-50" />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <DictationButton 
+                  onResult={(text) => setStoryIdea(prev => prev + (prev ? ' ' : '') + text)}
+                  size="md"
+                />
+                
+                {storyIdea.trim() && (
+                  <button 
+                    onClick={() => {
+                      triggerHaptic('medium');
+                      onSubmit();
+                    }}
+                    disabled={isCreating}
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border-none",
+                      "bg-white text-black hover:bg-gray-200"
+                    )}
+                  >
+                    {isCreating ? (
+                      <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                    ) : (
+                      <ArrowUp className="w-5 h-5" />
+                    )}
+                  </button>
                 )}
-              </span>
-            </button>
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -133,20 +144,18 @@ export function ProjectInput({
       <AnimatePresence>
         {creationError && (
           <motion.div 
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="px-8 py-5 bg-red-500/10 border border-red-500/20 backdrop-blur-3xl rounded-[24px] flex items-center gap-4 text-red-400 text-sm shadow-2xl"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="px-6 py-4 bg-red-500/10 border border-red-500/20 rounded-[20px] flex items-center gap-4 text-red-400 text-sm shadow-xl"
           >
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-            <p className="flex-1 font-semibold tracking-wide">{creationError}</p>
+            <p className="flex-1 font-medium">{creationError}</p>
             <button 
               onClick={() => {
                 triggerHaptic('light');
                 setCreationError(null);
               }}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-              title="Dismiss"
+              className="w-8 h-8 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors"
             >
               <Plus className="w-4 h-4 rotate-45" />
             </button>

@@ -5,17 +5,20 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Libre Baskerville", serif;
   
-  --color-background: #0f0f0f;
-  --color-surface: #212121;
-  --color-surface-hover: #2a2a2a;
+  --color-background: #020202;
+  --color-surface: #1e1f20;
+  --color-surface-hover: #2b2c2d;
   --color-foreground: #ffffff;
-  --color-secondary: rgba(255, 255, 255, 0.5);
+  --color-secondary: rgba(255, 255, 255, 0.55);
   --color-primary: #0070f3;
-  --color-border: #333333;
+  --color-border: #383838;
   
-  --color-glass: rgba(255, 255, 255, 0.05);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
-  --color-glass-hover: rgba(255, 255, 255, 0.15);
+  --color-gemini-pill: #131314;
+  --color-gemini-blue: #1a73e8;
+  
+  --color-glass: rgba(255, 255, 255, 0.08);
+  --color-glass-border: rgba(255, 255, 255, 0.15);
+  --color-glass-hover: rgba(255, 255, 255, 0.18);
   --accent-color: #ffffff;
   --color-gold: #D4AF37;
 
@@ -252,7 +255,7 @@
   }
 
   .yt-input {
-    @apply bg-[#121212] border border-[#333333] rounded-full px-5 py-2.5 transition-all;
+    @apply bg-surface border border-[#333333] rounded-full px-5 py-2.5 transition-all;
     height: 44px;
   }
 

@@ -171,9 +171,9 @@ export function StepLayout({
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-40",
           // Mobile: Fixed at bottom
-          "fixed bottom-0 left-0 right-0 w-full rounded-t-[32px] px-6 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] border-x-0 border-b-0 border-t bg-[#212121] md:relative md:rounded-[32px] md:px-4 md:py-5 md:border md:mt-12 md:mb-0",
+          "fixed bottom-0 left-0 right-0 w-full rounded-t-[32px] px-6 pt-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] border-x-0 border-b-0 border-t bg-surface md:relative md:rounded-[32px] md:px-4 md:py-5 md:border md:mt-12 md:mb-0",
           // Desktop: Conditional sticky behavior
-          "md:sticky md:w-full md:mt-20 md:bg-[#212121]/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
+          "md:sticky md:w-full md:mt-20 md:bg-surface/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
           isStuck 
             ? "md:bottom-0 md:rounded-b-none md:mb-0" 
             : "md:bottom-8 md:rounded-[40px] md:mb-12",

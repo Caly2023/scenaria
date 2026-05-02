@@ -42,6 +42,7 @@
   }
 
   --animate-shimmer: shimmer 2s infinite linear;
+  --animate-spin-slow: orbit 3s linear infinite;
 }
 
 @layer base {

@@ -189,6 +189,15 @@ const MainLayoutComponent = ({
       <GlobalOverlay isTyping={isTyping} isHydrating={hydrationState.isHydrating} hydratingLabel={hydrationState.hydratingLabel} isHeavyThinking={isHeavyThinking} activeStage={activeStage} refiningBlockId={refiningBlockId} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
+      <ScriptDoctorFAB 
+        isOpen={isDoctorOpen}
+        isVisible={showDoctorBubble && !!currentProject}
+        isMobile={isMobile}
+        isTyping={isTyping}
+        isHeavyThinking={isHeavyThinking}
+        onOpen={handleOpenDoctor}
+      />
+
       <AnimatePresence>
         {isFirstTime && <OnboardingWizard onComplete={() => { setIsFirstTime(false); localStorage.setItem("scenaria_onboarded", "true"); }} />}
       </AnimatePresence>

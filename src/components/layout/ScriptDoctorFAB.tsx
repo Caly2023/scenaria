@@ -6,6 +6,8 @@ interface ScriptDoctorFABProps {
   isOpen: boolean;
   isVisible: boolean;
   isMobile: boolean;
+  isTyping?: boolean;
+  isHeavyThinking?: boolean;
   onOpen: () => void;
 }
 
@@ -13,6 +15,8 @@ export function ScriptDoctorFAB({
   isOpen,
   isVisible,
   isMobile,
+  isTyping,
+  isHeavyThinking,
   onOpen,
 }: ScriptDoctorFABProps) {
   return (
@@ -34,11 +38,18 @@ export function ScriptDoctorFAB({
         <button
           onClick={onOpen}
           className={cn(
-            "w-16 h-16 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10",
-            isMobile ? "bg-surface text-white" : "bg-white text-black"
+            "w-16 h-16 rounded-full shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all group border border-white/10 relative overflow-hidden",
+            isMobile ? "bg-surface text-white" : "bg-white text-black",
+            (isTyping || isHeavyThinking) && "animate-pulse shadow-[0_0_20px_rgba(147,51,234,0.5)]"
           )}
         >
-          <Bot className="w-8 h-8 group-hover:scale-110 transition-transform" />
+          {isHeavyThinking && (
+            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-blue-500/20 animate-spin-slow" />
+          )}
+          <Bot className={cn(
+            "w-8 h-8 group-hover:scale-110 transition-transform relative z-10",
+            isTyping && "animate-bounce"
+          )} />
         </button>
       </div>
     </div>

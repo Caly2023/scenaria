@@ -399,7 +399,21 @@ class StageRegistry {
 
   /** Get definition for a stage by ID. Throws if unknown. */
   get(stageId: WorkflowStage | string): StageDefinition {
-    const def = this._stages.get(stageId as WorkflowStage);
+    let def = this._stages.get(stageId as WorkflowStage);
+    
+    if (!def) {
+      // Fallback for AI occasionally using French translations instead of exact IDs
+      const normalized = String(stageId).toLowerCase();
+      if (normalized.includes('structure en 3 actes')) def = this._stages.get('3-Act Structure');
+      else if (normalized.includes('structure en 8 beats')) def = this._stages.get('8-Beat Structure');
+      else if (normalized.includes('bible des personnages')) def = this._stages.get('Character Bible');
+      else if (normalized.includes('bible des lieux')) def = this._stages.get('Location Bible');
+      else if (normalized.includes('traitement')) def = this._stages.get('Treatment');
+      else if (normalized.includes('séquencier')) def = this._stages.get('Step Outline');
+      else if (normalized.includes('scénario')) def = this._stages.get('Script');
+      else if (normalized.includes('brouillon')) def = this._stages.get('Initial Draft');
+    }
+
     if (!def) throw new Error(`[StageRegistry] Unknown stage: "${stageId}"`);
     return def;
   }

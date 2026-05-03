@@ -152,12 +152,6 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
   const pendingMetadataRef = useRef<Project['metadata'] | null>(null);
   const metadataDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
-    if (!currentProject) return;
-    const updated = { ...currentProject.metadata, ...metadata };
-    await handleFieldsUpdate({ metadata: updated });
-  }, [currentProject, handleFieldsUpdate]);
-
   const [updateProjectFields] = useUpdateProjectFieldsMutation();
 
   const handleFieldsUpdate = useCallback(async (updates: Record<string, any>) => {
@@ -169,6 +163,12 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
       addToast(classified.userMessage, 'error');
     }
   }, [currentProject, updateProjectFields, addToast]);
+
+  const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
+    if (!currentProject) return;
+    const updated = { ...currentProject.metadata, ...metadata };
+    await handleFieldsUpdate({ metadata: updated });
+  }, [currentProject, handleFieldsUpdate]);
 
   return useMemo(() => ({
     projects,

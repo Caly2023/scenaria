@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { User } from 'firebase/auth';
 import { Project, WorkflowStage } from '../types';
 import { useProjectData } from './useProjectData';
@@ -146,10 +146,25 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     }
   }, [currentProject, stageContents, addToast, setIsTyping, getProjectContext]);
 
-  const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
+  // Ref holds the latest merged metadata so we always write a complete object,
+  // even when multiple fields are changed in rapid succession before the timer fires.
+  const pendingMetadataRef = useRef<Project['metadata'] | null>(null);
+  const metadataDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMetadataUpdate = useCallback((metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;
-    const newMetadata = { ...currentProject.metadata, ...metadata };
-    await handleContentUpdate('metadata', JSON.stringify(newMetadata));
+    // Merge into the in-flight pending snapshot (or fall back to currentProject)
+    const base = pendingMetadataRef.current ?? currentProject.metadata;
+    const next = { ...base, ...metadata };
+    pendingMetadataRef.current = next;
+
+    if (metadataDebounceRef.current) clearTimeout(metadataDebounceRef.current);
+    metadataDebounceRef.current = setTimeout(async () => {
+      if (!pendingMetadataRef.current) return;
+      const toWrite = pendingMetadataRef.current;
+      pendingMetadataRef.current = null;
+      await handleContentUpdate('metadata', JSON.stringify(toWrite));
+    }, 500);
   }, [currentProject, handleContentUpdate]);
 
   return useMemo(() => ({

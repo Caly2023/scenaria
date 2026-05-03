@@ -100,14 +100,23 @@ export function useStageLifecycle({
       const currentIndex = allStageIds.indexOf(stage);
       const nextStage = allStageIds[currentIndex + 1];
       const newValidatedStages = Array.from(new Set([...(currentProject.validatedStages || []), stage]));
-      
+
+      // Write validatedStages first
       await updateField({ id: currentProject.id, field: 'validatedStages', content: newValidatedStages }).unwrap();
+
       if (nextStage) {
+        // Write active stage and navigate immediately — don't block on generation
         await updateField({ id: currentProject.id, field: 'activeStage', content: nextStage }).unwrap();
         handleStageChange(nextStage);
         addToast(`✅ ${stage} validé. Passage à ${nextStage}...`, 'success');
-        await triggerStageGeneration(nextStage, currentProject);
+
+        // Fire generation in background — let auto-hydration handle it if it fails or takes long
+        triggerStageGeneration(nextStage, currentProject).catch((error) => {
+          console.error(`[Validate] Background generation failed for "${nextStage}":`, error);
+          // Don't show a toast here — auto-hydration will retry on next mount
+        });
       }
+
       setSyncStatus('synced');
     } catch (error) {
       console.error(error);
@@ -115,9 +124,11 @@ export function useStageLifecycle({
       addToast(t('common.failedToGenerate') + ` (${classified.userMessage})`, 'error');
       setSyncStatus('error');
     } finally {
+      // Always release the loading state — generation is now non-blocking
       setIsTyping(false);
     }
   }, [currentProject, setSyncStatus, setIsTyping, updateField, handleStageChange, addToast, triggerStageGeneration, t]);
+
 
   return { handleRegenerate, handleStageValidate, triggerStageGeneration };
 }

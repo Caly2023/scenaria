@@ -10,6 +10,7 @@ interface ProjectMetadataStageProps {
   metadata: ProjectMetadata;
   onUpdate: (metadata: Partial<ProjectMetadata>) => void;
   onValidate: () => void;
+  onAnalyze?: () => Promise<void> | void;
   insight?: StageInsight | StageAnalysis;
 }
 
@@ -17,6 +18,7 @@ export function ProjectMetadataStage({
   metadata, 
   onUpdate, 
   onValidate, 
+  onAnalyze,
   insight,
 }: ProjectMetadataStageProps) {
   const { t } = useTranslation();
@@ -40,6 +42,7 @@ export function ProjectMetadataStage({
       subtitle={t('stages.Project Metadata.subtitle')}
       insight={insight}
       onValidate={onValidate}
+      onAnalyze={onAnalyze}
       validateLabel={t('stages.Project Metadata.validateLabel')}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

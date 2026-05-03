@@ -57,6 +57,7 @@ function renderStage(
             metadata={currentProject.metadata}
             onUpdate={project.handleMetadataUpdate}
             onValidate={() => project.onValidateStage("Project Metadata")}
+            onAnalyze={() => project.handleStageAnalyze("Project Metadata")}
           />
         );
       default:

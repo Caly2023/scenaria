@@ -1,19 +1,12 @@
 import { IStageAgent } from '../types/stageContract';
 
-import { LoglineAgent } from './LoglineAgent';
-import { StructureAgent } from './StructureAgent';
-import { SynopsisAgent } from './SynopsisAgent';
-import { CharacterBibleAgent } from './CharacterBibleAgent';
-import { LocationBibleAgent } from './LocationBibleAgent';
+import { ProjectBriefAgent } from './ProjectBriefAgent';
+import { StoryBibleAgent } from './StoryBibleAgent';
 import { TreatmentAgent } from './TreatmentAgent';
-import { StepOutlineAgent } from './StepOutlineAgent';
-import { ScriptAgent } from './ScriptAgent';
+import { SequencerAgent } from './SequencerAgent';
+import { DialogueContinuityAgent } from './DialogueContinuityAgent';
+import { FinalScreenplayAgent } from './FinalScreenplayAgent';
 import { BreakdownAgent } from './BreakdownAgent';
-import { AssetAgent } from './AssetAgent';
-import { PrevisAgent } from './PrevisAgent';
-import { ExportAgent } from './ExportAgent';
-import { Structure8BeatAgent } from './Structure8BeatAgent';
-import { GlobalScriptDoctorAgent } from './GlobalScriptDoctorAgent';
 import { stageRegistry } from '../config/stageRegistry';
 
 type AgentFactory = () => Promise<IStageAgent>;
@@ -25,21 +18,13 @@ class AgentRegistry {
   constructor() {
     this._instances = new Map();
     this._agents = new Map<string, AgentFactory>([
-
-      ['Logline',          async () => new LoglineAgent()],
-      ['3-Act Structure',  async () => new StructureAgent()],
-      ['8-Beat Structure', async () => new Structure8BeatAgent()],
-      ['Synopsis',         async () => new SynopsisAgent()],
-      ['Character Bible',  async () => new CharacterBibleAgent()],
-      ['Location Bible',   async () => new LocationBibleAgent()],
-      ['Treatment',        async () => new TreatmentAgent()],
-      ['Step Outline',     async () => new StepOutlineAgent()],
-      ['Script',           async () => new ScriptAgent()],
-      ['Global Script Doctoring', async () => new GlobalScriptDoctorAgent()],
-      ['Technical Breakdown',     async () => new BreakdownAgent()],
-      ['Visual Assets',           async () => new AssetAgent()],
-      ['AI Previs',               async () => new PrevisAgent()],
-      ['Production Export',       async () => new ExportAgent()],
+      ['Project Brief',       async () => new ProjectBriefAgent()],
+      ['Story Bible',         async () => new StoryBibleAgent()],
+      ['Treatment',           async () => new TreatmentAgent()],
+      ['Sequencer',           async () => new SequencerAgent()],
+      ['Dialogue Continuity', async () => new DialogueContinuityAgent()],
+      ['Final Screenplay',    async () => new FinalScreenplayAgent()],
+      ['Technical Breakdown', async () => new BreakdownAgent()],
     ]);
   }
 

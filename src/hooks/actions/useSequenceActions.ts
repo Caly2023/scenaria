@@ -31,7 +31,7 @@ export function useSequenceActions({
 
   const handleSequenceUpdate = useCallback((id: string, updates: Partial<Sequence>) => {
     if (!currentProject) return;
-    const collectionName = stageRegistry.getCollectionName('Step Outline');
+    const collectionName = stageRegistry.getCollectionName('Sequencer');
     
     // Use debounced sync for content, direct update for other fields
     if (Object.keys(updates).length === 1 && updates.content !== undefined) {
@@ -49,8 +49,8 @@ export function useSequenceActions({
 
   const handleSequenceAdd = useCallback(async () => {
     if (!currentProject) return;
-    const sequences = stageContents['Step Outline'] || [];
-    const collectionName = stageRegistry.getCollectionName('Step Outline');
+    const sequences = stageContents['Sequencer'] || [];
+    const collectionName = stageRegistry.getCollectionName('Sequencer');
     try {
       await addSubcol({ 
         projectId: currentProject.id, 
@@ -65,15 +65,15 @@ export function useSequenceActions({
 
   const handleAiMagic = useCallback(async (id: string) => {
     if (!currentProject) return;
-    const sequences = stageContents['Step Outline'] || [];
+    const sequences = stageContents['Sequencer'] || [];
     const seq = sequences.find(s => s.id === id);
     if (!seq) return;
 
     setIsTyping(true);
     try {
-      const instruction = stageRegistry.get('Step Outline').prompts?.magic || "Refine this content for better cinematic quality.";
+      const instruction = stageRegistry.get('Sequencer').prompts?.magic || "Refine this content for better cinematic quality.";
       
-      const payload = await contextAssembler.buildPromptPayload(currentProject.id, 'Step Outline', id);
+      const payload = await contextAssembler.buildPromptPayload(currentProject.id, 'Sequencer', id);
       const prompt = contextAssembler.formatPrompt(payload, instruction);
       
       const improvedContent = await geminiService.rewriteSequenceWithContext(prompt);

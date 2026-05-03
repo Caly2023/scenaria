@@ -117,7 +117,8 @@ export const en = {
       primitiveDeleted: 'Element removed from project',
       stageRestructured: 'Stage restructured successfully',
       newProject: 'New Project',
-      newStory: 'New Story'
+      newStory: 'New Story',
+      validateNext: 'Continue'
     },
     stages: {
       Discovery: {
@@ -126,99 +127,47 @@ export const en = {
         subtitle: 'A conversation to refine and extract the core foundation of your project.',
         validateLabel: 'Validate & Start Project'
       },
-      Logline: {
-        label: 'Logline',
-        title: 'Refining the Vision',
-        subtitle: 'The AI has synthesized your brainstorming into a logline. Tweak it until it\'s perfect.',
-        placeholder: 'Your logline draft will appear here...',
-        validationText: 'Is this vision correct for your studio? Please validate to proceed or tell me what to tweak.',
-        refinePlaceholder: 'What should I tweak? (e.g., \'Make it darker\', \'Focus on the heist\')',
-        validateLabel: 'Validate & Move to Structure',
-        refineLabel: 'Refine Logline'
+      'Project Brief': {
+        label: 'Project Brief',
+        title: 'Project Brief',
+        subtitle: 'The canonical source of truth for your story: metadata, logline, and synopsis.',
+        validateLabel: 'Validate & Move to Story Bible'
       },
-      '3-Act Structure': {
-        label: '3-Act Structure',
-        title: 'Building the Skeleton',
-        subtitle: 'Act I, II and III. This is where the story takes shape.',
-        validateLabel: 'Validate & Move to 8-Beat'
-      },
-      '8-Beat Structure': {
-        label: '8-Beat Structure',
-        title: 'The 8 Story Beats',
-        subtitle: 'Breaking down your story into eight essential dramatic moments.',
-        validateLabel: 'Validate & Move to Synopsis'
-      },
-      Synopsis: {
-        label: 'Synopsis',
-        title: 'The Full Narrative',
-        subtitle: 'A detailed summary of your story\'s arc, characters, and themes.',
-        validateLabel: 'Validate Synopsis'
-      },
-      'Character Bible': {
-        label: 'Character Bible',
-        title: 'Character Bible',
-        subtitle: 'Define your characters, their roles, and their visual identity.',
-        placeholder: 'Describe the character\'s appearance, personality, and role...',
-        validationText: 'Ready to move from characters to locations?',
-        validateLabel: 'Validate Characters & Move to Locations'
-      },
-      'Location Bible': {
-        label: 'Location Bible',
-        title: 'Location Bible',
-        subtitle: 'Define your locations, their atmosphere, and their visual identity.',
-        placeholder: 'Describe the location\'s atmosphere, key features, and visual style...',
-        validationText: 'Ready to move from locations to the narrative treatment?',
-        validateLabel: 'Validate Locations & Move to Treatment'
+      'Story Bible': {
+        label: 'Story Bible',
+        title: 'Story Bible',
+        subtitle: 'Define your characters and locations in a consistent universe.',
+        validateLabel: 'Validate & Move to Treatment'
       },
       Treatment: {
         label: 'Treatment',
         title: 'The Story in Prose',
-        subtitle: 'A detailed narrative version of your screenplay.',
-        validateLabel: 'Validate Treatment'
+        subtitle: 'A detailed and cinematic narrative version of your screenplay.',
+        validateLabel: 'Validate & Move to Sequencer'
       },
-      'Step Outline': {
-        label: 'Step Outline',
-        title: 'The Séquencier',
-        subtitle: 'Scene-by-scene breakdown of your story.',
-        placeholder: 'Describe the scene...',
-        validationText: 'Ready to turn this outline into a full script?',
-        validateLabel: 'Validate Outline & Move to Script'
+      Sequencer: {
+        label: 'Sequencer',
+        title: 'The Sequencer',
+        subtitle: 'Scene-by-scene breakdown of your narration.',
+        validateLabel: 'Validate & Move to Dialogue Continuity'
       },
-      Script: {
-        label: 'Script',
-        title: 'Final Screenplay',
-        subtitle: 'Professional formatting and dialogue.',
-        validateLabel: 'Validate Script'
+      'Dialogue Continuity': {
+        label: 'Dialogue Continuity',
+        title: 'Dialogue Continuity',
+        subtitle: 'Full first draft of the script with dialogues and actions.',
+        validateLabel: 'Validate & Move to Final Screenplay'
       },
-      'Global Script Doctoring': {
-        label: 'Global Script Doctor',
-        title: 'Deep Analysis',
-        subtitle: 'The Script Doctor reviews your entire screenplay for consistency and quality.',
-        validateLabel: 'Finish Analysis'
+      'Final Screenplay': {
+        label: 'Final Screenplay',
+        title: 'Production Script',
+        subtitle: 'Polished, paced, and ready-to-shoot version.',
+        validateLabel: 'Validate & Move to Technical Breakdown'
       },
       'Technical Breakdown': {
         label: 'Technical Breakdown',
-        title: 'Production Plan',
-        subtitle: 'Transforming scenes into technical shots and production requirements.',
-        validateLabel: 'Validate Breakdown'
-      },
-      'Visual Assets': {
-        label: 'Visual Assets',
-        title: 'Concept Art & Assets',
-        subtitle: 'Generate multi-angle characters, environments, and key props.',
-        validateLabel: 'Validate Assets'
-      },
-      'AI Previs': {
-        label: 'AI Previs',
-        title: 'AI Previsualization',
-        subtitle: 'Preview your script with AI-generated storyboards and pre-visuals.',
-        validateLabel: 'Validate Previs'
-      },
-      'Production Export': {
-        label: 'Production Export',
-        title: 'Export Studio',
-        subtitle: 'Download your finalized script, breakdown, and assets for production.',
-        validateLabel: 'Final Export'
+        title: 'Technical Breakdown',
+        subtitle: 'Logistical organization, shot list, and technical requirements.',
+        validateLabel: 'Complete Project'
       }
     },
     formats: {

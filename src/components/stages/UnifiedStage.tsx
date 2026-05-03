@@ -77,8 +77,9 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
           onRegenerate={() => handleRegenerate(definition.id)}
           onImageClick={setFullscreenImage}
           onDeepDevelop={isGallery ? (id) => {
-            if (definition.id === 'Character Bible') handleCharacterDeepDevelop(id, 'Character Bible');
-            if (definition.id === 'Location Bible') handleLocationDeepDevelop(id, 'Location Bible');
+            const prim = primitives.find(p => p.id === id);
+            if (prim?.primitiveType === 'character') handleCharacterDeepDevelop(id);
+            else if (prim?.primitiveType === 'location') handleLocationDeepDevelop(id);
           } : undefined}
           onFocus={isCanvas ? handleFocusMode : undefined}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}

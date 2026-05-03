@@ -62,7 +62,7 @@ function renderStage(
     }
   }
 
-  if (definition.id === "Step Outline") {
+  if (definition.id === "Sequencer") {
     return (
       <CanvasErrorBoundary>
         <UnifiedStage definition={definition} />

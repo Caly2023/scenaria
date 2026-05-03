@@ -39,23 +39,20 @@ export function useAppCallbacks({
 
   const handleStoryChange = useCallback(
     (c: string) => {
-      const pitchPrimitives = stageContents['Brainstorming'] || [];
-      const pitchId = pitchPrimitives.find((p) => p.primitiveType === 'brainstorming_result')?.id
-        || pitchPrimitives.find((p) => p.primitiveType === 'pitch_result')?.id // backward compat
-        || pitchPrimitives.find((p) => /pitch|story|input/i.test(p.title || ''))?.id
-        || pitchPrimitives.find((p) => p.order === 1)?.id;
-      const collectionName = stageRegistry.getCollectionName('Brainstorming');
-      if (pitchId) handleSubcollectionUpdate(collectionName, pitchId, { content: c });
-      handleContentUpdate("brainstorming_result", c);
+      const discoveryPrimitives = stageContents['Discovery'] || [];
+      const discoveryId = discoveryPrimitives[0]?.id;
+      const collectionName = stageRegistry.getCollectionName('Discovery');
+      if (discoveryId) handleSubcollectionUpdate(collectionName, discoveryId, { content: c });
+      handleContentUpdate("discovery_result", c);
     },
     [stageContents, handleSubcollectionUpdate, handleContentUpdate],
   );
 
   const onLoglineChange = useCallback(
     (c: string) => {
-      const loglinePrimitives = stageContents['Logline'] || [];
-      const id = loglinePrimitives[0]?.id;
-      const collectionName = stageRegistry.getCollectionName('Logline');
+      const briefPrimitives = stageContents['Project Brief'] || [];
+      const id = briefPrimitives.find(p => p.primitiveType === 'logline')?.id;
+      const collectionName = stageRegistry.getCollectionName('Project Brief');
       if (id) {
         handleSubcollectionUpdate(collectionName, id, { content: c });
       }
@@ -64,15 +61,12 @@ export function useAppCallbacks({
   );
 
   /**
-   * Generic stage validator — replaces 17 individual onValidate* callbacks.
-   * Usage: onValidateStage("Character Bible")
+   * Generic stage validator.
    */
   const onValidateStage = useCallback(
     (stage: WorkflowStage) => handleStageValidate(stage),
     [handleStageValidate],
   );
-
-  // Named aliases for backwards compatibility with existing component props
 
   const handlePrimitiveAdd = useCallback(
     async (stage: WorkflowStage, data: any) => {
@@ -142,7 +136,6 @@ export function useAppCallbacks({
     handlePrimitiveAdd,
     handlePrimitiveUpdate,
     handlePrimitiveDelete,
-    // Generic validator (preferred for new code)
     onValidateStage,
   };
 }

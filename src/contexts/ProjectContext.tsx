@@ -51,8 +51,8 @@ interface ProjectContextType {
   // Specific Handlers
   handleAiMagic: (id: string) => Promise<void>;
   handleGenerateViews: (id: string) => Promise<void>;
-  handleCharacterDeepDevelop: (id: string, stage: WorkflowStage) => Promise<void>;
-  handleLocationDeepDevelop: (id: string, stage: WorkflowStage) => Promise<void>;
+  handleCharacterDeepDevelop: (id: string) => Promise<void>;
+  handleLocationDeepDevelop: (id: string) => Promise<void>;
   
   // App Callbacks (Standardized)
   handleStoryChange: (c: string) => void;

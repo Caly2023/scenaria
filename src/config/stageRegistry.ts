@@ -65,7 +65,7 @@ const STAGES: StageDefinition[] = [
     estTime: '15m',
     hydrationLabel: 'Discovering project DNA...',
     requires: [],
-    triggers: 'Logline',
+    triggers: 'Project Brief',
     orderField: 'order',
     isCustom: true,
     displayMode: 'canvas',
@@ -75,201 +75,124 @@ const STAGES: StageDefinition[] = [
     }
   },
   {
-    id: 'Logline',
-    name: 'Logline',
-    order: 3,
-    category: 'FOUNDATION',
-    collectionName: 'logline_primitives',
-    primitiveTypes: ['logline'],
-    description: 'Summarize your story in one punchy sentence.',
-    icon: Zap,
-    estTime: '5m',
-    hydrationLabel: 'Synthesizing Logline...',
-    requires: ['Discovery'],
-    triggers: '3-Act Structure',
-    orderField: 'order',
-    prompts: {
-      magic: 'Sharpen the hook and ensure the logline perfectly captures the protagonist, goal, and stakes.',
-      generate: 'Synthesize the brainstorming results into one punchy, professional logline.'
-    }
-  },
-  {
-    id: '3-Act Structure',
-    name: '3-Act Structure',
-    order: 4,
-    category: 'FOUNDATION',
-    collectionName: 'structure_primitives',
-    primitiveTypes: ['beat'],
-    description: 'Define the dramatic backbone of your story.',
-    icon: LayoutGrid,
-    estTime: '30m',
-    hydrationLabel: 'Architecting 3-Act Structure...',
-    requires: ['Logline'],
-    triggers: '8-Beat Structure',
-    orderField: 'order',
-    prompts: {
-      magic: 'Strengthen the backbone by refining the inciting incident, midpoint, and climax.',
-      generate: 'Architect a solid 3-act structure to define the primary narrative arc.'
-    }
-  },
-  {
-    id: '8-Beat Structure',
-    name: '8-Beat Structure',
-    order: 5,
-    category: 'FOUNDATION',
-    collectionName: 'beat_primitives',
-    primitiveTypes: ['beat'],
-    description: 'Break down your story into eight essential moments.',
-    icon: Layers,
-    estTime: '30m',
-    hydrationLabel: 'Developing 8 dramatic beats...',
-    requires: ['3-Act Structure'],
-    triggers: 'Synopsis',
-    orderField: 'order',
-    prompts: {
-      magic: 'Deepen the dramatic turns and emotional beats for maximum audience impact.',
-      generate: 'Develop eight essential dramatic beats to flesh out the story structure.'
-    }
-  },
-  {
-    id: 'Synopsis',
-    name: 'Synopsis',
-    order: 6,
-    category: 'FOUNDATION',
-    collectionName: 'synopsis_primitives',
-    primitiveTypes: ['synopsis'],
-    description: 'A detailed summary of your story arc and themes.',
+    id: 'Project Brief',
+    name: 'Project Brief',
+    order: 1,
+    category: 'METADATA',
+    collectionName: 'brief_primitives',
+    primitiveTypes: ['metadata', 'logline', 'synopsis', 'production_notes'],
+    description: 'The canonical source of truth for your project.',
     icon: FileText,
-    estTime: '45m',
-    hydrationLabel: 'Expanding into full Synopsis...',
-    requires: ['8-Beat Structure'],
-    triggers: 'Character Bible',
+    estTime: '10m',
+    hydrationLabel: 'Synthesizing Project Brief...',
+    requires: ['Discovery'],
+    triggers: 'Story Bible',
     orderField: 'order',
     prompts: {
-      magic: 'Enrich the narrative flow and thematic depth of the full story summary.',
-      generate: 'Write a detailed synopsis that captures the full emotional and dramatic journey.'
+      magic: 'Sharpen the project brief, ensuring consistency between logline, synopsis, and intent.',
+      generate: 'Synthesize the discovery conversation into a professional project brief.'
     }
   },
   {
-    id: 'Character Bible',
-    name: 'Character Bible',
-    order: 7,
+    id: 'Story Bible',
+    name: 'Story Bible',
+    order: 2,
     category: 'BIBLE',
-    collectionName: 'characters',
-    primitiveTypes: ['character'],
-    description: 'Define your characters and their visual identity.',
+    collectionName: 'bible_primitives',
+    primitiveTypes: ['character', 'location'],
+    description: 'Characters, locations, and the world of your story.',
     icon: BookOpen,
     estTime: '1h',
-    hydrationLabel: 'Extracting Characters...',
-    requires: ['Synopsis'],
-    triggers: 'Location Bible',
-    orderField: 'order',
-    displayMode: 'gallery',
-    prompts: {
-      magic: 'Flesh out character depth, visual appearance, and emotional arcs.',
-      generate: 'Extract and develop complex characters from the current story context.'
-    }
-  },
-  {
-    id: 'Location Bible',
-    name: 'Location Bible',
-    order: 8,
-    category: 'BIBLE',
-    collectionName: 'locations',
-    primitiveTypes: ['location'],
-    description: 'Define your locations and their atmosphere.',
-    icon: MapPin,
-    estTime: '30m',
-    hydrationLabel: 'Extracting Locations...',
-    requires: ['Character Bible'],
+    hydrationLabel: 'Architecting the Story Bible...',
+    requires: ['Project Brief'],
     triggers: 'Treatment',
     orderField: 'order',
     displayMode: 'gallery',
     prompts: {
-      magic: 'Enhance atmospheric details and visual texture of your locations.',
-      generate: 'Identify and build out key locations that serve the story’s mood.'
+      magic: 'Deepen character motivations and enrich the atmospheric details of your locations.',
+      generate: 'Extract and develop the characters and locations from the project brief.'
     }
   },
   {
     id: 'Treatment',
     name: 'Treatment',
-    order: 9,
+    order: 3,
     category: 'NARRATIVE',
-    collectionName: 'treatment_sequences',
+    collectionName: 'treatment_primitives',
     primitiveTypes: ['treatment'],
     description: 'A detailed narrative version of your screenplay.',
     icon: PenTool,
     estTime: '2h',
     hydrationLabel: 'Generating Cinematic Treatment...',
-    requires: ['Location Bible'],
-    triggers: 'Step Outline',
+    requires: ['Story Bible'],
+    triggers: 'Sequencer',
     orderField: 'order',
     prompts: {
       magic: 'Refine the cinematic prose to better capture the tone and emotional flow.',
-      generate: 'Generate a professional cinematic treatment that expands the synopsis into narrative prose.'
+      generate: 'Generate a professional cinematic treatment that expands the brief into narrative prose.'
     }
   },
   {
-    id: 'Step Outline',
-    name: 'Step Outline',
-    order: 10,
+    id: 'Sequencer',
+    name: 'Sequencer',
+    order: 4,
     category: 'NARRATIVE',
-    collectionName: 'sequences',
+    collectionName: 'sequencer_primitives',
     primitiveTypes: ['sequence'],
     description: 'Scene-by-scene breakdown of your story.',
     icon: ListOrdered,
     estTime: '2h',
     hydrationLabel: 'Sequencing the narrative...',
     requires: ['Treatment'],
-    triggers: 'Script',
+    triggers: 'Dialogue Continuity',
     orderField: 'order',
     displayMode: 'canvas',
     prompts: {
-      magic: 'Rewrite this scene to be more dramatic and cinematic. Maintain continuity with the previous and next scenes.'
+      magic: 'Rewrite this scene to be more dramatic and cinematic. Maintain continuity.'
     }
   },
   {
-    id: 'Script',
-    name: 'Script',
-    order: 11,
+    id: 'Dialogue Continuity',
+    name: 'Dialogue Continuity',
+    order: 5,
     category: 'NARRATIVE',
-    collectionName: 'script_scenes',
+    collectionName: 'dialogue_primitives',
     primitiveTypes: ['script_scene'],
-    description: 'Professional formatting and dialogue.',
-    icon: FileText,
+    description: 'Full script with dialogues and formatting.',
+    icon: Layers,
     estTime: 'Days',
-    hydrationLabel: 'Writing Full Script...',
-    requires: ['Step Outline'],
-    triggers: 'Global Script Doctoring',
+    hydrationLabel: 'Writing Dialogue Continuity...',
+    requires: ['Sequencer'],
+    triggers: 'Final Screenplay',
     orderField: 'order',
     prompts: {
-      magic: 'Polish the dialogue, pacing, and subtext to achieve professional screenwriting standards.',
-      generate: 'Convert the step outline into a full screenplay with professional formatting and dialogue.'
+      magic: 'Polish the dialogue, pacing, and subtext to achieve professional standards.',
+      generate: 'Convert the sequencer into a full continuity dialoguée with professional formatting.'
     }
   },
   {
-    id: 'Global Script Doctoring',
-    name: 'Global Script Doctoring',
-    order: 12,
-    category: 'PRODUCTION',
-    collectionName: 'doctoring_primitives',
+    id: 'Final Screenplay',
+    name: 'Final Screenplay',
+    order: 6,
+    category: 'NARRATIVE',
+    collectionName: 'screenplay_primitives',
     primitiveTypes: ['script_scene'],
-    description: 'Full screenplay review for consistency and quality.',
-    icon: Bot,
+    description: 'The polished, production-ready screenplay.',
+    icon: Film,
     estTime: '1h',
-    hydrationLabel: 'Analyzing Script Integrity...',
-    requires: ['Script'],
+    hydrationLabel: 'Polishing Final Screenplay...',
+    requires: ['Dialogue Continuity'],
     triggers: 'Technical Breakdown',
     orderField: 'order',
     prompts: {
-      magic: 'Fix architectural inconsistencies and strengthen the thematic unity of the full script.',
-      generate: 'Perform a comprehensive audit of the script to ensure structural integrity and quality.'
+      magic: 'Final polish of the screenplay for production readiness.',
+      generate: 'Perform a comprehensive final polish of the dialogue continuity.'
     }
   },
   {
     id: 'Technical Breakdown',
     name: 'Technical Breakdown',
-    order: 13,
+    order: 7,
     category: 'PRODUCTION',
     collectionName: 'breakdown_primitives',
     primitiveTypes: ['breakdown'],
@@ -277,68 +200,11 @@ const STAGES: StageDefinition[] = [
     icon: Cpu,
     estTime: '3h',
     hydrationLabel: 'Generating Production Breakdown...',
-    requires: ['Global Script Doctoring'],
-    triggers: 'Visual Assets',
+    requires: ['Final Screenplay'],
     orderField: 'order',
     prompts: {
       magic: 'Optimize shot composition and technical feasibility for every scene.',
-      generate: 'Transform the script scenes into a technical shot list for production.'
-    }
-  },
-  {
-    id: 'Visual Assets',
-    name: 'Visual Assets',
-    order: 14,
-    category: 'PRODUCTION',
-    collectionName: 'asset_primitives',
-    primitiveTypes: ['asset'],
-    description: 'Generate multi-angle characters and environments.',
-    icon: ImageIcon,
-    estTime: '2h',
-    hydrationLabel: 'Generating Cinematic Assets...',
-    requires: ['Technical Breakdown'],
-    triggers: 'AI Previs',
-    orderField: 'order',
-    prompts: {
-      magic: 'Polish the aesthetic consistency and visual detail of your cinematic assets.',
-      generate: 'Generate high-fidelity visual assets for characters and environments.'
-    }
-  },
-  {
-    id: 'AI Previs',
-    name: 'AI Previs',
-    order: 15,
-    category: 'PRODUCTION',
-    collectionName: 'previs_primitives',
-    primitiveTypes: ['previs'],
-    description: 'Preview your script with AI-generated storyboards.',
-    icon: Film,
-    estTime: '2h',
-    hydrationLabel: 'Generating AI Previs...',
-    requires: ['Visual Assets'],
-    triggers: 'Production Export',
-    orderField: 'order',
-    prompts: {
-      magic: 'Refine visual storytelling and shot transitions in the previs sequence.',
-      generate: 'Generate a comprehensive AI previs (storyboard) to visualize the script.'
-    }
-  },
-  {
-    id: 'Production Export',
-    name: 'Production Export',
-    order: 16,
-    category: 'PRODUCTION',
-    collectionName: 'export_primitives',
-    primitiveTypes: ['export'],
-    description: 'Download finalized script and assets.',
-    icon: Share,
-    estTime: '5m',
-    hydrationLabel: 'Preparing Production Export...',
-    requires: ['AI Previs'],
-    orderField: 'order',
-    prompts: {
-      magic: 'Final check of all production deliverables for packaging and export.',
-      generate: 'Prepare the finalized production export containing all script and visual assets.'
+      generate: 'Transform the screenplay into a technical shot list for production.'
     }
   },
 ];
@@ -366,14 +232,14 @@ class StageRegistry {
     if (!def) {
       // Fallback for AI occasionally using French translations or kebab-case instead of exact IDs
       const normalized = String(stageId).toLowerCase();
-      if (normalized.includes('structure en 3 actes') || normalized.includes('3-act-structure') || normalized.includes('3-act structure')) def = this._stages.get('3-Act Structure');
-      else if (normalized.includes('structure en 8 beats') || normalized.includes('8-beat-structure') || normalized.includes('8-beat structure')) def = this._stages.get('8-Beat Structure');
-      else if (normalized.includes('bible des personnages') || normalized.includes('character bible')) def = this._stages.get('Character Bible');
-      else if (normalized.includes('bible des lieux') || normalized.includes('location bible')) def = this._stages.get('Location Bible');
+      if (normalized.includes('project brief') || normalized.includes('brief') || normalized.includes('metadata') || normalized.includes('logline') || normalized.includes('synopsis')) def = this._stages.get('Project Brief');
+      else if (normalized.includes('story bible') || normalized.includes('bible') || normalized.includes('character') || normalized.includes('location')) def = this._stages.get('Story Bible');
       else if (normalized.includes('traitement') || normalized.includes('treatment')) def = this._stages.get('Treatment');
-      else if (normalized.includes('séquencier') || normalized.includes('step outline')) def = this._stages.get('Step Outline');
-      else if (normalized.includes('scénario') || normalized.includes('script')) def = this._stages.get('Script');
-      else if (normalized.includes('brouillon') || normalized.includes('discovery')) def = this._stages.get('Discovery');
+      else if (normalized.includes('sequencer') || normalized.includes('séquencier') || normalized.includes('step outline')) def = this._stages.get('Sequencer');
+      else if (normalized.includes('dialogue continuity') || normalized.includes('continuity') || normalized.includes('dialogue') || normalized.includes('scénario') || normalized.includes('script')) def = this._stages.get('Dialogue Continuity');
+      else if (normalized.includes('final screenplay') || normalized.includes('screenplay') || normalized.includes('polissage')) def = this._stages.get('Final Screenplay');
+      else if (normalized.includes('technical breakdown') || normalized.includes('breakdown') || normalized.includes('découpage')) def = this._stages.get('Technical Breakdown');
+      else if (normalized.includes('brouillon') || normalized.includes('discovery') || normalized.includes('exploration')) def = this._stages.get('Discovery');
     }
 
     if (!def) throw new Error(`[StageRegistry] Unknown stage: "${stageId}"`);

@@ -117,108 +117,57 @@ export const fr = {
       primitiveDeleted: 'Élément supprimé du projet',
       stageRestructured: 'Étape restructurée avec succès',
       newProject: 'Nouveau projet',
-      newStory: 'Nouvelle histoire'
+      newStory: 'Nouvelle histoire',
+      validateNext: 'Continuer'
     },
     stages: {
-    Discovery: {
+      Discovery: {
         label: 'Découverte',
         title: 'Découverte du Projet',
         subtitle: 'Une conversation pour affiner et extraire l\'essence de votre projet.',
         validateLabel: 'Valider et commencer le projet'
       },
-      Logline: {
-        label: 'Logline',
-        title: 'Affiner la vision',
-        subtitle: 'L\'IA a synthétisé votre brainstorming en une logline. Ajustez-la jusqu\'à ce qu\'elle soit parfaite.',
-        placeholder: 'Votre brouillon de logline apparaîtra ici...',
-        validationText: 'Cette vision est-elle correcte pour votre studio ? Veuillez valider pour continuer ou dites-moi quoi ajuster.',
-        refinePlaceholder: 'Que dois-je ajuster ? (ex: \'Rendre plus sombre\', \'Se concentrer sur le casse\')',
-        validateLabel: 'Valider et passer à la structure',
-        refineLabel: 'Affiner la Logline'
+      'Project Brief': {
+        label: 'Project Brief',
+        title: 'Le Brief du Projet',
+        subtitle: 'La source de vérité canonique de votre histoire : métadonnées, logline et synopsis.',
+        validateLabel: 'Valider et passer à la Story Bible'
       },
-      '3-Act Structure': {
-        label: 'Structure en 3 actes',
-        title: 'Construire le squelette',
-        subtitle: 'Acte I, II et III. C\'est ici que l\'histoire prend forme.',
-        validateLabel: 'Valider et passer aux 8 beats'
-      },
-      '8-Beat Structure': {
-        label: 'Structure en 8 beats',
-        title: 'Les 8 beats de l\'histoire',
-        subtitle: 'Découpage de votre histoire en huit moments dramatiques essentiels.',
-        validateLabel: 'Valider et passer au synopsis'
-      },
-      Synopsis: {
-        label: 'Synopsis',
-        title: 'Le récit complet',
-        subtitle: 'Un résumé détaillé de l\'arc de votre histoire, de vos personnages et de vos thèmes.',
-        validateLabel: 'Valider le Synopsis'
-      },
-      'Character Bible': {
-        label: 'Bible des personnages',
-        title: 'Bible des personnages',
-        subtitle: 'Définissez vos personnages, leurs rôles et leur identité visuelle.',
-        placeholder: 'Décrivez l\'apparence, la personnalité et le rôle du personnage...',
-        validationText: 'Prêt à passer des personnages aux lieux ?',
-        validateLabel: 'Valider les personnages et passer aux lieux'
-      },
-      'Location Bible': {
-        label: 'Bible des lieux',
-        title: 'Bible des lieux',
-        subtitle: 'Définissez vos lieux, leur atmosphère et leur identité visuelle.',
-        placeholder: 'Décrivez l\'atmosphère du lieu, ses caractéristiques clés et son style visuel...',
-        validationText: 'Prêt à passer des lieux au traitement narratif ?',
-        validateLabel: 'Valider les lieux et passer au traitement'
+      'Story Bible': {
+        label: 'Story Bible',
+        title: 'La Bible de l\'Histoire',
+        subtitle: 'Définissez vos personnages et vos lieux dans un univers cohérent.',
+        validateLabel: 'Valider et passer au Traitement'
       },
       Treatment: {
         label: 'Traitement',
         title: 'L\'histoire en prose',
-        subtitle: 'Une version narrative détaillée de votre scénario.',
-        validateLabel: 'Valider le Traitement'
+        subtitle: 'Une version narrative détaillée et cinématographique de votre récit.',
+        validateLabel: 'Valider et passer au Séquencier'
       },
-      'Step Outline': {
+      Sequencer: {
         label: 'Séquencier',
         title: 'Le Séquencier',
-        subtitle: 'Découpage scène par scène de votre histoire.',
-        placeholder: 'Décrivez la scène...',
-        validationText: 'Prêt à transformer ce séquencier en un scénario complet ?',
-        validateLabel: 'Valider le séquencier et passer au scénario'
+        subtitle: 'Découpage scène par scène de votre narration.',
+        validateLabel: 'Valider et passer à la Continuité Dialoguée'
       },
-      Script: {
-        label: 'Scénario',
-        title: 'Scénario final',
-        subtitle: 'Formatage professionnel et dialogues.',
-        validateLabel: 'Valider le Scénario'
+      'Dialogue Continuity': {
+        label: 'Continuité Dialoguée',
+        title: 'Continuité Dialoguée',
+        subtitle: 'Premier jet complet du scénario avec dialogues et actions.',
+        validateLabel: 'Valider et passer au Scénario Final'
       },
-      'Global Script Doctoring': {
-        label: 'Docteur Global',
-        title: 'Analyse profonde',
-        subtitle: 'Le Docteur Scénario examine l\'ensemble de votre scénario pour la cohérence et la qualité.',
-        validateLabel: 'Terminer l\'analyse'
+      'Final Screenplay': {
+        label: 'Scénario Final',
+        title: 'Scénario de Production',
+        subtitle: 'Version polie, rythmée et prête pour le tournage.',
+        validateLabel: 'Valider et passer au Découpage Technique'
       },
       'Technical Breakdown': {
-        label: 'Découpage technique',
-        title: 'Plan de production',
-        subtitle: 'Transformer les scènes en plans techniques et exigences de production.',
-        validateLabel: 'Valider le découpage'
-      },
-      'Visual Assets': {
-        label: 'Assets visuels',
-        title: 'Concept Art & Assets',
-        subtitle: 'Générer des personnages multi-angles, des environnements et des accessoires clés.',
-        validateLabel: 'Valider les assets'
-      },
-      'AI Previs': {
-        label: 'Prévisualisation IA',
-        title: 'Prévisualisation IA',
-        subtitle: 'Prévisualisez votre scénario avec des storyboards et des pré-visuels générés par l\'IA.',
-        validateLabel: 'Valider la prévis'
-      },
-      'Production Export': {
-        label: 'Export production',
-        title: 'Studio d\'exportation',
-        subtitle: 'Téléchargez votre scénario finalisé, votre découpage et vos assets pour la production.',
-        validateLabel: 'Exportation finale'
+        label: 'Découpage Technique',
+        title: 'Découpage Technique',
+        subtitle: 'Organisation logistique, liste des plans et besoins techniques.',
+        validateLabel: 'Terminer le projet'
       }
     },
     formats: {

@@ -15,7 +15,7 @@ function mapSequencePrimitive(sequence: Sequence, primitiveType: string): Conten
     id: sequence.id,
     title: sequence.title,
     content: sequence.content,
-    primitiveType,
+    primitiveType: sequence.primitiveType || primitiveType,
     order: sequence.order,
     metadata: {
       projectId: sequence.projectId,
@@ -60,8 +60,7 @@ function mapLocationPrimitive(location: Location, index: number): ContentPrimiti
  * Maps a single stage's raw Firestore documents to typed ContentPrimitives.
  *
  * The registry provides `collectionName` and `primitiveTypes[0]` for each stage.
- * Two special cases — Character Bible and Location Bible — use domain-specific mappers
- * because their documents have a different shape from the generic Sequence type.
+ * The Story Bible is a special case as it contains both characters and locations.
  */
 function getStageContentPrimitives(
   stage: WorkflowStage,
@@ -71,11 +70,13 @@ function getStageContentPrimitives(
   const items = rawCollections[def.collectionName] ?? [];
   const primitiveType = def.primitiveTypes[0] ?? 'unknown';
 
-  if (stage === 'Character Bible') {
-    return (items as Character[]).map(mapCharacterPrimitive);
-  }
-  if (stage === 'Location Bible') {
-    return (items as Location[]).map(mapLocationPrimitive);
+  if (stage === 'Story Bible') {
+    return items.map((item, index) => {
+      const type = (item as any).primitiveType;
+      if (type === 'character') return mapCharacterPrimitive(item as Character, index);
+      if (type === 'location') return mapLocationPrimitive(item as Location, index);
+      return mapSequencePrimitive(item as Sequence, primitiveType);
+    });
   }
 
   return (items as Sequence[]).map((item) => mapSequencePrimitive(item, primitiveType));

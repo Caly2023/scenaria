@@ -5,20 +5,13 @@ export type { ContentPrimitive } from './stageContract';
 
 export type WorkflowStage = 
   | 'Discovery'
-  | 'Logline' 
-  | '3-Act Structure'
-  | '8-Beat Structure'
-  | 'Synopsis'
-  | 'Character Bible' 
-  | 'Location Bible'
+  | 'Project Brief'
+  | 'Story Bible'
   | 'Treatment' 
-  | 'Step Outline' 
-  | 'Script' 
-  | 'Global Script Doctoring'
-  | 'Technical Breakdown'
-  | 'Visual Assets'
-  | 'AI Previs'
-  | 'Production Export';
+  | 'Sequencer' 
+  | 'Dialogue Continuity'
+  | 'Final Screenplay'
+  | 'Technical Breakdown';
 
 import type { StageAnalysis } from './stageContract';
 

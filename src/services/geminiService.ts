@@ -80,5 +80,19 @@ export const geminiService = {
       structuredOutput: 'brainstormDual',
     });
   },
+
+  async genericGeminiRequest<T>(prompt: string, jsonMode: boolean = false, structuredOutput?: string): Promise<T> {
+    return callGenericGemini<T>({
+      prompt,
+      jsonMode,
+      structuredOutput
+    });
+  },
+
+  async refineStageContent(stage: string, content: string, instruction: string, context: string): Promise<string> {
+    return callGenericGemini<string>({
+      prompt: `Stage: ${stage}\nContext: ${context}\n\nCurrent Content:\n${content}\n\nInstruction: ${instruction}\n\nRewrite the content according to the instruction.`,
+    });
+  },
 };
 

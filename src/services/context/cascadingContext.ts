@@ -19,33 +19,26 @@ export async function buildCascadingContext(
   let ctx = "--- NARRATIVE CONTEXT ---\n";
 
   // 1. CORE DNA (Always Included)
-  const logline = await Promise.resolve(getStageText("Logline"));
-  if (logline) ctx += `[LOGLINE]\n${logline}\n\n`;
-
-  const synopsis = await Promise.resolve(getStageText("Synopsis"));
-  if (synopsis && currentOrder > 6) {
-    ctx += `[SYNOPSIS SUMMARY]\n${synopsis}\n\n`;
-  }
+  const projectBrief = await Promise.resolve(getStageText("Project Brief"));
+  if (projectBrief) ctx += `[PROJECT BRIEF]\n${projectBrief}\n\n`;
 
   // 2. BIBLES (Included for Narrative & Production stages)
-  if (currentOrder >= 9) { // Treatment onwards
-    const chars = await Promise.resolve(getStageText("__characterBible__"));
-    const locs = await Promise.resolve(getStageText("__locationBible__"));
-    if (chars) ctx += chars;
-    if (locs) ctx += locs;
+  if (currentOrder >= 3) { // Treatment onwards
+    const storyBible = await Promise.resolve(getStageText("Story Bible"));
+    if (storyBible) ctx += `[STORY BIBLE]\n${storyBible}\n\n`;
   }
 
   // 3. IMMEDIATE HISTORY (The stage directly preceding the current one)
   const prevDef = stageRegistry.getPrevious(currentStage as any);
-  if (prevDef && prevDef.order > 0) { // Skip Discovery if we have better structural data
+  if (prevDef && prevDef.order > 0) { // Skip Discovery
     const prevText = await Promise.resolve(getStageText(prevDef.id));
     if (prevText) {
       ctx += `[PRECEDING STAGE: ${prevDef.name.toUpperCase()}]\n${prevText}\n\n`;
     }
   }
 
-  // 4. DISTANT ANCHORS (Include Discovery only if we are in early stages)
-  if (currentOrder <= 4) {
+  // 4. DISTANT ANCHORS
+  if (currentOrder <= 2) {
     const discovery = await Promise.resolve(getStageText("Discovery"));
     if (discovery && currentStage !== "Discovery") ctx += `[DISCOVERY]\n${discovery}\n\n`;
   }

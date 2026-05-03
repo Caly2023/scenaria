@@ -16,15 +16,8 @@ export const fetchProjectState: ToolHandler = async (args, context) => {
     const stageId = stageDef.id;
     const collectionName = stageDef.collectionName;
 
-    if (collectionName === "characters") {
-      stagesCount[stageId] = characters.length;
-    } else if (collectionName === "locations") {
-      stagesCount[stageId] = locations.length;
-    } else if (collectionName === "metadata_primitives") {
-      // For metadata, we count if metadata exists OR if there are primitives in the collection
-      const metadataCount = currentProject.metadata ? 1 : 0;
-      const primitivesCount = (stageContents[stageId] || []).length;
-      stagesCount[stageId] = Math.max(metadataCount, primitivesCount);
+    if (collectionName === "bible_primitives") {
+      stagesCount[stageId] = (stageContents[stageId] || []).length;
     } else {
       const content = stageContents[stageId] || [];
       const state = currentProject.stageStates?.[stageId] || "empty";
@@ -155,8 +148,8 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
 
     // 3. AI Insight Primitive Alignment (Consistency with production UI)
     const sub = stageRegistry.getCollectionName(stage);
-    // Avoid adding insight primitives to Bible or Metadata collections which have strict schemas
-    if (sub && sub !== "characters" && sub !== "locations" && sub !== "metadata_primitives") {
+    // Avoid adding insight primitives to Bible collections which have strict schemas
+    if (sub && sub !== "bible_primitives") {
       const primitivesForStage = (context.stageContents || {})[stage];
       const existingPrimitives = Array.isArray(primitivesForStage) ? primitivesForStage : [];
       
@@ -207,9 +200,6 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
 
 /**
  * run_project_diagnostics
- * Effectue un scan global de cohérence sur l'ensemble du projet.
- * Vérifie les contradictions entre étapes (ex: personnage mort en étape 3 mais présent en étape 8),
- * les trous narratifs, ou les ruptures de ton.
  */
 export const runProjectDiagnostics: ToolHandler = async (args, context) => {
   const { currentProject, stageContents, characters, locations } = context;
@@ -221,8 +211,13 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
   // Basic structural checks
   if (!metadata.logline) issues.push("Missing logline in metadata.");
   if (!metadata.title) issues.push("Project title is not defined.");
-  if (characters.length === 0) issues.push("Character Bible is empty.");
-  if (locations.length === 0) issues.push("Location Bible is empty.");
+  
+  const biblePrims = stageContents['Story Bible'] || [];
+  const chars = biblePrims.filter(p => p.primitiveType === 'character');
+  const locs = biblePrims.filter(p => p.primitiveType === 'location');
+
+  if (chars.length === 0) issues.push("No characters in Story Bible.");
+  if (locs.length === 0) issues.push("No locations in Story Bible.");
   
   // State checks using new multi-agent fields
   const stageStates = currentProject.stageStates || {};
@@ -237,9 +232,7 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
     const primitives = stageContents[s.id] || [];
     const contentPrimitives = primitives.filter(p => p && p.primitiveType !== "ai_insight");
     
-    const contentCount = s.collectionName === 'characters' ? characters.length : 
-                         s.collectionName === 'locations' ? locations.length :
-                         contentPrimitives.length;
+    const contentCount = contentPrimitives.length;
 
     if (state === "good" || state === "excellent") {
        if (contentCount === 0) {
@@ -257,8 +250,8 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
   });
 
   // Specific high-level architectural check
-  if (activeStage === "Script" && (stageStates["Step Outline"] || "empty") === "empty") {
-    issues.push("Script stage reached without a populated Step Outline.");
+  if (activeStage === "Final Screenplay" && (stageStates["Sequencer"] || "empty") === "empty") {
+    issues.push("Final Screenplay stage reached without a populated Sequencer.");
   }
 
   telemetryService.setStatus("run_project_diagnostics", "✅", `Diagnostics complete. Found ${issues.length} structural issues.`);
@@ -273,4 +266,3 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
     }
   };
 };
-

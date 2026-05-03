@@ -46,14 +46,12 @@ export async function buildPromptPayload(
   const project = projectResult.data;
   if (!project) throw new Error("Project not found");
 
-  const charResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "characters" }));
-  const allCharacters = (charResult.data || []) as Character[];
+  // Get Story Bible primitives (which now contains both characters and locations)
+  const bibleResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "bible_primitives" }));
+  const biblePrimitives = (bibleResult.data || []) as any[];
   
-  const locResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "locations" }));
-  const allLocations = (locResult.data || []) as Location[];
-
-  telemetryService.hydrateStage("Character Bible", "characters", allCharacters as any);
-  telemetryService.hydrateStage("Location Bible", "locations", allLocations as any);
+  const allCharacters = biblePrimitives.filter(p => p.primitiveType === 'character');
+  const allLocations = biblePrimitives.filter(p => p.primitiveType === 'location');
 
   const payload: PromptPayload = {
     metadata: {
@@ -65,8 +63,21 @@ export async function buildPromptPayload(
       logline: project.metadata?.logline || "",
       targetDuration: project.metadata?.targetDuration
     },
-    characters: [],
-    locations: []
+    characters: allCharacters.map(c => ({
+      id: c.id,
+      name: c.name || c.title,
+      role: c.role || '',
+      description: c.description || c.content || '',
+      order: c.order || 0,
+      deepDevelopment: c.deepDevelopment
+    })),
+    locations: allLocations.map(l => ({
+      id: l.id,
+      name: l.name || l.title,
+      atmosphere: l.atmosphere || '',
+      description: l.description || l.content || '',
+      order: l.order || 0
+    }))
   };
 
   const getStageText = (sName: string) => getStageTextInternal(projectId, sName, allCharacters, allLocations);
@@ -82,8 +93,8 @@ export async function buildPromptPayload(
   payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${sectionalContent}`;
   payload.idMapContext = telemetryService.getIdMapContext();
 
-  if (activePrimitiveId && (currentStage === "Step Outline" || currentStage === "Script" || currentStage === "Treatment")) {
-    const collName = stageRegistry.getCollectionName(currentStage) || "sequences";
+  if (activePrimitiveId && (currentStage === "Sequencer" || currentStage === "Dialogue Continuity" || currentStage === "Treatment" || currentStage === "Final Screenplay")) {
+    const collName = stageRegistry.getCollectionName(currentStage);
     const seqsResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: collName, orderByField: "order" }));
     const allSeqs = (seqsResult.data || []) as Sequence[];
     const currentSeqIndex = allSeqs.findIndex(s => s.id === activePrimitiveId);
@@ -118,6 +129,7 @@ export async function buildPayloadFromProjectContext(
   currentStage: WorkflowStage
 ): Promise<PromptPayload> {
   const { metadata, stageContents } = context;
+  const storyBiblePrims = stageContents["Story Bible"] || [];
   
   const payload: PromptPayload = {
     metadata: {
@@ -129,18 +141,23 @@ export async function buildPayloadFromProjectContext(
       logline: metadata.logline || "",
       targetDuration: metadata.targetDuration
     },
-    characters: (stageContents["Character Bible"] || []).map((c: any) => ({
-      id: c.id, name: c.title || c.name, role: c.role,
-      description: c.content || c.description, deepDevelopment: c.deepDevelopment
+    characters: storyBiblePrims.filter((p: any) => p.primitiveType === 'character').map((c: any) => ({
+      id: c.id, name: c.title || c.name, role: c.role || '',
+      description: c.content || c.description || '', order: c.order || 0,
+      deepDevelopment: c.deepDevelopment
     })),
-    locations: (stageContents["Location Bible"] || []).map((l: any) => ({
-      id: l.id, name: l.title || l.name, atmosphere: l.atmosphere, description: l.content || l.description
+    locations: storyBiblePrims.filter((p: any) => p.primitiveType === 'location').map((l: any) => ({
+      id: l.id, name: l.title || l.name, atmosphere: l.atmosphere || '', 
+      description: l.content || l.description || '', order: l.order || 0
     })),
   };
 
   const getStageText = (sName: string) => {
-    if (sName === "__characterBible__") return formatBibleContext('Character Bible', stageContents["Character Bible"] || []);
-    if (sName === "__locationBible__") return formatBibleContext('Location Bible', stageContents["Location Bible"] || []);
+    if (sName === "Story Bible") {
+      const chars = payload.characters;
+      const locs = payload.locations;
+      return `[CHARACTERS]\n${JSON.stringify(chars, null, 2)}\n\n[LOCATIONS]\n${JSON.stringify(locs, null, 2)}`;
+    }
     return (stageContents[sName] || []).map((p: any) => p.content).join("\n\n");
   };
 

@@ -26,19 +26,19 @@ export function useLocationActions({
 
   const handleLocationDeepDevelop = useCallback(async (id: string) => {
     if (!currentProject) return;
-    const locations = stageContents['Location Bible'] || [];
-    const loc = locations.find(l => l.id === id);
+    const bible = stageContents['Story Bible'] || [];
+    const loc = bible.find(l => l.id === id && l.primitiveType === 'location');
     if (!loc) return;
 
     await runAsyncAction(
       async () => {
-        const brainstorming = stageContents['Brainstorming'] || [];
-        const bStory = brainstorming.map(p => p.content).join('\n\n');
+        const brief = stageContents['Project Brief'] || [];
+        const briefText = brief.map(p => p.content).join('\n\n');
         const developed = await geminiService.deepDevelopLocation(
           { name: loc.title, description: loc.content } as any, 
-          bStory
+          briefText
         );
-        const collectionName = stageRegistry.getCollectionName('Location Bible');
+        const collectionName = stageRegistry.getCollectionName('Story Bible');
         await updateSubcol({
           projectId: currentProject.id,
           collectionName,

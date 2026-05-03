@@ -11,57 +11,37 @@ interface GatedSubcollectionsProps {
 /**
  * Custom hook to handle all stage-gated subcollection fetches.
  * RTK Query deduplicates and caches these automatically.
- * We must call all hooks at the top level to follow the Rules of Hooks.
  */
 export function useStageGatedSubcollections({ projectId, activeStageOrder }: GatedSubcollectionsProps): { data: RawCollections; isLoading: boolean } {
   const skip = !projectId;
 
   const discoveryResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Discovery'),     orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Discovery').order });
-  const loglineResult   = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Logline'),           orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Logline').order });
-  const structureResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('3-Act Structure'),   orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('3-Act Structure').order });
-  const beatResult      = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('8-Beat Structure'),   orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('8-Beat Structure').order });
-  const synopsisResult  = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Synopsis'),          orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Synopsis').order });
-  const charactersResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Character Bible')                                }, { skip: skip || activeStageOrder < stageRegistry.get('Character Bible').order });
-  const locationsResult  = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Location Bible')                                 }, { skip: skip || activeStageOrder < stageRegistry.get('Location Bible').order });
-  const treatmentResult  = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Treatment'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Treatment').order });
-  const sequencesResult  = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Step Outline'),     orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Step Outline').order });
-  const scriptResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Script'),           orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Script').order });
-  const doctoringResult  = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Global Script Doctoring'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Global Script Doctoring').order });
-  const breakdownResult  = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Technical Breakdown'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Technical Breakdown').order });
-  const assetResult      = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Visual Assets'),     orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Visual Assets').order });
-  const previsResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('AI Previs'),        orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('AI Previs').order });
-  const exportResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Production Export'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Production Export').order });
+  const briefResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Project Brief'),   orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Project Brief').order });
+  const bibleResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Story Bible')                            }, { skip: skip || activeStageOrder < stageRegistry.get('Story Bible').order });
+  const treatmentResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Treatment'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Treatment').order });
+  const sequencerResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Sequencer'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Sequencer').order });
+  const continuityResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Dialogue Continuity'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Dialogue Continuity').order });
+  const scriptResult    = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Final Screenplay'),   orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Final Screenplay').order });
+  const breakdownResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Technical Breakdown'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Technical Breakdown').order });
 
   const isLoading = 
-    discoveryResult.isLoading || loglineResult.isLoading || 
-    structureResult.isLoading || beatResult.isLoading || synopsisResult.isLoading || 
-    charactersResult.isLoading || locationsResult.isLoading || treatmentResult.isLoading || 
-    sequencesResult.isLoading || scriptResult.isLoading || doctoringResult.isLoading || 
-    breakdownResult.isLoading || assetResult.isLoading || previsResult.isLoading || 
-    exportResult.isLoading;
+    discoveryResult.isLoading || briefResult.isLoading || 
+    bibleResult.isLoading || treatmentResult.isLoading || sequencerResult.isLoading || 
+    continuityResult.isLoading || scriptResult.isLoading || breakdownResult.isLoading;
 
   const data = useMemo<RawCollections>(() => ({
-    [stageRegistry.getCollectionName('Discovery')]:               discoveryResult.data || [],
-    [stageRegistry.getCollectionName('Logline')]:                 loglineResult.data || [],
-    [stageRegistry.getCollectionName('3-Act Structure')]:         structureResult.data || [],
-    [stageRegistry.getCollectionName('8-Beat Structure')]:         beatResult.data || [],
-    [stageRegistry.getCollectionName('Synopsis')]:                synopsisResult.data || [],
-    [stageRegistry.getCollectionName('Character Bible')]:         charactersResult.data || [],
-    [stageRegistry.getCollectionName('Location Bible')]:          locationsResult.data || [],
-    [stageRegistry.getCollectionName('Treatment')]:               treatmentResult.data || [],
-    [stageRegistry.getCollectionName('Step Outline')]:            sequencesResult.data || [],
-    [stageRegistry.getCollectionName('Script')]:                  scriptResult.data || [],
-    [stageRegistry.getCollectionName('Global Script Doctoring')]: doctoringResult.data || [],
-    [stageRegistry.getCollectionName('Technical Breakdown')]:     breakdownResult.data || [],
-    [stageRegistry.getCollectionName('Visual Assets')]:           assetResult.data || [],
-    [stageRegistry.getCollectionName('AI Previs')]:               previsResult.data || [],
-    [stageRegistry.getCollectionName('Production Export')]:       exportResult.data || [],
+    [stageRegistry.getCollectionName('Discovery')]:           discoveryResult.data || [],
+    [stageRegistry.getCollectionName('Project Brief')]:       briefResult.data || [],
+    [stageRegistry.getCollectionName('Story Bible')]:         bibleResult.data || [],
+    [stageRegistry.getCollectionName('Treatment')]:           treatmentResult.data || [],
+    [stageRegistry.getCollectionName('Sequencer')]:           sequencerResult.data || [],
+    [stageRegistry.getCollectionName('Dialogue Continuity')]: continuityResult.data || [],
+    [stageRegistry.getCollectionName('Final Screenplay')]:    scriptResult.data || [],
+    [stageRegistry.getCollectionName('Technical Breakdown')]: breakdownResult.data || [],
   }), [
-    discoveryResult.data, loglineResult.data, structureResult.data,
-    beatResult.data, synopsisResult.data, charactersResult.data, locationsResult.data,
-    treatmentResult.data, sequencesResult.data, scriptResult.data,
-    doctoringResult.data, breakdownResult.data, assetResult.data,
-    previsResult.data, exportResult.data,
+    discoveryResult.data, briefResult.data, bibleResult.data,
+    treatmentResult.data, sequencerResult.data, continuityResult.data,
+    scriptResult.data, breakdownResult.data
   ]);
 
   return { data, isLoading };

@@ -26,14 +26,14 @@ export function useCharacterActions({
 
   const handleGenerateViews = useCallback(async (id: string) => {
     if (!currentProject) return;
-    const characters = stageContents['Character Bible'] || [];
-    const char = characters.find(c => c.id === id);
+    const bible = stageContents['Story Bible'] || [];
+    const char = bible.find(c => c.id === id && c.primitiveType === 'character');
     if (!char) return;
 
     await runAsyncAction(
       async () => {
         const views = await geminiService.generateCharacterViews(char.content);
-        const collectionName = stageRegistry.getCollectionName('Character Bible');
+        const collectionName = stageRegistry.getCollectionName('Story Bible');
         await updateSubcol({ 
           projectId: currentProject.id, 
           collectionName, 
@@ -58,14 +58,14 @@ export function useCharacterActions({
 
   const handleCharacterDeepDevelop = useCallback(async (id: string) => {
     if (!currentProject) return;
-    const characters = stageContents['Character Bible'] || [];
-    const char = characters.find(c => c.id === id);
+    const bible = stageContents['Story Bible'] || [];
+    const char = bible.find(c => c.id === id && c.primitiveType === 'character');
     if (!char) return;
 
     await runAsyncAction(
       async () => {
-        const brainstorming = stageContents['Brainstorming'] || [];
-        const bStory = brainstorming.map(p => p.content).join('\n\n');
+        const brief = stageContents['Project Brief'] || [];
+        const briefText = brief.map(p => p.content).join('\n\n');
         
         const charData = {
           id: char.id,
@@ -75,10 +75,12 @@ export function useCharacterActions({
           visualPrompt: char.visualPrompt,
         };
 
+        const otherChars = bible.filter(c => c.id !== id && c.primitiveType === 'character').map(c => ({ name: c.title, description: c.content }));
+
         const deepData = await geminiService.deepDevelopCharacter(
           charData as any, 
-          bStory, 
-          characters.filter(c => c.id !== id).map(c => ({ name: c.title, description: c.content })) as any
+          briefText, 
+          otherChars as any
         );
 
         const formattedDescription = `
@@ -97,7 +99,7 @@ ${deepData.forwardStory}
 ${deepData.relationshipMap}
         `.trim();
 
-        const collectionName = stageRegistry.getCollectionName('Character Bible');
+        const collectionName = stageRegistry.getCollectionName('Story Bible');
         await updateSubcol({
           projectId: currentProject.id,
           collectionName,

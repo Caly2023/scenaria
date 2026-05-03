@@ -144,32 +144,32 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
       await handleMetadataUpdate(extractedData.metadata);
     }
 
-    // Persist logline, synopsis to the project context / primitives
-    // Actually, according to prompt, we need to extract and persist them. 
-    // They can be saved to the database. We will use handleContentUpdate for the primitive? No, we should create primitives for Logline and Synopsis.
-    // Wait, let's just trigger validation.
-    
-    // Create Logline primitive
+    // Persist all components to the Project Brief stage
     if (extractedData.logline) {
-      await project.handlePrimitiveAdd('Logline', {
-        title: 'Discovered Logline',
+      await project.handlePrimitiveAdd('Project Brief', {
+        title: 'Logline',
         content: extractedData.logline,
-        primitiveType: 'logline'
+        primitiveType: 'logline',
+        order: 1
       });
     }
 
-    // Create Synopsis primitive
     if (extractedData.synopsis) {
-      await project.handlePrimitiveAdd('Synopsis', {
-        title: 'Discovered Synopsis',
+      await project.handlePrimitiveAdd('Project Brief', {
+        title: 'Synopsis',
         content: extractedData.synopsis,
-        primitiveType: 'synopsis'
+        primitiveType: 'synopsis',
+        order: 2
       });
     }
     
-    // Save production notes somewhere? Maybe a new primitive or in metadata
-    if (extractedData.productionNotes && extractedData.metadata) {
-      // Just update metadata with tone or genre if needed
+    if (extractedData.productionNotes) {
+      await project.handlePrimitiveAdd('Project Brief', {
+        title: 'Production Notes',
+        content: extractedData.productionNotes,
+        primitiveType: 'production_notes',
+        order: 3
+      });
     }
 
     onValidate();

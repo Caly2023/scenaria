@@ -15,8 +15,12 @@ interface GatedSubcollectionsProps {
 export function useStageGatedSubcollections({ projectId, activeStageOrder }: GatedSubcollectionsProps): { data: RawCollections; isLoading: boolean } {
   const skip = !projectId;
 
-  const discoveryResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Discovery'),     orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Discovery').order });
-  const briefResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Project Brief'),   orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Project Brief').order });
+  // Discovery and Project Brief are always fetched when a project is loaded —
+  // they are lightweight metadata collections and Brief is written during the
+  // Discovery → Brief transition (before activeStageOrder updates), so their
+  // Firestore listeners must be live from the start.
+  const discoveryResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Discovery'),     orderByField: 'order' }, { skip });
+  const briefResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Project Brief'),   orderByField: 'order' }, { skip });
   const bibleResult     = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Story Bible')                            }, { skip: skip || activeStageOrder < stageRegistry.get('Story Bible').order });
   const treatmentResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Treatment'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Treatment').order });
   const sequencerResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Sequencer'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Sequencer').order });

@@ -77,6 +77,9 @@ export function useAppCallbacks({
           projectId: currentProject.id,
           collectionName,
           data,
+          // Must match the orderByField used in useStageGatedSubcollections so
+          // RTK Query's optimistic patch targets the correct cache entry.
+          orderByField: 'order',
         }).unwrap();
         addToast(t("common.addedSuccessfully", { stage }), "success");
       } catch (e) {

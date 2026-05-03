@@ -191,20 +191,35 @@ export const projectApi = baseApi.injectEndpoints({
         if (!projectId) return { error: { message: "Missing projectId", status: 400 } };
         try {
           const subcollections = stageRegistry.getAllCollectionNames();
-          for (const sub of subcollections) {
+          
+          // Delete all documents in known subcollections using batches
+          await Promise.all(subcollections.map(async (sub) => {
             const subSnap = await getDocs(
               collection(db, "projects", projectId, sub),
             );
-            for (const subDoc of subSnap.docs) {
-              await deleteDoc(subDoc.ref);
+            
+            if (!subSnap.empty) {
+              const docs = subSnap.docs;
+              // Process in batches of 500 (Firestore limit)
+              for (let i = 0; i < docs.length; i += 500) {
+                const batch = writeBatch(db);
+                docs.slice(i, i + 500).forEach((subDoc) => {
+                  batch.delete(subDoc.ref);
+                });
+                await batch.commit();
+              }
             }
-          }
+          }));
+
+          // Finally delete the root project document
           await deleteDoc(doc(db, "projects", projectId));
+          
           return { data: undefined };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
+      invalidatesTags: ["Project"],
     }),
 
     initializeProjectWithPrimitives: builder.mutation<

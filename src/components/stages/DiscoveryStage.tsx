@@ -37,6 +37,7 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
   const [isTyping, setIsTyping] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [backgroundStep, setBackgroundStep] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   const backgroundSteps = [
     "Initialisation du projet...",
@@ -165,41 +166,52 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
   }, [messages, extractedData, isTyping]);
 
   const handleApprove = async () => {
-    if (!extractedData) return;
+    if (!extractedData || isSaving) return;
+    setIsSaving(true);
 
-    if (extractedData.metadata) {
-      await handleMetadataUpdate(extractedData.metadata);
-    }
+    try {
+      const promises: Promise<any>[] = [];
 
-    // Persist all components to the Project Brief stage
-    if (extractedData.logline) {
-      await project.handlePrimitiveAdd('Project Brief', {
-        title: 'Logline',
-        content: extractedData.logline,
-        primitiveType: 'logline',
-        order: 1
-      });
-    }
+      if (extractedData.metadata) {
+        promises.push(handleMetadataUpdate(extractedData.metadata));
+      }
 
-    if (extractedData.synopsis) {
-      await project.handlePrimitiveAdd('Project Brief', {
-        title: 'Synopsis',
-        content: extractedData.synopsis,
-        primitiveType: 'synopsis',
-        order: 2
-      });
-    }
-    
-    if (extractedData.productionNotes) {
-      await project.handlePrimitiveAdd('Project Brief', {
-        title: 'Production Notes',
-        content: extractedData.productionNotes,
-        primitiveType: 'production_notes',
-        order: 3
-      });
-    }
+      // Persist all components to the Project Brief stage
+      if (extractedData.logline) {
+        promises.push(project.handlePrimitiveAdd('Project Brief', {
+          title: 'Logline',
+          content: extractedData.logline,
+          primitiveType: 'logline',
+          order: 1
+        }));
+      }
 
-    onValidate();
+      if (extractedData.synopsis) {
+        promises.push(project.handlePrimitiveAdd('Project Brief', {
+          title: 'Synopsis',
+          content: extractedData.synopsis,
+          primitiveType: 'synopsis',
+          order: 2
+        }));
+      }
+      
+      if (extractedData.productionNotes) {
+        promises.push(project.handlePrimitiveAdd('Project Brief', {
+          title: 'Production Notes',
+          content: extractedData.productionNotes,
+          primitiveType: 'production_notes',
+          order: 3
+        }));
+      }
+
+      // Wait for all persistence to finish before moving on
+      await Promise.all(promises);
+      onValidate();
+    } catch (error) {
+      console.error('Error saving discovery data:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -295,9 +307,17 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
 
             <button 
               onClick={handleApprove}
-              className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-black font-medium rounded-xl transition-colors shadow-lg shadow-green-500/20 active:scale-[0.98]"
+              disabled={isSaving}
+              className={`w-full py-3.5 bg-green-500 hover:bg-green-600 text-black font-medium rounded-xl transition-colors shadow-lg shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              Approve & Continue
+              {isSaving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Approve & Continue'
+              )}
             </button>
           </div>
         )}

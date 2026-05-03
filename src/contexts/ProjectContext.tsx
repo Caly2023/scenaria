@@ -39,7 +39,8 @@ interface ProjectContextType {
   handleProjectCreate: (brainstormingDraft: string, format?: any) => Promise<void>;
   handleProjectDelete: (id: string) => Promise<void>;
   handleStageChange: (stage: WorkflowStage) => void;
-  handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => void;
+  handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
+  handleFieldsUpdate: (updates: Record<string, any>) => Promise<void>;
   handleContentUpdate: (field: string, content: string) => Promise<void>;
   handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, any>) => void;
   handleRegenerate: (stage: WorkflowStage) => Promise<void>;
@@ -191,6 +192,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     onValidateStage: callbacks.onValidateStage,
     hydrationState,
     telemetryStatus,
+    handleFieldsUpdate: projectHook.handleFieldsUpdate,
     stageContents: projectHook.stageContents,
     handleToggleDoctor,
     handleOpenDoctor,

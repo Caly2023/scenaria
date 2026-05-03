@@ -11,6 +11,7 @@ import { useSequenceActions } from './actions/useSequenceActions';
 import { buildProjectContext } from '../services/orchestration';
 
 import { classifyError } from '../lib/errorClassifier';
+import { useUpdateProjectFieldsMutation } from '../services/firebaseService';
 
 
 export function useProjects(user: User | null, addToast: (msg: string, type: 'error' | 'info' | 'success') => void) {
@@ -154,8 +155,20 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
   const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;
     const updated = { ...currentProject.metadata, ...metadata };
-    await handleContentUpdate('metadata', JSON.stringify(updated));
-  }, [currentProject, handleContentUpdate]);
+    await handleFieldsUpdate({ metadata: updated });
+  }, [currentProject, handleFieldsUpdate]);
+
+  const [updateProjectFields] = useUpdateProjectFieldsMutation();
+
+  const handleFieldsUpdate = useCallback(async (updates: Record<string, any>) => {
+    if (!currentProject) return;
+    try {
+      await updateProjectFields({ id: currentProject.id, updates }).unwrap();
+    } catch (e) {
+      const classified = classifyError(e);
+      addToast(classified.userMessage, 'error');
+    }
+  }, [currentProject, updateProjectFields, addToast]);
 
   return useMemo(() => ({
     projects,
@@ -175,6 +188,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     handleProjectDelete,
     handleStageChange,
     handleMetadataUpdate,
+    handleFieldsUpdate,
     handleContentUpdate,
     handleSubcollectionUpdate,
     handleRegenerate,
@@ -202,7 +216,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     isTyping, isRegenerating, syncStatus, activeStage, stageContents,
     isDeleting, projectToDelete, refiningBlockId, lastUpdatedPrimitiveId,
     handleProjectSelect, handleProjectExit, handleProjectCreate, handleProjectDelete,
-    handleStageChange, handleMetadataUpdate, handleContentUpdate,
+    handleStageChange, handleMetadataUpdate, handleFieldsUpdate, handleContentUpdate,
     handleSubcollectionUpdate, handleRegenerate, handleStageValidate,
     handleStageRefine, handleStageAnalyze, triggerStageGeneration, characterActions, locationActions, sequenceActions,
     setSyncStatus

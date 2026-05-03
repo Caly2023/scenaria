@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Project, WorkflowStage } from '../types';
 import { 
   useUpdateProjectFieldMutation, 
+  useUpdateProjectFieldsMutation,
   useClearSubcollectionMutation 
 } from '../services/firebaseService';
 import { classifyError } from '../lib/errorClassifier';
@@ -40,6 +41,7 @@ export function useStageLifecycle({
 }: UseStageLifecycleProps) {
   const { t } = useTranslation();
   const [updateField] = useUpdateProjectFieldMutation();
+  const [updateFields] = useUpdateProjectFieldsMutation();
   const [clearSubcol] = useClearSubcollectionMutation();
 
   const handleRegenerate = useCallback(async (stage: WorkflowStage) => {
@@ -101,20 +103,28 @@ export function useStageLifecycle({
       const nextStage = allStageIds[currentIndex + 1];
       const newValidatedStages = Array.from(new Set([...(currentProject.validatedStages || []), stage]));
 
-      // Write validatedStages first
-      await updateField({ id: currentProject.id, field: 'validatedStages', content: newValidatedStages }).unwrap();
+      const updates: Record<string, any> = {
+        validatedStages: newValidatedStages
+      };
 
       if (nextStage) {
-        // Write active stage and navigate immediately — don't block on generation
-        await updateField({ id: currentProject.id, field: 'activeStage', content: nextStage }).unwrap();
+        updates.activeStage = nextStage;
+      }
+
+      await updateFields({ id: currentProject.id, updates }).unwrap();
+
+      if (nextStage) {
         handleStageChange(nextStage);
         addToast(`✅ ${stage} validé. Passage à ${nextStage}...`, 'success');
 
         // Fire generation in background — let auto-hydration handle it if it fails or takes long
-        triggerStageGeneration(nextStage, currentProject).catch((error) => {
-          console.error(`[Validate] Background generation failed for "${nextStage}":`, error);
-          // Don't show a toast here — auto-hydration will retry on next mount
-        });
+        // Exception: Discovery stage populates the next stage (Project Brief) directly.
+        if (stage !== 'Discovery') {
+          triggerStageGeneration(nextStage, currentProject).catch((error) => {
+            console.error(`[Validate] Background generation failed for "${nextStage}":`, error);
+            // Don't show a toast here — auto-hydration will retry on next mount
+          });
+        }
       }
 
       setSyncStatus('synced');

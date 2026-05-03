@@ -186,6 +186,50 @@ export const projectApi = baseApi.injectEndpoints({
       },
     }),
 
+    updateProjectFields: builder.mutation<
+      void,
+      { id: string; updates: Record<string, any> }
+    >({
+      async queryFn({ id, updates }) {
+        if (!id) return { error: { message: "Missing id", status: 400 } };
+        try {
+          await updateDoc(doc(db, "projects", id), {
+            ...updates,
+            updatedAt: serverTimestamp(),
+          });
+          return { data: undefined };
+        } catch (error: unknown) {
+          return { error: classifyError(error) };
+        }
+      },
+      async onQueryStarted({ id, updates }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          projectApi.util.updateQueryData("getProjectById", id, (draft) => {
+            if (draft) {
+              Object.entries(updates).forEach(([field, content]) => {
+                if (field.includes(".")) {
+                  const parts = field.split(".");
+                  let current = draft as any;
+                  for (let i = 0; i < parts.length - 1; i++) {
+                    if (!current[parts[i]]) current[parts[i]] = {};
+                    current = current[parts[i]];
+                  }
+                  current[parts[parts.length - 1]] = content;
+                } else {
+                  (draft as any)[field] = content;
+                }
+              });
+            }
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
+
     deleteProject: builder.mutation<void, string>({
       async queryFn(projectId) {
         if (!projectId) return { error: { message: "Missing projectId", status: 400 } };
@@ -273,6 +317,7 @@ export const {
   useGetProjectByIdQuery,
   useUpdateProjectFieldMutation,
   useUpdateProjectMetadataMutation,
+  useUpdateProjectFieldsMutation,
   useDeleteProjectMutation,
   useInitializeProjectWithPrimitivesMutation,
 } = projectApi;

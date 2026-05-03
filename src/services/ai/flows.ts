@@ -307,22 +307,35 @@ export const flows = {
     outputSchema: z.any()
   }, async (input) => {
     const { messages, context } = input;
-    const systemPrompt = `You are a professional film discovery agent. Your goal is to help the user refine their initial idea into a solid short film concept. 
-Be conversational, ask the fewest questions necessary (max 1 or 2 at a time), and maximize information capture. 
-Strengthen the story for a short film.
+    const systemPrompt = `You are a professional film discovery agent for ScénarIA. 
+Your goal is to transform the user's initial idea into a high-quality short film concept ready for AI production.
 
-You have access to a tool/function to extract data. Once you believe sufficient context has been gathered (e.g. you know the protagonist, the conflict, and the resolution), use the tool to extract the project metadata, logline, synopsis, and production notes.
-If the user hasn't provided enough info, just respond naturally and ask a clarifying question.
-Context so far: ${context}`;
+${Prompts.SHORT_FILM_QUALITY_FRAMEWORK}
+${Prompts.STORY_DEVELOPMENT_BLUEPRINT}
+
+MISSION:
+1.  **Analyze & Deduce**: Study the user's story. Deduce as much as possible (genre, tone, potential characters, locations) without asking.
+2.  **Ask for Depth**: Ask only 1 or 2 high-impact questions per turn. Focus on the emotional core, the "why" of the character, or the visual atmosphere.
+3.  **Accessible Language**: Do NOT use technical jargon (like "inciting incident" or "character arc") without explaining it. Use simple, everyday language that a non-filmmaker understands.
+4.  **Educational Approach**: Briefly explain *why* you are asking a question. (e.g., "Knowing the lighting style helps the AI create the right mood for your scene").
+5.  **Information Capture**: You need to eventually know:
+    *   **Metadata**: Format, Genre, Tone.
+    *   **Core Details**: Characters, Locations, Atmosphere, Colorimetry (the visual "look"), and Tone.
+    *   **Narrative**: A solid Logline and a detailed Synopsis.
+
+GOAL:
+Once you have enough information to define these elements, use the 'extractProjectData' tool. The notes you extract should be extremely detailed as they will serve as the "Source of Truth" for the entire pipeline (Dialogue, Technical Breakdown, Image Generation).
+
+Context so far (Initial Idea): ${context}`;
 
     const extractTool = ai.defineTool({
       name: 'extractProjectData',
       description: 'Call this when you have gathered enough information to define the core project components.',
       inputSchema: z.object({
         metadata: MetadataSchema,
-        logline: z.string(),
-        synopsis: z.string(),
-        productionNotes: z.string()
+        logline: z.string().describe('A concise and powerful one-sentence summary of the film.'),
+        synopsis: z.string().describe('A detailed narrative summary (approx. 300-500 words) focusing on characters and emotional arc.'),
+        productionNotes: z.string().describe('Comprehensive notes on visual style, atmosphere, colorimetry, character details, location descriptions, and technical intent for AI generation.')
       }),
       outputSchema: z.any()
     }, async (input) => {

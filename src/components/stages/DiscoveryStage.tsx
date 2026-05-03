@@ -68,7 +68,8 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
 
   // Initial bot message kick-off if only user message exists
   useEffect(() => {
-    if (messages.length === 1 && messages[0].role === 'user' && !chatStartedRef.current) {
+    const hasUserStory = messages.length === 1 && messages[0].role === 'user' && messages[0].content.trim() !== '';
+    if (hasUserStory && !chatStartedRef.current) {
       chatStartedRef.current = true;
       handleSendMessage('', messages);
     }
@@ -104,7 +105,7 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
         content: [{ text: m.content }]
       }));
 
-      const context = `Initial idea: ${initialIdea}`;
+      const context = `Analyze this initial story idea and start the discovery process: "${initialIdea}"`;
 
       const res = await fetch('/api/genkit/discoveryChat', {
         method: 'POST',

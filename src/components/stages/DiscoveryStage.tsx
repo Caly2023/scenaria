@@ -323,7 +323,7 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
       // This will trigger the transition in the UI since activeStage is changing
       await handleFieldsUpdate(updates);
       
-      // 4. Update local state and hash to ensure immediate UI transition
+      // 4. Force stage change in local state
       handleStageChange(nextStage as any);
       
       console.log('[DiscoveryStage] Atomic transition complete.');

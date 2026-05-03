@@ -348,12 +348,15 @@ Context so far (Initial Idea): ${context}`;
     });
 
     const response = await ai.generate({
-      model: gemini31FlashLite,
+      model: gemini3Flash,
       system: systemPrompt,
       messages,
       tools: [extractTool],
       returnToolRequests: true,
-      config: { temperature: 0.7 }
+      config: { 
+        temperature: 0.7,
+        maxOutputTokens: 8192
+      }
     });
 
     const parts = response.message?.content || [];

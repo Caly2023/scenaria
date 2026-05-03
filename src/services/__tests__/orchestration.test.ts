@@ -25,7 +25,7 @@ describe('orchestratorService - interpretIntent', () => {
   });
 
   it('correctly maps update keywords to update action', () => {
-    const decision = interpretIntent('Rewrite the first beat', '3-Act Structure');
+    const decision = interpretIntent('Rewrite the first beat', 'Sequencer');
     expect(decision.action).toBe('update');
   });
 

@@ -405,6 +405,16 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
                   </p>
                 </div>
               )}
+              {extractedData.productionNotes && (
+                <div className="space-y-2">
+                  <span className="text-xs uppercase tracking-widest text-white/40 font-bold">
+                    Notes de Production
+                  </span>
+                  <p className="text-sm text-white/80 leading-relaxed bg-black/20 p-3 rounded-lg border border-white/5 line-clamp-2 italic">
+                    {extractedData.productionNotes}
+                  </p>
+                </div>
+              )}
             </div>
 
             <button
@@ -428,8 +438,8 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
       </div>
 
       {/* Input Area – Gemini Style */}
-      <div className="max-w-3xl mx-auto w-full pb-8 px-4">
-        <div className="relative flex items-center gap-2 bg-[#1E1F20] border border-white/5 rounded-full px-5 py-2 transition-all focus-within:ring-1 focus-within:ring-white/10">
+      <div className="max-w-3xl mx-auto w-full pb-6 px-4 mt-4">
+        <div className="relative flex items-center gap-2 bg-[#1E1F20] border border-white/5 rounded-2xl px-5 py-3 transition-all focus-within:ring-1 focus-within:ring-white/10 shadow-xl">
           <textarea
             ref={inputRef}
             value={inputValue}

@@ -323,8 +323,13 @@ MISSION:
     *   **Core Details**: Characters, Locations, Atmosphere, Colorimetry (the visual "look"), and Tone.
     *   **Narrative**: A solid Logline and a detailed Synopsis.
 
-GOAL:
-Once you have enough information to define these elements, use the 'extractProjectData' tool. The notes you extract should be extremely detailed as they will serve as the "Source of Truth" for the entire pipeline (Dialogue, Technical Breakdown, Image Generation).
+Once you have enough information to define these elements, use the 'extractProjectData' tool. You MUST provide a complete JSON object containing:
+    *   **metadata**: Format, Genre, Tone.
+    *   **logline**: A single powerful sentence.
+    *   **synopsis**: A detailed narrative summary.
+    *   **productionNotes**: Comprehensive technical and visual intent.
+    
+The data you extract will be used to initialize the entire project production pipeline, so ensure it is rich, detailed, and evocative.
 
 Context so far (Initial Idea): ${context}`;
 

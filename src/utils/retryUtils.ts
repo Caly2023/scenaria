@@ -8,7 +8,7 @@ interface RetryOptions {
   initialDelay?: number;
   maxDelay?: number;
   factor?: number;
-  retryOn?: (error: any) => boolean;
+  retryOn?: (error: unknown) => boolean;
 }
 
 export async function withRetry<T>(
@@ -23,20 +23,21 @@ export async function withRetry<T>(
     retryOn = () => true,
   } = options;
 
-  let lastError: any;
+  let lastError: unknown;
   let delay = initialDelay;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
       
       if (attempt === maxRetries || !retryOn(error)) {
         throw error;
       }
 
-      console.warn(`[Retry] Attempt ${attempt + 1} failed. Retrying in ${delay}ms...`, error.message || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`[Retry] Attempt ${attempt + 1} failed. Retrying in ${delay}ms...`, errorMessage);
       
       await new Promise(resolve => setTimeout(resolve, delay));
       delay = Math.min(delay * factor, maxDelay);

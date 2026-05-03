@@ -40,15 +40,18 @@ export async function POST(
     const result = await flow(body);
     console.log(`[Genkit API][${requestId}] Flow "${flowName}" execution complete.`);
     return NextResponse.json(result);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[Genkit API][${requestId}] Fatal Error in flow:`, error);
     
     // Return a structured error that the client can parse
+    const errorMessage = error instanceof Error ? error.message : String(error) || 'Internal Server Error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     return NextResponse.json(
       { 
-        error: error.message || 'Internal Server Error',
+        error: errorMessage,
         requestId,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
       },
       { status: 500 }
     );

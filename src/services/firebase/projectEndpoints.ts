@@ -36,7 +36,7 @@ export const projectApi = baseApi.injectEndpoints({
               (p) => typeof p.metadata?.title === "string" && p.metadata?.title.trim() !== "",
             );
           return { data: serializeData(projs) };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -79,7 +79,7 @@ export const projectApi = baseApi.injectEndpoints({
           }
           const data = { id: snapshot.id, ...snapshot.data() } as Project;
           return { data: serializeData(data) };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -121,7 +121,7 @@ export const projectApi = baseApi.injectEndpoints({
             updatedAt: serverTimestamp(),
           });
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -166,7 +166,7 @@ export const projectApi = baseApi.injectEndpoints({
             updatedAt: serverTimestamp(),
           });
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -201,7 +201,7 @@ export const projectApi = baseApi.injectEndpoints({
           }
           await deleteDoc(doc(db, "projects", projectId));
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -242,7 +242,7 @@ export const projectApi = baseApi.injectEndpoints({
 
           await batch.commit();
           return { data: projectRef.id };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },

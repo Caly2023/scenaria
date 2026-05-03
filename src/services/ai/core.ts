@@ -37,7 +37,7 @@ export async function callGenkitFlow<T>(flowName: string, input: any): Promise<T
     return response.json();
   }, {
     maxRetries: 2,
-    retryOn: (error) => !error.isFatal,
+    retryOn: (error) => !(error as { isFatal?: boolean })?.isFatal,
   });
 }
 

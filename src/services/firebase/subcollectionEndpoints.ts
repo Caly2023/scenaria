@@ -32,7 +32,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
           const snapshot = await getDocs(q);
           const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
           return { data: serializeData(data) };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -82,7 +82,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             },
           );
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -125,7 +125,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             },
           );
           return { data: docRef.id };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -190,7 +190,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             doc(db, "projects", projectId, collectionName, docId),
           );
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -237,7 +237,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
           await batch.commit();
           
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },
@@ -267,7 +267,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             },
           );
           return { data: undefined };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return { error: classifyError(error) };
         }
       },

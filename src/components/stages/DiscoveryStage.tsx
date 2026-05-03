@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Send, Bot, User, Sparkles, Check } from 'lucide-react';
+import { Bot, User, Check, ArrowUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { useProject } from '../../contexts/ProjectContext';
 import { ProjectMetadata } from '../../types';
 
@@ -36,7 +36,6 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
-  const [isStoryExpanded, setIsStoryExpanded] = useState(false);
   const [backgroundStep, setBackgroundStep] = useState(0);
 
   const backgroundSteps = [
@@ -204,86 +203,54 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full max-w-4xl mx-auto bg-background/50 rounded-2xl border border-white/5 overflow-hidden">
+    <div className="flex flex-col h-full w-full">
       
-      {/* Header */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-white/5 bg-surface/30 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <h2 className="font-medium text-white tracking-tight">Project Discovery</h2>
-        </div>
-      </div>
-
       {/* Chat Area */}
       <div 
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6"
+        className="flex-1 overflow-y-auto px-2 py-4 space-y-8 no-scrollbar"
       >
-        {messages.filter(m => m.content.trim() !== '').map((msg, idx) => (
-          <div 
-            key={msg.id} 
-            className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
-          >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-white/10' : 'bg-blue-500/20 text-blue-400'}`}>
-              {msg.role === 'user' ? <User className="w-4 h-4 text-white/70" /> : <Bot className="w-4 h-4" />}
-            </div>
+        <div className="max-w-3xl mx-auto w-full space-y-8">
+          {messages.filter(m => m.content.trim() !== '').map((msg, idx) => (
             <div 
-              className={`px-4 py-3 rounded-2xl max-w-[80%] text-[15px] leading-relaxed transition-all duration-300 ${
-                msg.role === 'user' 
-                  ? 'bg-white/10 text-white rounded-tr-sm' 
-                  : 'bg-surface/50 text-white/90 border border-white/5 rounded-tl-sm'
-              }`}
+              key={msg.id} 
+              className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
             >
-              {idx === 0 && msg.role === 'user' && !isStoryExpanded ? (
-                <div className="flex flex-col gap-2">
-                  <div className="line-clamp-2 opacity-60 italic">
-                    {msg.content}
-                  </div>
-                  <button 
-                    onClick={() => setIsStoryExpanded(true)}
-                    className="text-xs text-blue-400 hover:text-blue-300 font-medium self-start flex items-center gap-1 border-none bg-transparent p-0"
-                  >
-                    Voir l'histoire complète
-                  </button>
-                </div>
-              ) : (
-                <>
-                  {msg.content}
-                  {idx === 0 && msg.role === 'user' && isStoryExpanded && (
-                    <button 
-                      onClick={() => setIsStoryExpanded(false)}
-                      className="block mt-2 text-xs text-white/40 hover:text-white/60 font-medium border-none bg-transparent p-0"
-                    >
-                      Réduire
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {isTyping && (
-          <div className="flex items-start gap-4">
-            <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
-              <Bot className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="px-4 py-3 bg-surface/50 border border-white/5 rounded-2xl rounded-tl-sm flex items-center gap-1.5 h-12">
-                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-white/10' : 'bg-blue-500/20 text-blue-400'}`}>
+                {msg.role === 'user' ? <User className="w-4 h-4 text-white/70" /> : <Bot className="w-4 h-4" />}
               </div>
-              {messages.length === 1 && (
-                <span className="text-[11px] text-white/30 font-medium animate-pulse ml-1">
-                  {backgroundSteps[backgroundStep]}
-                </span>
+              
+              {msg.role === 'user' ? (
+                <UserMessageContent content={msg.content} isInitial={idx === 0} />
+              ) : (
+                <div className="px-0 py-1 max-w-[85%] text-[16px] leading-[1.6] text-white/90">
+                  {msg.content}
+                </div>
               )}
             </div>
-          </div>
-        )}
+          ))}
+
+          {isTyping && (
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
+                <Bot className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="px-0 py-1 flex items-center gap-1.5 h-8">
+                  <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                {messages.length === 1 && (
+                  <span className="text-[11px] text-white/30 font-medium animate-pulse">
+                    {backgroundSteps[backgroundStep]}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
 
         {extractedData && (
           <div className="my-8 mx-auto w-full max-w-2xl bg-surface/50 border border-green-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -336,28 +303,64 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
         )}
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 bg-background/80 backdrop-blur-md border-t border-white/5">
-        <div className="relative flex items-end gap-2 bg-surface/50 border border-white/10 rounded-2xl p-1.5 pl-4 transition-all focus-within:border-white/20 focus-within:bg-surface/80">
+      {/* Input Area - Gemini Style */}
+      <div className="max-w-3xl mx-auto w-full pb-8 px-4">
+        <div className="relative flex items-center gap-2 bg-[#1E1F20] border border-white/5 rounded-full px-5 py-2 transition-all focus-within:ring-1 focus-within:ring-white/10">
           <textarea
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your reply..."
+            placeholder="Répondre..."
             rows={1}
             disabled={!!extractedData || isTyping}
-            className="flex-1 bg-transparent border-none outline-none py-2.5 resize-none text-white placeholder:text-white/30 text-base max-h-[150px] overflow-y-auto"
+            className="flex-1 bg-transparent border-none outline-none py-2 resize-none text-white placeholder:text-white/40 text-[15px] max-h-[200px] no-scrollbar"
           />
           <button 
             onClick={() => handleSendMessage(inputValue)}
             disabled={!inputValue.trim() || isTyping || !!extractedData}
-            className="flex-shrink-0 w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-95 disabled:opacity-30 border-none shadow-md mb-0.5"
+            className="flex-shrink-0 w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-90 disabled:opacity-20 border-none ml-1"
           >
-            <Send className="w-4 h-4" />
+            <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
           </button>
         </div>
+        <p className="text-[10px] text-center text-white/20 mt-3 font-medium tracking-wide uppercase">
+          ScénarIA peut faire des erreurs. Vérifiez les informations importantes.
+        </p>
       </div>
     </div>
   );
 }
+
+function UserMessageContent({ content, isInitial }: { content: string, isInitial: boolean }) {
+  const [isCollapsed, setIsCollapsed] = useState(content.length > 200);
+  
+  if (!isCollapsed) {
+    return (
+      <div className="px-4 py-3 bg-white/5 text-white rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed relative group">
+        {content}
+        {content.length > 200 && (
+          <button 
+            onClick={() => setIsCollapsed(true)}
+            className="block mt-2 text-xs text-white/30 hover:text-white/60 transition-colors border-none bg-transparent p-0"
+          >
+            Voir moins
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4 py-3 bg-white/5 text-white/50 italic rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setIsCollapsed(false)}>
+      <div className="line-clamp-2">
+        {content}
+      </div>
+      <div className="flex items-center gap-1 mt-1 text-[11px] text-blue-400/70 font-medium">
+        <span>Voir plus</span>
+        <ChevronDown className="w-3 h-3" />
+      </div>
+    </div>
+  );
+}
+

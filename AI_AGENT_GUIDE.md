@@ -19,15 +19,14 @@ Welcome to the **ScénarIA** codebase. This document serves as a comprehensive r
 ## 2. Core Architecture: The 9-Stage Pipeline
 The application follows a linear narrative progression. AI agents must respect this flow as each stage acts as a "Source of Truth" for the next.
 
-1.  **Brainstorming**: The foundation. Interactive "Source of Truth".
-2.  **Logline**: The 1-2 sentence "hook".
-3.  **3-Act Structure**: 8-beat narrative framework (K.M. Weiland/StudioBinder style).
-4.  **Synopsis**: Full narrative narrative summary.
-5.  **Character & Location Bible**: Extracted entities with deep development data.
-6.  **Treatment**: Prose narrative with high visual detail.
-7.  **Step Outline (Séquencier)**: Technical scene-by-scene breakdown.
-8.  **Script**: Final professional screenplay formatting.
-9.  **Storyboard**: Visual representation of scenes.
+1.  **Discovery**: Conversational project intake. Interactive "Source of Truth".
+2.  **Project Brief**: Canonical metadata, logline, and synopsis.
+3.  **Story Bible**: Character and location extraction and deep development.
+4.  **Treatment**: Prose narrative with high visual detail.
+5.  **Sequencer**: Technical scene-by-scene breakdown.
+6.  **Dialogue Continuity**: Full script with dialogues and formatting.
+7.  **Final Screenplay**: Polished professional screenplay.
+8.  **Technical Breakdown**: Technical shot-by-shot production plan.
 
 ---
 

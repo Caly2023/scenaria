@@ -278,14 +278,18 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
         console.log('[DiscoveryStage] Subcollection primitives added.');
       }
 
-      // 2. Prepare the ATOMIC update for the project document
+      // Prepare the ATOMIC update for the project document
       // This includes metadata AND stage validation to avoid race conditions
       const allStageIds = stageRegistry.getAllIds();
       const nextStage = allStageIds[allStageIds.indexOf('Discovery') + 1] || 'Project Brief';
       const newValidatedStages = Array.from(new Set([...(currentProject.validatedStages || []), 'Discovery']));
 
       // Sanitize metadata: remove undefined/null to prevent Firestore errors
-      const sanitizedMetadata = { ...currentProject.metadata };
+      const sanitizedMetadata = { 
+        ...currentProject.metadata,
+        languages: currentProject.metadata?.languages || []
+      };
+      
       if (extractedData.metadata) {
         Object.entries(extractedData.metadata).forEach(([key, value]) => {
           // Ignore undefined, null, or empty string values so we don't overwrite valid defaults
@@ -303,7 +307,14 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
       const updates: Record<string, any> = {
         metadata: sanitizedMetadata,
         validatedStages: newValidatedStages,
-        activeStage: nextStage
+        activeStage: nextStage,
+        // Mark Discovery as ready so it doesn't show as "needs improvement"
+        [`stageAnalyses.Discovery`]: {
+          evaluation: 'Discovery completed successfully through conversation.',
+          isReady: true,
+          updatedAt: Date.now(),
+          score: 100
+        }
       };
 
       console.log('[DiscoveryStage] Sending atomic project update:', updates);

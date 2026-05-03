@@ -72,6 +72,7 @@ export function useProjectOperations({
         stageAnalyses: {
           'Discovery': {
             evaluation: 'Initial discovery phase.',
+            isReady: false,
             issues: [],
             recommendations: [],
             suggestedPrompt: '',

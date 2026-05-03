@@ -137,7 +137,7 @@ export function useStageLifecycle({
       // Always release the loading state — generation is now non-blocking
       setIsTyping(false);
     }
-  }, [currentProject, setSyncStatus, setIsTyping, updateField, handleStageChange, addToast, triggerStageGeneration, t]);
+  }, [currentProject, setSyncStatus, setIsTyping, updateFields, handleStageChange, addToast, triggerStageGeneration, t]);
 
 
   return { handleRegenerate, handleStageValidate, triggerStageGeneration };

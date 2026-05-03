@@ -166,7 +166,16 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
   const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;
-    const updated = { ...currentProject.metadata, ...metadata };
+    
+    // Sanitize: ensure we don't accidentally write undefined/null values
+    const cleaned = { ...metadata };
+    Object.keys(cleaned).forEach(key => {
+      if ((cleaned as any)[key] === undefined || (cleaned as any)[key] === null) {
+        delete (cleaned as any)[key];
+      }
+    });
+
+    const updated = { ...(currentProject.metadata || {}), ...cleaned };
     await handleFieldsUpdate({ metadata: updated });
   }, [currentProject, handleFieldsUpdate]);
 

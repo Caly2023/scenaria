@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Bot, User, Check, ArrowUp, ChevronDown } from 'lucide-react';
 import { useProject } from '../../contexts/ProjectContext';
 import { ProjectMetadata } from '../../types';
+import { stageRegistry } from '../../config/stageRegistry';
 
 interface Message {
   id: string;
@@ -24,7 +25,9 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
     currentProject,
     stageContents,
     handleMetadataUpdate,
+    handleFieldsUpdate,
     handlePrimitiveAdd,
+    handleStageChange,
   } = project;
 
   // The initial idea is stored in the discovery primitive
@@ -226,59 +229,89 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
 
   // ── Approve & advance to next stage ──────────────────────────────────────
   const handleApprove = async () => {
-    if (!extractedData || isSaving) return;
+    if (!currentProject || !extractedData || isSaving) return;
     setIsSaving(true);
 
     try {
-      console.log('[DiscoveryStage] Starting data persistence...', extractedData);
-      const promises: Promise<any>[] = [];
-
-      if (extractedData.metadata) {
-        promises.push(handleMetadataUpdate(extractedData.metadata));
-      }
+      console.log('[DiscoveryStage] Starting atomic data persistence...', extractedData);
+      
+      // 1. First, add all subcollection primitives in parallel
+      // These are separate documents so they don't conflict with the root project doc
+      const primitivePromises: Promise<any>[] = [];
 
       if (extractedData.logline) {
-        promises.push(
+        primitivePromises.push(
           handlePrimitiveAdd('Project Brief', {
             title: 'Logline',
             content: extractedData.logline,
             primitiveType: 'logline',
             order: 1,
-          }),
+          })
         );
       }
 
       if (extractedData.synopsis) {
-        promises.push(
+        primitivePromises.push(
           handlePrimitiveAdd('Project Brief', {
             title: 'Synopsis',
             content: extractedData.synopsis,
             primitiveType: 'synopsis',
             order: 2,
-          }),
+          })
         );
       }
 
       if (extractedData.productionNotes) {
-        promises.push(
+        primitivePromises.push(
           handlePrimitiveAdd('Project Brief', {
             title: 'Production Notes',
             content: extractedData.productionNotes,
             primitiveType: 'production_notes',
             order: 3,
-          }),
+          })
         );
       }
 
-      // Persist everything first
-      await Promise.all(promises);
-      console.log('[DiscoveryStage] Persistence complete. Triggering stage validation...');
+      // Await all subcollection additions first
+      if (primitivePromises.length > 0) {
+        await Promise.all(primitivePromises);
+        console.log('[DiscoveryStage] Subcollection primitives added.');
+      }
+
+      // 2. Prepare the ATOMIC update for the project document
+      // This includes metadata AND stage validation to avoid race conditions
+      const allStageIds = stageRegistry.getAllIds();
+      const nextStage = allStageIds[allStageIds.indexOf('Discovery') + 1] || 'Project Brief';
+      const newValidatedStages = Array.from(new Set([...(currentProject.validatedStages || []), 'Discovery']));
+
+      // Sanitize metadata: remove undefined/null to prevent Firestore errors
+      const sanitizedMetadata = { ...currentProject.metadata };
+      if (extractedData.metadata) {
+        Object.entries(extractedData.metadata).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            (sanitizedMetadata as any)[key] = value;
+          }
+        });
+      }
+
+      const updates: Record<string, any> = {
+        metadata: sanitizedMetadata,
+        validatedStages: newValidatedStages,
+        activeStage: nextStage
+      };
+
+      console.log('[DiscoveryStage] Sending atomic project update:', updates);
       
-      // THEN trigger stage validation and await it.
-      await onValidate();
-      console.log('[DiscoveryStage] Transition complete.');
+      // 3. Perform the single atomic update to the root document
+      // This will trigger the transition in the UI since activeStage is changing
+      await handleFieldsUpdate(updates);
+      
+      // 4. Update local state and hash to ensure immediate UI transition
+      handleStageChange(nextStage as any);
+      
+      console.log('[DiscoveryStage] Atomic transition complete.');
     } catch (error) {
-      console.error('[DiscoveryStage] Error saving discovery data:', error);
+      console.error('[DiscoveryStage] Fatal error during approval:', error);
     } finally {
       setIsSaving(false);
     }

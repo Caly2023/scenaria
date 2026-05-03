@@ -16,6 +16,7 @@ import { PrevisAgent } from './PrevisAgent';
 import { ExportAgent } from './ExportAgent';
 import { Structure8BeatAgent } from './Structure8BeatAgent';
 import { GlobalScriptDoctorAgent } from './GlobalScriptDoctorAgent';
+import { stageRegistry } from '../config/stageRegistry';
 
 type AgentFactory = () => Promise<IStageAgent>;
 
@@ -48,13 +49,24 @@ class AgentRegistry {
 
   /** Get agent for a stage. Returns null if no agent registered. */
   async get(stageId: string): Promise<IStageAgent | null> {
-    if (this._instances.has(stageId)) {
-      return this._instances.get(stageId)!;
+    if (!stageId) return null;
+
+    let normalizedId: string = stageId;
+    try {
+      // Use StageRegistry's fuzzy normalization logic
+      normalizedId = stageRegistry.get(stageId).id;
+    } catch {
+      // Fallback to literal if stageRegistry doesn't know it
+      normalizedId = stageId;
     }
-    const factory = this._agents.get(stageId);
+
+    if (this._instances.has(normalizedId)) {
+      return this._instances.get(normalizedId)!;
+    }
+    const factory = this._agents.get(normalizedId);
     if (!factory) return null;
     const instance = await factory();
-    this._instances.set(stageId, instance);
+    this._instances.set(normalizedId, instance);
     return instance;
   }
 

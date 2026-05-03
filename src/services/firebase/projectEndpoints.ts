@@ -231,7 +231,7 @@ export const projectApi = baseApi.injectEndpoints({
 
           primitives.forEach((p) => {
             const primRef = doc(
-              collection(db, "projects", projectRef.id, "pitch_primitives"),
+              collection(db, "projects", projectRef.id, "draft_primitives"),
             );
             batch.set(primRef, {
               ...p,

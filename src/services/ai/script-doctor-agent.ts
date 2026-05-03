@@ -57,28 +57,29 @@ class ScriptDoctorAgent {
       const responseParts = Array.isArray(extractResponseParts(result)) ? extractResponseParts(result) : [];
       lastParts = responseParts;
 
+      const resObj = result as Record<string, unknown>;
       // Extract reasoning with ultra-defensive check
-      const thoughtPart = responseParts.find((p) => p && (p.reasoning || p.thought));
+      const thoughtPart = responseParts.find((p) => p && (('reasoning' in p) || ('thought' in p)));
       const thought =
-        (thoughtPart && typeof thoughtPart.reasoning === "string" ? thoughtPart.reasoning : undefined) ||
-        ((result as any)?.reasoning as string | undefined);
+        (thoughtPart && 'reasoning' in thoughtPart && typeof thoughtPart.reasoning === "string" ? thoughtPart.reasoning : undefined) ||
+        (typeof resObj?.reasoning === "string" ? resObj.reasoning : undefined);
       if (thought && callbacks.onThought) {
         callbacks.onThought(thought);
       }
 
       // Filter tool calls
-      const toolCallParts = responseParts.filter((p) => p && (p.functionCall || p.toolRequest));
+      const toolCallParts = responseParts.filter((p) => p && (('functionCall' in p) || ('toolRequest' in p)));
 
       if (toolCallParts.length === 0) {
         finalResponse = Array.isArray(responseParts) 
           ? responseParts
-              .filter((p) => typeof p?.text === "string")
-              .map((p) => p.text as string)
+              .filter((p) => 'text' in p && typeof p.text === "string")
+              .map((p) => (p as { text: string }).text)
               .join("")
           : "";
         
         if (!finalResponse) {
-           finalResponse = ((result as any)?.text as string | undefined) || "";
+           finalResponse = (typeof resObj?.text === "string" ? resObj.text : undefined) || "";
         }
         break;
       }

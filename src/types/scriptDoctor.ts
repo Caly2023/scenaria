@@ -44,5 +44,15 @@ export interface UseScriptDoctorProps {
   triggerStageGeneration?: (stage: WorkflowStage) => Promise<void>;
 }
 
-export type GeminiPart = Record<string, unknown>;
+export type GeminiPart = 
+  | { text: string }
+  | { functionCall: { name: string; args: Record<string, unknown> } }
+  | { functionResponse: { name: string; response: Record<string, unknown> } }
+  | { toolRequest: { name: string; input: Record<string, unknown>; ref?: string } }
+  | { toolResponse: { name: string; output: Record<string, unknown>; ref?: string } }
+  | { thought: string; [key: string]: unknown }
+  | { reasoning: string; [key: string]: unknown }
+  | { call: { name: string; args: Record<string, unknown> } }
+  | { result: { name: string; response: Record<string, unknown> } };
+
 export type GeminiHistoryEntry = { role: string; content: GeminiPart[] };

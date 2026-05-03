@@ -118,10 +118,10 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
   const handleStageAnalyze = useCallback(async (stage: WorkflowStage) => {
     if (!currentProject) return;
 
-    // Skip analysis if the stage has no content yet — nothing to analyze.
-    // Auto-hydration will generate content first; user can trigger analysis manually after.
     const currentContent = stageContents[stage] || [];
-    if (currentContent.length === 0) {
+    // Skip analysis if the stage has no content yet — nothing to analyze.
+    // Exception: Project Metadata stage analysis relies on global project fields.
+    if (currentContent.length === 0 && stage !== 'Project Metadata') {
       console.debug(`[StageAnalyze] Skipped for "${stage}" — no content yet.`);
       return;
     }
@@ -151,20 +151,10 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
   const pendingMetadataRef = useRef<Project['metadata'] | null>(null);
   const metadataDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMetadataUpdate = useCallback((metadata: Partial<Project['metadata']>) => {
+  const handleMetadataUpdate = useCallback(async (metadata: Partial<Project['metadata']>) => {
     if (!currentProject) return;
-    // Merge into the in-flight pending snapshot (or fall back to currentProject)
-    const base = pendingMetadataRef.current ?? currentProject.metadata;
-    const next = { ...base, ...metadata };
-    pendingMetadataRef.current = next;
-
-    if (metadataDebounceRef.current) clearTimeout(metadataDebounceRef.current);
-    metadataDebounceRef.current = setTimeout(async () => {
-      if (!pendingMetadataRef.current) return;
-      const toWrite = pendingMetadataRef.current;
-      pendingMetadataRef.current = null;
-      await handleContentUpdate('metadata', JSON.stringify(toWrite));
-    }, 500);
+    const updated = { ...currentProject.metadata, ...metadata };
+    await handleContentUpdate('metadata', JSON.stringify(updated));
   }, [currentProject, handleContentUpdate]);
 
   return useMemo(() => ({

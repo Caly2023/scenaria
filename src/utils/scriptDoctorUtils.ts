@@ -10,7 +10,7 @@ export function sanitizePartsForHistory(parts: GeminiPart[] | null | undefined):
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
-    return "text" in part || "functionCall" in part;
+    return "text" in part || "functionCall" in part || "toolRequest" in part || "thought" in part || "reasoning" in part;
   });
 }
 

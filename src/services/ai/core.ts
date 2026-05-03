@@ -1,11 +1,19 @@
 import { withRetry } from "@/utils/retryUtils";
 import { classifyError } from "@/lib/errorClassifier";
 
+class FatalError extends Error {
+  isFatal = true;
+  constructor(message: string) {
+    super(message);
+    this.name = 'FatalError';
+  }
+}
+
 /**
  * GENKIT FLOW HELPER
  * Calls the server-side Genkit API routes with built-in retry and error classification.
  */
-export async function callGenkitFlow<T>(flowName: string, input: any): Promise<T> {
+export async function callGenkitFlow<T>(flowName: string, input: unknown): Promise<T> {
   const url = `/api/genkit/${flowName}`;
   
   return withRetry(async () => {
@@ -26,9 +34,7 @@ export async function callGenkitFlow<T>(flowName: string, input: any): Promise<T
       
       // If it's a fatal error (like Auth or Not Found), don't retry in withRetry
       if (!classified.canRetry) {
-        const error = new Error(errorMsg) as any;
-        error.isFatal = true;
-        throw error;
+        throw new FatalError(errorMsg);
       }
       
       throw new Error(errorMsg);

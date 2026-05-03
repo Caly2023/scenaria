@@ -96,6 +96,17 @@ const scriptDoctorFlow = ai.defineFlow(
     const parts = response.message?.content || [];
     const textPart = response.text || '';
 
+    // CRITICAL: Ensure we never return an empty response to avoid Genkit runtime errors
+    if (parts.length === 0 && !textPart) {
+      return {
+        candidates: [{ content: { parts: [{ text: 'I am here to help, but I need a bit more context to provide a specific analysis. How can I assist you further?' }] } }],
+        parts: [{ text: 'I am here to help, but I need a bit more context to provide a specific analysis. How can I assist you further?' }],
+        text: 'I am here to help, but I need a bit more context to provide a specific analysis. How can I assist you further?',
+        message: response.message,
+        reasoning: null,
+      };
+    }
+
     return {
       candidates: [{ content: { parts } }], 
       parts,
@@ -110,8 +121,8 @@ const scriptDoctorFlow = ai.defineFlow(
 const generate3ActStructureFlow = ai.defineFlow(
   {
     name: 'generate3ActStructureFlow',
-    inputSchema: z.object({ context: z.string() }) as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.object({ context: z.string() }),
+    outputSchema: z.any(),
   },
   async (input) => {
     const response = await ai.generate({
@@ -128,8 +139,8 @@ const generate3ActStructureFlow = ai.defineFlow(
 const generateSynopsisFlow = ai.defineFlow(
   {
     name: 'generateSynopsisFlow',
-    inputSchema: z.object({ context: z.string() }) as any,
-    outputSchema: z.string() as any,
+    inputSchema: z.object({ context: z.string() }),
+    outputSchema: z.string(),
   },
   async (input, { sendChunk }) => {
     const response = await ai.generate({
@@ -146,8 +157,8 @@ const generateSynopsisFlow = ai.defineFlow(
 const extractCharactersFlow = ai.defineFlow(
   {
     name: 'extractCharactersFlow',
-    inputSchema: z.object({ brainstorming: z.string() }) as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.object({ brainstorming: z.string() }),
+    outputSchema: z.any(),
   },
   async (input) => {
     const response = await ai.generate({
@@ -191,8 +202,8 @@ const genericGeminiFlow = ai.defineFlow(
         'object', 'array', 'stageInsight', 'sequenceArray', 'metadata',
         'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure',
       ]).optional(),
-    }) as any,
-    outputSchema: z.any() as any,
+    }) as z.ZodType<any>,
+    outputSchema: z.any(),
   },
   async (input, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt, structuredOutput, model: modelOverride } = input;

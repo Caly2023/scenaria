@@ -39,7 +39,7 @@ interface ProjectContextType {
   handleProjectCreate: (brainstormingDraft: string, format?: any) => Promise<void>;
   handleProjectDelete: (id: string) => Promise<void>;
   handleStageChange: (stage: WorkflowStage) => void;
-  handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
+  handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => void;
   handleContentUpdate: (field: string, content: string) => Promise<void>;
   handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, any>) => void;
   handleRegenerate: (stage: WorkflowStage) => Promise<void>;

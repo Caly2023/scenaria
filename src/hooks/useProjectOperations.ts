@@ -47,70 +47,53 @@ export function useProjectOperations({
     }
   };
 
-  const handleProjectCreate = async (brainstormingDraft: string, format?: ProjectFormat) => {
+  const handleProjectCreate = async (initialIdea: string, format?: ProjectFormat) => {
     if (!user) return;
     
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
-      addToast(t('common.generatingProject', { defaultValue: 'AI is analyzing your idea...' }), 'info');
-
-      const initResult = await geminiService.initializeProjectAgent(brainstormingDraft, format);
-      if (!initResult || !initResult.metadata) {
-        throw new Error('AI analysis failed to return valid metadata');
-      }
+      addToast(t('common.generatingProject', { defaultValue: 'Starting discovery...' }), 'info');
 
       const newMetadata = {
-        title: (initResult.metadata.title || 'Untitled Project').substring(0, 100),
-        format: String(initResult.metadata.format || format || 'Auto').substring(0, 50),
-        genre: String(initResult.metadata.genre || '').substring(0, 50),
-        tone: String(initResult.metadata.tone || '').substring(0, 50),
-        logline: String(initResult.metadata.logline || '').substring(0, 500),
-        languages: Array.isArray(initResult.metadata.languages) 
-          ? Array.from(new Set(initResult.metadata.languages.map(String).filter(Boolean)))
-          : [],
-        targetDuration: String(initResult.metadata.targetDuration || '').substring(0, 50)
+        title: 'Untitled Project',
+        format: format || 'Auto',
+        genre: '',
+        tone: '',
+        logline: '',
+        languages: [],
+        targetDuration: ''
       };
 
       const projectData = {
         metadata: newMetadata,
         stageAnalyses: {
-          'Project Metadata': {
-            evaluation: initResult.critique || 'Initial critique',
-            issues: initResult.validation?.status === 'NEEDS WORK' && initResult.validation.feedback ? [initResult.validation.feedback] : [],
+          'Discovery': {
+            evaluation: 'Initial discovery phase.',
+            issues: [],
             recommendations: [],
-            suggestedPrompt: initResult.suggestedPrompt || '',
+            suggestedPrompt: '',
             updatedAt: Date.now()
           }
         },
         stageStates: {
-          'Project Metadata': initResult.validation?.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement',
-          'Initial Draft': 'excellent',
-          'Brainstorming': 'needs_improvement'
+          'Discovery': 'needs_improvement'
         },
         collaborators: [user.uid],
         ownerId: user.uid,
-        activeStage: 'Project Metadata' as WorkflowStage,
+        activeStage: 'Discovery' as WorkflowStage,
         validatedStages: [] as WorkflowStage[],
       };
 
       const primitives = [
         {
           title: 'Initial Idea',
-          content: brainstormingDraft,
-          primitiveType: 'draft',
+          content: initialIdea,
+          primitiveType: 'discovery',
           order: 1,
           ownerId: user.uid,
-          subcollection: 'draft_primitives'
-        },
-        {
-          title: 'Brainstorming Result',
-          content: initResult.pitch || brainstormingDraft,
-          primitiveType: 'brainstorming_result',
-          order: 1,
-          ownerId: user.uid,
-          subcollection: 'pitch_primitives'
-        },
+          subcollection: 'discovery_primitives'
+        }
       ];
 
       const projectilesRef = doc(collection(db, 'projects'));

@@ -37,20 +37,17 @@ export async function buildCascadingContext(
 
   // 3. IMMEDIATE HISTORY (The stage directly preceding the current one)
   const prevDef = stageRegistry.getPrevious(currentStage as any);
-  if (prevDef && prevDef.order > 1) { // Skip Draft/Brainstorming if we have better structural data
+  if (prevDef && prevDef.order > 0) { // Skip Discovery if we have better structural data
     const prevText = await Promise.resolve(getStageText(prevDef.id));
     if (prevText) {
       ctx += `[PRECEDING STAGE: ${prevDef.name.toUpperCase()}]\n${prevText}\n\n`;
     }
   }
 
-  // 4. DISTANT ANCHORS (Include Brainstorming/Draft only if we are in early stages)
+  // 4. DISTANT ANCHORS (Include Discovery only if we are in early stages)
   if (currentOrder <= 4) {
-    const bStory = await Promise.resolve(getStageText("Brainstorming"));
-    if (bStory) ctx += `[BRAINSTORMING]\n${bStory}\n\n`;
-    
-    const draft = await Promise.resolve(getStageText("Initial Draft"));
-    if (draft && currentStage !== "Initial Draft") ctx += `[INITIAL DRAFT]\n${draft}\n\n`;
+    const discovery = await Promise.resolve(getStageText("Discovery"));
+    if (discovery && currentStage !== "Discovery") ctx += `[DISCOVERY]\n${discovery}\n\n`;
   }
 
   return ctx;

@@ -1,7 +1,5 @@
 import { IStageAgent } from '../types/stageContract';
-import { DraftAgent } from './DraftAgent';
-import { MetadataAgent } from './MetadataAgent';
-import { BrainstormingAgent } from './BrainstormingAgent';
+
 import { LoglineAgent } from './LoglineAgent';
 import { StructureAgent } from './StructureAgent';
 import { SynopsisAgent } from './SynopsisAgent';
@@ -27,9 +25,7 @@ class AgentRegistry {
   constructor() {
     this._instances = new Map();
     this._agents = new Map<string, AgentFactory>([
-      ['Project Metadata', async () => new MetadataAgent()],
-      ['Initial Draft',    async () => new DraftAgent()],
-      ['Brainstorming',    async () => new BrainstormingAgent()],
+
       ['Logline',          async () => new LoglineAgent()],
       ['3-Act Structure',  async () => new StructureAgent()],
       ['8-Beat Structure', async () => new Structure8BeatAgent()],

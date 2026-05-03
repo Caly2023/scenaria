@@ -4,9 +4,7 @@ export type ProjectFormat = 'Short Film' | 'Feature' | 'Series';
 export type { ContentPrimitive } from './stageContract';
 
 export type WorkflowStage = 
-  | 'Project Metadata'
-  | 'Initial Draft'
-  | 'Brainstorming'
+  | 'Discovery'
   | 'Logline' 
   | '3-Act Structure'
   | '8-Beat Structure'

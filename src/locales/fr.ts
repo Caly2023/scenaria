@@ -120,25 +120,11 @@ export const fr = {
       newStory: 'Nouvelle histoire'
     },
     stages: {
-      'Project Metadata': {
-        label: 'Métadonnées',
-        title: 'Paramètres du projet',
-        subtitle: 'Définissez les paramètres de base de votre projet : genre, format, ton et langue.',
-        validateLabel: 'Enregistrer et commencer le brouillon'
-      },
-      'Initial Draft': {
-        label: 'Brouillon initial',
-        title: 'L\'étincelle',
-        subtitle: 'Collez votre idée initiale, votre brouillon de synopsis ou votre prémisse ici.',
-        placeholder: 'Collez votre concept ou idée brute...',
-        validateLabel: 'Valider le brouillon et brainstormer'
-      },
-      Brainstorming: {
-        label: 'Brainstorming',
-        title: 'Organisez votre chaos',
-        subtitle: 'L\'IA agit comme une caisse de résonance. Déposez vos idées, thèmes et fragments ici.',
-        placeholder: 'Commencez à taper vos idées...',
-        validateLabel: 'Valider le Brainstorming'
+    Discovery: {
+        label: 'Découverte',
+        title: 'Découverte du Projet',
+        subtitle: 'Une conversation pour affiner et extraire l\'essence de votre projet.',
+        validateLabel: 'Valider et commencer le projet'
       },
       Logline: {
         label: 'Logline',

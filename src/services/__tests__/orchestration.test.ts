@@ -15,12 +15,12 @@ describe('orchestratorService - interpretIntent', () => {
   });
 
   it('correctly defaults action to evaluate', () => {
-    const decision = interpretIntent('Tell me about my project', 'Brainstorming');
+    const decision = interpretIntent('Tell me about my project', 'Discovery');
     expect(decision.action).toBe('evaluate');
   });
 
   it('correctly maps generation keywords to generate action', () => {
-    const decision = interpretIntent('Generate a new logline', 'Brainstorming');
+    const decision = interpretIntent('Generate a new logline', 'Discovery');
     expect(decision.action).toBe('generate');
   });
 
@@ -33,7 +33,7 @@ describe('orchestratorService - interpretIntent', () => {
     (stageRegistry.getAll as any).mockReturnValue([
       { id: 'Script', name: 'Script' }
     ]);
-    const decision = interpretIntent('Rewrite the Script', 'Brainstorming');
+    const decision = interpretIntent('Rewrite the Script', 'Discovery');
     expect(decision.targetStage).toBe('Script');
   });
 });

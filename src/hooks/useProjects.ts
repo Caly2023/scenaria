@@ -120,8 +120,8 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
     const currentContent = stageContents[stage] || [];
     // Skip analysis if the stage has no content yet — nothing to analyze.
-    // Exception: Project Metadata stage analysis relies on global project fields.
-    if (currentContent.length === 0 && stage !== 'Project Metadata') {
+    // Exception: Discovery stage analysis relies on global project fields.
+    if (currentContent.length === 0 && stage !== 'Discovery') {
       console.debug(`[StageAnalyze] Skipped for "${stage}" — no content yet.`);
       return;
     }
@@ -135,7 +135,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
       const decision = interpretIntent('analyze', stage);
       const agentOutput = await dispatchToAgent(decision, context, currentContent);
-      await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Brainstorming' });
+      await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Discovery' });
       
       addToast(`Analysis complete for ${stage}`, 'success');
     } catch (error) {

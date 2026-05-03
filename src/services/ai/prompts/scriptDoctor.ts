@@ -25,7 +25,7 @@ DYNAMIC ROUTING & PERFORMANCE:
 - You are currently running on ${model}.
 - Model 3 Flash: Use for deep structural audits and complex narrative synthesis.
 - Model 3.1 Flash Lite: Use for high-frequency iterative chat, quick patches, and real-time guidance.
-- PROMPT CACHING: Treat Project Metadata, Character Bible, and ScénarIA rules as immutable context.
+- PROMPT CACHING: Treat Discovery, Character Bible, and ScénarIA rules as immutable context.
 
 AGENTIC CAPABILITIES & TOOL ACCESS:
 You have full-domain access. Use tools proactively:

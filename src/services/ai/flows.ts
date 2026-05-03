@@ -200,7 +200,7 @@ const genericGeminiFlow = ai.defineFlow(
       model: z.string().optional(),
       structuredOutput: z.enum([
         'object', 'array', 'stageInsight', 'sequenceArray', 'metadata',
-        'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure',
+        'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure', 'discoveryExtraction'
       ]).optional(),
     }) as z.ZodType<any>,
     outputSchema: z.any(),
@@ -262,6 +262,13 @@ const genericGeminiFlow = ai.defineFlow(
         relationshipMap:  z.string(),
       }),
       threeActStructure:  threeActStructureSchema,
+      discoveryExtraction: z.object({
+        isReady: z.boolean().describe('True if sufficient context has been gathered to define the core project components.'),
+        metadata: MetadataSchema.optional(),
+        logline: z.string().optional(),
+        synopsis: z.string().optional(),
+        productionNotes: z.string().optional()
+      }),
     };
 
     const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput] : undefined;
@@ -291,6 +298,55 @@ export const flows = {
   extractCharacters:   extractCharactersFlow,
   generateFullScript:  generateFullScriptFlow,
   genericGemini:       genericGeminiFlow,
+  discoveryChat:       ai.defineFlow({
+    name: 'discoveryChatFlow',
+    inputSchema: z.object({
+      messages: z.array(z.any()),
+      context: z.string()
+    }),
+    outputSchema: z.any()
+  }, async (input) => {
+    const { messages, context } = input;
+    const systemPrompt = `You are a professional film discovery agent. Your goal is to help the user refine their initial idea into a solid short film concept. 
+Be conversational, ask the fewest questions necessary (max 1 or 2 at a time), and maximize information capture. 
+Strengthen the story for a short film.
+
+You have access to a tool/function to extract data. Once you believe sufficient context has been gathered (e.g. you know the protagonist, the conflict, and the resolution), use the tool to extract the project metadata, logline, synopsis, and production notes.
+If the user hasn't provided enough info, just respond naturally and ask a clarifying question.
+Context so far: ${context}`;
+
+    const extractTool = ai.defineTool({
+      name: 'extractProjectData',
+      description: 'Call this when you have gathered enough information to define the core project components.',
+      inputSchema: z.object({
+        metadata: MetadataSchema,
+        logline: z.string(),
+        synopsis: z.string(),
+        productionNotes: z.string()
+      }),
+      outputSchema: z.any()
+    }, async (input) => {
+      return { success: true, extracted: input };
+    });
+
+    const response = await ai.generate({
+      model: gemini31FlashLite,
+      system: systemPrompt,
+      messages,
+      tools: [extractTool],
+      returnToolRequests: true,
+      config: { temperature: 0.7 }
+    });
+
+    const parts = response.message?.content || [];
+    const textPart = response.text || '';
+    
+    return {
+      parts,
+      text: textPart,
+      message: response.message
+    };
+  }),
 };
 
 export type FlowName = keyof typeof flows;

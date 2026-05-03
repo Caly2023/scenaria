@@ -120,25 +120,11 @@ export const en = {
       newStory: 'New Story'
     },
     stages: {
-      'Project Metadata': {
-        label: 'Project Metadata',
-        title: 'Project Settings',
-        subtitle: 'Define the core parameters of your project: genre, format, tone, and language.',
-        validateLabel: 'Save & Start Draft'
-      },
-      'Initial Draft': {
-        label: 'Initial Draft',
-        title: 'The Spark',
-        subtitle: 'Paste your initial idea, synopsis draft, or premise here.',
-        placeholder: 'Paste your raw concept or idea...',
-        validateLabel: 'Validate Draft & Brainstorm'
-      },
-      Brainstorming: {
-        label: 'Brainstorming',
-        title: 'Organize Your Chaos',
-        subtitle: 'AI acts as a sounding board. Dump your ideas, themes, and fragments here.',
-        placeholder: 'Start typing your ideas...',
-        validateLabel: 'Validate Brainstorming'
+      Discovery: {
+        label: 'Discovery',
+        title: 'Project Discovery',
+        subtitle: 'A conversation to refine and extract the core foundation of your project.',
+        validateLabel: 'Validate & Start Project'
       },
       Logline: {
         label: 'Logline',

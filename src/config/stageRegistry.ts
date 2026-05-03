@@ -54,62 +54,24 @@ import {
 
 const STAGES: StageDefinition[] = [
   {
-    id: 'Project Metadata',
-    name: 'Project Metadata',
+    id: 'Discovery',
+    name: 'Project Discovery',
     order: 0,
     category: 'METADATA',
-    collectionName: 'metadata_primitives',
-    primitiveTypes: ['metadata'],
-    description: 'Define the core parameters of your project.',
-    icon: Info,
-    estTime: '5m',
-    hydrationLabel: 'Syncing project DNA...',
+    collectionName: 'discovery_primitives',
+    primitiveTypes: ['discovery'],
+    description: 'Conversational project intake and discovery.',
+    icon: Lightbulb,
+    estTime: '15m',
+    hydrationLabel: 'Discovering project DNA...',
     requires: [],
-    triggers: 'Initial Draft',
+    triggers: 'Logline',
     orderField: 'order',
     isCustom: true,
     displayMode: 'canvas',
     prompts: {
-      magic: 'Refine the core project metadata to ensure a solid foundation for the narrative.',
-      generate: 'Initialize the project with industry-standard metadata based on your vision.'
-    }
-  },
-  {
-    id: 'Initial Draft',
-    name: 'Initial Draft',
-    order: 1,
-    category: 'DRAFT',
-    collectionName: 'draft_primitives',
-    primitiveTypes: ['draft'],
-    description: 'Paste your initial idea or premise here.',
-    icon: Edit3,
-    estTime: '10m',
-    hydrationLabel: 'Initializing Spark...',
-    requires: ['Project Metadata'],
-    triggers: 'Brainstorming',
-    orderField: 'order',
-    prompts: {
-      magic: 'Polish the initial spark to make the premise more compelling and clear.',
-      generate: 'Draft a strong initial premise that defines the protagonist and core conflict.'
-    }
-  },
-  {
-    id: 'Brainstorming',
-    name: 'Brainstorming',
-    order: 2,
-    category: 'FOUNDATION',
-    collectionName: 'pitch_primitives',
-    primitiveTypes: ['brainstorming_result'],
-    description: 'Explore narrative and thematic possibilities.',
-    icon: Lightbulb,
-    estTime: '15m',
-    hydrationLabel: 'Brainstorming possibilities...',
-    requires: ['Initial Draft'],
-    triggers: 'Logline',
-    orderField: 'order',
-    prompts: {
-      magic: 'Expand the narrative possibilities and deepen the thematic resonance of your story ideas.',
-      generate: 'Generate multiple creative directions and story options based on the initial draft.'
+      magic: 'Refine the core project discovery context.',
+      generate: 'Discover and extract core project metadata from conversation.'
     }
   },
   {
@@ -123,7 +85,7 @@ const STAGES: StageDefinition[] = [
     icon: Zap,
     estTime: '5m',
     hydrationLabel: 'Synthesizing Logline...',
-    requires: ['Brainstorming'],
+    requires: ['Discovery'],
     triggers: '3-Act Structure',
     orderField: 'order',
     prompts: {
@@ -411,7 +373,7 @@ class StageRegistry {
       else if (normalized.includes('traitement') || normalized.includes('treatment')) def = this._stages.get('Treatment');
       else if (normalized.includes('séquencier') || normalized.includes('step outline')) def = this._stages.get('Step Outline');
       else if (normalized.includes('scénario') || normalized.includes('script')) def = this._stages.get('Script');
-      else if (normalized.includes('brouillon') || normalized.includes('initial draft')) def = this._stages.get('Initial Draft');
+      else if (normalized.includes('brouillon') || normalized.includes('discovery')) def = this._stages.get('Discovery');
     }
 
     if (!def) throw new Error(`[StageRegistry] Unknown stage: "${stageId}"`);

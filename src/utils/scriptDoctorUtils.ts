@@ -71,10 +71,9 @@ export function buildFunctionResponsePart(name: string, output: unknown, ref?: s
   return {
     toolResponse: {
       name,
-      ref,
-      output: typeof output === "object" && output !== null ? output : { result: output },
+      output: (typeof output === "object" && output !== null ? output : { result: output }) as Record<string, unknown>,
     },
-  };
+  } as GeminiPart;
 }
 
 /**

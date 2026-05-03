@@ -245,11 +245,13 @@ export const projectApi = baseApi.injectEndpoints({
           });
 
           primitives.forEach((p) => {
+            const collectionName = p.subcollection || "draft_primitives";
             const primRef = doc(
-              collection(db, "projects", projectRef.id, "draft_primitives"),
+              collection(db, "projects", projectRef.id, collectionName),
             );
+            const { subcollection, ...dataToSave } = p;
             batch.set(primRef, {
-              ...p,
+              ...dataToSave,
               projectId: projectRef.id,
               createdAt: serverTimestamp(),
             });

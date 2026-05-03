@@ -84,21 +84,32 @@ export function useProjectOperations({
           }
         },
         stageStates: {
+          'Project Metadata': 'excellent',
+          'Initial Draft': 'excellent',
           'Brainstorming': initResult.validation?.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
         },
         collaborators: [user.uid],
         ownerId: user.uid,
         activeStage: 'Brainstorming' as WorkflowStage,
-        validatedStages: [] as WorkflowStage[],
+        validatedStages: ['Project Metadata', 'Initial Draft'] as WorkflowStage[],
       };
 
       const primitives = [
+        {
+          title: 'Initial Idea',
+          content: brainstormingDraft,
+          primitiveType: 'draft',
+          order: 1,
+          ownerId: user.uid,
+          subcollection: 'draft_primitives'
+        },
         {
           title: 'Brainstorming Result',
           content: initResult.pitch || brainstormingDraft,
           primitiveType: 'brainstorming_result',
           order: 1,
           ownerId: user.uid,
+          subcollection: 'pitch_primitives'
         },
       ];
 

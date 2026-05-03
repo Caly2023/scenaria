@@ -53,8 +53,6 @@ export function useProjectOperations({
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
-      addToast(t('common.generatingProject', { defaultValue: 'Starting discovery...' }), 'info');
-
       const newMetadata = {
         title: 'Untitled Project',
         format: format || 'Auto',
@@ -65,6 +63,10 @@ export function useProjectOperations({
         targetDuration: ''
       };
 
+      const projectilesRef = doc(collection(db, 'projects'));
+      const docId = projectilesRef.id;
+      const timestamp = Date.now();
+
       const projectData = {
         metadata: newMetadata,
         stageAnalyses: {
@@ -73,7 +75,7 @@ export function useProjectOperations({
             issues: [],
             recommendations: [],
             suggestedPrompt: '',
-            updatedAt: Date.now()
+            updatedAt: timestamp
           }
         },
         stageStates: {
@@ -85,6 +87,20 @@ export function useProjectOperations({
         validatedStages: [] as WorkflowStage[],
       };
 
+      // Optimistic project with temporary idea attached for DiscoveryStage
+      const newProject = { 
+        id: docId, 
+        ...projectData, 
+        createdAt: timestamp, 
+        updatedAt: timestamp,
+        _tempInitialIdea: initialIdea // Internal flag for UI
+      } as any;
+      
+      // STEP 1: Redirect immediately
+      handleProjectSelect(docId, newProject);
+      addToast(t('common.generatingProject', { defaultValue: 'Starting discovery...' }), 'info');
+
+      // STEP 2: Perform Firestore initialization in background
       const primitives = [
         {
           title: 'Initial Idea',
@@ -96,22 +112,9 @@ export function useProjectOperations({
         }
       ];
 
-      const projectilesRef = doc(collection(db, 'projects'));
-      const docId = projectilesRef.id;
-      const timestamp = Date.now();
-      
-      const newProject = { 
-        id: docId, 
-        ...projectData, 
-        createdAt: timestamp, 
-        updatedAt: timestamp 
-      } as Project;
-      
       await initProjectWithPrims({ projectId: docId, projectData, primitives }).unwrap();
-      handleProjectSelect(docId, newProject);
       
       setSyncStatus('synced');
-      addToast(t('common.projectCreated', { defaultValue: 'Project ready!' }), 'success');
     } catch (error) {
       console.error('Project creation failed:', error);
       const classified = classifyError(error);

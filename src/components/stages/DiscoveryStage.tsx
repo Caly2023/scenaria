@@ -30,14 +30,23 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
 
   // The initial idea is stored in the discovery primitive
   const discoveryPrims = stageContents['Discovery'] || [];
-  const initialIdea = discoveryPrims[0]?.content || '';
+  const initialIdea = (currentProject as any)?._tempInitialIdea || discoveryPrims[0]?.content || '';
 
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'user', content: initialIdea }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+  const [isStoryExpanded, setIsStoryExpanded] = useState(false);
+  const [backgroundStep, setBackgroundStep] = useState(0);
+
+  const backgroundSteps = [
+    "Initialisation du projet...",
+    "Sauvegarde de l'histoire initiale...",
+    "Analyse de votre concept...",
+    "Préparation du chat de découverte..."
+  ];
+
+  const chatStartedRef = useRef(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -50,12 +59,30 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
     }
   }, [inputValue]);
 
+  // Sync messages with initial idea when it arrives
+  useEffect(() => {
+    if (initialIdea && messages.length === 0 && !chatStartedRef.current) {
+      setMessages([{ id: '1', role: 'user', content: initialIdea }]);
+    }
+  }, [initialIdea, messages.length]);
+
   // Initial bot message kick-off if only user message exists
   useEffect(() => {
-    if (messages.length === 1 && messages[0].role === 'user') {
+    if (messages.length === 1 && messages[0].role === 'user' && !chatStartedRef.current) {
+      chatStartedRef.current = true;
       handleSendMessage('', messages);
     }
-  }, []);
+  }, [messages]);
+
+  // Cycle through background steps when typing for the first time
+  useEffect(() => {
+    if (isTyping && messages.length === 1) {
+      const interval = setInterval(() => {
+        setBackgroundStep(prev => (prev < backgroundSteps.length - 1 ? prev + 1 : prev));
+      }, 1500);
+      return () => clearInterval(interval);
+    }
+  }, [isTyping, messages.length]);
 
   const handleSendMessage = async (text: string, currentMessages: Message[] = messages) => {
     let newMessages = [...currentMessages];
@@ -193,7 +220,7 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto p-6 space-y-6"
       >
-        {messages.filter(m => m.content.trim() !== '').map((msg) => (
+        {messages.filter(m => m.content.trim() !== '').map((msg, idx) => (
           <div 
             key={msg.id} 
             className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
@@ -202,13 +229,37 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
               {msg.role === 'user' ? <User className="w-4 h-4 text-white/70" /> : <Bot className="w-4 h-4" />}
             </div>
             <div 
-              className={`px-4 py-3 rounded-2xl max-w-[80%] text-[15px] leading-relaxed ${
+              className={`px-4 py-3 rounded-2xl max-w-[80%] text-[15px] leading-relaxed transition-all duration-300 ${
                 msg.role === 'user' 
                   ? 'bg-white/10 text-white rounded-tr-sm' 
                   : 'bg-surface/50 text-white/90 border border-white/5 rounded-tl-sm'
               }`}
             >
-              {msg.content}
+              {idx === 0 && msg.role === 'user' && !isStoryExpanded ? (
+                <div className="flex flex-col gap-2">
+                  <div className="line-clamp-2 opacity-60 italic">
+                    {msg.content}
+                  </div>
+                  <button 
+                    onClick={() => setIsStoryExpanded(true)}
+                    className="text-xs text-blue-400 hover:text-blue-300 font-medium self-start flex items-center gap-1 border-none bg-transparent p-0"
+                  >
+                    Voir l'histoire complète
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {msg.content}
+                  {idx === 0 && msg.role === 'user' && isStoryExpanded && (
+                    <button 
+                      onClick={() => setIsStoryExpanded(false)}
+                      className="block mt-2 text-xs text-white/40 hover:text-white/60 font-medium border-none bg-transparent p-0"
+                    >
+                      Réduire
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -218,10 +269,17 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void }) {
             <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="px-4 py-3 bg-surface/50 border border-white/5 rounded-2xl rounded-tl-sm flex items-center gap-1.5 h-12">
-              <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div className="flex flex-col gap-2">
+              <div className="px-4 py-3 bg-surface/50 border border-white/5 rounded-2xl rounded-tl-sm flex items-center gap-1.5 h-12">
+                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              {messages.length === 1 && (
+                <span className="text-[11px] text-white/30 font-medium animate-pulse ml-1">
+                  {backgroundSteps[backgroundStep]}
+                </span>
+              )}
             </div>
           </div>
         )}

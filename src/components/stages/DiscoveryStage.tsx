@@ -471,29 +471,31 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
       </div>
 
       {/* Input Area – Gemini Style */}
-      <div className="max-w-3xl mx-auto w-full pb-6 px-4 mt-4">
-        <div className="relative flex items-center gap-2 bg-[#1E1F20] border border-white/5 rounded-2xl px-5 py-3 transition-all focus-within:ring-1 focus-within:ring-white/10 shadow-xl">
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Répondre..."
-            rows={1}
-            disabled={!!extractedData || isTyping}
-            className="flex-1 bg-transparent border-none outline-none py-2 resize-none text-white placeholder:text-white/40 text-[15px] max-h-[200px] no-scrollbar"
-          />
-          <button
-            onClick={() => handleSendMessage(inputValue)}
-            disabled={!inputValue.trim() || isTyping || !!extractedData}
-            className="flex-shrink-0 w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-90 disabled:opacity-20 border-none ml-1"
-          >
-            <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
-          </button>
+      <div className="sticky bottom-0 w-full bg-[#0d0d0d] pt-4 pb-6 px-4">
+        <div className="max-w-3xl mx-auto w-full">
+          <div className="relative flex items-center gap-2 bg-[#1E1F20] border border-white/5 rounded-[28px] pl-6 pr-2 py-2 transition-all focus-within:ring-1 focus-within:ring-white/10 shadow-2xl">
+            <textarea
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Répondre..."
+              rows={1}
+              disabled={!!extractedData || isTyping}
+              className="flex-1 bg-transparent border-none outline-none py-3 resize-none text-white placeholder:text-white/40 text-[16px] leading-[24px] max-h-[200px] no-scrollbar"
+            />
+            <button
+              onClick={() => handleSendMessage(inputValue)}
+              disabled={!inputValue.trim() || isTyping || !!extractedData}
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-90 disabled:opacity-20 border-none"
+            >
+              <ArrowUp className="w-5 h-5 stroke-[3px]" />
+            </button>
+          </div>
+          <p className="text-[10px] text-center text-white/20 mt-3 font-medium tracking-wide uppercase">
+            ScénarIA peut faire des erreurs. Vérifiez les informations importantes.
+          </p>
         </div>
-        <p className="text-[10px] text-center text-white/20 mt-3 font-medium tracking-wide uppercase">
-          ScénarIA peut faire des erreurs. Vérifiez les informations importantes.
-        </p>
       </div>
     </div>
   );

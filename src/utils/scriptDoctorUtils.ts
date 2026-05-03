@@ -18,7 +18,7 @@ export function sanitizeFinalParts(parts: GeminiPart[] | null | undefined): Gemi
   if (!Array.isArray(parts)) return [];
   return parts.filter((part) => {
     if (!part || typeof part !== "object") return false;
-    if (part.functionCall || part.toolRequest) return false;
+    if ("functionCall" in part || "toolRequest" in part) return false;
     return true;
   });
 }
@@ -107,17 +107,17 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
       for (const p of msg.content_parts) {
         if (!p || typeof p !== "object") continue;
 
-        if (p.functionCall || p.toolRequest) {
-          modelParts.push(p);
-        } else if (p.functionResponse || p.toolResponse) {
-          if (p.toolResponse) {
-             toolResultParts.push(p);
-          } else if (p.functionResponse) {
-             const fr = p.functionResponse as any;
+        if ("functionCall" in p || "toolRequest" in p) {
+          modelParts.push(p as GeminiPart);
+        } else if ("functionResponse" in p || "toolResponse" in p) {
+          if ("toolResponse" in p) {
+             toolResultParts.push(p as GeminiPart);
+          } else if ("functionResponse" in p) {
+             const fr = (p as any).functionResponse;
              toolResultParts.push(buildFunctionResponsePart(fr.name, fr.response));
           }
-        } else if (p.text !== undefined) {
-          modelParts.push(p);
+        } else if ("text" in p && (p as any).text !== undefined) {
+          modelParts.push(p as GeminiPart);
         }
       }
 

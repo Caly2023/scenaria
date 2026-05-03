@@ -75,23 +75,23 @@ export function useProjectOperations({
       const projectData = {
         metadata: newMetadata,
         stageAnalyses: {
-          'Brainstorming': {
+          'Project Metadata': {
             evaluation: initResult.critique || 'Initial critique',
-            issues: initResult.validation?.status === 'NEEDS WORK' ? [initResult.validation.feedback] : [],
+            issues: initResult.validation?.status === 'NEEDS WORK' && initResult.validation.feedback ? [initResult.validation.feedback] : [],
             recommendations: [],
             suggestedPrompt: initResult.suggestedPrompt || '',
             updatedAt: Date.now()
           }
         },
         stageStates: {
-          'Project Metadata': 'excellent',
+          'Project Metadata': initResult.validation?.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement',
           'Initial Draft': 'excellent',
-          'Brainstorming': initResult.validation?.status === 'GOOD TO GO' ? 'excellent' : 'needs_improvement'
+          'Brainstorming': 'needs_improvement'
         },
         collaborators: [user.uid],
         ownerId: user.uid,
-        activeStage: 'Brainstorming' as WorkflowStage,
-        validatedStages: ['Project Metadata', 'Initial Draft'] as WorkflowStage[],
+        activeStage: 'Project Metadata' as WorkflowStage,
+        validatedStages: [] as WorkflowStage[],
       };
 
       const primitives = [

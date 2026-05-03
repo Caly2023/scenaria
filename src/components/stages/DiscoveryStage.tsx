@@ -288,10 +288,16 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
       const sanitizedMetadata = { ...currentProject.metadata };
       if (extractedData.metadata) {
         Object.entries(extractedData.metadata).forEach(([key, value]) => {
-          if (value !== undefined && value !== null) {
+          // Ignore undefined, null, or empty string values so we don't overwrite valid defaults
+          if (value !== undefined && value !== null && value !== '') {
             (sanitizedMetadata as any)[key] = value;
           }
         });
+      }
+      
+      // Safety net: ensure title is never empty so the project isn't filtered out of the dashboard
+      if (!sanitizedMetadata.title || sanitizedMetadata.title.trim() === '') {
+        sanitizedMetadata.title = 'Untitled Project';
       }
 
       const updates: Record<string, any> = {

@@ -358,7 +358,11 @@ Context so far (Initial Idea): ${context}`;
       config: { 
         temperature: 0.7,
         maxOutputTokens: 8192
-      }
+      },
+      use: [
+        retry({ maxRetries: 1 }),
+        fallback(ai, { models: [gemini31FlashLite] })
+      ],
     });
 
     const parts = response.message?.content || [];

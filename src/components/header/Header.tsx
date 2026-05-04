@@ -87,20 +87,11 @@ export function Header({
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity border-none bg-transparent p-0"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xl font-medium tracking-tight text-white/90">ScénarIA</span>
+                  <span className="text-xl font-medium tracking-tight text-white/90">S C E N A R I A</span>
                 </div>
               </button>
             ) : (
               <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setIsHistoryOpen(true)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/5 transition-all border-none group/menu"
-                >
-                  <div className="flex flex-col items-start gap-1">
-                    <span className="h-[2px] w-5 rounded-full bg-white/40 group-hover/menu:bg-white transition-colors" />
-                    <span className="h-[2px] w-3 rounded-full bg-white/40 group-hover/menu:bg-white transition-colors" />
-                  </div>
-                </button>
                 <div className="flex items-center gap-4 min-w-0">
                   <button onClick={onTitleClick} className="flex items-center gap-2 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title">
                     <div className="flex items-center gap-1.5 min-w-0">
@@ -118,7 +109,7 @@ export function Header({
             {!currentProject && (
               <button className="hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#004a77]/30 text-[#c2e7ff] text-[14px] font-medium hover:bg-[#004a77]/50 transition-all border-none">
                 <Sparkles className="w-4 h-4" />
-                <span>Passez à ScénarIA Pro</span>
+                <span>Passez à S C E N A R I A Pro</span>
               </button>
             )}
 

@@ -13,7 +13,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
 
   const steps = [
     {
-      title: "Welcome to ScénarIA",
+      title: "Welcome to S C E N A R I A",
       description: "You're about to embark on a 9-stage journey to turn your idea into a production-ready script. Our AI Architect will guide you through every step.",
       icon: <Sparkles className="w-8 h-8 text-blue-400" />,
       color: "blue"

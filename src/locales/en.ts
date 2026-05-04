@@ -110,7 +110,7 @@ export const en = {
       reasoning: 'Internal Reasoning',
       applied: 'Applied',
       speak: 'Speak',
-      connectingToAi: 'Connecting to ScénarIA...',
+      connectingToAi: 'Connecting to S C E N A R I A...',
       multiStageFixApplied: 'Multi-stage fix applied successfully',
       metadataSynced: 'Project metadata synced',
       primitiveAdded: 'New element added to project',

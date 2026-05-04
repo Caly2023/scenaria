@@ -125,7 +125,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
         className="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-20 hidden md:block"
       >
         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white">
-          Powered by ScénarIA Intelligence
+          Powered by S C E N A R I A Intelligence
         </p>
       </motion.div>
     </div>

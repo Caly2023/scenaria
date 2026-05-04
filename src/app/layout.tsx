@@ -3,14 +3,14 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ScénarIA — Professional Screenwriting Studio',
+  title: 'S C E N A R I A — Professional Screenwriting Studio',
   description:
     "Studio d'écriture de scénario professionnel propulsé par l'IA. De l'idée au script, en 9 étapes.",
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'ScénarIA',
+    title: 'S C E N A R I A',
   },
   icons: {
     icon: '/logo.png',

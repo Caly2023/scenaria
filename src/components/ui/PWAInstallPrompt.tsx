@@ -124,7 +124,7 @@ export function PWAInstallPrompt() {
 
             {/* App Info */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold tracking-tight text-white">ScénarIA</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-white">S C E N A R I A</h2>
               <p className="text-white/40 text-sm font-medium leading-relaxed px-4">
                 {t('pwa.description', { defaultValue: 'Installez l\'application pour une expérience optimale et un accès direct depuis votre écran d\'accueil.' })}
               </p>

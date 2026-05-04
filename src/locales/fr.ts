@@ -110,7 +110,7 @@ export const fr = {
       reasoning: 'Raisonnement interne',
       applied: 'Appliqué',
       speak: 'Écouter',
-      connectingToAi: 'Connexion à ScénarIA...',
+      connectingToAi: 'Connexion à S C E N A R I A...',
       multiStageFixApplied: 'Correction multi-étapes appliquée avec succès',
       metadataSynced: 'Métadonnées du projet synchronisées',
       primitiveAdded: 'Nouvel élément ajouté au projet',

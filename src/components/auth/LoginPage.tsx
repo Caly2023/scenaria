@@ -34,8 +34,8 @@ export function LoginPage() {
             />
           </div>
           <div className="flex flex-col items-center">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-[0.02em] opacity-95 leading-none [font-family:'Poppins',sans-serif]">
-              Scenar<span className="text-[#D4AF37]">ia</span>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-[0.2em] opacity-95 leading-none">
+              S C E N A R I A
             </h1>
             <p className="mt-6 text-sm md:text-base text-white/60 leading-relaxed font-light tracking-wide italic max-w-xs">
               {t('common.signIn')}

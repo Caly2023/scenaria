@@ -11,7 +11,7 @@ export const LoadingPage: React.FC = () => {
       <div className="relative z-10 scale-90 sm:scale-100">
         <OrbitingLoader 
           size="large"
-          title="ScénarIA"
+          title="S C E N A R I A"
           description="L'IA au service de votre imagination"
         />
       </div>

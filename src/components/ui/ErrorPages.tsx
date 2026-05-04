@@ -118,7 +118,7 @@ const ErrorLayout: FC<ErrorPageProps> = ({
         {/* Brand Footer */}
         <div className="pt-12">
           <p className="text-white/10 text-xs font-bold tracking-[0.2em] uppercase">
-            ScénarIA Production Pipeline
+            S C E N A R I A Production Pipeline
           </p>
         </div>
       </motion.div>

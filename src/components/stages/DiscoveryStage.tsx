@@ -514,7 +514,7 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
           
           <div className="flex items-center justify-center gap-6 mt-4">
             <p className="text-[10px] text-white/20 font-bold tracking-[0.2em] uppercase">
-              ScénarIA Intelligent Discovery
+              S C E N A R I A Intelligent Discovery
             </p>
           </div>
         </div>

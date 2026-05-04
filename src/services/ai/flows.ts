@@ -236,6 +236,14 @@ const genericGeminiFlow = ai.defineFlow(
       next_step_ready: z.boolean().optional(),
     });
 
+    const discoveryExtractionSchema = z.object({
+      isReady: z.boolean().describe('True if sufficient context has been gathered to define the core project components.'),
+      metadata: MetadataSchema.optional(),
+      logline: z.string().optional(),
+      synopsis: z.string().optional(),
+      productionNotes: z.string().optional()
+    });
+
     const structuredSchemaMap: Record<string, z.ZodTypeAny> = {
       object:             z.object({}).passthrough(),
       array:              z.array(z.any()),
@@ -262,13 +270,7 @@ const genericGeminiFlow = ai.defineFlow(
         relationshipMap:  z.string(),
       }),
       threeActStructure:  threeActStructureSchema,
-      discoveryExtraction: z.object({
-        isReady: z.boolean().describe('True if sufficient context has been gathered to define the core project components.'),
-        metadata: MetadataSchema.optional(),
-        logline: z.string().optional(),
-        synopsis: z.string().optional(),
-        productionNotes: z.string().optional()
-      }),
+      discoveryExtraction: discoveryExtractionSchema,
     };
 
     const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput] : undefined;
@@ -335,16 +337,16 @@ Context so far (Initial Idea): ${context}`;
 
     const extractTool = ai.defineTool({
       name: 'extractProjectData',
-      description: 'Call this when you have gathered enough information to define the core project components.',
+      description: 'Call this when you have gathered enough information to define the core project components (Metadata, Logline, Synopsis, Production Notes).',
       inputSchema: z.object({
         metadata: MetadataSchema,
         logline: z.string().describe('A concise and powerful one-sentence summary of the film.'),
         synopsis: z.string().describe('A detailed narrative summary (approx. 300-500 words) focusing on characters and emotional arc.'),
         productionNotes: z.string().describe('Comprehensive notes on visual style, atmosphere, colorimetry, character details, location descriptions, and technical intent for AI generation.')
       }),
-      outputSchema: z.any()
+      outputSchema: z.object({ success: z.boolean() })
     }, async (input) => {
-      return { success: true, extracted: input };
+      return { success: true };
     });
 
     const response = await ai.generate({

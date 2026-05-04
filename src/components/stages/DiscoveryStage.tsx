@@ -336,40 +336,46 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full bg-[#0d0d0d] relative overflow-hidden">
+      {/* Background Atmosphere */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 rounded-full blur-[120px]" />
+      </div>
+
       {/* Chat Area */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-2 py-4 space-y-8 no-scrollbar"
+        className="flex-1 overflow-y-auto px-4 pt-8 pb-32 space-y-8 no-scrollbar relative z-10"
       >
-        <div className="max-w-3xl mx-auto w-full space-y-8">
+        <div className="max-w-3xl mx-auto w-full space-y-10">
           {messages
             .filter((m) => m.content.trim() !== '')
             .map((msg, idx) => (
               <div
                 key={msg.id}
-                className={`flex items-start gap-4 ${
+                className={`flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
                   msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ${
                     msg.role === 'user'
-                      ? 'bg-white/10'
-                      : 'bg-blue-500/20 text-blue-400'
+                      ? 'bg-white/10 border border-white/5'
+                      : 'bg-gradient-to-br from-blue-500/20 to-blue-600/20 text-blue-400 border border-blue-500/20'
                   }`}
                 >
                   {msg.role === 'user' ? (
-                    <User className="w-4 h-4 text-white/70" />
+                    <User className="w-5 h-5 text-white/70" />
                   ) : (
-                    <Bot className="w-4 h-4" />
+                    <Bot className="w-5 h-5" />
                   )}
                 </div>
 
                 {msg.role === 'user' ? (
                   <UserMessageContent content={msg.content} isInitial={idx === 0} />
                 ) : (
-                  <div className="px-0 py-1 max-w-[85%] text-[16px] leading-[1.6] text-white/90">
+                  <div className="px-0 py-1.5 max-w-[85%] text-[17px] leading-[1.7] text-white/90 selection:bg-blue-500/30">
                     {msg.content}
                   </div>
                 )}
@@ -378,26 +384,26 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
 
           {isTyping && (
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0 border border-blue-500/10">
+                <Bot className="w-5 h-5" />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="px-0 py-1 flex items-center gap-1.5 h-8">
+              <div className="flex flex-col gap-3">
+                <div className="px-0 py-1.5 flex items-center gap-2 h-9">
                   <span
-                    className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-blue-400/40 rounded-full animate-bounce"
                     style={{ animationDelay: '0ms' }}
                   />
                   <span
-                    className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-blue-400/40 rounded-full animate-bounce"
                     style={{ animationDelay: '150ms' }}
                   />
                   <span
-                    className="w-1.5 h-1.5 bg-blue-400/50 rounded-full animate-bounce"
+                    className="w-2 h-2 bg-blue-400/40 rounded-full animate-bounce"
                     style={{ animationDelay: '300ms' }}
                   />
                 </div>
                 {messages.length === 1 && (
-                  <span className="text-[11px] text-white/30 font-medium animate-pulse">
+                  <span className="text-[12px] text-white/40 font-medium tracking-wide animate-pulse">
                     {backgroundSteps[backgroundStep]}
                   </span>
                 )}
@@ -407,62 +413,55 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
         </div>
 
         {extractedData && (
-          <div className="my-8 mx-auto w-full max-w-2xl bg-surface/50 border border-green-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center">
-                <Check className="w-5 h-5" />
+          <div className="my-12 mx-auto w-full max-w-2xl bg-[#1A1A1A]/80 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-700 ring-1 ring-white/5">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-green-500/10 text-green-400 flex items-center justify-center border border-green-500/20 shadow-inner">
+                <Check className="w-6 h-6 stroke-[2.5px]" />
               </div>
               <div>
-                <h3 className="text-lg font-medium text-white tracking-tight">
-                  Discovery Complete
+                <h3 className="text-xl font-semibold text-white tracking-tight">
+                  Projet Prêt à l'Action
                 </h3>
-                <p className="text-sm text-white/50">
-                  Vérifiez les informations extraites avant de continuer.
+                <p className="text-sm text-white/50 font-medium mt-0.5">
+                  L'intelligence artificielle a synthétisé votre vision.
                 </p>
               </div>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-6 mb-8">
               {extractedData.metadata && (
-                <div className="space-y-2">
-                  <span className="text-xs uppercase tracking-widest text-white/40 font-bold">
-                    Metadata
-                  </span>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-white/80">
-                    <div>Format : {extractedData.metadata.format}</div>
-                    <div>Genre : {extractedData.metadata.genre}</div>
-                    <div>Ton : {extractedData.metadata.tone}</div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-px flex-1 bg-white/10"></span>
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold">Metadata</span>
+                    <span className="h-px flex-1 bg-white/10"></span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {['format', 'genre', 'tone'].map(key => (
+                      <div key={key} className="bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-center">
+                        <div className="text-[10px] text-white/30 uppercase tracking-wider mb-1">{key}</div>
+                        <div className="text-sm text-white/90 font-medium capitalize">{(extractedData.metadata as any)[key]}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
+              
               {extractedData.logline && (
-                <div className="space-y-2">
-                  <span className="text-xs uppercase tracking-widest text-white/40 font-bold">
-                    Logline
-                  </span>
-                  <p className="text-sm text-white/90 leading-relaxed bg-black/20 p-3 rounded-lg border border-white/5">
-                    {extractedData.logline}
+                <div className="space-y-3">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Logline</span>
+                  <p className="text-[15px] text-white/90 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 shadow-inner italic font-serif">
+                    "{extractedData.logline}"
                   </p>
                 </div>
               )}
+
               {extractedData.synopsis && (
-                <div className="space-y-2">
-                  <span className="text-xs uppercase tracking-widest text-white/40 font-bold">
-                    Synopsis
-                  </span>
-                  <p className="text-sm text-white/90 leading-relaxed bg-black/20 p-3 rounded-lg border border-white/5 line-clamp-3">
-                    {extractedData.synopsis}
-                  </p>
-                </div>
-              )}
-              {extractedData.productionNotes && (
-                <div className="space-y-2">
-                  <span className="text-xs uppercase tracking-widest text-white/40 font-bold">
-                    Notes de Production
-                  </span>
-                  <p className="text-sm text-white/80 leading-relaxed bg-black/20 p-3 rounded-lg border border-white/5 line-clamp-2 italic">
-                    {extractedData.productionNotes}
-                  </p>
+                <div className="space-y-3">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Synopsis</span>
+                  <div className="text-[14px] text-white/80 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 shadow-inner">
+                    <p className="line-clamp-4">{extractedData.synopsis}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -470,52 +469,59 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
             <button
               onClick={handleApprove}
               disabled={isSaving}
-              className={`w-full py-3.5 bg-green-500 hover:bg-green-600 text-black font-medium rounded-xl transition-colors shadow-lg shadow-green-500/20 active:scale-[0.98] flex items-center justify-center gap-2 ${
+              className={`w-full py-4.5 bg-white hover:bg-[#f0f0f0] text-black font-bold rounded-2xl transition-all shadow-xl active:scale-[0.97] flex items-center justify-center gap-3 group ${
                 isSaving ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
               {isSaving ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                  Sauvegarde...
+                  <div className="w-5 h-5 border-[3px] border-black/10 border-t-black rounded-full animate-spin" />
+                  <span className="tracking-wide">Initialisation du Studio...</span>
                 </>
               ) : (
-                'Approuver & Continuer →'
+                <>
+                  <span className="tracking-wide text-[16px]">Propulser le Projet</span>
+                  <ArrowUp className="w-5 h-5 rotate-90 transition-transform group-hover:translate-x-1" />
+                </>
               )}
             </button>
           </div>
         )}
       </div>
 
-      {/* Input Area – Gemini Style */}
-      <div className="sticky bottom-0 w-full bg-[#0d0d0d] pt-4 pb-6 px-4">
-        <div className="max-w-3xl mx-auto w-full">
-          <div className="relative flex items-center gap-2 bg-[#1E1F20] border border-white/5 rounded-[28px] pl-6 pr-2 py-2 transition-all focus-within:ring-1 focus-within:ring-white/10 shadow-2xl">
+      {/* Input Area – Premium Gemini Style */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/95 to-transparent">
+        <div className="max-w-3xl mx-auto w-full relative">
+          <div className="relative flex items-end gap-2 bg-[#1e1e1e] border border-white/10 rounded-[32px] p-2 pl-6 transition-all focus-within:ring-2 focus-within:ring-white/10 focus-within:border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
             <textarea
               ref={inputRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Répondre..."
+              placeholder="Décrivez votre vision..."
               rows={1}
               disabled={!!extractedData || isTyping}
-              className="flex-1 bg-transparent border-none outline-none py-3 resize-none text-white placeholder:text-white/40 text-[16px] leading-[24px] max-h-[200px] no-scrollbar"
+              className="flex-1 bg-transparent border-none outline-none py-3.5 resize-none text-white placeholder:text-white/30 text-[17px] leading-[1.5] max-h-[200px] no-scrollbar"
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
               disabled={!inputValue.trim() || isTyping || !!extractedData}
-              className="flex-shrink-0 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-90 disabled:opacity-20 border-none"
+              className="flex-shrink-0 w-12 h-12 rounded-[24px] bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-90 disabled:opacity-10 disabled:grayscale border-none mb-0.5 mr-0.5 shadow-lg"
             >
-              <ArrowUp className="w-5 h-5 stroke-[3px]" />
+              <ArrowUp className="w-6 h-6 stroke-[2.5px]" />
             </button>
           </div>
-          <p className="text-[10px] text-center text-white/20 mt-3 font-medium tracking-wide uppercase">
-            ScénarIA peut faire des erreurs. Vérifiez les informations importantes.
-          </p>
+          
+          <div className="flex items-center justify-center gap-6 mt-4">
+            <p className="text-[10px] text-white/20 font-bold tracking-[0.2em] uppercase">
+              ScénarIA Intelligent Discovery
+            </p>
+          </div>
         </div>
       </div>
     </div>
   );
+
 }
 
 function UserMessageContent({

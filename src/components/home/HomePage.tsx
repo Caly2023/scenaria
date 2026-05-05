@@ -64,7 +64,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const firstName = userDisplayName?.split(' ')[0] || '';
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
+    <div className="w-full h-full min-h-[calc(100dvh-120px)] md:min-h-0 flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
       <AnimatePresence mode="wait">
         {!showDiscovery ? (
           <motion.div 
@@ -73,7 +73,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-3xl z-10 flex flex-col items-start md:items-center space-y-12"
+            className="w-full max-w-3xl z-10 flex flex-col items-center space-y-8 md:space-y-12 h-full md:h-auto"
           >
             {/* Background stays subtle */}
             <div className="absolute inset-0 pointer-events-none">
@@ -84,12 +84,12 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-              className="w-full space-y-2 text-left md:text-center px-2"
+              className="w-full text-center px-2 flex flex-col items-center justify-center max-md:flex-1"
             >
-              <h1 className="text-3xl md:text-[40px] font-medium tracking-tight text-white pb-1">
+              <h1 className="text-[28px] md:text-[40px] font-medium tracking-tight text-white leading-[1.1]">
                 {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
               </h1>
-              <h2 className="text-3xl md:text-[40px] font-medium tracking-tight text-white leading-tight">
+              <h2 className="text-[28px] md:text-[40px] font-medium tracking-tight text-white leading-[1.1]">
                 Par où commencer ?
               </h2>
             </motion.div>
@@ -110,27 +110,15 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
               />
             </div>
 
-            {/* Harmonized Info Text */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="w-full text-center px-4 pt-2"
-            >
-              <p className="text-[14px] text-white/40 leading-relaxed max-w-lg mx-auto">
-                {t('common.helperText')}
-              </p>
-            </motion.div>
-
             {/* Simplified Footer Branding */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.5 }}
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-20 hidden md:block"
+              className="w-full hidden md:flex flex-col items-center opacity-30 pt-4"
             >
-              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white">
-                Powered by S C E N A R I A Intelligence
+              <p className="text-[11px] font-medium tracking-[0.2em] text-white/60">
+                powered by scenaria intelligence
               </p>
             </motion.div>
           </motion.div>

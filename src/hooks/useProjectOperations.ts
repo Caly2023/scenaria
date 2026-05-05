@@ -47,20 +47,20 @@ export function useProjectOperations({
     }
   };
 
-  const handleProjectCreate = async (initialIdea: string, format?: ProjectFormat) => {
+  const handleProjectCreate = async (initialIdea: string, format?: ProjectFormat, extractedData?: any) => {
     if (!user) return;
     
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
       const newMetadata = {
-        title: 'Untitled Project',
-        format: format || 'Auto',
-        genre: '',
-        tone: '',
-        logline: '',
-        languages: [],
-        targetDuration: ''
+        title: extractedData?.metadata?.title || 'Untitled Project',
+        format: extractedData?.metadata?.format || format || 'Auto',
+        genre: extractedData?.metadata?.genre || '',
+        tone: extractedData?.metadata?.tone || '',
+        logline: extractedData?.logline || '',
+        languages: extractedData?.metadata?.languages || [],
+        targetDuration: extractedData?.metadata?.targetDuration || ''
       };
 
       const projectilesRef = doc(collection(db, 'projects'));
@@ -70,9 +70,9 @@ export function useProjectOperations({
       const projectData = {
         metadata: newMetadata,
         stageAnalyses: {
-          'Discovery': {
-            evaluation: 'Initial discovery phase.',
-            isReady: false,
+          'Project Brief': {
+            evaluation: 'Project initialized from discovery conversation.',
+            isReady: true,
             issues: [],
             recommendations: [],
             suggestedPrompt: '',
@@ -80,38 +80,65 @@ export function useProjectOperations({
           }
         },
         stageStates: {
-          'Discovery': 'needs_improvement'
+          'Project Brief': 'ready'
         },
         collaborators: [user.uid],
         ownerId: user.uid,
-        activeStage: 'Discovery' as WorkflowStage,
+        activeStage: 'Project Brief' as WorkflowStage,
         validatedStages: [] as WorkflowStage[],
       };
 
-      // Optimistic project with temporary idea attached for DiscoveryStage
+      // Optimistic project
       const newProject = { 
         id: docId, 
         ...projectData, 
         createdAt: timestamp, 
         updatedAt: timestamp,
-        _tempInitialIdea: initialIdea // Internal flag for UI
       } as any;
       
       // STEP 1: Redirect immediately
       handleProjectSelect(docId, newProject);
-      addToast(t('common.generatingProject', { defaultValue: 'Starting discovery...' }), 'info');
+      addToast(t('common.generatingProject', { defaultValue: 'Creating project...' }), 'info');
 
-      // STEP 2: Perform Firestore initialization in background
-      const primitives = [
-        {
-          title: 'Initial Idea',
-          content: initialIdea,
-          primitiveType: 'discovery',
+      // STEP 2: Perform Firestore initialization
+      const primitives = [];
+      
+      if (extractedData?.logline) {
+        primitives.push({
+          title: 'Logline',
+          content: extractedData.logline,
+          primitiveType: 'logline',
           order: 1,
           ownerId: user.uid,
-          subcollection: 'discovery_primitives'
-        }
-      ];
+          subcollection: 'brief_primitives'
+        });
+      }
+
+      if (extractedData?.synopsis) {
+        primitives.push({
+          title: 'Synopsis',
+          content: extractedData.synopsis,
+          primitiveType: 'synopsis',
+          order: 2,
+          ownerId: user.uid,
+          subcollection: 'brief_primitives'
+        });
+      }
+
+      if (extractedData?.productionNotes) {
+        primitives.push({
+          title: 'Production Notes',
+          content: extractedData.productionNotes,
+          primitiveType: 'production_notes',
+          order: 3,
+          ownerId: user.uid,
+          subcollection: 'brief_primitives'
+        });
+      }
+
+      // If no extracted data, use the initial idea as a primitive in Project Brief maybe?
+      // But the requirement says "Once sufficient information is collected, present a validation action."
+      // So extractedData should be there.
 
       await initProjectWithPrims({ projectId: docId, projectData, primitives }).unwrap();
       

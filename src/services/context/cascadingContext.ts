@@ -30,17 +30,11 @@ export async function buildCascadingContext(
 
   // 3. IMMEDIATE HISTORY (The stage directly preceding the current one)
   const prevDef = stageRegistry.getPrevious(currentStage as any);
-  if (prevDef && prevDef.order > 0) { // Skip Discovery
+  if (prevDef) {
     const prevText = await Promise.resolve(getStageText(prevDef.id));
     if (prevText) {
       ctx += `[PRECEDING STAGE: ${prevDef.name.toUpperCase()}]\n${prevText}\n\n`;
     }
-  }
-
-  // 4. DISTANT ANCHORS
-  if (currentOrder <= 2) {
-    const discovery = await Promise.resolve(getStageText("Discovery"));
-    if (discovery && currentStage !== "Discovery") ctx += `[DISCOVERY]\n${discovery}\n\n`;
   }
 
   return ctx;

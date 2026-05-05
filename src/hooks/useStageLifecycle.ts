@@ -118,13 +118,10 @@ export function useStageLifecycle({
         addToast(`✅ ${stage} validé. Passage à ${nextStage}...`, 'success');
 
         // Fire generation in background — let auto-hydration handle it if it fails or takes long
-        // Exception: Discovery stage populates the next stage (Project Brief) directly.
-        if (stage !== 'Discovery') {
-          triggerStageGeneration(nextStage, currentProject).catch((error) => {
-            console.error(`[Validate] Background generation failed for "${nextStage}":`, error);
-            // Don't show a toast here — auto-hydration will retry on next mount
-          });
-        }
+        triggerStageGeneration(nextStage, currentProject).catch((error) => {
+          console.error(`[Validate] Background generation failed for "${nextStage}":`, error);
+          // Don't show a toast here — auto-hydration will retry on next mount
+        });
       }
 
       setSyncStatus('synced');

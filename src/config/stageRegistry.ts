@@ -54,30 +54,9 @@ import {
 
 const STAGES: StageDefinition[] = [
   {
-    id: 'Discovery',
-    name: 'Project Discovery',
-    order: 0,
-    category: 'METADATA',
-    collectionName: 'discovery_primitives',
-    primitiveTypes: ['discovery'],
-    description: 'Conversational project intake and discovery.',
-    icon: Lightbulb,
-    estTime: '15m',
-    hydrationLabel: 'Discovering project DNA...',
-    requires: [],
-    triggers: 'Project Brief',
-    orderField: 'order',
-    isCustom: true,
-    displayMode: 'canvas',
-    prompts: {
-      magic: 'Refine the core project discovery context.',
-      generate: 'Discover and extract core project metadata from conversation.'
-    }
-  },
-  {
     id: 'Project Brief',
     name: 'Project Brief',
-    order: 1,
+    order: 0,
     category: 'METADATA',
     collectionName: 'brief_primitives',
     primitiveTypes: ['metadata', 'logline', 'synopsis', 'production_notes'],
@@ -85,7 +64,7 @@ const STAGES: StageDefinition[] = [
     icon: FileText,
     estTime: '10m',
     hydrationLabel: 'Synthesizing Project Brief...',
-    requires: ['Discovery'],
+    requires: [],
     triggers: 'Story Bible',
     orderField: 'order',
     prompts: {
@@ -239,7 +218,7 @@ class StageRegistry {
       else if (normalized.includes('dialogue continuity') || normalized.includes('continuity') || normalized.includes('dialogue') || normalized.includes('scénario') || normalized.includes('script')) def = this._stages.get('Dialogue Continuity');
       else if (normalized.includes('final screenplay') || normalized.includes('screenplay') || normalized.includes('polissage')) def = this._stages.get('Final Screenplay');
       else if (normalized.includes('technical breakdown') || normalized.includes('breakdown') || normalized.includes('découpage')) def = this._stages.get('Technical Breakdown');
-      else if (normalized.includes('brouillon') || normalized.includes('discovery') || normalized.includes('exploration')) def = this._stages.get('Discovery');
+      // else if (normalized.includes('brouillon') || normalized.includes('discovery') || normalized.includes('exploration')) def = this._stages.get('Discovery');
     }
 
     if (!def) throw new Error(`[StageRegistry] Unknown stage: "${stageId}"`);

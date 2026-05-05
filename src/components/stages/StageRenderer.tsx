@@ -7,9 +7,7 @@ import { StageSkeleton } from './StageSkeleton';
 import { StageDefinition } from '../../config/stageRegistry';
 
 // Lazy-loaded custom stage components
-const DiscoveryStage = React.lazy(() =>
-  import("./DiscoveryStage").then((m) => ({ default: m.DiscoveryStage })),
-);
+
 
 /** Minimal passthrough wrapper used as a default CanvasErrorBoundary. */
 const DefaultBoundary = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -51,12 +49,7 @@ function renderStage(
 
   if (definition.isCustom) {
     switch (definition.id) {
-      case "Discovery":
-        return (
-          <DiscoveryStage
-            onValidate={() => project.onValidateStage("Discovery")}
-          />
-        );
+      case "Project Brief":
       default:
         return <UnifiedStage definition={definition} />;
     }

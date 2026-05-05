@@ -24,7 +24,7 @@ interface ProjectDataState {
 
 export function useProjectData(user: User | null): ProjectDataState {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [activeStage, setActiveStage] = useState<WorkflowStage>('Discovery');
+  const [activeStage, setActiveStage] = useState<WorkflowStage>('Project Brief');
   const [optimisticProject, setOptimisticProject] = useState<Project | null>(null);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ export function useProjectData(user: User | null): ProjectDataState {
     setCurrentProjectId(id);
     setOptimisticProject(projectObj ?? null);
     const savedStage = localStorage.getItem(`scenaria_stage_${id}`) as WorkflowStage | null;
-    const stage = savedStage || 'Discovery';
+    const stage = savedStage || 'Project Brief';
     setActiveStage(stage);
     window.location.hash = `/project/${id}/stage/${encodeURIComponent(stage)}`;
   };

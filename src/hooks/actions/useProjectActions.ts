@@ -43,7 +43,7 @@ export function useProjectActions({
         );
 
         const agentOutput = await dispatchToAgent(decision, context, currentContent);
-        await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: stage === 'Discovery' });
+        await persistAgentOutput(currentProject.id, stage, agentOutput, { replaceAll: false });
         
         // Handle special metadata updates (like Logline/Discovery)
         if (agentOutput.metadataUpdates) {

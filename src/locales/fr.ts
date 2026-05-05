@@ -121,12 +121,7 @@ export const fr = {
       validateNext: 'Continuer'
     },
     stages: {
-      Discovery: {
-        label: 'Découverte',
-        title: 'Découverte du Projet',
-        subtitle: 'Une conversation pour affiner et extraire l\'essence de votre projet.',
-        validateLabel: 'Valider et commencer le projet'
-      },
+
       'Project Brief': {
         label: 'Project Brief',
         title: 'Le Brief du Projet',

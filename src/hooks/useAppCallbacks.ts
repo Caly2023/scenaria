@@ -37,16 +37,7 @@ export function useAppCallbacks({
   const [updateSubcollectionDoc] = useUpdateSubcollectionDocMutation();
   const [deleteSubcollectionDoc] = useDeleteSubcollectionDocMutation();
 
-  const handleStoryChange = useCallback(
-    (c: string) => {
-      const discoveryPrimitives = stageContents['Discovery'] || [];
-      const discoveryId = discoveryPrimitives[0]?.id;
-      const collectionName = stageRegistry.getCollectionName('Discovery');
-      if (discoveryId) handleSubcollectionUpdate(collectionName, discoveryId, { content: c });
-      handleContentUpdate("discovery_result", c);
-    },
-    [stageContents, handleSubcollectionUpdate, handleContentUpdate],
-  );
+
 
   const onLoglineChange = useCallback(
     (c: string) => {
@@ -134,7 +125,7 @@ export function useAppCallbacks({
   );
 
   return {
-    handleStoryChange,
+
     onLoglineChange,
     handlePrimitiveAdd,
     handlePrimitiveUpdate,

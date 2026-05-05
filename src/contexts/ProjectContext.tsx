@@ -36,7 +36,7 @@ interface ProjectContextType {
   // Handlers
   handleProjectSelect: (id: string, project?: Project) => void;
   handleProjectExit: () => void;
-  handleProjectCreate: (brainstormingDraft: string, format?: any) => Promise<void>;
+  handleProjectCreate: (initialIdea: string, format?: any, extractedData?: any) => Promise<void>;
   handleProjectDelete: (id: string) => Promise<void>;
   handleStageChange: (stage: WorkflowStage) => void;
   handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
@@ -56,7 +56,7 @@ interface ProjectContextType {
   handleLocationDeepDevelop: (id: string) => Promise<void>;
   
   // App Callbacks (Standardized)
-  handleStoryChange: (c: string) => void;
+
   onLoglineChange: (c: string) => void;
   handlePrimitiveAdd: (stage: WorkflowStage, data: any) => Promise<void>;
   handlePrimitiveUpdate: (stage: WorkflowStage, id: string, updates: any) => Promise<void>;
@@ -175,9 +175,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     projectHook.setProjectToDelete(null);
   }, [projectHook]);
 
-  const handleStoryChange = useCallback((c: string) => {
-    if (currentProject) callbacks.handleStoryChange(c);
-  }, [currentProject, callbacks]);
+
 
   const onLoglineChange = useCallback((c: string) => {
     if (currentProject) callbacks.onLoglineChange(c);
@@ -187,7 +185,7 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     ...projectHook,
     ...doctor,
     ...callbacks,
-    handleStoryChange,
+
     onLoglineChange,
     onValidateStage: callbacks.onValidateStage,
     hydrationState,

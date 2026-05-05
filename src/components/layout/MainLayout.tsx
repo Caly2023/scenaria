@@ -88,7 +88,7 @@ const MainLayoutComponent = ({
   
 
   return (
-    <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans", isMobile ? "h-auto overflow-visible" : "h-[100dvh] overflow-hidden")}>
+    <div className={cn("w-full flex flex-col md:flex-row bg-background relative font-sans h-dvh overflow-hidden")}>
       {/* Gemini-style Sidebar (Left) */}
       {!isMobile && (
         <aside className="w-16 h-full flex flex-col items-center py-4 bg-background border-r border-white/5 transition-all duration-300 z-[60] flex-shrink-0">
@@ -129,7 +129,7 @@ const MainLayoutComponent = ({
       )}
 
       {/* Main Content Area */}
-      <div className={cn("flex-1 flex flex-col relative transition-all duration-500 z-10 min-w-0", isMobile ? "h-auto" : "h-full")}>
+      <div className={cn("flex-1 flex flex-col relative transition-all duration-500 z-10 min-w-0 h-full")}>
         <Header
           isCompact={isDoctorOpen}
           accessibilitySettings={accessibilitySettings}
@@ -143,9 +143,9 @@ const MainLayoutComponent = ({
           user={user}
         />
 
-        <main className={cn("flex-1 flex flex-col relative w-full", isMobile ? "overflow-visible" : "overflow-hidden")}>
-          <div className={cn("w-full relative h-full", isMobile ? "overflow-visible scroll-smooth" : "overflow-y-auto no-scrollbar scroll-smooth overscroll-none", isMobile && "pb-safe-nav")}>
-            <div className={cn("w-full h-full max-w-5xl mx-auto flex flex-col justify-start relative", isMobile ? "px-3 pb-2 pt-4" : "px-6 py-6")}>
+        <main className={cn("flex-1 flex flex-col relative w-full overflow-hidden")}>
+          <div className={cn("w-full relative h-full overflow-y-auto md:overflow-y-auto no-scrollbar scroll-smooth overscroll-none", isMobile && "overflow-hidden pb-safe-nav")}>
+            <div className={cn("w-full h-full max-w-5xl mx-auto flex flex-col justify-start relative", isMobile ? "px-3 pt-0" : "px-6 py-6")}>
               <Suspense fallback={<StageSkeleton />}>{renderStage()}</Suspense>
             </div>
           </div>

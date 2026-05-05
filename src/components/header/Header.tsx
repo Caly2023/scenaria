@@ -71,7 +71,7 @@ export function Header({
     <>
       <header 
         className={cn(
-          "bg-transparent z-50 transition-all duration-500 flex-shrink-0 w-full overflow-hidden"
+          "bg-background/80 backdrop-blur-md border-b border-white/5 z-50 transition-all duration-500 flex-shrink-0 w-full overflow-hidden"
         )}
         style={{ paddingTop: 'var(--header-top-padding)' }}
       >

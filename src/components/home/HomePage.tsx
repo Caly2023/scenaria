@@ -64,7 +64,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const firstName = userDisplayName?.split(' ')[0] || '';
 
   return (
-    <div className="w-full h-dvh flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
+    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0 max-md:pb-[140px]">
       <AnimatePresence mode="wait">
         {!showDiscovery ? (
           <motion.div 

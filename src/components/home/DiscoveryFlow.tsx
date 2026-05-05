@@ -142,13 +142,39 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
   }, [inputValue]);
 
   useEffect(() => {
-    if (initialIdea && messages.length === 0 && !chatStartedRef.current) {
+    const saved = localStorage.getItem(`discovery_${initialIdea.substring(0, 50)}`);
+    if (saved && !chatStartedRef.current) {
+      try {
+        const { messages: savedMsgs, extracted: savedExtracted } = JSON.parse(saved);
+        setMessages(savedMsgs);
+        if (savedExtracted) {
+          setExtractedData(savedExtracted);
+          setEditableExtractedData(savedExtracted);
+        }
+        chatStartedRef.current = true;
+      } catch (e) {
+        console.error('Failed to load saved discovery:', e);
+      }
+    } else if (initialIdea && messages.length === 0 && !chatStartedRef.current) {
       const initialMsgs: Message[] = [{ id: '1', role: 'user', content: initialIdea }];
       setMessages(initialMsgs);
       chatStartedRef.current = true;
       handleSendMessage('', initialMsgs);
     }
   }, [initialIdea, messages.length, handleSendMessage]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(`discovery_${initialIdea.substring(0, 50)}`, JSON.stringify({
+        messages,
+        extracted: extractedData
+      }));
+    }
+  }, [messages, extractedData, initialIdea]);
+
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(`discovery_${initialIdea.substring(0, 50)}`);
+  }, [initialIdea]);
 
   useEffect(() => {
     if (rootRef.current) {
@@ -172,6 +198,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
     setIsSaving(true);
     try {
       await onValidate(dataToSave);
+      clearSession(); // Clear on success
     } finally {
       setIsSaving(false);
     }
@@ -192,7 +219,10 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
       {/* Top Navigation */}
       <div className="fixed top-0 left-0 right-0 z-[110] px-6 py-4 flex justify-between items-center pointer-events-none">
         <button 
-          onClick={onCancel}
+          onClick={() => {
+            clearSession();
+            onCancel();
+          }}
           className="px-4 py-2 text-white/40 hover:text-white/80 transition-colors text-sm font-medium pointer-events-auto"
         >
           Annuler

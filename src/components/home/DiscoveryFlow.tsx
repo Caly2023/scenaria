@@ -36,7 +36,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
   const chatStartedRef = useRef(false);
   const messagesRef = useRef<Message[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -145,9 +145,9 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
   }, [initialIdea, messages.length, handleSendMessage]);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
+    if (rootRef.current) {
+      rootRef.current.scrollTo({
+        top: rootRef.current.scrollHeight,
         behavior: 'smooth',
       });
     }
@@ -172,126 +172,124 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
 
   return (
     <motion.div 
+      ref={rootRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-[#0d0d0d] flex flex-col"
+      className="fixed inset-0 z-[100] bg-[#0d0d0d] overflow-y-auto overflow-x-hidden scroll-smooth selection:bg-[#D4AF37]/30"
     >
-      {/* Header / History Toggle */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-4 flex justify-between items-center bg-gradient-to-b from-[#0d0d0d] to-transparent">
+      {/* Top Navigation */}
+      <div className="fixed top-0 left-0 right-0 z-[110] px-6 py-4 flex justify-between items-center pointer-events-none">
         <button 
           onClick={onCancel}
-          className="px-4 py-2 text-white/40 hover:text-white/80 transition-colors text-sm font-medium"
+          className="px-4 py-2 text-white/40 hover:text-white/80 transition-colors text-sm font-medium pointer-events-auto"
         >
           Annuler
         </button>
         <button 
           onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
-          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all pointer-events-auto backdrop-blur-md"
         >
           <MessageSquare className="w-4 h-4 text-white/60" />
-          <span className="text-xs font-bold uppercase tracking-widest text-white/80">
-            {isHistoryCollapsed ? 'Afficher l\'historique' : 'Masquer l\'historique'}
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/80">
+            {isHistoryCollapsed ? 'Afficher' : 'Masquer'}
           </span>
           <ChevronDown className={cn("w-4 h-4 transition-transform duration-300", isHistoryCollapsed ? "rotate-180" : "")} />
         </button>
       </div>
 
-      {/* Chat Area */}
+      {/* Main Chat Container */}
       <div
-        ref={scrollContainerRef}
         className={cn(
-          "flex-1 overflow-y-auto px-4 pt-24 pb-32 space-y-8 no-scrollbar relative z-10 transition-all duration-500",
-          isHistoryCollapsed ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
+          "w-full max-w-5xl mx-auto px-6 pt-28 pb-48 space-y-12 transition-all duration-700 ease-out",
+          isHistoryCollapsed ? "opacity-0 translate-y-4 scale-95 pointer-events-none" : "opacity-100 translate-y-0 scale-100"
         )}
       >
-        <div className="max-w-3xl mx-auto w-full space-y-10">
-          {messages
-            .filter((m) => m.content.trim() !== '')
-            .map((msg, idx) => (
+        {messages
+          .filter((m) => m.content.trim() !== '')
+          .map((msg, idx) => (
+            <div
+              key={msg.id}
+              className={cn(
+                "flex items-start gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500",
+                msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+              )}
+            >
               <div
-                key={msg.id}
                 className={cn(
-                  "flex items-start gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
-                  msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                  "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl",
+                  msg.role === 'user'
+                    ? 'bg-white/5 border border-white/10'
+                    : 'bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/30 text-[#D4AF37] border border-[#D4AF37]/20'
                 )}
               >
-                <div
-                  className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg",
-                    msg.role === 'user'
-                      ? 'bg-white/10 border border-white/5'
-                      : 'bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/40 text-[#D4AF37] border border-[#D4AF37]/20'
-                  )}
-                >
-                  {msg.role === 'user' ? (
-                    <User className="w-5 h-5 text-white/70" />
-                  ) : (
-                    <Bot className="w-5 h-5" />
-                  )}
-                </div>
+                {msg.role === 'user' ? (
+                  <User className="w-5 h-5 text-white/60" />
+                ) : (
+                  <Bot className="w-5 h-5" />
+                )}
+              </div>
 
+              <div className={cn(
+                "flex flex-col gap-1 max-w-[85%]",
+                msg.role === 'user' ? "items-end" : "items-start"
+              )}>
                 {msg.role === 'user' ? (
                   <UserMessageContent content={msg.content} isInitial={idx === 0} />
                 ) : (
-                  <div className="px-0 py-1.5 max-w-[85%] text-[17px] leading-[1.7] text-white/90 selection:bg-[#D4AF37]/30">
+                  <div className="text-[18px] leading-[1.8] text-white/90 font-light tracking-wide whitespace-pre-wrap">
                     {msg.content}
                   </div>
                 )}
               </div>
-            ))}
-
-          {isTyping && (
-            <div className="flex items-start gap-4">
-              <div className="w-9 h-9 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] flex items-center justify-center flex-shrink-0 border border-[#D4AF37]/10">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="px-0 py-1.5 flex items-center gap-2 h-9">
-                  <span className="w-2 h-2 bg-[#D4AF37]/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 bg-[#D4AF37]/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 bg-[#D4AF37]/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-              </div>
             </div>
-          )}
-        </div>
+          ))}
+
+        {isTyping && (
+          <div className="flex items-start gap-6">
+            <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center flex-shrink-0 border border-[#D4AF37]/10">
+              <Bot className="w-5 h-5" />
+            </div>
+            <div className="flex items-center gap-2 h-10">
+              <span className="w-1.5 h-1.5 bg-[#D4AF37]/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-1.5 bg-[#D4AF37]/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-1.5 bg-[#D4AF37]/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            </div>
+          </div>
+        )}
 
         {extractedData && (
-          <div className="my-12 mx-auto w-full max-w-2xl bg-[#1A1A1A]/80 border border-white/10 rounded-[32px] p-8 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-700 ring-1 ring-white/5">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-green-500/10 text-green-400 flex items-center justify-center border border-green-500/20 shadow-inner">
-                <Check className="w-6 h-6 stroke-[2.5px]" />
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="my-16 space-y-10 border-t border-white/5 pt-16"
+          >
+            <div className="flex items-center gap-6">
+              <div className="w-14 h-14 rounded-2xl bg-green-500/10 text-green-400 flex items-center justify-center border border-green-500/20">
+                <Check className="w-7 h-7 stroke-[2.5px]" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-white tracking-tight">Projet Prêt à l'Action</h3>
-                <p className="text-sm text-white/50 font-medium mt-0.5">L'intelligence artificielle a synthétisé votre vision.</p>
+                <h3 className="text-2xl font-medium text-white tracking-tight">Intelligence Synthétisée</h3>
+                <p className="text-sm text-white/40 mt-1">Votre vision est maintenant structurée et prête pour la production.</p>
               </div>
             </div>
 
-            <div className="space-y-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {extractedData.metadata && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-px flex-1 bg-white/10"></span>
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold">Metadata</span>
-                    <span className="h-px flex-1 bg-white/10"></span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    {['format', 'genre', 'tone'].map(key => (
-                      <div key={key} className="bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-center">
-                        <div className="text-[10px] text-white/30 uppercase tracking-wider mb-1">{key}</div>
-                        <div className="text-sm text-white/90 font-medium capitalize">{(extractedData.metadata as any)[key]}</div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="col-span-full grid grid-cols-3 gap-4">
+                  {['format', 'genre', 'tone'].map(key => (
+                    <div key={key} className="bg-white/5 border border-white/5 rounded-2xl px-6 py-4">
+                      <div className="text-[10px] text-white/20 uppercase tracking-[0.2em] mb-2 font-bold">{key}</div>
+                      <div className="text-[16px] text-white/90 font-medium capitalize">{(extractedData.metadata as any)[key]}</div>
+                    </div>
+                  ))}
                 </div>
               )}
               
               {extractedData.logline && (
                 <div className="space-y-3">
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Logline</span>
-                  <p className="text-[15px] text-white/90 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 shadow-inner italic font-serif">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold ml-1">Logline</span>
+                  <p className="text-[17px] text-white/90 leading-relaxed font-serif italic border-l-2 border-[#D4AF37]/30 pl-6 py-2">
                     "{extractedData.logline}"
                   </p>
                 </div>
@@ -299,18 +297,9 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
 
               {extractedData.synopsis && (
                 <div className="space-y-3">
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Synopsis</span>
-                  <div className="text-[14px] text-white/70 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 line-clamp-4">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold ml-1">Synopsis</span>
+                  <div className="text-[15px] text-white/60 leading-relaxed">
                     {extractedData.synopsis}
-                  </div>
-                </div>
-              )}
-
-              {extractedData.productionNotes && (
-                <div className="space-y-3">
-                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Notes de Production</span>
-                  <div className="text-[14px] text-white/70 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 line-clamp-4">
-                    {extractedData.productionNotes}
                   </div>
                 </div>
               )}
@@ -320,49 +309,30 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
               onClick={handleApprove}
               disabled={isSaving}
               className={cn(
-                "w-full py-4.5 bg-white hover:bg-[#f0f0f0] text-black font-bold rounded-2xl transition-all shadow-xl active:scale-[0.97] flex items-center justify-center gap-3 group",
+                "w-full py-6 bg-white hover:bg-neutral-200 text-black font-bold rounded-2xl transition-all shadow-2xl flex items-center justify-center gap-4 group mt-8",
                 isSaving ? 'opacity-70 cursor-not-allowed' : ''
               )}
             >
               {isSaving ? (
                 <>
                   <div className="w-5 h-5 border-[3px] border-black/10 border-t-black rounded-full animate-spin" />
-                  <span className="tracking-wide">Initialisation du Studio...</span>
+                  <span className="tracking-widest uppercase text-xs">Initialisation...</span>
                 </>
               ) : (
                 <>
-                  <span className="tracking-wide text-[16px]">Propulser le Projet</span>
+                  <span className="tracking-widest uppercase text-xs">Propulser le Projet</span>
                   <ArrowUp className="w-5 h-5 rotate-90 transition-transform group-hover:translate-x-1" />
                 </>
               )}
             </button>
-          </div>
+          </motion.div>
         )}
       </div>
 
-      {/* History Collapsed Placeholder */}
-      <AnimatePresence>
-        {isHistoryCollapsed && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          >
-            <div className="flex flex-col items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/20">
-                <Bot className="w-12 h-12 text-[#D4AF37] animate-pulse" />
-              </div>
-              <p className="text-white/40 text-sm font-medium tracking-widest uppercase">Conversation en cours...</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Input Area */}
-      <div className="absolute bottom-0 left-0 right-0 z-40 px-4 pb-6 pt-2 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/90 to-transparent">
-        <div className="max-w-3xl mx-auto w-full">
-          <div className="relative flex items-end gap-3 bg-[#1a1a1a] border border-white/10 rounded-2xl p-1.5 pl-5 transition-all focus-within:border-white/20 shadow-2xl backdrop-blur-xl">
+      {/* Input Area - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-[120] px-6 pb-10 pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
+        <div className="max-w-4xl mx-auto w-full pointer-events-auto">
+          <div className="relative flex items-end gap-4 bg-[#161616]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-2 pl-6 transition-all focus-within:border-white/20 shadow-2xl">
             <textarea
               ref={inputRef}
               value={inputValue}
@@ -371,33 +341,53 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
               placeholder="Affinez votre idée..."
               rows={1}
               disabled={!!extractedData || isTyping}
-              className="flex-1 bg-transparent border-none outline-none py-3 resize-none text-white placeholder:text-white/25 text-[16px] leading-relaxed max-h-[180px] no-scrollbar"
+              className="flex-1 bg-transparent border-none outline-none py-4 resize-none text-white placeholder:text-white/20 text-[17px] leading-relaxed max-h-[200px] no-scrollbar"
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
               disabled={!inputValue.trim() || isTyping || !!extractedData}
-              className="flex-shrink-0 w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95 disabled:opacity-10 disabled:grayscale mb-0.5"
+              className="flex-shrink-0 w-12 h-12 rounded-[20px] bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95 disabled:opacity-0 disabled:scale-90 transition-all duration-300 mb-1 mr-1"
             >
-              <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
+              <ArrowUp className="w-6 h-6 stroke-[2.5px]" />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Collapsed Placeholder */}
+      <AnimatePresence>
+        {isHistoryCollapsed && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 flex items-center justify-center pointer-events-none"
+          >
+            <div className="flex flex-col items-center gap-8">
+              <div className="w-32 h-32 rounded-full bg-[#D4AF37]/5 flex items-center justify-center border border-[#D4AF37]/10 relative">
+                <Bot className="w-14 h-14 text-[#D4AF37] animate-pulse" />
+                <div className="absolute inset-0 rounded-full border border-[#D4AF37]/20 animate-ping opacity-20" />
+              </div>
+              <p className="text-white/20 text-[10px] font-bold tracking-[0.5em] uppercase">Intelligence en veille</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
 function UserMessageContent({ content, isInitial }: { content: string; isInitial: boolean }) {
-  const [isCollapsed, setIsCollapsed] = useState(content.length > 200);
+  const [isCollapsed, setIsCollapsed] = useState(content.length > 300);
 
   if (!isCollapsed) {
     return (
-      <div className="px-4 py-3 bg-white/5 text-white rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed relative group">
+      <div className="px-6 py-4 bg-white/5 text-white/90 rounded-[24px] rounded-tr-sm text-[16px] leading-relaxed relative group border border-white/5">
         {content}
-        {content.length > 200 && (
+        {content.length > 300 && (
           <button
             onClick={() => setIsCollapsed(true)}
-            className="block mt-2 text-xs text-white/30 hover:text-white/60 transition-colors border-none bg-transparent p-0"
+            className="block mt-4 text-[10px] uppercase tracking-widest text-white/20 hover:text-white/40 transition-colors border-none bg-transparent p-0 font-bold"
           >
             Voir moins
           </button>
@@ -408,14 +398,15 @@ function UserMessageContent({ content, isInitial }: { content: string; isInitial
 
   return (
     <div
-      className="px-4 py-3 bg-white/5 text-white/50 italic rounded-2xl rounded-tr-sm max-w-[80%] text-[15px] leading-relaxed cursor-pointer hover:bg-white/10 transition-colors"
+      className="px-6 py-4 bg-white/5 text-white/40 italic rounded-[24px] rounded-tr-sm text-[16px] leading-relaxed cursor-pointer hover:bg-white/10 transition-all border border-white/5"
       onClick={() => setIsCollapsed(false)}
     >
-      <div className="line-clamp-2">{content}</div>
-      <div className="flex items-center gap-1 mt-1 text-[11px] text-[#D4AF37]/70 font-medium">
-        <span>Voir plus</span>
+      <div className="line-clamp-2 font-light">{content}</div>
+      <div className="flex items-center gap-2 mt-3 text-[10px] text-[#D4AF37]/50 font-bold uppercase tracking-widest">
+        <span>Détails</span>
         <ChevronDown className="w-3 h-3" />
       </div>
     </div>
   );
 }
+

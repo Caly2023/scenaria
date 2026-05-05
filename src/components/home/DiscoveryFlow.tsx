@@ -23,9 +23,11 @@ interface DiscoveryFlowProps {
   initialIdea: string;
   onValidate: (data: ExtractedData) => Promise<void>;
   onCancel: () => void;
+  error?: string | null;
+  onClearError?: () => void;
 }
 
-export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFlowProps) {
+export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClearError }: DiscoveryFlowProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -33,6 +35,8 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
   const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
+  const [isEditingExtracted, setIsEditingExtracted] = useState(false);
+  const [editableExtractedData, setEditableExtractedData] = useState<ExtractedData | null>(null);
 
   const chatStartedRef = useRef(false);
   const messagesRef = useRef<Message[]>([]);
@@ -112,6 +116,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
         const extracted = toolCall.input ?? toolCall.args;
         if (extracted) {
           setExtractedData(extracted as ExtractedData);
+          setEditableExtractedData(extracted as ExtractedData);
         }
       }
     } catch (error) {
@@ -162,13 +167,18 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
   };
 
   const handleApprove = async () => {
-    if (!extractedData || isSaving) return;
+    const dataToSave = editableExtractedData || extractedData;
+    if (!dataToSave || isSaving) return;
     setIsSaving(true);
     try {
-      await onValidate(extractedData);
+      await onValidate(dataToSave);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const triggerManualSynthesis = () => {
+    handleSendMessage("S'il te plaît, génère la synthèse du projet maintenant avec les informations que tu as. Je suis prêt à passer à l'étape suivante.");
   };
 
   return (
@@ -276,32 +286,44 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {extractedData.metadata && (
+              {editableExtractedData?.metadata && (
                 <div className="col-span-full grid grid-cols-3 gap-4">
                   {['format', 'genre', 'tone'].map(key => (
-                    <div key={key} className="bg-white/5 border border-white/5 rounded-2xl px-6 py-4">
+                    <div key={key} className="bg-white/5 border border-white/5 rounded-2xl px-6 py-4 group relative">
                       <div className="text-[10px] text-white/20 uppercase tracking-[0.2em] mb-2 font-bold">{key}</div>
-                      <div className="text-[16px] text-white/90 font-medium capitalize">{(extractedData.metadata as any)[key]}</div>
+                      <input 
+                        type="text"
+                        value={(editableExtractedData.metadata as any)[key] || ''}
+                        onChange={(e) => setEditableExtractedData({
+                          ...editableExtractedData,
+                          metadata: { ...editableExtractedData.metadata!, [key]: e.target.value }
+                        })}
+                        className="w-full bg-transparent border-none outline-none text-[16px] text-white/90 font-medium capitalize p-0"
+                      />
                     </div>
                   ))}
                 </div>
               )}
               
-              {extractedData.logline && (
+              {editableExtractedData?.logline !== undefined && (
                 <div className="space-y-3">
                   <span className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold ml-1">Logline</span>
-                  <p className="text-[17px] text-white/90 leading-relaxed font-serif italic border-l-2 border-[#D4AF37]/30 pl-6 py-2">
-                    "{extractedData.logline}"
-                  </p>
+                  <textarea
+                    value={editableExtractedData.logline}
+                    onChange={(e) => setEditableExtractedData({ ...editableExtractedData, logline: e.target.value })}
+                    className="w-full bg-transparent border-l-2 border-[#D4AF37]/30 pl-6 py-2 text-[17px] text-white/90 leading-relaxed font-serif italic outline-none resize-none min-h-[80px]"
+                  />
                 </div>
               )}
 
-              {extractedData.synopsis && (
+              {editableExtractedData?.synopsis !== undefined && (
                 <div className="space-y-3">
                   <span className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold ml-1">Synopsis</span>
-                  <div className="text-[15px] text-white/60 leading-relaxed">
-                    {extractedData.synopsis}
-                  </div>
+                  <textarea
+                    value={editableExtractedData.synopsis}
+                    onChange={(e) => setEditableExtractedData({ ...editableExtractedData, synopsis: e.target.value })}
+                    className="w-full bg-transparent text-[15px] text-white/60 leading-relaxed outline-none resize-none min-h-[150px] no-scrollbar"
+                  />
                 </div>
               )}
             </div>
@@ -326,6 +348,25 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
                 </>
               )}
             </button>
+
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-between gap-4"
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">Erreur d'initialisation</span>
+                  <p className="text-sm text-red-200/80">{error}</p>
+                </div>
+                <button 
+                  onClick={onClearError}
+                  className="w-8 h-8 rounded-full hover:bg-white/5 flex items-center justify-center text-red-400"
+                >
+                  <Plus className="w-4 h-4 rotate-45" />
+                </button>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </div>
@@ -358,6 +399,15 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
                 <button className="w-10 h-10 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center justify-center border-none bg-transparent">
                   <Plus className="w-[22px] h-[22px]" />
                 </button>
+                {!extractedData && messages.length >= 3 && (
+                  <button 
+                    onClick={triggerManualSynthesis}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37]/20 transition-all border border-[#D4AF37]/20"
+                  >
+                    <Check className="w-[18px] h-[18px]" />
+                    <span className="text-[13px] font-bold uppercase tracking-wider">Synthétiser</span>
+                  </button>
+                )}
                 <button className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all border-none bg-transparent">
                   <Wand2 className="w-[18px] h-[18px] text-gray-400" />
                   <span className="text-[14px] font-medium">Outils</span>

@@ -41,8 +41,10 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
       await onProjectCreate(submittedIdea, selectedFormat === 'Auto' ? undefined : selectedFormat, extractedData);
     } catch (error: unknown) {
       console.error('Creation failed:', error);
-      setCreationError(getErrorMessage(error));
-      setShowDiscovery(false);
+      const msg = getErrorMessage(error);
+      setCreationError(msg);
+      // Don't hide discovery on error, so user doesn't lose chat
+      // setShowDiscovery(false); 
     } finally {
       setIsCreating(false);
       setCreationStatus('idle');
@@ -131,6 +133,8 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
             initialIdea={submittedIdea}
             onValidate={handleDiscoveryValidate}
             onCancel={() => setShowDiscovery(false)}
+            error={creationError}
+            onClearError={() => setCreationError(null)}
           />
         )}
       </AnimatePresence>

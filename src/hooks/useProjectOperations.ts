@@ -98,11 +98,7 @@ export function useProjectOperations({
         updatedAt: timestamp,
       } as any;
       
-      // STEP 1: Redirect immediately
-      handleProjectSelect(docId, newProject);
-      addToast(t('common.generatingProject', { defaultValue: 'Creating project...' }), 'info');
-
-      // STEP 2: Perform Firestore initialization
+      // STEP 1: Perform Firestore initialization first
       const primitives = [];
       
       if (extractedData?.logline) {
@@ -138,11 +134,11 @@ export function useProjectOperations({
         });
       }
 
-      // If no extracted data, use the initial idea as a primitive in Project Brief maybe?
-      // But the requirement says "Once sufficient information is collected, present a validation action."
-      // So extractedData should be there.
-
+      addToast(t('common.generatingProject', { defaultValue: 'Initialisation du projet...' }), 'info');
       await initProjectWithPrims({ projectId: docId, projectData, primitives }).unwrap();
+
+      // STEP 2: Redirect only after successful initialization
+      handleProjectSelect(docId, newProject);
       
       setSyncStatus('synced');
     } catch (error) {

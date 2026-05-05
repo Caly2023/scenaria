@@ -191,7 +191,7 @@ const MainLayoutComponent = ({
 
       <ScriptDoctorFAB 
         isOpen={isDoctorOpen}
-        isVisible={showDoctorBubble && !!currentProject && activeStage !== 'Discovery'}
+        isVisible={showDoctorBubble && !!currentProject}
         isMobile={isMobile}
         isTyping={isTyping}
         isHeavyThinking={isHeavyThinking}

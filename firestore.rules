@@ -57,10 +57,6 @@ service cloud.firestore {
               isAdmin());
     }
 
-    function isOwner(data) {
-      return isAuthenticated() && request.auth.uid == data.get('ownerId', '');
-    }
-
     function isValidProject(data) {
       return data.metadata is map &&
              data.metadata.title is string && data.metadata.title.size() > 0 &&

@@ -40,6 +40,14 @@ export const projectApi = baseApi.injectEndpoints({
           return { error: classifyError(error) };
         }
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Project" as const, id })),
+              { type: "Project", id: "LIST" },
+            ]
+          : [{ type: "Project", id: "LIST" }],
+
       async onCacheEntryAdded(
         userId,
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
@@ -294,7 +302,7 @@ export const projectApi = baseApi.injectEndpoints({
             const primRef = doc(
               collection(db, "projects", projectRef.id, collectionName),
             );
-            const { subcollection, ...dataToSave } = p;
+            const { subcollection: _subcollection, ...dataToSave } = p;
             batch.set(primRef, {
               ...dataToSave,
               projectId: projectRef.id,

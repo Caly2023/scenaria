@@ -75,7 +75,7 @@ const STAGES: StageDefinition[] = [
   {
     id: 'Story Bible',
     name: 'Story Bible',
-    order: 2,
+    order: 1,
     category: 'BIBLE',
     collectionName: 'bible_primitives',
     primitiveTypes: ['character', 'location'],
@@ -95,7 +95,7 @@ const STAGES: StageDefinition[] = [
   {
     id: 'Treatment',
     name: 'Treatment',
-    order: 3,
+    order: 2,
     category: 'NARRATIVE',
     collectionName: 'treatment_primitives',
     primitiveTypes: ['treatment'],
@@ -114,7 +114,7 @@ const STAGES: StageDefinition[] = [
   {
     id: 'Sequencer',
     name: 'Sequencer',
-    order: 4,
+    order: 3,
     category: 'NARRATIVE',
     collectionName: 'sequencer_primitives',
     primitiveTypes: ['sequence'],
@@ -133,7 +133,7 @@ const STAGES: StageDefinition[] = [
   {
     id: 'Dialogue Continuity',
     name: 'Dialogue Continuity',
-    order: 5,
+    order: 4,
     category: 'NARRATIVE',
     collectionName: 'dialogue_primitives',
     primitiveTypes: ['script_scene'],
@@ -152,7 +152,7 @@ const STAGES: StageDefinition[] = [
   {
     id: 'Final Screenplay',
     name: 'Final Screenplay',
-    order: 6,
+    order: 5,
     category: 'NARRATIVE',
     collectionName: 'screenplay_primitives',
     primitiveTypes: ['script_scene'],
@@ -171,7 +171,7 @@ const STAGES: StageDefinition[] = [
   {
     id: 'Technical Breakdown',
     name: 'Technical Breakdown',
-    order: 7,
+    order: 6,
     category: 'PRODUCTION',
     collectionName: 'breakdown_primitives',
     primitiveTypes: ['breakdown'],

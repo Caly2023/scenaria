@@ -58,6 +58,38 @@ export function GeneralSection({
           value={localMeta.logline}
           disabled={isSaving}
           onChange={(e) => handleChange('logline', e.target.value)}
+          rows={isMobile ? 3 : 2}
+          className={cn(
+            'w-full bg-[#121212] border border-white/10 rounded-2xl px-4 py-3 text-sm font-medium transition-all text-white resize-none no-scrollbar focus:border-white/20 outline-none',
+            isMobile && 'text-base py-4 px-5'
+          )}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className={cn('text-[10px] uppercase tracking-widest text-white/30 font-bold ml-1', isMobile && 'text-[11px]')}>
+          Synopsis
+        </label>
+        <textarea
+          value={localMeta.synopsis || ''}
+          disabled={isSaving}
+          onChange={(e) => handleChange('synopsis', e.target.value)}
+          rows={isMobile ? 5 : 4}
+          className={cn(
+            'w-full bg-[#121212] border border-white/10 rounded-2xl px-4 py-3 text-sm font-medium transition-all text-white resize-none no-scrollbar focus:border-white/20 outline-none',
+            isMobile && 'text-base py-4 px-5'
+          )}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className={cn('text-[10px] uppercase tracking-widest text-white/30 font-bold ml-1', isMobile && 'text-[11px]')}>
+          Notes de Production
+        </label>
+        <textarea
+          value={localMeta.productionNotes || ''}
+          disabled={isSaving}
+          onChange={(e) => handleChange('productionNotes', e.target.value)}
           rows={isMobile ? 5 : 4}
           className={cn(
             'w-full bg-[#121212] border border-white/10 rounded-2xl px-4 py-3 text-sm font-medium transition-all text-white resize-none no-scrollbar focus:border-white/20 outline-none',

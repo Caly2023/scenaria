@@ -296,6 +296,24 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
                   </p>
                 </div>
               )}
+
+              {extractedData.synopsis && (
+                <div className="space-y-3">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Synopsis</span>
+                  <div className="text-[14px] text-white/70 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 line-clamp-4">
+                    {extractedData.synopsis}
+                  </div>
+                </div>
+              )}
+
+              {extractedData.productionNotes && (
+                <div className="space-y-3">
+                  <span className="text-[11px] uppercase tracking-[0.2em] text-white/30 font-bold ml-1">Notes de Production</span>
+                  <div className="text-[14px] text-white/70 leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/5 line-clamp-4">
+                    {extractedData.productionNotes}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button

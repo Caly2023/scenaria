@@ -210,7 +210,6 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: any; child
     projectHook,
     doctor,
     callbacks,
-    handleStoryChange,
     onLoglineChange,
     hydrationState,
     telemetryStatus,

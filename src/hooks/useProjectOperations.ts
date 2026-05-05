@@ -60,7 +60,9 @@ export function useProjectOperations({
         tone: extractedData?.metadata?.tone || '',
         logline: extractedData?.logline || '',
         languages: extractedData?.metadata?.languages || [],
-        targetDuration: extractedData?.metadata?.targetDuration || ''
+        targetDuration: extractedData?.metadata?.targetDuration || '',
+        productionNotes: extractedData?.productionNotes || extractedData?.metadata?.productionNotes || '',
+        synopsis: extractedData?.synopsis || extractedData?.metadata?.synopsis || ''
       };
 
       const projectilesRef = doc(collection(db, 'projects'));

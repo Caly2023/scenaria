@@ -66,6 +66,8 @@ export interface ProjectMetadata {
   languages: string[];
   targetDuration: string;
   logline: string;
+  productionNotes?: string;
+  synopsis?: string;
 }
 
 export interface Project {

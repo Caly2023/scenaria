@@ -8,6 +8,8 @@ export const MetadataSchema = z.object({
   logline: z.string().optional(),
   languages: z.array(z.string()).optional(),
   targetDuration: z.string().optional(),
+  productionNotes: z.string().optional(),
+  synopsis: z.string().optional(),
 }).passthrough();
 
 export const SCRIPT_DOCTOR_FUNCTION_DECLARATIONS = [

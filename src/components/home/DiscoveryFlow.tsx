@@ -4,6 +4,7 @@ import { Bot, User, Check, ArrowUp, ChevronDown, MessageSquare } from 'lucide-re
 import { motion, AnimatePresence } from 'motion/react';
 import { ProjectMetadata } from '../../types';
 import { cn } from '@/lib/utils';
+import { DictationButton } from '../ui/DictationButton';
 
 interface Message {
   id: string;
@@ -332,7 +333,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
       {/* Input Area - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-[120] px-6 pb-10 pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
         <div className="max-w-4xl mx-auto w-full pointer-events-auto">
-          <div className="relative flex items-end gap-4 bg-[#161616]/80 backdrop-blur-2xl border border-white/10 rounded-[28px] p-2 pl-6 transition-all focus-within:border-white/20 shadow-2xl">
+          <div className="flex items-center gap-4 bg-[#161616]/80 backdrop-blur-2xl border border-white/10 rounded-[32px] p-2 pl-6 transition-all focus-within:border-white/20 shadow-2xl">
             <textarea
               ref={inputRef}
               value={inputValue}
@@ -341,18 +342,25 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
               placeholder="Affinez votre idée..."
               rows={1}
               disabled={!!extractedData || isTyping}
-              className="flex-1 bg-transparent border-none outline-none py-4 resize-none text-white placeholder:text-white/20 text-[17px] leading-relaxed max-h-[200px] no-scrollbar"
+              className="flex-1 bg-transparent border-none outline-none py-3 resize-none text-white placeholder:text-white/20 text-[17px] leading-tight max-h-[200px] no-scrollbar"
             />
-            <button
-              onClick={() => handleSendMessage(inputValue)}
-              disabled={!inputValue.trim() || isTyping || !!extractedData}
-              className="flex-shrink-0 w-12 h-12 rounded-[20px] bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95 disabled:opacity-0 disabled:scale-90 transition-all duration-300 mb-1 mr-1"
-            >
-              <ArrowUp className="w-6 h-6 stroke-[2.5px]" />
-            </button>
+            <div className="flex items-center gap-2 pr-2">
+              <DictationButton 
+                onResult={(text) => setInputValue(prev => prev + (prev ? ' ' : '') + text)}
+                size="md"
+              />
+              <button
+                onClick={() => handleSendMessage(inputValue)}
+                disabled={!inputValue.trim() || isTyping || !!extractedData}
+                className="flex-shrink-0 w-11 h-11 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95 disabled:opacity-0 disabled:scale-90 transition-all duration-300"
+              >
+                <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
 
       {/* Collapsed Placeholder */}
       <AnimatePresence>

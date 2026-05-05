@@ -64,7 +64,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const firstName = userDisplayName?.split(' ')[0] || '';
 
   return (
-    <div className="w-full min-h-screen flex flex-col relative overflow-y-auto overflow-x-hidden scroll-smooth selection:bg-[#D4AF37]/30">
+    <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
       <AnimatePresence mode="wait">
         {!showDiscovery ? (
           <motion.div 
@@ -73,77 +73,76 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.5 }}
-            className="flex-1 w-full max-w-5xl mx-auto px-6 pt-[15vh] pb-48 flex flex-col items-center"
+            className="w-full max-w-3xl z-10 flex flex-col items-start md:items-center space-y-12"
           >
             {/* Background stays subtle */}
-            <div className="fixed inset-0 pointer-events-none z-0">
+            <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[#D4AF37]/5 blur-[120px] rounded-full animate-pulse" />
             </div>
 
-            <div className="w-full space-y-12 z-10 relative">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                className="w-full space-y-2 text-center md:text-left"
-              >
-                <h1 className="text-4xl md:text-6xl font-light tracking-tight text-white/90">
-                  {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
-                </h1>
-                <h2 className="text-4xl md:text-6xl font-light tracking-tight text-white/20">
-                  Par où commencer ?
-                </h2>
-              </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+              className="w-full space-y-1"
+            >
+              <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-white/90">
+                {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
+              </h1>
+              <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-white/40">
+                Par où commencer ?
+              </h2>
+            </motion.div>
 
-              {/* Gemini Style Pills */}
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 1 }}
-                className="w-full flex flex-wrap justify-center md:justify-start gap-4 pt-4"
-              >
-                {[
-                  { label: 'Créer une image', icon: '🎨' },
-                  { label: 'Créer de la musique', icon: '🎵' },
-                  { label: 'Rédiger', icon: '✍️' },
-                  { label: 'Donne du peps à ma journée', icon: '✨' },
-                  { label: 'Aide-moi à apprendre', icon: '🎓' }
-                ].map((pill, i) => (
-                  <button key={i} className="flex items-center gap-3 px-5 py-3 bg-[#161616]/40 hover:bg-[#161616]/80 border border-white/5 rounded-2xl transition-all backdrop-blur-xl group">
-                    <span className="text-lg group-hover:scale-110 transition-transform">{pill.icon}</span>
-                    <span className="text-[14px] text-white/70 group-hover:text-white transition-colors">{pill.label}</span>
-                  </button>
-                ))}
-              </motion.div>
+            {/* Input Area */}
+            <div className="w-full">
+              <ProjectInput 
+                storyIdea={storyIdea}
+                setStoryIdea={setStoryIdea}
+                isFocused={isFocused}
+                setIsFocused={setIsFocused}
+                isCreating={isCreating}
+                creationStatus={creationStatus}
+                creationError={creationError}
+                setCreationError={setCreationError}
+                onSubmit={() => handleSubmit()}
+                handleFileImport={handleFileImport}
+              />
             </div>
 
-            {/* Input Area - Fixed at Bottom */}
-            <div className="fixed bottom-0 left-0 right-0 z-50 px-6 pb-10 pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
-              <div className="max-w-4xl mx-auto w-full pointer-events-auto">
-                <ProjectInput 
-                  storyIdea={storyIdea}
-                  setStoryIdea={setStoryIdea}
-                  isFocused={isFocused}
-                  setIsFocused={setIsFocused}
-                  isCreating={isCreating}
-                  creationStatus={creationStatus}
-                  creationError={creationError}
-                  setCreationError={setCreationError}
-                  onSubmit={() => handleSubmit()}
-                  handleFileImport={handleFileImport}
-                />
-              </div>
-            </div>
+            {/* Gemini Style Pills */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 1 }}
+              className="w-full flex flex-wrap justify-center gap-3 pt-2"
+            >
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+                <span className="text-[14px] text-white/90">Créer une image</span>
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+                <span className="text-[14px] text-white/90">Créer de la musique</span>
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+                <span className="text-[14px] text-white/90">Rédiger</span>
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+                <span className="text-[14px] text-white/90">Donne du peps à ma journée</span>
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
+                <span className="text-[14px] text-white/90">Aide-moi à apprendre</span>
+              </button>
+            </motion.div>
 
             {/* Simplified Footer Branding */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.5 }}
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 opacity-10 pointer-events-none"
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-20 hidden md:block"
             >
-              <p className="text-[10px] font-bold uppercase tracking-[0.6em] text-white whitespace-nowrap">
-                S C E N A R I A
+              <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white">
+                Powered by S C E N A R I A Intelligence
               </p>
             </motion.div>
           </motion.div>
@@ -159,4 +158,5 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
     </div>
   );
 }
+
 

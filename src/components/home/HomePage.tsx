@@ -64,7 +64,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const firstName = userDisplayName?.split(' ')[0] || '';
 
   return (
-    <div className="w-full h-screen max-h-[calc(100dvh-120px)] md:max-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
+    <div className="w-full h-dvh flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
       <AnimatePresence mode="wait">
         {!showDiscovery ? (
           <motion.div 
@@ -93,7 +93,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
                 Par où commencer ?
               </h2>
               <p className="text-[15px] md:text-[16px] text-white/50 mt-4 max-w-[280px] md:max-w-md leading-relaxed font-normal">
-                Décrivez votre idée de projet et laissez l'intelligence artificielle vous guider dans sa réalisation.
+                L'atelier intelligent qui transforme vos idées brutes en projets structurés et prêts à être réalisés.
               </p>
             </motion.div>
 

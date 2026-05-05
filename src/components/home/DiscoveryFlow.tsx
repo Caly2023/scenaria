@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bot, User, Check, ArrowUp, ChevronDown, MessageSquare } from 'lucide-react';
+import { Bot, User, Check, ArrowUp, ChevronDown, MessageSquare, Plus, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ProjectMetadata } from '../../types';
 import { cn } from '@/lib/utils';

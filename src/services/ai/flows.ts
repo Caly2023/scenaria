@@ -368,6 +368,15 @@ Context so far (Initial Idea): ${context}`;
     const parts = response.message?.content || [];
     const textPart = response.text || '';
     
+    // Safety check: ensure we always return something to prevent client-side hanging
+    if (parts.length === 0 && !textPart) {
+      return {
+        parts: [{ text: "J'analyse votre idée... Pouvons-nous approfondir certains aspects ?" }],
+        text: "J'analyse votre idée... Pouvons-nous approfondir certains aspects ?",
+        message: response.message
+      };
+    }
+
     return {
       parts,
       text: textPart,

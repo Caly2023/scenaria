@@ -51,7 +51,7 @@ export function useProjectData(user: User | null): ProjectDataState {
   const {
     data: currentProject = null,
     isLoading: isProjectLoading,
-    isError: isProjectNotFound
+    isError: isProjectByIdError
   } = useGetProjectByIdQuery(currentProjectId || '', { skip: !user || !currentProjectId });
 
   // Run migration if needed when the project loads
@@ -115,7 +115,12 @@ export function useProjectData(user: User | null): ProjectDataState {
   };
 
   const returnedProject = currentProject || (optimisticProject?.id === currentProjectId ? optimisticProject : null);
+  
+  // CRITICAL FIX: Only show loading if we don't have ANY project data (neither cached nor optimistic)
   const loading = isProjectLoading && !!currentProjectId && !returnedProject;
+  
+  // CRITICAL FIX: Only show "Not Found" if the query failed AND we don't have an optimistic project
+  const isProjectNotFound = isProjectByIdError && !returnedProject;
 
   return {
     projects,

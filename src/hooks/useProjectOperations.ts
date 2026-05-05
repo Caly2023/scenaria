@@ -65,8 +65,8 @@ export function useProjectOperations({
         synopsis: extractedData?.synopsis || extractedData?.metadata?.synopsis || ''
       };
 
-      const projectilesRef = doc(collection(db, 'projects'));
-      const docId = projectilesRef.id;
+      const projectRef = doc(collection(db, 'projects'));
+      const docId = projectRef.id;
       const timestamp = Date.now();
 
       const projectData = {

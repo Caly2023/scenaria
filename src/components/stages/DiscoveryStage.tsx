@@ -489,10 +489,10 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
         )}
       </div>
 
-      {/* Input Area – Premium Gemini Style */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-8 pt-4 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/95 to-transparent">
-        <div className="max-w-3xl mx-auto w-full relative">
-          <div className="relative flex items-end gap-2 bg-[#1e1e1e] border border-white/10 rounded-[32px] p-2 pl-6 transition-all focus-within:ring-2 focus-within:ring-white/10 focus-within:border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-md">
+      {/* Input Area – Premium Compact Style */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6 pt-2 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/90 to-transparent">
+        <div className="max-w-3xl mx-auto w-full">
+          <div className="relative flex items-end gap-3 bg-[#1a1a1a] border border-white/10 rounded-2xl p-1.5 pl-5 transition-all focus-within:border-white/20 shadow-2xl backdrop-blur-xl">
             <textarea
               ref={inputRef}
               value={inputValue}
@@ -501,21 +501,15 @@ export function DiscoveryStage({ onValidate }: { onValidate: () => void | Promis
               placeholder="Décrivez votre vision..."
               rows={1}
               disabled={!!extractedData || isTyping}
-              className="flex-1 bg-transparent border-none outline-none py-3.5 resize-none text-white placeholder:text-white/30 text-[17px] leading-[1.5] max-h-[200px] no-scrollbar"
+              className="flex-1 bg-transparent border-none outline-none py-3 resize-none text-white placeholder:text-white/25 text-[16px] leading-relaxed max-h-[180px] no-scrollbar"
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
               disabled={!inputValue.trim() || isTyping || !!extractedData}
-              className="flex-shrink-0 w-12 h-12 rounded-[24px] bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-90 disabled:opacity-10 disabled:grayscale border-none mb-0.5 mr-0.5 shadow-lg"
+              className="flex-shrink-0 w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95 disabled:opacity-10 disabled:grayscale mb-0.5"
             >
-              <ArrowUp className="w-6 h-6 stroke-[2.5px]" />
+              <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
             </button>
-          </div>
-          
-          <div className="flex items-center justify-center gap-6 mt-4">
-            <p className="text-[10px] text-white/20 font-bold tracking-[0.2em] uppercase">
-              S C E N A R I A Intelligent Discovery
-            </p>
           </div>
         </div>
       </div>

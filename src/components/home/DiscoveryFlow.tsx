@@ -331,14 +331,14 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-[120] px-6 pb-6 pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 z-[120] px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
         <div className="max-w-4xl mx-auto w-full pointer-events-auto">
           <div className={cn(
             "flex flex-col bg-[#1e1f20] border-none rounded-[28px] md:rounded-[32px] transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
             !!extractedData || isTyping ? "opacity-50 pointer-events-none" : ""
           )}>
             {/* Row 1: Textarea */}
-            <div className="px-6 pt-4 pb-1">
+            <div className="px-5 pt-3 pb-0">
               <textarea
                 ref={inputRef}
                 value={inputValue}
@@ -352,7 +352,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
             </div>
 
             {/* Row 2: Action Bar */}
-            <div className="px-4 pb-4 pt-1 flex items-center justify-between">
+            <div className="px-4 pb-2 md:pb-3 pt-0 flex items-center justify-between">
               {/* Left Actions */}
               <div className="flex items-center gap-1">
                 <button className="w-10 h-10 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center justify-center border-none bg-transparent">

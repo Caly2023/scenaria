@@ -54,13 +54,12 @@ export function ProjectInput({
           "rounded-[28px] md:rounded-[32px]",
           "md:shadow-lg",
           isFocused && "md:shadow-[0_4px_20px_rgba(0,0,0,0.5)]",
-          // Mobile fixed at bottom
-          "max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:rounded-b-none max-md:rounded-t-[32px] max-md:z-[100] max-md:pb-safe"
+          "max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:rounded-b-none max-md:rounded-t-[32px] max-md:z-[100] max-md:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
         )}
       >
         <div className="flex flex-col">
           {/* Row 1: Input Area */}
-          <div className="px-6 pt-3 pb-1 md:pt-5 md:pb-2">
+          <div className="px-5 pt-2 pb-0 md:pt-4 md:pb-1">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -75,13 +74,13 @@ export function ProjectInput({
               placeholder={t('common.homePlaceholder')}
               className={cn(
                 "w-full bg-transparent border-none font-normal leading-tight placeholder:text-gray-500 px-0 resize-none no-scrollbar text-white outline-none transition-all",
-                "text-[17px] md:text-[18px] min-h-[36px] md:min-h-[44px]"
+                "text-[16px] md:text-[17px] min-h-[28px] md:min-h-[32px]"
               )}
             />
           </div>
 
           {/* Row 2: Action Bar */}
-          <div className="px-4 pb-3 md:pb-4 pt-1 flex items-center justify-between">
+          <div className="px-4 pb-2 md:pb-3 pt-0 flex items-center justify-between">
             {/* Left Actions */}
             <div className="flex items-center gap-1">
               <input 

@@ -64,7 +64,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const firstName = userDisplayName?.split(' ')[0] || '';
 
   return (
-    <div className="w-full h-full min-h-[calc(100dvh-120px)] md:min-h-0 flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
+    <div className="w-full h-screen max-h-[calc(100dvh-120px)] md:max-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 md:px-0">
       <AnimatePresence mode="wait">
         {!showDiscovery ? (
           <motion.div 
@@ -73,7 +73,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-3xl z-10 flex flex-col items-center space-y-8 md:space-y-12 h-full md:h-auto"
+            className="w-full max-w-3xl z-10 flex flex-col items-center space-y-4 md:space-y-6 h-full md:h-auto py-2"
           >
             {/* Background stays subtle */}
             <div className="absolute inset-0 pointer-events-none">
@@ -84,14 +84,17 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-              className="w-full text-center px-2 flex flex-col items-center justify-center max-md:flex-1"
+              className="w-full text-center px-4 flex flex-col items-center justify-center max-md:flex-1"
             >
-              <h1 className="text-[28px] md:text-[40px] font-medium tracking-tight text-white leading-[1.1]">
+              <h1 className="text-[32px] md:text-[36px] font-medium tracking-tight text-white leading-[1.2]">
                 {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
               </h1>
-              <h2 className="text-[28px] md:text-[40px] font-medium tracking-tight text-white leading-[1.1]">
+              <h2 className="text-[32px] md:text-[36px] font-medium tracking-tight text-white leading-[1.2]">
                 Par où commencer ?
               </h2>
+              <p className="text-[15px] md:text-[16px] text-white/50 mt-4 max-w-[280px] md:max-w-md leading-relaxed font-normal">
+                Décrivez votre idée de projet et laissez l'intelligence artificielle vous guider dans sa réalisation.
+              </p>
             </motion.div>
 
             {/* Input Area */}

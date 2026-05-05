@@ -84,12 +84,12 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-              className="w-full space-y-1"
+              className="w-full space-y-2 text-left md:text-center px-2"
             >
-              <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-white/90">
+              <h1 className="text-4xl md:text-[56px] font-medium tracking-tight bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 bg-clip-text text-transparent pb-1">
                 {firstName ? `Bonjour ${firstName}` : 'Bonjour'}
               </h1>
-              <h2 className="text-4xl md:text-5xl font-medium tracking-tight text-white/40">
+              <h2 className="text-4xl md:text-[56px] font-medium tracking-tight text-white/40 leading-tight">
                 Par où commencer ?
               </h2>
             </motion.div>
@@ -115,22 +115,23 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 1 }}
-              className="w-full flex flex-wrap justify-center gap-3 pt-2"
+              className="w-full flex flex-wrap justify-start md:justify-center gap-3 pt-4 px-2"
             >
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
-                <span className="text-[14px] text-white/90">Créer une image</span>
+              <button className="flex items-center gap-2.5 px-4 py-2.5 bg-[#1e1f20] hover:bg-[#2b2c2d] border border-white/5 rounded-full transition-all group">
+                <span className="text-lg">🖼️</span>
+                <span className="text-[14px] text-white/90 font-medium">Créer une image</span>
               </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
-                <span className="text-[14px] text-white/90">Créer de la musique</span>
+              <button className="flex items-center gap-2.5 px-4 py-2.5 bg-[#1e1f20] hover:bg-[#2b2c2d] border border-white/5 rounded-full transition-all group">
+                <span className="text-lg">🎸</span>
+                <span className="text-[14px] text-white/90 font-medium">Créer de la musique</span>
               </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
-                <span className="text-[14px] text-white/90">Rédiger</span>
+              <button className="flex items-center gap-2.5 px-4 py-2.5 bg-[#1e1f20] hover:bg-[#2b2c2d] border border-white/5 rounded-full transition-all group">
+                <span className="text-lg">🎓</span>
+                <span className="text-[14px] text-white/90 font-medium">Aide-moi à apprendre</span>
               </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
-                <span className="text-[14px] text-white/90">Donne du peps à ma journée</span>
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-[#131314] hover:bg-[#1e1f20] border border-white/5 rounded-xl transition-all">
-                <span className="text-[14px] text-white/90">Aide-moi à apprendre</span>
+              <button className="flex items-center gap-2.5 px-4 py-2.5 bg-[#1e1f20] hover:bg-[#2b2c2d] border border-white/5 rounded-full transition-all group hidden sm:flex">
+                <span className="text-lg">✨</span>
+                <span className="text-[14px] text-white/90 font-medium">Donne du peps à ma journée</span>
               </button>
             </motion.div>
 

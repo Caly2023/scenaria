@@ -333,29 +333,67 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel }: DiscoveryFl
       {/* Input Area - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 z-[120] px-6 pb-6 pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
         <div className="max-w-4xl mx-auto w-full pointer-events-auto">
-          <div className="flex items-center gap-3 bg-[#161616]/90 backdrop-blur-2xl border border-white/10 rounded-full p-1.5 pl-7 transition-all focus-within:border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-            <textarea
-              ref={inputRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Affinez votre idée..."
-              rows={1}
-              disabled={!!extractedData || isTyping}
-              className="flex-1 bg-transparent border-none outline-none py-3 resize-none text-white placeholder:text-white/20 text-[17px] leading-[1.5] max-h-[200px] no-scrollbar"
-            />
-            <div className="flex items-center gap-2 pr-1">
-              <DictationButton 
-                onResult={(text) => setInputValue(prev => prev + (prev ? ' ' : '') + text)}
-                size="md"
+          <div className={cn(
+            "flex flex-col bg-[#1e1f20] border-none rounded-[28px] md:rounded-[32px] transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
+            !!extractedData || isTyping ? "opacity-50 pointer-events-none" : ""
+          )}>
+            {/* Row 1: Textarea */}
+            <div className="px-6 pt-4 pb-1">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Affinez votre idée..."
+                rows={1}
+                disabled={!!extractedData || isTyping}
+                className="w-full bg-transparent border-none outline-none resize-none text-white placeholder:text-gray-500 text-[17px] leading-[1.6] max-h-[200px] no-scrollbar"
               />
-              <button
-                onClick={() => handleSendMessage(inputValue)}
-                disabled={!inputValue.trim() || isTyping || !!extractedData}
-                className="flex-shrink-0 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95 disabled:opacity-0 disabled:scale-90 transition-all duration-300"
-              >
-                <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
-              </button>
+            </div>
+
+            {/* Row 2: Action Bar */}
+            <div className="px-4 pb-4 pt-1 flex items-center justify-between">
+              {/* Left Actions */}
+              <div className="flex items-center gap-1">
+                <button className="w-10 h-10 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center justify-center border-none bg-transparent">
+                  <Plus className="w-[22px] h-[22px]" />
+                </button>
+                <button className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all border-none bg-transparent">
+                  <Wand2 className="w-[18px] h-[18px] text-gray-400" />
+                  <span className="text-[14px] font-medium">Outils</span>
+                </button>
+              </div>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-1">
+                <button className="hidden md:flex items-center gap-1 px-3 py-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all border-none bg-transparent">
+                  <span className="text-[14px] font-medium">Raisonnement</span>
+                  <ChevronDown className="w-4 h-4 opacity-50" />
+                </button>
+
+                <div className="flex items-center gap-1">
+                  <DictationButton 
+                    onResult={(text) => setInputValue(prev => prev + (prev ? ' ' : '') + text)}
+                    size="md"
+                  />
+                  <button
+                    onClick={() => handleSendMessage(inputValue)}
+                    disabled={!inputValue.trim() || isTyping || !!extractedData}
+                    className={cn(
+                      "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ml-1",
+                      inputValue.trim() 
+                        ? "bg-white text-black hover:bg-gray-200" 
+                        : "bg-white/5 text-gray-600 cursor-not-allowed"
+                    )}
+                  >
+                    {isTyping ? (
+                      <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                    ) : (
+                      <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -51,13 +51,13 @@ export function ProjectInput({
         className={cn(
           "relative w-full transition-all duration-300",
           "bg-[#1e1f20] border-none",
-          "rounded-[32px]",
+          "rounded-[28px] md:rounded-[32px]",
           isFocused ? "shadow-[0_4px_20px_rgba(0,0,0,0.5)]" : "shadow-lg"
         )}
       >
         <div className="flex flex-col">
           {/* Row 1: Input Area */}
-          <div className="px-5 pt-5 pb-2">
+          <div className="px-6 pt-5 pb-2">
             <textarea
               ref={textareaRef}
               value={storyIdea}
@@ -71,15 +71,16 @@ export function ProjectInput({
               onKeyDown={handleKeyDown}
               placeholder={t('common.homePlaceholder')}
               className={cn(
-                "w-full bg-transparent border-none font-medium leading-relaxed placeholder:text-gray-400 px-1 resize-none no-scrollbar text-white outline-none transition-all",
-                "text-base md:text-[17px] min-h-[44px]"
+                "w-full bg-transparent border-none font-normal leading-relaxed placeholder:text-gray-500 px-0 resize-none no-scrollbar text-white outline-none transition-all",
+                "text-[17px] md:text-[18px] min-h-[44px]"
               )}
             />
           </div>
 
           {/* Row 2: Action Bar */}
           <div className="px-4 pb-4 pt-1 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+            {/* Left Actions */}
+            <div className="flex items-center gap-1">
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -92,49 +93,52 @@ export function ProjectInput({
                   triggerHaptic('light');
                   fileInputRef.current?.click();
                 }}
-                className="w-10 h-10 rounded-full hover:bg-white/10 text-gray-300 hover:text-white transition-all flex items-center justify-center border-none"
+                className="w-10 h-10 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all flex items-center justify-center border-none"
                 title={t('common.importText')}
               >
                 <Plus className="w-[22px] h-[22px]" />
               </button>
               
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-white/10 text-gray-300 hover:text-white cursor-pointer transition-all">
-                <Wand2 className="w-4 h-4" />
-                <span className="text-[13px] font-medium">Outils</span>
-              </div>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all border-none bg-transparent">
+                <Wand2 className="w-[18px] h-[18px]" />
+                <span className="text-[14px] font-medium">Outils</span>
+              </button>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-1 px-3 py-2 rounded-xl hover:bg-white/10 text-gray-300 hover:text-white cursor-pointer transition-all">
-                <span className="text-[13px] font-medium">Raisonnement</span>
+            {/* Right Actions */}
+            <div className="flex items-center gap-1">
+              <button className="hidden md:flex items-center gap-1 px-3 py-2 rounded-full hover:bg-white/5 text-gray-400 hover:text-white transition-all border-none bg-transparent">
+                <span className="text-[14px] font-medium">Raisonnement</span>
                 <ChevronDown className="w-4 h-4 opacity-50" />
-              </div>
+              </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <DictationButton 
                   onResult={(text) => setStoryIdea(prev => prev + (prev ? ' ' : '') + text)}
                   size="md"
                 />
                 
-                {storyIdea.trim() && (
-                  <button 
-                    onClick={() => {
+                <button 
+                  onClick={() => {
+                    if (storyIdea.trim() && !isCreating) {
                       triggerHaptic('medium');
                       onSubmit();
-                    }}
-                    disabled={isCreating}
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border-none",
-                      "bg-white text-black hover:bg-gray-200"
-                    )}
-                  >
-                    {isCreating ? (
-                      <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                    ) : (
-                      <ArrowUp className="w-5 h-5" />
-                    )}
-                  </button>
-                )}
+                    }
+                  }}
+                  disabled={!storyIdea.trim() || isCreating}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border-none ml-1",
+                    storyIdea.trim() 
+                      ? "bg-white text-black hover:bg-gray-200" 
+                      : "bg-white/5 text-gray-600 cursor-not-allowed"
+                  )}
+                >
+                  {isCreating ? (
+                    <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    <ArrowUp className="w-5 h-5" />
+                  )}
+                </button>
               </div>
             </div>
           </div>

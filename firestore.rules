@@ -157,6 +157,48 @@ service cloud.firestore {
       // All use the relaxed isValidPrimitive validator so Script Doctor tools
       // can write arbitrary AI-generated content without field validation issues.
 
+      match /brief_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /bible_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /treatment_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /sequencer_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /dialogue_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
+      match /screenplay_primitives/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
+
       match /pitch_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
         allow create: if (isProjectMember(projectId) || (isAuthenticated() && request.resource.data.get('ownerId', '') == request.auth.uid)) && isValidPrimitive(request.resource.data);

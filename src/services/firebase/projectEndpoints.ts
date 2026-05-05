@@ -83,6 +83,7 @@ export const projectApi = baseApi.injectEndpoints({
           return { error: classifyError(error) };
         }
       },
+      providesTags: (_result, _error, id) => [{ type: "Project", id }],
       async onCacheEntryAdded(
         projectId,
         { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
@@ -274,7 +275,7 @@ export const projectApi = baseApi.injectEndpoints({
         try {
           console.log("[FirebaseService] Initializing project with primitives:", {
             projectId,
-            projectData,
+            metadata: projectData.metadata,
             primitivesCount: primitives.length,
           });
           const projectRef = projectId

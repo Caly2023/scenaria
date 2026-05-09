@@ -19,13 +19,13 @@ const scriptDoctorFlow = ai.defineFlow(
   {
     name: 'scriptDoctorFlow',
     inputSchema: z.object({
-      messages: z.array(z.any()),
+      messages: z.array(z.unknown()),
       context: z.string(),
       activeStage: z.string(),
       complexity: z.enum(['simple', 'moderate', 'complex']).optional(),
       idMapContext: z.string().optional(),
     }),
-    outputSchema: z.any(),
+    outputSchema: z.unknown(),
   },
   async (input) => {
     const { messages, context, activeStage, idMapContext = '' } = input;
@@ -40,14 +40,14 @@ const scriptDoctorFlow = ai.defineFlow(
       system: Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite'),
       messages,
       tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => {
-        const buildZodSchema = (props: any, required: string[] = []): z.ZodObject<any> => {
-          const getTypeSchema = (val: any): z.ZodTypeAny => {
+        const buildZodSchema = (props: Record<string, unknown>, required: string[] = []): z.ZodTypeAny => {
+          const getTypeSchema = (val: Record<string, unknown>): z.ZodTypeAny => {
             if (val.type === 'ARRAY') {
-              return z.array(val.items ? getTypeSchema(val.items) : z.any());
+              return z.array(val.items ? getTypeSchema(val.items as Record<string, unknown>) : z.unknown());
             } else if (val.type === 'OBJECT') {
               return val.properties 
-                ? buildZodSchema(val.properties, val.required || [])
-                : z.record(z.any());
+                ? buildZodSchema(val.properties as Record<string, unknown>, (val.required as string[]) || [])
+                : z.record(z.unknown());
             } else if (val.type === 'NUMBER') {
               return z.number();
             } else if (val.type === 'BOOLEAN') {
@@ -60,7 +60,7 @@ const scriptDoctorFlow = ai.defineFlow(
           const shape: Record<string, z.ZodTypeAny> = {};
           
           for (const [k, v] of Object.entries(props || {})) {
-            let schema = getTypeSchema(v);
+            let schema = getTypeSchema(v as Record<string, unknown>);
 
             if (!required.includes(k)) {
               schema = schema.optional();
@@ -75,9 +75,9 @@ const scriptDoctorFlow = ai.defineFlow(
           name: d.name,
           description: d.description,
           inputSchema: d.parameters.type === 'OBJECT' 
-            ? buildZodSchema(d.parameters.properties, d.parameters.required || [])
-            : z.any(), 
-          outputSchema: z.any(),
+            ? buildZodSchema(d.parameters.properties as Record<string, unknown>, d.parameters.required || [])
+            : z.unknown(), 
+          outputSchema: z.unknown(),
         }, async () => ({
           // Tools are implemented client-side in scriptDoctorToolHandlers.
         }));
@@ -122,7 +122,7 @@ const generate3ActStructureFlow = ai.defineFlow(
   {
     name: 'generate3ActStructureFlow',
     inputSchema: z.object({ context: z.string() }),
-    outputSchema: z.any(),
+    outputSchema: z.unknown(),
   },
   async (input) => {
     const response = await ai.generate({
@@ -158,7 +158,7 @@ const extractCharactersFlow = ai.defineFlow(
   {
     name: 'extractCharactersFlow',
     inputSchema: z.object({ brainstorming: z.string() }),
-    outputSchema: z.any(),
+    outputSchema: z.unknown(),
   },
   async (input) => {
     const response = await ai.generate({
@@ -175,8 +175,8 @@ const extractCharactersFlow = ai.defineFlow(
 const generateFullScriptFlow = ai.defineFlow(
   {
     name: 'generateFullScriptFlow',
-    inputSchema: z.any() as any,
-    outputSchema: z.any() as any,
+    inputSchema: z.unknown(),
+    outputSchema: z.unknown(),
   },
   async (ctx) => {
     const response = await ai.generate({
@@ -202,8 +202,8 @@ const genericGeminiFlow = ai.defineFlow(
         'object', 'array', 'stageInsight', 'sequenceArray', 'metadata',
         'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure', 'discoveryExtraction'
       ]).optional(),
-    }) as z.ZodType<any>,
-    outputSchema: z.any(),
+    }) as z.ZodType<unknown>,
+    outputSchema: z.unknown(),
   },
   async (input, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt, structuredOutput, model: modelOverride } = input;
@@ -246,7 +246,7 @@ const genericGeminiFlow = ai.defineFlow(
 
     const structuredSchemaMap: Record<string, z.ZodTypeAny> = {
       object:             z.object({}).passthrough(),
-      array:              z.array(z.any()),
+      array:              z.array(z.unknown()),
       stageInsight:       stageInsightSchema,
       sequenceArray:      z.array(sequenceItemSchema),
       metadata:           MetadataSchema,
@@ -303,10 +303,10 @@ export const flows = {
   discoveryChat:       ai.defineFlow({
     name: 'discoveryChatFlow',
     inputSchema: z.object({
-      messages: z.array(z.any()),
+      messages: z.array(z.unknown()),
       context: z.string()
     }),
-    outputSchema: z.any()
+    outputSchema: z.unknown()
   }, async (input) => {
     const { messages, context } = input;
     const systemPrompt = `Tu es un agent de découverte professionnel pour ScénarIA. 

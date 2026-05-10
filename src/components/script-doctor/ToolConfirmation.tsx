@@ -5,23 +5,19 @@ import { ToolCall } from '@/types/scriptDoctor';
 export function ToolConfirmation({ call, onConfirm, onCancel }: { call: ToolCall; onConfirm: () => void; onCancel: () => void }) {
   const { name, args = {} } = call;
   const data = args as Record<string, unknown>;
-  const updates = (data.updates as Record<string, unknown> | undefined) ?? {};
-  const primitive = (data.primitive as Record<string, unknown> | undefined) ?? {};
   const stage = typeof data.stage === "string" ? data.stage : "stage";
-  const id = typeof data.id === "string" ? data.id : "unknown";
-  const updatesTitle = typeof updates.title === "string" ? updates.title : undefined;
-  const updatesName = typeof updates.name === "string" ? updates.name : undefined;
-  const primitiveTitle = typeof primitive.title === "string" ? primitive.title : undefined;
-  const primitiveName = typeof primitive.name === "string" ? primitive.name : undefined;
+  const updatesArray = Array.isArray(data.updates) ? data.updates : [];
+  const primitivesArray = Array.isArray(data.primitives) ? data.primitives : [];
+  const idsArray = Array.isArray(data.ids) ? data.ids : [];
 
   const getToolDescription = () => {
     switch (name) {
-      case 'propose_patch':
-        return `Modify ${stage}: ${updatesTitle || updatesName || 'selected item'}`;
-      case 'add_primitive':
-        return `Add new ${stage}: ${primitiveTitle || primitiveName || "untitled"}`;
-      case 'delete_primitive':
-        return `Delete ${stage} item: ${id}`;
+      case 'update_primitives':
+        return `Modify ${updatesArray.length} items in ${stage}`;
+      case 'add_primitives':
+        return `Add ${primitivesArray.length} items to ${stage}`;
+      case 'delete_primitives':
+        return `Delete ${idsArray.length} items from ${stage}`;
       case 'restructure_stage':
         return `Full restructure of ${stage}`;
       case 'execute_multi_stage_fix':

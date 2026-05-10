@@ -16,10 +16,10 @@ import { useScriptDoctorTools } from "./useScriptDoctorTools";
 
 /** Tools that require explicit user confirmation before execution. */
 const SENSITIVE_TOOLS = new Set([
-  "propose_patch",
+  "update_primitives",
   "execute_multi_stage_fix",
-  "add_primitive",
-  "delete_primitive",
+  "add_primitives",
+  "delete_primitives",
   "restructure_stage",
   "sync_metadata",
   "trigger_stage_generation",

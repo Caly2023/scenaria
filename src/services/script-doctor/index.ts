@@ -2,7 +2,7 @@ import { ToolHandler } from "./toolTypes";
 import { fetchProjectState, syncMetadata, updateStageInsight, runProjectDiagnostics } from "./projectTools";
 import { getStageStructure, researchContext, restructureStage } from "./structureTools";
 import { fetchCharacterDetails, searchProjectContent } from "./contentTools";
-import { proposePatch, executeMultiStageFix, addPrimitive, deletePrimitive } from "./primitiveTools";
+import { updatePrimitives, executeMultiStageFix, addPrimitives, deletePrimitives } from "./primitiveTools";
 import { updateAgentStatus, setSuggestedActions } from "./uiTools";
 import { triggerStageGenerationHandler, approveStage } from "./workflowTools";
 import { navigateToStage, focusElement, toggleUiPanel } from "./navigationTools";
@@ -20,10 +20,10 @@ export const scriptDoctorToolHandlers: Record<string, ToolHandler> = {
 
   // ── Mutation (CRUD) ───────────────────────────────────────────────────────
   sync_metadata: syncMetadata,
-  propose_patch: proposePatch,
+  update_primitives: updatePrimitives,
   execute_multi_stage_fix: executeMultiStageFix,
-  add_primitive: addPrimitive,
-  delete_primitive: deletePrimitive,
+  add_primitives: addPrimitives,
+  delete_primitives: deletePrimitives,
   restructure_stage: restructureStage,
 
   // ── Analysis & State ──────────────────────────────────────────────────────

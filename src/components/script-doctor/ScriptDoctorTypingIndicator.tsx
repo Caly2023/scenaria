@@ -63,11 +63,11 @@ export function ScriptDoctorTypingIndicator({
                       {activeTool === 'get_stage_structure' && "Mapping system primitives..."}
                       {activeTool === 'fetch_character_details' && "Analyzing psychological profiles..."}
                       {activeTool === 'search_project_content' && "Searching across production stages..."}
-                      {activeTool === 'propose_patch' && "Syncing updates to Firebase..."}
+                      {activeTool === 'update_primitives' && "Syncing updates to Firebase..."}
                       {activeTool === 'execute_multi_stage_fix' && "Coordinating structural fixes..."}
                       {activeTool === 'sync_metadata' && "Synchronizing project DNA..."}
-                      {activeTool === 'add_primitive' && "Inserting structural element..."}
-                      {activeTool === 'delete_primitive' && "Removing element from production..."}
+                      {activeTool === 'add_primitives' && "Inserting structural elements..."}
+                      {activeTool === 'delete_primitives' && "Removing elements from production..."}
                       {activeTool === 'fetch_project_state' && "Loading full state-map..."}
                       {activeTool === 'update_agent_status' && "Updating cognitive state..."}
                     </>

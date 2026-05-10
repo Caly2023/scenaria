@@ -13,8 +13,8 @@ export class StoryBibleAgent extends BaseStageAgent {
       const prompt = `You are a senior story development specialist tasked with building a complete Story Bible from a Project Brief.
 
 ## MISSION
-Analyse the Project Brief (logline, synopsis, production notes, tone, genre) and produce a fully developed Story Bible.
-Every element you create MUST be directly anchored to and consistent with the Project Brief provided.
+Analyse the Project Brief IN ITS ENTIRETY (including the logline, the synopsis, and any production notes) and produce a fully developed Story Bible.
+Every element you create MUST be directly anchored to and consistent with all the metadata and documents provided in the Project Brief. Do not ignore the production notes if they exist.
 
 ## OUTPUT FORMAT
 Return a single JSON object with exactly two keys: "characters" and "locations".
@@ -24,7 +24,7 @@ For EACH main and secondary character, provide ALL of the following fields:
 - name: Full character name (consistent with the brief)
 - role: Their narrative function (protagonist, antagonist, mentor, foil, etc.)
 - age: Approximate age or age range
-- description: A rich paragraph describing their physical appearance, mannerisms, and first impression
+- description: A rich, highly detailed paragraph describing their PHYSICAL APPEARANCE (face, body, clothes, distinct features), their mannerisms, and the first impression they give. A PHYSICAL DESCRIPTION IS MANDATORY.
 - backstory: Their history BEFORE the story begins — formative events, traumas, relationships that shaped them
 - desire: What they consciously WANT in this story (external goal)
 - wound: Their deep psychological wound or unresolved trauma
@@ -39,7 +39,7 @@ For EACH main and secondary character, provide ALL of the following fields:
 For EACH key location, provide ALL of the following fields:
 - name: The location's name or designation
 - type: Interior/Exterior, Urban/Rural, Real/Fantastical, etc.
-- description: A rich paragraph describing the physical space in concrete, sensory detail
+- description: A rich paragraph describing the physical space in concrete, sensory detail. Describe the architecture, the objects, the colors, and the general physical layout. A PHYSICAL DESCRIPTION IS MANDATORY.
 - atmosphere: The emotional and tonal quality of the space — light, sound, smell, temperature, feel
 - symbolism: What this location represents thematically in the story
 - narrativeRole: The narrative function this location serves (inciting incident, climax, refuge, trap, etc.)
@@ -53,6 +53,7 @@ For EACH key location, provide ALL of the following fields:
 4. Character relationships MUST be consistent with the synopsis — no contradictions.
 5. Do NOT invent characters or locations that have no basis in the brief.
 6. Ensure at minimum: 1 protagonist, 1 antagonist or force of opposition, and 2 key locations.
+7. INTEGRATE ALL METADATA: You must strictly incorporate the logline, synopsis, and any provided production notes into the development of these characters and locations.
 
 ## PROJECT CONTEXT
 ${unifiedCtx}`;

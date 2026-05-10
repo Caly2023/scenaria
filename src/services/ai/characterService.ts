@@ -5,10 +5,8 @@ export const characterService = {
     return callGenkitFlow<unknown>('extractCharacters', { brainstorming: context });
   },
 
-  async generateCharacterViews(description: string): Promise<unknown> {
-    return callGenericGemini<unknown>({
-      prompt: `Generate 4 consistent views (Front, Profile, Back, Full-shot) of a character based on this description: "${description}".`
-    });
+  async generateCharacterViews(description: string): Promise<string[]> {
+    return callGenkitFlow<string[]>('generateCharacterImage', { prompt: description });
   },
 
   async deepDevelopCharacter(character: { name: string }, masterStory: string, otherCharacters: { name: string }[]): Promise<unknown> {

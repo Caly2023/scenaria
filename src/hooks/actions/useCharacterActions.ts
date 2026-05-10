@@ -33,6 +33,25 @@ export function useCharacterActions({
     await runAsyncAction(
       async () => {
         const views = await geminiService.generateCharacterViews(char.content);
+        
+        const isConfirmed = window.confirm(
+          "Images successfully generated via nano banana pro!\n\n" +
+          "Do you validate these images? Click OK to store them on Cloudinary and save to your character, or Cancel to discard."
+        );
+
+        if (!isConfirmed) {
+          return;
+        }
+
+        const { cloudinaryService } = await import('../../services/cloudinaryService');
+        
+        const uploadedUrls = await Promise.all(
+          (views as string[]).map(async (base64OrUrl) => {
+             const res = await cloudinaryService.uploadImage(base64OrUrl);
+             return res.secure_url;
+          })
+        );
+
         const collectionName = stageRegistry.getCollectionName('Story Bible');
         await updateSubcol({ 
           projectId: currentProject.id, 
@@ -40,10 +59,10 @@ export function useCharacterActions({
           docId: id, 
           data: {
             views: {
-              front: (views as string[])[0] || '',
-              profile: (views as string[])[1] || '',
-              back: (views as string[])[2] || '',
-              full: (views as string[])[3] || '',
+              front: uploadedUrls[0] || '',
+              profile: uploadedUrls[1] || '',
+              back: uploadedUrls[2] || '',
+              full: uploadedUrls[3] || '',
             }
           }
         }).unwrap();

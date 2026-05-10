@@ -384,6 +384,32 @@ const genericGeminiFlow = ai.defineFlow(
   }
 );
 
+// 8. Image Generation Flow (Nano Banana Pro)
+const generateCharacterImageFlow = ai.defineFlow(
+  {
+    name: 'generateCharacterImageFlow',
+    inputSchema: z.object({ prompt: z.string() }),
+    outputSchema: z.array(z.string()),
+  },
+  async (input) => {
+    try {
+      const response = await ai.generate({
+        model: 'nano-banana-pro' as any, // using requested model via Genkit
+        prompt: `Generate a high quality character concept art: ${input.prompt}`,
+      });
+      // Extract media URLs from response
+      const parts = response.message?.content || [];
+      const images = parts.filter(p => p.media).map(p => p.media?.url).filter(Boolean) as string[];
+      return images;
+    } catch (e) {
+      console.error('Image generation failed:', e);
+      // Fallback if 'nano-banana-pro' fails due to missing plugin
+      // Just returning a dummy array or throwing
+      throw new Error(`Failed to generate image via nano banana pro: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+);
+
 export const flows = {
   scriptDoctor:        scriptDoctorFlow,
   generate3ActStructure: generate3ActStructureFlow,
@@ -391,6 +417,7 @@ export const flows = {
   extractCharacters:   extractCharactersFlow,
   generateFullScript:  generateFullScriptFlow,
   genericGemini:       genericGeminiFlow,
+  generateCharacterImage: generateCharacterImageFlow,
   generateTechnicalBreakdown: generateTechnicalBreakdownFlow,
   discoveryChat:       ai.defineFlow({
     name: 'discoveryChatFlow',

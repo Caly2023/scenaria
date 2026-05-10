@@ -149,7 +149,7 @@ const MainLayoutComponent = ({
         />
 
         <main className={cn("flex-1 flex flex-col relative w-full overflow-hidden")}>
-          <div className={cn("w-full relative h-full overflow-y-auto md:overflow-y-auto no-scrollbar scroll-smooth overscroll-none", isMobile && "overflow-hidden pb-safe-nav")}>
+          <div className={cn("w-full relative h-full overflow-y-auto md:overflow-y-auto no-scrollbar scroll-smooth overscroll-none")}>
             <div className={cn("w-full h-full max-w-5xl mx-auto flex flex-col justify-start relative", isMobile ? "px-3 pt-0" : "px-6 py-6")}>
               <Suspense fallback={<StageSkeleton />}>{renderStage()}</Suspense>
             </div>
@@ -168,7 +168,8 @@ const MainLayoutComponent = ({
       )}
 
       {isMobile && currentProject && <Suspense fallback={null}><ScriptDoctor /></Suspense>}
-      {isMobile && currentProject && <Sidebar variant="bottom-nav" />}
+      {/* Mobile Steps Nav (Hidden per user request) */}
+      {/* {isMobile && currentProject && <Sidebar variant="bottom-nav" />} */}
 
       <FormErrorBoundary>
         <ProjectDrawer isOpen={isProjectDrawerOpen} onClose={handleCloseDrawer} onDelete={handleDeleteCurrentProject} />

@@ -81,6 +81,17 @@ export function Header({
         )}>
           {/* Left — Logo + Project name */}
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            {/* Burger Menu for Mobile */}
+            <button 
+              onClick={() => setIsHistoryOpen(true)}
+              className="md:hidden w-10 h-10 -ml-2 rounded-full hover:bg-white/5 transition-all flex items-center justify-center border-none flex-shrink-0"
+            >
+              <div className="flex flex-col items-start gap-1">
+                <span className="h-[2px] w-5 rounded-full bg-white/80" />
+                <span className="h-[2px] w-3 rounded-full bg-white/80" />
+              </div>
+            </button>
+
             {!currentProject ? (
               <button 
                 onClick={() => setIsHistoryOpen(true)}

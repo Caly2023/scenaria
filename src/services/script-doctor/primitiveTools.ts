@@ -38,7 +38,7 @@ export const proposePatch: ToolHandler = async (args, context) => {
     registerUndoableAction(currentProject.id, "update", {
       collectionName: sub,
       docId: id,
-      previousData: previousItem
+      previousData: previousItem as Record<string, unknown> | undefined
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
@@ -65,7 +65,7 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
   const { firebaseService } = await import("../firebaseService");
 
   try {
-    for (const fix of fixes as any[]) {
+    for (const fix of fixes as { id: string, stage: string, updates: Record<string, unknown> }[]) {
       const sub = subcollectionMap[fix.stage];
       if (!sub) continue;
       const safe = mapPrimitiveToDb(fix.stage, fix.updates);
@@ -83,7 +83,7 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
     return { success: false, error: message };
   }
   
-  const uniqueStages = [...new Set(fixes.map((f: any) => f.stage))] as WorkflowStage[];
+  const uniqueStages = [...new Set(fixes.map(f => (f as { stage: string }).stage))] as WorkflowStage[];
   await Promise.all(uniqueStages.map(s => contextAssembler.getStageStructure(currentProject.id, s)));
   await Promise.all(uniqueStages.map(s => handleStageAnalyze(s)));
   
@@ -105,9 +105,9 @@ export const addPrimitive: ToolHandler = async (args, context) => {
   const { firebaseService } = await import("../firebaseService");
 
   const safeData = mapPrimitiveToDb(stage, {
-    title: (primitive as any).title || (primitive as any).name || "Untitled",
-    content: (primitive as any).content || (primitive as any).description || "",
-    order: getArgNumber(args, "position") ?? (primitive as any).order ?? 0,
+    title: (primitive as { title?: string, name?: string }).title || (primitive as { title?: string, name?: string }).name || "Untitled",
+    content: (primitive as { content?: string, description?: string }).content || (primitive as { content?: string, description?: string }).description || "",
+    order: getArgNumber(args, "position") ?? (primitive as { order?: number }).order ?? 0,
     ...primitive,
   });
   
@@ -164,7 +164,7 @@ export const deletePrimitive: ToolHandler = async (args, context) => {
     registerUndoableAction(currentProject.id, "delete", {
       collectionName: sub,
       docId: id,
-      previousData: previousItem
+      previousData: previousItem as Record<string, unknown> | undefined
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);

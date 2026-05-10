@@ -9,7 +9,14 @@ import {
   useDeleteProjectMutation,
   useInitializeProjectWithPrimitivesMutation 
 } from '../services/firebaseService';
-import { Project, WorkflowStage, ProjectFormat } from '../types';
+import { 
+  Project, 
+  WorkflowStage, 
+  ProjectMetadata, 
+  ProjectFormat,
+  ExtractedData
+} from '../types';
+import { StageState } from '../types/stageContract';
 
 interface UseProjectOperationsProps {
   user: User | null;
@@ -47,22 +54,22 @@ export function useProjectOperations({
     }
   };
 
-  const handleProjectCreate = async (initialIdea: string, format?: ProjectFormat, extractedData?: any) => {
+  const handleProjectCreate = async (initialIdea: string, format?: ProjectFormat, extractedData?: ExtractedData) => {
     if (!user) return;
     
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
       const newMetadata = {
-        title: extractedData?.metadata?.title || 'Untitled Project',
-        format: extractedData?.metadata?.format || format || 'Auto',
-        genre: extractedData?.metadata?.genre || '',
-        tone: extractedData?.metadata?.tone || '',
+        title: (extractedData?.metadata?.title as string) || 'Untitled Project',
+        format: (extractedData?.metadata?.format as string) || format || 'Auto',
+        genre: (extractedData?.metadata?.genre as string) || '',
+        tone: (extractedData?.metadata?.tone as string) || '',
         logline: extractedData?.logline || '',
-        languages: extractedData?.metadata?.languages || [],
-        targetDuration: extractedData?.metadata?.targetDuration || '',
-        productionNotes: extractedData?.productionNotes || extractedData?.metadata?.productionNotes || '',
-        synopsis: extractedData?.synopsis || extractedData?.metadata?.synopsis || ''
+        languages: (extractedData?.metadata?.languages as string[]) || [],
+        targetDuration: (extractedData?.metadata?.targetDuration as string) || '',
+        productionNotes: extractedData?.productionNotes || (extractedData?.metadata?.productionNotes as string) || '',
+        synopsis: extractedData?.synopsis || (extractedData?.metadata?.synopsis as string) || ''
       };
 
       const projectRef = doc(collection(db, 'projects'));
@@ -82,7 +89,7 @@ export function useProjectOperations({
           }
         },
         stageStates: {
-          'Project Brief': 'ready'
+          'Project Brief': 'excellent' as StageState
         },
         collaborators: [user.uid],
         ownerId: user.uid,
@@ -96,7 +103,7 @@ export function useProjectOperations({
         ...projectData, 
         createdAt: timestamp, 
         updatedAt: timestamp,
-      } as any;
+      } as unknown as Project;
       
       // STEP 1: Perform Firestore initialization first
       const primitives = [];

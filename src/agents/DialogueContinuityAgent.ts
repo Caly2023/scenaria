@@ -13,17 +13,17 @@ export class DialogueContinuityAgent extends BaseStageAgent {
       Return a JSON array of script scenes.
       Context: ${unifiedCtx}`;
       
-      const raw: any = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
-      const scenes = Array.isArray(raw) ? raw : (raw?.scenes || raw?.script || []);
+      const raw: unknown = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
+      const items = this.normalizeToJsonArray(raw);
       
-      const content: ContentPrimitive[] = scenes.map((s: any, i: number) => 
-        this.buildPrimitive(`scene_${i}`, s.title || `Scene ${i+1}`, s.content || s.text || '', 'script_scene', i)
+      const content: ContentPrimitive[] = items.map((s, i) => 
+        this.buildPrimitive(`scene_${i}`, (s.title as string) || `Scene ${i+1}`, (s.content as string) || (s.text as string) || '', 'script_scene', i)
       );
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -48,8 +48,8 @@ export class DialogueContinuityAgent extends BaseStageAgent {
       
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 

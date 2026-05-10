@@ -13,18 +13,18 @@ export class ProjectBriefAgent extends BaseStageAgent {
       Format each as a distinct component.
       Context: ${unifiedCtx}`;
       
-      const raw: any = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
+      const raw = (await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true))) as Record<string, unknown>;
       
       const content: ContentPrimitive[] = [
-        this.buildPrimitive('brief_logline', 'Logline', raw.logline || raw.content || '', 'logline', 1),
-        this.buildPrimitive('brief_synopsis', 'Synopsis', raw.synopsis || '', 'synopsis', 2),
-        this.buildPrimitive('brief_notes', 'Production Notes', raw.productionNotes || raw.notes || '', 'production_notes', 3),
+        this.buildPrimitive('brief_logline', 'Logline', (raw.logline as string) || (raw.content as string) || '', 'logline', 1),
+        this.buildPrimitive('brief_synopsis', 'Synopsis', (raw.synopsis as string) || '', 'synopsis', 2),
+        this.buildPrimitive('brief_notes', 'Production Notes', (raw.productionNotes as string) || (raw.notes as string) || '', 'notes', 3)
       ];
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -49,8 +49,8 @@ export class ProjectBriefAgent extends BaseStageAgent {
       
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 

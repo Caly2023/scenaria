@@ -153,7 +153,7 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
 
   const [updateProjectFields] = useUpdateProjectFieldsMutation();
 
-  const handleFieldsUpdate = useCallback(async (updates: Record<string, any>) => {
+  const handleFieldsUpdate = useCallback(async (updates: Record<string, unknown>) => {
     if (!currentProject) return;
     try {
       await updateProjectFields({ id: currentProject.id, updates }).unwrap();
@@ -169,8 +169,9 @@ export function useProjects(user: User | null, addToast: (msg: string, type: 'er
     // Sanitize: ensure we don't accidentally write undefined/null values
     const cleaned = { ...metadata };
     Object.keys(cleaned).forEach(key => {
-      if ((cleaned as any)[key] === undefined || (cleaned as any)[key] === null) {
-        delete (cleaned as any)[key];
+      const cleanedRecord = cleaned as Record<string, unknown>;
+      if (cleanedRecord[key] === undefined || cleanedRecord[key] === null) {
+        delete cleanedRecord[key];
       }
     });
 

@@ -1,8 +1,9 @@
-import { ProjectContext, ContentPrimitive, StageAnalysis } from '../../types/stageContract';
+import { Project, ContentPrimitive } from '../../types';
+import { ProjectContext, StageAnalysis } from '../../types/stageContract';
 
 export function buildProjectContext(
   projectId: string,
-  metadata: any,
+  metadata: Project['metadata'],
   stageContentsMap: Record<string, ContentPrimitive[]>,
   stageAnalysesMap: Record<string, StageAnalysis>
 ): ProjectContext {

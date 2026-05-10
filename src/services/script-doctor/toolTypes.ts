@@ -17,7 +17,7 @@ interface ScriptDoctorToolContext {
   setAiStatus: (status: string | null) => void;
   setDoctorMessages: React.Dispatch<React.SetStateAction<ScriptDoctorMessage[]>>;
   botMsgId?: string | null;
-  t: (key: string, options?: any) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   handleStageChange?: (stage: WorkflowStage) => void;
   triggerStageGeneration?: (stage: WorkflowStage) => Promise<void>;
 }

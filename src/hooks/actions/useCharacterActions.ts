@@ -40,10 +40,10 @@ export function useCharacterActions({
           docId: id, 
           data: {
             views: {
-              front: views[0] || '',
-              profile: views[1] || '',
-              back: views[2] || '',
-              full: views[3] || '',
+              front: (views as string[])[0] || '',
+              profile: (views as string[])[1] || '',
+              back: (views as string[])[2] || '',
+              full: (views as string[])[3] || '',
             }
           }
         }).unwrap();
@@ -78,10 +78,15 @@ export function useCharacterActions({
         const otherChars = bible.filter(c => c.id !== id && c.primitiveType === 'character').map(c => ({ name: c.title, description: c.content }));
 
         const deepData = await geminiService.deepDevelopCharacter(
-          charData as any, 
+          charData as { name: string } & Record<string, unknown>, 
           briefText, 
-          otherChars as any
-        );
+          otherChars as { name: string }[]
+        ) as {
+          nowStory: { tags: string[], physical: string, wantsNeeds: string },
+          backStory: string,
+          forwardStory: string,
+          relationshipMap: string
+        };
 
         const formattedDescription = `
 ## Now-Story

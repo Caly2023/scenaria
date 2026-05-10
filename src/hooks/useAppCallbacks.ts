@@ -60,7 +60,7 @@ export function useAppCallbacks({
   );
 
   const handlePrimitiveAdd = useCallback(
-    async (stage: WorkflowStage, data: any) => {
+    async (stage: WorkflowStage, data: Partial<ContentPrimitive>) => {
       if (!currentProject) return;
       try {
         const collectionName = stageRegistry.getCollectionName(stage);
@@ -82,7 +82,7 @@ export function useAppCallbacks({
   );
 
   const handlePrimitiveUpdate = useCallback(
-    async (stage: WorkflowStage, id: string, updates: any) => {
+    async (stage: WorkflowStage, id: string, updates: Partial<ContentPrimitive>) => {
       if (!currentProject) return;
       try {
         const collectionName = stageRegistry.getCollectionName(stage);

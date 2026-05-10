@@ -16,12 +16,12 @@ export const searchProjectContent: ToolHandler = async (args, context) => {
     success: true,
     data: {
       characters: characters.filter(c => 
-        (c.title || (c as any).name || "").toLowerCase().includes(q) || 
-        (c.content || (c as any).description || "").toLowerCase().includes(q)
+        (c.title || (c as { name?: string }).name || "").toLowerCase().includes(q) || 
+        (c.content || (c as { description?: string }).description || "").toLowerCase().includes(q)
       ),
       locations: locations.filter(l => 
-        (l.title || (l as any).name || "").toLowerCase().includes(q) || 
-        (l.content || (l as any).description || "").toLowerCase().includes(q)
+        (l.title || (l as { name?: string }).name || "").toLowerCase().includes(q) || 
+        (l.content || (l as { description?: string }).description || "").toLowerCase().includes(q)
       ),
     }
   };

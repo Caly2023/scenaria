@@ -9,11 +9,17 @@ export class TreatmentAgent extends BaseStageAgent {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
       const raw = await this.retryWithBackoff(() => geminiService.generateTreatment(unifiedCtx));
-      const blocks = this.normalizeToJsonArray<any>(raw);
+      const blocks = this.normalizeToJsonArray(raw);
 
       const content: ContentPrimitive[] = blocks.length >= 3
-        ? blocks.map((block: any, i: number) =>
-            this.buildPrimitive(`treatment_${i + 1}`, block.title || `Section ${i + 1}`, block.content || '', 'treatment_section', i + 1)
+        ? blocks.map((block, i) =>
+            this.buildPrimitive(
+              `treatment_${i + 1}`,
+              (block.title as string) || `Section ${i + 1}`,
+              (block.content as string) || '',
+              'treatment_section',
+              i + 1
+            )
           )
         : [
             this.buildPrimitive(
@@ -27,8 +33,8 @@ export class TreatmentAgent extends BaseStageAgent {
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -45,8 +51,8 @@ export class TreatmentAgent extends BaseStageAgent {
       const updated = currentContent.map(p => p.id === primitiveId ? { ...p, content: refined } : p);
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 

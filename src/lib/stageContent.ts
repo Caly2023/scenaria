@@ -72,7 +72,7 @@ function getStageContentPrimitives(
 
   if (stage === 'Story Bible') {
     return items.map((item, index) => {
-      const type = (item as any).primitiveType;
+      const type = (item as unknown as Record<string, unknown>).primitiveType as string;
       if (type === 'character') return mapCharacterPrimitive(item as Character, index);
       if (type === 'location') return mapLocationPrimitive(item as Location, index);
       return mapSequencePrimitive(item as Sequence, primitiveType);

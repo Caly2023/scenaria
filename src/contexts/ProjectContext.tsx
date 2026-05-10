@@ -5,7 +5,9 @@ import {
   WorkflowStage, 
   ProjectMetadata, 
   HydrationState,
-  ContentPrimitive
+  ContentPrimitive,
+  ProjectFormat,
+  ExtractedData
 } from '../types';
 import { useProjects } from '../hooks/useProjects';
 import { useAutoHydration } from '../hooks/useAutoHydration';
@@ -31,12 +33,12 @@ interface ProjectContextType {
   hydrationState: HydrationState;
   refiningBlockId: string | null;
   lastUpdatedPrimitiveId: string | null;
-  telemetryStatus: any;
+  telemetryStatus: import('../services/telemetryService').TelemetryStatus | null;
   
   // Handlers
   handleProjectSelect: (id: string, project?: Project) => void;
   handleProjectExit: () => void;
-  handleProjectCreate: (initialIdea: string, format?: any, extractedData?: any) => Promise<void>;
+  handleProjectCreate: (initialIdea: string, format?: ProjectFormat, extractedData?: ExtractedData) => Promise<void>;
   handleProjectDelete: (id: string) => Promise<void>;
   handleStageChange: (stage: WorkflowStage) => void;
   handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
@@ -58,20 +60,20 @@ interface ProjectContextType {
   // App Callbacks (Standardized)
 
   onLoglineChange: (c: string) => void;
-  handlePrimitiveAdd: (stage: WorkflowStage, data: any) => Promise<void>;
-  handlePrimitiveUpdate: (stage: WorkflowStage, id: string, updates: any) => Promise<void>;
+  handlePrimitiveAdd: (stage: WorkflowStage, data: Partial<ContentPrimitive>) => Promise<void>;
+  handlePrimitiveUpdate: (stage: WorkflowStage, id: string, updates: Partial<ContentPrimitive>) => Promise<void>;
   handlePrimitiveDelete: (stage: WorkflowStage, id: string) => Promise<void>;
   
   // Script Doctor
   isDoctorOpen: boolean;
   setIsDoctorOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
-  doctorMessages: any[];
+  doctorMessages: unknown[];
   isDoctorTyping: boolean;
   isHeavyThinking: boolean;
   activeTool: string | null;
   aiStatus: string | null;
   handleDoctorMessage: (content: string) => Promise<void>;
-  pendingToolCall: any;
+  pendingToolCall: unknown;
   handleConfirmTool: () => Promise<void>;
   handleCancelTool: () => void;
   handleToggleDoctor: () => void;
@@ -105,7 +107,7 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-export const ProjectProvider: React.FC<{ user: User | null; addToast: any; children: ReactNode }> = ({ user, addToast, children }) => {
+export const ProjectProvider: React.FC<{ user: User | null; addToast: (msg: string, type: 'success' | 'error' | 'info') => void; children: ReactNode }> = ({ user, addToast, children }) => {
   const projectHook = useProjects(user, addToast);
   const { 
     currentProject, activeStage, handleStageChange, handleStageAnalyze, handleSubcollectionUpdate,

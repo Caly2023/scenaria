@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MessageData } from 'genkit';
 import { ai, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite } from '../../lib/genkit';
 import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
@@ -38,7 +39,7 @@ const scriptDoctorFlow = ai.defineFlow(
     const response = await ai.generate({
       model: gemini31FlashLite,
       system: Prompts.SCRIPT_DOCTOR_SYSTEM_PROMPT(idMapContext, context, activeStage, 'gemini-3.1-flash-lite'),
-      messages,
+      messages: messages as MessageData[],
       tools: SCRIPT_DOCTOR_FUNCTION_DECLARATIONS.map(d => {
         const buildZodSchema = (props: Record<string, unknown>, required: string[] = []): z.ZodTypeAny => {
           const getTypeSchema = (val: Record<string, unknown>): z.ZodTypeAny => {
@@ -181,7 +182,7 @@ const generateFullScriptFlow = ai.defineFlow(
   async (ctx) => {
     const response = await ai.generate({
       model: gemini31FlashLite,
-      prompt: Prompts.SCRIPT_PROMPT(ctx),
+      prompt: Prompts.SCRIPT_PROMPT(ctx as Parameters<typeof Prompts.SCRIPT_PROMPT>[0]),
       output: { format: 'json' },
       use: [retry({ maxRetries: 2 }), fallback(ai, { models: [gemini3Flash, gemini25Flash] })],
     });
@@ -202,7 +203,7 @@ const genericGeminiFlow = ai.defineFlow(
         'object', 'array', 'stageInsight', 'sequenceArray', 'metadata',
         'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure', 'discoveryExtraction'
       ]).optional(),
-    }) as z.ZodType<unknown>,
+    }),
     outputSchema: z.unknown(),
   },
   async (input, { sendChunk }) => {
@@ -354,7 +355,7 @@ Contexte actuel (Idée Initiale) : ${context}`;
     const response = await ai.generate({
       model: gemini3Flash,
       system: systemPrompt,
-      messages,
+      messages: messages as MessageData[],
       tools: [extractTool],
       returnToolRequests: true,
       config: { 

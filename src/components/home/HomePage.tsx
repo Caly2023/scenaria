@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'motion/react';
-import { ProjectFormat } from '../../types';
+import { ProjectFormat, ExtractedData } from '../../types';
 import { getErrorMessage } from '../../lib/errorClassifier';
 import { ProjectInput } from './ProjectInput';
 import { DiscoveryFlow } from './DiscoveryFlow';
 
 interface HomePageProps {
-  onProjectCreate: (idea: string, format?: ProjectFormat, extractedData?: any) => Promise<void>;
+  onProjectCreate: (idea: string, format?: ProjectFormat, extractedData?: ExtractedData) => Promise<void>;
   userDisplayName?: string;
 }
 
@@ -34,7 +34,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
     }
   };
 
-  const handleDiscoveryValidate = async (extractedData: any) => {
+  const handleDiscoveryValidate = async (extractedData: ExtractedData) => {
     setIsCreating(true);
     setCreationStatus('initializing');
     try {

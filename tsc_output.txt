@@ -1,0 +1,399 @@
+﻿src/agents/BaseStageAgent.ts(196,84): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'WorkflowStage'.
+src/agents/DialogueContinuityAgent.ts(17,55): error TS2339: Property 'scenes' does not exist on type '{}'.
+src/agents/DialogueContinuityAgent.ts(17,70): error TS2339: Property 'script' does not exist on type '{}'.
+src/agents/DialogueContinuityAgent.ts(20,43): error TS18046: 's' is of type 'unknown'.
+src/agents/DialogueContinuityAgent.ts(20,70): error TS18046: 's' is of type 'unknown'.
+src/agents/DialogueContinuityAgent.ts(20,83): error TS18046: 's' is of type 'unknown'.
+src/agents/DialogueContinuityAgent.ts(26,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/DialogueContinuityAgent.ts(52,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/FinalScreenplayAgent.ts(17,55): error TS2339: Property 'scenes' does not exist on type '{}'.
+src/agents/FinalScreenplayAgent.ts(17,70): error TS2339: Property 'script' does not exist on type '{}'.
+src/agents/FinalScreenplayAgent.ts(20,43): error TS18046: 's' is of type 'unknown'.
+src/agents/FinalScreenplayAgent.ts(20,70): error TS18046: 's' is of type 'unknown'.
+src/agents/FinalScreenplayAgent.ts(20,83): error TS18046: 's' is of type 'unknown'.
+src/agents/FinalScreenplayAgent.ts(26,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/FinalScreenplayAgent.ts(52,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(19,57): error TS18046: 'raw' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(19,72): error TS18046: 'raw' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(20,59): error TS18046: 'raw' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(21,64): error TS18046: 'raw' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(21,87): error TS18046: 'raw' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(27,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/ProjectBriefAgent.ts(53,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/SequencerAgent.ts(17,55): error TS2339: Property 'scenes' does not exist on type '{}'.
+src/agents/SequencerAgent.ts(17,70): error TS2339: Property 'sequences' does not exist on type '{}'.
+src/agents/SequencerAgent.ts(20,41): error TS18046: 's' is of type 'unknown'.
+src/agents/SequencerAgent.ts(20,71): error TS18046: 's' is of type 'unknown'.
+src/agents/SequencerAgent.ts(20,84): error TS18046: 's' is of type 'unknown'.
+src/agents/SequencerAgent.ts(26,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/SequencerAgent.ts(52,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(22,24): error TS18046: 'raw' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(22,42): error TS18046: 'raw' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(23,23): error TS18046: 'raw' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(23,40): error TS18046: 'raw' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(26,55): error TS18046: 'c' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(26,63): error TS18046: 'c' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(27,17): error TS18046: 'c' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(28,25): error TS18046: 'c' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(33,54): error TS18046: 'l' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(33,62): error TS18046: 'l' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(34,23): error TS18046: 'l' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(35,25): error TS18046: 'l' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(42,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/StoryBibleAgent.ts(68,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/TreatmentAgent.ts(12,48): error TS2344: Type 'unknown' does not satisfy the constraint 'Record<string, unknown>'.
+src/agents/TreatmentAgent.ts(16,55): error TS18046: 'block' is of type 'unknown'.
+src/agents/TreatmentAgent.ts(16,90): error TS18046: 'block' is of type 'unknown'.
+src/agents/TreatmentAgent.ts(31,39): error TS18046: 'e' is of type 'unknown'.
+src/agents/TreatmentAgent.ts(49,39): error TS18046: 'e' is of type 'unknown'.
+src/components/home/DiscoveryFlow.tsx(102,13): error TS18046: 'part' is of type 'unknown'.
+src/components/home/DiscoveryFlow.tsx(102,39): error TS18046: 'part' is of type 'unknown'.
+src/components/home/DiscoveryFlow.tsx(103,13): error TS18046: 'part' is of type 'unknown'.
+src/components/home/DiscoveryFlow.tsx(103,42): error TS18046: 'part' is of type 'unknown'.
+src/components/home/DiscoveryFlow.tsx(115,32): error TS2339: Property 'name' does not exist on type '{}'.
+src/components/home/DiscoveryFlow.tsx(116,36): error TS2339: Property 'input' does not exist on type '{}'.
+src/components/home/DiscoveryFlow.tsx(116,54): error TS2339: Property 'args' does not exist on type '{}'.
+src/components/home/DiscoveryFlow.tsx(326,32): error TS2571: Object is of type 'unknown'.
+src/components/layout/MainLayout.tsx(143,11): error TS2322: Type 'unknown' is not assignable to type '{ displayName: string | null; photoURL: string | null; } | null'.
+src/components/layout/MainLayout.tsx(173,69): error TS2322: Type 'unknown' is not assignable to type '{ displayName: string | null; email: string | null; photoURL: string | null; providerId?: string | undefined; }'.
+src/components/layout/sidebar/DesktopSidebar.tsx(16,27): error TS2339: Property 'stage' does not exist on type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(16,34): error TS2339: Property 'isActive' does not exist on type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(16,44): error TS2339: Property 'isLocked' does not exist on type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(16,54): error TS2339: Property 'onClick' does not exist on type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(16,63): error TS2339: Property 't' does not exist on type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(16,66): error TS2339: Property 'onHover' does not exist on type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(121,20): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(122,15): error TS2322: Type '{ key: any; stage: unknown; isActive: boolean; isLocked: boolean; t: TFunction<"translation", undefined>; onHover: Dispatch<SetStateAction<{ label: string; top: number; left: number; visible: boolean; } | null>>; onClick: () => void; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'stage' does not exist on type 'IntrinsicAttributes'.
+src/components/layout/sidebar/DesktopSidebar.tsx(123,41): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/DesktopSidebar.tsx(130,33): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/MobileBottomNav.tsx(25,26): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/MobileBottomNav.tsx(26,46): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/MobileBottomNav.tsx(32,22): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/MobileBottomNav.tsx(36,35): error TS18046: 'stage' is of type 'unknown'.
+src/components/layout/sidebar/MobileBottomNav.tsx(40,32): error TS18046: 'stage' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(109,59): error TS18046: 'lastMsg' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(111,15): error TS18046: 'lastMsg' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(188,18): error TS18046: 'msg' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(189,13): error TS2322: Type 'unknown' is not assignable to type 'ScriptDoctorMessage'.
+src/components/script-doctor/ScriptDoctorContent.tsx(190,47): error TS18046: 'msg' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(191,44): error TS18046: 'msg' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(192,48): error TS2339: Property 'botMsgId' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorContent.tsx(192,61): error TS18046: 'msg' is of type 'unknown'.
+src/components/script-doctor/ScriptDoctorContent.tsx(200,13): error TS2322: Type 'unknown[]' is not assignable to type 'ScriptDoctorMessage[]'.
+  Type 'unknown' is not assignable to type 'ScriptDoctorMessage'.
+src/components/script-doctor/ScriptDoctorMessageItem.tsx(140,9): error TS2322: Type 'unknown' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | null | undefined'.
+src/components/script-doctor/ScriptDoctorMessageItem.tsx(142,35): error TS2339: Property 'call' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(28,9): error TS2322: Type 'unknown' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<...> | null | undefined'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(58,40): error TS2339: Property 'emoji' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(58,65): error TS2339: Property 'detail' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(78,31): error TS2339: Property 'primitiveId' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(82,54): error TS2339: Property 'primitiveId' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(95,36): error TS2339: Property 'phase' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(96,36): error TS2339: Property 'phase' does not exist on type '{}'.
+src/components/script-doctor/ScriptDoctorTypingIndicator.tsx(97,36): error TS2339: Property 'phase' does not exist on type '{}'.
+src/components/stages/PrimitiveList.tsx(49,13): error TS2322: Type 'unknown' is not assignable to type 'PrimitiveType | undefined'.
+src/components/stages/PrimitiveList.tsx(58,13): error TS2740: Type '{}' is missing the following properties from type 'string[]': length, pop, push, concat, and 29 more.
+src/components/stages/StepLayout.tsx(33,71): error TS2571: Object is of type 'unknown'.
+src/contexts/ProjectContext.tsx(109,41): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '(msg: string, type: "error" | "success" | "info") => void'.
+src/contexts/ProjectContext.tsx(120,5): error TS2322: Type 'unknown' is not assignable to type '(message: string, type: "error" | "success" | "info") => void'.
+src/contexts/ProjectContext.tsx(127,5): error TS2322: Type 'unknown' is not assignable to type '(msg: string, type: "error" | "success" | "info") => void'.
+src/contexts/ProjectContext.tsx(138,5): error TS2322: Type 'unknown' is not assignable to type '(msg: string, type: "error" | "success" | "info") => void'.
+src/contexts/ProjectContext.tsx(184,51): error TS2322: Type '{ onLoglineChange: (c: string) => void; onValidateStage: (stage: WorkflowStage) => Promise<void>; hydrationState: HydrationState; telemetryStatus: TelemetryStatus | null; ... 69 more ...; setLastUpdatedPrimitiveId: React.Dispatch<...>; }' is not assignable to type 'ProjectContextType'.
+  Types of property 'handleProjectCreate' are incompatible.
+    Type '(initialIdea: string, format?: ProjectFormat, extractedData?: unknown) => Promise<void>' is not assignable to type '(initialIdea: string, format?: unknown, extractedData?: unknown) => Promise<void>'.
+      Types of parameters 'format' and 'format' are incompatible.
+        Type 'unknown' is not assignable to type 'ProjectFormat | undefined'.
+src/hooks/actions/useCharacterActions.ts(43,22): error TS18046: 'views' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(44,24): error TS18046: 'views' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(45,21): error TS18046: 'views' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(46,21): error TS18046: 'views' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(83,11): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'unknown[]'.
+src/hooks/actions/useCharacterActions.ts(88,25): error TS18046: 'deepData' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(89,17): error TS18046: 'deepData' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(90,23): error TS18046: 'deepData' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(93,3): error TS18046: 'deepData' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(96,3): error TS18046: 'deepData' is of type 'unknown'.
+src/hooks/actions/useCharacterActions.ts(99,3): error TS18046: 'deepData' is of type 'unknown'.
+src/hooks/useAppCallbacks.ts(90,25): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(o: {}): string[]', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type '{}'.
+  Overload 2 of 2, '(o: object): string[]', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'object'.
+src/hooks/useAppCallbacks.ts(90,50): error TS18046: 'updates' is of type 'unknown'.
+src/hooks/useAppCallbacks.ts(91,57): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Record<string, unknown>'.
+src/hooks/useProjectOperations.ts(57,31): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(58,32): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(59,31): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(60,30): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(61,33): error TS2339: Property 'logline' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(62,35): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(63,40): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(64,41): error TS2339: Property 'productionNotes' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(64,75): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(65,34): error TS2339: Property 'synopsis' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(65,61): error TS2339: Property 'metadata' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(104,26): error TS2339: Property 'logline' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(107,34): error TS2339: Property 'logline' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(115,26): error TS2339: Property 'synopsis' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(118,34): error TS2339: Property 'synopsis' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(126,26): error TS2339: Property 'productionNotes' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(129,34): error TS2339: Property 'productionNotes' does not exist on type '{}'.
+src/hooks/useProjectOperations.ts(141,34): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Project'.
+src/hooks/useProjects.ts(172,11): error TS2571: Object is of type 'unknown'.
+src/hooks/useProjects.ts(172,54): error TS2571: Object is of type 'unknown'.
+src/hooks/useProjects.ts(173,16): error TS2571: Object is of type 'unknown'.
+src/hooks/useScriptDoctorTools.ts(80,59): error TS2345: Argument of type '{ currentProject: Project; stageContents: Record<string, ContentPrimitive[]>; characters: ContentPrimitive[]; locations: ContentPrimitive[]; ... 10 more ...; triggerStageGeneration: ((stage: WorkflowStage) => Promise<void>) | undefined; }' is not assignable to parameter of type 'ScriptDoctorToolContext'.
+  Types of property 't' are incompatible.
+    Type 'TFunction<"translation", undefined>' is not assignable to type '(key: string, options?: unknown) => string'.
+      Types of parameters 'args' and 'key' are incompatible.
+        Type '[key: string, options?: unknown]' is not assignable to type '[key: string | string[], options: TOptionsBase & $Dictionary & { defaultValue: string; }] | [key: string | string[], defaultValue: string, options?: (TOptionsBase & $Dictionary) | undefined] | [key: ...]'.
+          Type '[key: string, options?: unknown]' is not assignable to type '[key: string | string[], options?: (Omit<TOptions, "context"> & { context?: unknown; }) | undefined]'.
+            Type at position 1 in source is not compatible with type at position 1 in target.
+              Type 'unknown' is not assignable to type '(Omit<TOptions, "context"> & { context?: unknown; }) | undefined'.
+src/lib/firebase.ts(26,16): error TS2339: Property 'code' does not exist on type '{}'.
+src/lib/firebase.ts(26,57): error TS2339: Property 'code' does not exist on type '{}'.
+src/lib/stageContent.ts(75,20): error TS2571: Object is of type 'unknown'.
+src/services/__tests__/orchestration.test.ts(33,5): error TS2571: Object is of type 'unknown'.
+src/services/ai/characterService.ts(16,43): error TS18046: 'character' is of type 'unknown'.
+src/services/ai/characterService.ts(16,162): error TS18046: 'c' is of type 'unknown'.
+src/services/ai/flows.ts(38,31): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(strPrompt: string): Promise<GenerateResponse<any>>', gave the following error.
+    Argument of type '{ model: string; system: string; messages: unknown[]; tools: ToolAction<z.ZodTypeAny, z.ZodUnknown>[]; config: { temperature: number; maxOutputTokens: number; }; returnToolRequests: boolean; use: ModelMiddleware[]; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(parts: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]): Promise<...>', gave the following error.
+    Object literal may only specify known properties, and 'model' does not exist in type '({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]'.
+  Overload 3 of 3, '(opts: GenerateOptions<ZodTypeAny, ZodObject<{ version: ZodOptional<ZodString>; temperature: ZodOptional<ZodNumber>; maxOutputTokens: ZodOptional<...>; topK: ZodOptional<...>; topP: ZodOptional<...>; stopSequences: ZodOptional<...>; apiKey: ZodOptional<...>; }, "passthrough", ZodTypeAny, objectOutputType<...>, objectInputType<...>>> | PromiseLike<...>): Promise<...>', gave the following error.
+    Type 'unknown[]' is not assignable to type '({ content: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]; role: "system" | ... 2 more ....'.
+      Type 'unknown' is not assignable to type '{ content: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]; role: "system" | ... 2 more .....'.
+        Type 'unknown' is not assignable to type '{ content: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]; role: "system" | ... 2 more .....'.
+src/services/ai/flows.ts(184,37): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'ScriptGenerationContext'.
+src/services/ai/flows.ts(209,13): error TS2339: Property 'prompt' does not exist on type 'unknown'.
+src/services/ai/flows.ts(209,21): error TS2339: Property 'jsonMode' does not exist on type 'unknown'.
+src/services/ai/flows.ts(209,39): error TS2339: Property 'systemPrompt' does not exist on type 'unknown'.
+src/services/ai/flows.ts(209,53): error TS2339: Property 'structuredOutput' does not exist on type 'unknown'.
+src/services/ai/flows.ts(209,71): error TS2339: Property 'model' does not exist on type 'unknown'.
+src/services/ai/flows.ts(354,31): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(strPrompt: string): Promise<GenerateResponse<any>>', gave the following error.
+    Argument of type '{ model: string; system: string; messages: unknown[]; tools: ToolAction<z.ZodObject<{ metadata: z.ZodObject<{ title: z.ZodOptional<z.ZodString>; format: z.ZodOptional<z.ZodString>; genre: z.ZodOptional<z.ZodString>; ... 5 more ...; synopsis: z.ZodOptional<...>; }, "passthrough", z.ZodTypeAny, z.objectOutputType<...>...' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(parts: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]): Promise<...>', gave the following error.
+    Object literal may only specify known properties, and 'model' does not exist in type '({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]'.
+  Overload 3 of 3, '(opts: GenerateOptions<ZodTypeAny, ZodObject<{ version: ZodOptional<ZodString>; temperature: ZodOptional<ZodNumber>; maxOutputTokens: ZodOptional<...>; topK: ZodOptional<...>; topP: ZodOptional<...>; stopSequences: ZodOptional<...>; apiKey: ZodOptional<...>; }, "passthrough", ZodTypeAny, objectOutputType<...>, objectInputType<...>>> | PromiseLike<...>): Promise<...>', gave the following error.
+    Type 'unknown[]' is not assignable to type '({ content: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]; role: "system" | ... 2 more ....'.
+      Type 'unknown' is not assignable to type '{ content: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]; role: "system" | ... 2 more .....'.
+        Type 'unknown' is not assignable to type '{ content: ({ text: string; custom?: Record<string, unknown> | undefined; metadata?: Record<string, unknown> | undefined; media?: undefined; toolRequest?: undefined; toolResponse?: undefined; data?: unknown; reasoning?: undefined; resource?: undefined; } | ... 6 more ... | { ...; })[]; role: "system" | ... 2 more .....'.
+src/services/ai/script-doctor-agent.ts(98,35): error TS2339: Property 'name' does not exist on type '{}'.
+src/services/ai/script-doctor-agent.ts(99,28): error TS2339: Property 'args' does not exist on type '{}'.
+src/services/ai/script-doctor-agent.ts(102,41): error TS2339: Property 'name' does not exist on type '{}'.
+src/services/ai/script-doctor-agent.ts(103,34): error TS2339: Property 'input' does not exist on type '{}'.
+src/services/ai/script-doctor-agent.ts(104,33): error TS2339: Property 'ref' does not exist on type '{}'.
+src/services/ai/scriptService.ts(20,58): error TS18046: 'c' is of type 'unknown'.
+src/services/ai/scriptService.ts(20,70): error TS18046: 'c' is of type 'unknown'.
+src/services/ai/scriptService.ts(23,57): error TS18046: 'l' is of type 'unknown'.
+src/services/ai/scriptService.ts(23,69): error TS18046: 'l' is of type 'unknown'.
+src/services/context/cascadingContext.ts(32,45): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'WorkflowStage'.
+src/services/context/payloadBuilder.ts(13,13): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(13,23): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(14,13): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(15,20): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(15,37): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(16,19): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(20,13): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(20,23): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(21,19): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(22,20): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(22,37): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(53,53): error TS18046: 'p' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(54,52): error TS18046: 'p' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(67,11): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(68,13): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(68,23): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(69,13): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(70,20): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(70,37): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(71,14): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(72,24): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(75,11): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(76,13): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(76,23): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(77,19): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(78,20): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(78,37): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(79,14): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(107,9): error TS2322: Type 'unknown[]' is not assignable to type 'Character[]'.
+  Type 'unknown' is not assignable to type 'Character'.
+src/services/context/payloadBuilder.ts(107,90): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(110,9): error TS2322: Type 'unknown[]' is not assignable to type 'Location[]'.
+  Type 'unknown' is not assignable to type 'Location'.
+src/services/context/payloadBuilder.ts(110,87): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(131,11): error TS2339: Property 'metadata' does not exist on type 'unknown'.
+src/services/context/payloadBuilder.ts(131,21): error TS2339: Property 'stageContents' does not exist on type 'unknown'.
+src/services/context/payloadBuilder.ts(144,56): error TS18046: 'p' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(145,11): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(145,23): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(145,34): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(145,48): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(146,20): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(146,33): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(146,61): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(147,24): error TS18046: 'c' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(149,55): error TS18046: 'p' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(150,11): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(150,23): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(150,34): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(150,54): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(151,20): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(151,33): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(151,61): error TS18046: 'l' is of type 'unknown'.
+src/services/context/payloadBuilder.ts(161,61): error TS18046: 'p' is of type 'unknown'.
+src/services/context/stageStructure.ts(30,9): error TS2698: Spread types may only be created from object types.
+src/services/context/stageStructure.ts(31,16): error TS18046: 'd' is of type 'unknown'.
+src/services/context/stageStructure.ts(31,27): error TS18046: 'd' is of type 'unknown'.
+src/services/context/stageStructure.ts(32,18): error TS18046: 'd' is of type 'unknown'.
+src/services/context/stageStructure.ts(32,31): error TS18046: 'd' is of type 'unknown'.
+src/services/context/stageStructure.ts(33,16): error TS18046: 'd' is of type 'unknown'.
+src/services/context/stageStructure.ts(36,63): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{ id: string; title?: string | undefined; content?: string | undefined; order?: number | undefined; name?: string | undefined; description?: string | undefined; }[]'.
+src/services/firebase/projectEndpoints.ts(24,13): error TS2322: Type '(userId: string) => Promise<{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type '(arg: string, api: BaseQueryApi, extraOptions: {}, baseQuery: (arg: void) => MaybePromise<QueryReturnValue<unique symbol, unknown, {}>>) => MaybePromise<...>'.
+  Type 'Promise<{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type 'MaybePromise<QueryReturnValue<Project[], unknown, {} | undefined>>'.
+    Type 'Promise<{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type 'PromiseLike<QueryReturnValue<Project[], unknown, {} | undefined>>'.
+      Types of property 'then' are incompatible.
+        Type '<TResult1 = { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }, TResult2 = never>(onfulfilled?: ((value: { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }) => TResult1 | PromiseLike<...>) | null | undefined, onrejected?: ((reason: any) => TResult...' is not assignable to type '<TResult1 = QueryReturnValue<Project[], unknown, {} | undefined>, TResult2 = never>(onfulfilled?: ((value: QueryReturnValue<Project[], unknown, {} | undefined>) => TResult1 | PromiseLike<...>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<...>) | ... 1 more ... | undefined) => PromiseLike...'.
+          Types of parameters 'onfulfilled' and 'onfulfilled' are incompatible.
+            Types of parameters 'value' and 'value' are incompatible.
+              Type '{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }' is not assignable to type 'QueryReturnValue<Project[], unknown, {} | undefined>'.
+                Type '{ data: unknown; error?: undefined; }' is not assignable to type 'QueryReturnValue<Project[], unknown, {} | undefined>'.
+                  Type '{ data: unknown; error?: undefined; }' is not assignable to type '{ error?: undefined; data: Project[]; meta?: {} | undefined; }'.
+                    Types of property 'data' are incompatible.
+                      Type 'unknown' is not assignable to type 'Project[]'.
+src/services/firebase/projectEndpoints.ts(70,36): error TS2322: Type 'unknown' is not assignable to type 'void | MaybeDrafted<Project[]>'.
+src/services/firebase/projectEndpoints.ts(79,13): error TS2322: Type '(projectId: string) => Promise<{ error: { message: string; status: number; }; data?: undefined; } | { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type '(arg: string, api: BaseQueryApi, extraOptions: {}, baseQuery: (arg: void) => MaybePromise<QueryReturnValue<unique symbol, unknown, {}>>) => MaybePromise<...>'.
+  Type 'Promise<{ error: { message: string; status: number; }; data?: undefined; } | { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type 'MaybePromise<QueryReturnValue<Project | null, unknown, {} | undefined>>'.
+    Type 'Promise<{ error: { message: string; status: number; }; data?: undefined; } | { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type 'PromiseLike<QueryReturnValue<Project | null, unknown, {} | undefined>>'.
+      Types of property 'then' are incompatible.
+        Type '<TResult1 = { error: { message: string; status: number; }; data?: undefined; } | { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }, TResult2 = never>(onfulfilled?: ((value: { error: { message: string; status: number; }; data?: undefined; } | { ...; } | { ...; }) => TResult1 | Prom...' is not assignable to type '<TResult1 = QueryReturnValue<Project | null, unknown, {} | undefined>, TResult2 = never>(onfulfilled?: ((value: QueryReturnValue<Project | null, unknown, {} | undefined>) => TResult1 | PromiseLike<...>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<...>) | ... 1 more ... | undefined) => P...'.
+          Types of parameters 'onfulfilled' and 'onfulfilled' are incompatible.
+            Types of parameters 'value' and 'value' are incompatible.
+              Type '{ error: { message: string; status: number; }; data?: undefined; } | { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }' is not assignable to type 'QueryReturnValue<Project | null, unknown, {} | undefined>'.
+                Type '{ data: unknown; error?: undefined; }' is not assignable to type 'QueryReturnValue<Project | null, unknown, {} | undefined>'.
+                  Type '{ data: unknown; error?: undefined; }' is not assignable to type '{ error?: undefined; data: Project | null; meta?: {} | undefined; }'.
+                    Types of property 'data' are incompatible.
+                      Type 'unknown' is not assignable to type 'Project | null'.
+src/services/firebase/projectEndpoints.ts(108,25): error TS2322: Type 'unknown' is not assignable to type 'void | MaybeDrafted<Project | null>'.
+src/services/firebase/projectEndpoints.ts(148,24): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(148,43): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(149,29): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(151,17): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(153,17): error TS2571: Object is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(186,15): error TS2322: Type 'unknown' is not assignable to type 'ProjectMetadata | WritableNonArrayDraft<ProjectMetadata>'.
+src/services/firebase/projectEndpoints.ts(223,26): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(223,45): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(224,31): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(226,19): error TS18046: 'current' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(228,19): error TS2571: Object is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(286,23): error TS18046: 'projectData' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(295,13): error TS2698: Spread types may only be created from object types.
+src/services/firebase/projectEndpoints.ts(301,36): error TS18046: 'p' is of type 'unknown'.
+src/services/firebase/projectEndpoints.ts(305,21): error TS2339: Property 'subcollection' does not exist on type 'unknown'.
+src/services/firebase/projectEndpoints.ts(305,55): error TS2700: Rest types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(25,13): error TS2322: Type '({ projectId, collectionName, orderByField }: { projectId: string; collectionName: string; orderByField?: string | undefined; }) => Promise<{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type '(arg: { projectId: string; collectionName: string; orderByField?: string | undefined; }, api: BaseQueryApi, extraOptions: {}, baseQuery: (arg: void) => MaybePromise<QueryReturnValue<unique symbol, unknown, {}>>) => MaybePromise<...>'.
+  Type 'Promise<{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type 'MaybePromise<QueryReturnValue<any[], unknown, {} | undefined>>'.
+    Type 'Promise<{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }>' is not assignable to type 'PromiseLike<QueryReturnValue<any[], unknown, {} | undefined>>'.
+      Types of property 'then' are incompatible.
+        Type '<TResult1 = { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }, TResult2 = never>(onfulfilled?: ((value: { data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }) => TResult1 | PromiseLike<...>) | null | undefined, onrejected?: ((reason: any) => TResult...' is not assignable to type '<TResult1 = QueryReturnValue<any[], unknown, {} | undefined>, TResult2 = never>(onfulfilled?: ((value: QueryReturnValue<any[], unknown, {} | undefined>) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<...>) | ... 1 more ... | undefined) => PromiseLike<...>'.
+          Types of parameters 'onfulfilled' and 'onfulfilled' are incompatible.
+            Types of parameters 'value' and 'value' are incompatible.
+              Type '{ data: unknown; error?: undefined; } | { error: ClassifiedError; data?: undefined; }' is not assignable to type 'QueryReturnValue<any[], unknown, {} | undefined>'.
+                Type '{ data: unknown; error?: undefined; }' is not assignable to type 'QueryReturnValue<any[], unknown, {} | undefined>'.
+                  Type '{ data: unknown; error?: undefined; }' is not assignable to type '{ error?: undefined; data: any[]; meta?: {} | undefined; }'.
+                    Types of property 'data' are incompatible.
+                      Type 'unknown' is not assignable to type 'any[]'.
+src/services/firebase/subcollectionEndpoints.ts(53,15): error TS2322: Type 'unknown' is not assignable to type 'void | MaybeDrafted<any[]>'.
+src/services/firebase/subcollectionEndpoints.ts(80,15): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(98,64): error TS18046: 'item' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(100,51): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(122,15): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(144,17): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(149,57): error TS18046: 'a' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(149,75): error TS18046: 'b' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(161,66): error TS18046: 'item' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(206,64): error TS18046: 'item' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(265,15): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(283,64): error TS18046: 'item' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(285,51): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(287,41): error TS2698: Spread types may only be created from object types.
+src/services/firebase/subcollectionEndpoints.ts(289,59): error TS18046: 'a' is of type 'unknown'.
+src/services/firebase/subcollectionEndpoints.ts(289,77): error TS18046: 'b' is of type 'unknown'.
+src/services/firebase/utils.ts(22,9): error TS18046: 'serialized' is of type 'unknown'.
+src/services/firebase/utils.ts(22,41): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+  No index signature with a parameter of type 'string' was found on type '{}'.
+src/services/geminiService.ts(32,42): error TS18046: 'location' is of type 'unknown'.
+src/services/orchestration/contextBuilder.ts(12,31): error TS2339: Property 'title' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(12,61): error TS2339: Property 'title' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(13,31): error TS2339: Property 'genre' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(13,61): error TS2339: Property 'genre' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(14,32): error TS2339: Property 'format' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(14,63): error TS2339: Property 'format' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(15,30): error TS2339: Property 'tone' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(15,59): error TS2339: Property 'tone' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(16,42): error TS2339: Property 'languages' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(16,65): error TS2339: Property 'languages' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(17,33): error TS2339: Property 'logline' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(17,65): error TS2339: Property 'logline' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(18,40): error TS2339: Property 'targetDuration' does not exist on type '{}'.
+src/services/orchestration/contextBuilder.ts(18,79): error TS2339: Property 'targetDuration' does not exist on type '{}'.
+src/services/script-doctor/contentTools.ts(19,21): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/contentTools.ts(20,23): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/contentTools.ts(23,21): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/contentTools.ts(24,23): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(40,11): error TS18046: 'exportData.stages' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(42,11): error TS18046: 'exportData.stages' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(44,11): error TS18046: 'exportData.stages' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(87,27): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(87,38): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(89,15): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(89,28): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(90,24): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/platformTools.ts(90,37): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(41,7): error TS2322: Type 'ContentPrimitive | undefined' is not assignable to type 'Record<string, unknown> | undefined'.
+  Type 'ContentPrimitive' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'ContentPrimitive'.
+src/services/script-doctor/primitiveTools.ts(69,36): error TS18046: 'fix' is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(71,37): error TS18046: 'fix' is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(71,48): error TS18046: 'fix' is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(76,18): error TS18046: 'fix' is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(86,62): error TS18046: 'f' is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(108,12): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(108,44): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(109,14): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(109,48): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(110,46): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/primitiveTools.ts(167,7): error TS2322: Type 'ContentPrimitive | undefined' is not assignable to type 'Record<string, unknown> | undefined'.
+  Type 'ContentPrimitive' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'ContentPrimitive'.
+src/services/script-doctor/projectTools.ts(111,18): error TS2339: Property 'length' does not exist on type '{}'.
+src/services/script-doctor/projectTools.ts(111,39): error TS2339: Property 'length' does not exist on type '{}'.
+src/services/script-doctor/projectTools.ts(117,7): error TS2322: Type '{}' is not assignable to type 'string'.
+src/services/script-doctor/safetyTools.ts(82,9): error TS2571: Object is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(20,23): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(21,16): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(21,27): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(22,18): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(22,31): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(23,22): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(56,21): error TS18046: 'item' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(57,14): error TS18046: 'item' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(57,28): error TS18046: 'item' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(58,16): error TS18046: 'item' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(58,32): error TS18046: 'item' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(59,20): error TS18046: 'item' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(60,7): error TS2698: Spread types may only be created from object types.
+src/services/script-doctor/structureTools.ts(79,68): error TS2339: Property 'id' does not exist on type '{}'.
+src/services/script-doctor/structureTools.ts(79,76): error TS2339: Property 'primitive_id' does not exist on type '{}'.
+src/services/script-doctor/structureTools.ts(95,18): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(95,26): error TS18046: 'p' is of type 'unknown'.
+src/services/script-doctor/structureTools.ts(98,25): error TS2339: Property 'title' does not exist on type '{}'.
+src/services/script-doctor/structureTools.ts(98,36): error TS2339: Property 'name' does not exist on type '{}'.
+src/services/script-doctor/structureTools.ts(99,27): error TS2339: Property 'content' does not exist on type '{}'.
+src/services/script-doctor/structureTools.ts(99,40): error TS2339: Property 'description' does not exist on type '{}'.
+src/services/script-doctor/structureTools.ts(101,9): error TS2698: Spread types may only be created from object types.
+src/utils/scriptDoctorUtils.ts(115,25): error TS2571: Object is of type 'unknown'.
+src/utils/scriptDoctorUtils.ts(118,35): error TS2571: Object is of type 'unknown'.

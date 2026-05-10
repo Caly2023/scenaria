@@ -27,7 +27,7 @@ class ScriptDoctorAgent {
     complexity: "simple" | "moderate" | "complex",
     callbacks: {
       onThought?: (thought: string) => void;
-      onToolCall: (call: ToolCall) => Promise<{ result: any; paused: boolean }>;
+      onToolCall: (call: ToolCall) => Promise<{ result: unknown; paused: boolean }>;
       onAiStatus?: (status: string) => void;
       onIterationComplete?: (parts: GeminiPart[], toolResults: GeminiPart[]) => void;
     }
@@ -89,18 +89,18 @@ class ScriptDoctorAgent {
       let pausedAtAny = false;
 
       for (const part of toolCallParts) {
-        const partRecord = part as Record<string, any>;
+        const partRecord = part as unknown as { functionCall?: { name?: string, args?: unknown }, toolRequest?: { name?: string, input?: unknown, ref?: string } };
         const fnCall = partRecord.functionCall;
         const toolRequest = partRecord.toolRequest;
 
         const call: ToolCall = fnCall
           ? {
               name: String(fnCall.name ?? ""),
-              args: fnCall.args || {},
+              args: (fnCall.args as Record<string, unknown>) || {},
             }
           : {
               name: String(toolRequest?.name ?? ""),
-              args: toolRequest?.input || {},
+              args: (toolRequest?.input as Record<string, unknown>) || {},
               ref: toolRequest?.ref,
             };
 

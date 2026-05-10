@@ -50,33 +50,39 @@ service cloud.firestore {
     
     function isProjectMember(projectId) {
       let projectPath = /databases/$(database)/documents/projects/$(projectId);
-      return isAuthenticated() && 
-             exists(projectPath) && 
-             (request.auth.uid == get(projectPath).data.get('ownerId', '') || 
-              request.auth.uid in get(projectPath).data.get('collaborators', []) ||
-              isAdmin());
+      return isAuthenticated() && (
+        isAdmin() || 
+        (exists(projectPath) && (
+          request.auth.uid == get(projectPath).data.get('ownerId', '') || 
+          request.auth.uid in get(projectPath).data.get('collaborators', [])
+        ))
+      );
     }
 
     function isValidProject(data) {
       return data.metadata is map &&
-             data.metadata.title is string && data.metadata.title.size() > 0 &&
-             data.metadata.format is string &&
+             data.metadata.get('title', '') is string && 
+             data.metadata.get('title', '').size() > 0 &&
+             data.metadata.get('format', '') is string &&
              data.get('collaborators', []) is list &&
-             request.auth.uid in data.get('collaborators', []) &&
-             data.get('ownerId', '') == request.auth.uid &&
-             data.activeStage is string &&
+             (request.auth.uid in data.get('collaborators', []) || isAdmin()) &&
+             (data.get('ownerId', '') == request.auth.uid || isAdmin()) &&
+             data.get('activeStage', '') is string &&
              (data.createdAt != null) &&
              (data.updatedAt != null);
     }
 
     // ── Generic validator for AI-written stage primitives ─────────────────────
-    // These are written by agents and Script Doctor tools. We only enforce:
-    // - title is a non-empty string
-    // - projectId is a string (ensures the doc belongs to the project)
-    // Content, order, and other fields are flexible to allow AI creativity.
     function isValidPrimitive(data) {
       return data.get('title', '') is string &&
              data.get('projectId', '') is string;
+    }
+
+    function canCreatePrimitive(projectId, data) {
+      return isAuthenticated() && (
+        isProjectMember(projectId) || 
+        (data.get('ownerId', '') == request.auth.uid && data.get('projectId', '') == projectId)
+      );
     }
 
     // ── Validators for human/mixed managed collections ────────────────────────
@@ -119,16 +125,16 @@ service cloud.firestore {
       ) && (
         isAdmin() || (
           request.resource.data.get('ownerId', '') == resource.data.get('ownerId', '') &&
-          request.resource.data.get('createdAt', 0) == resource.data.get('createdAt', 0)
+          request.resource.data.get('createdAt', resource.data.createdAt) == resource.data.createdAt
         )
       );
       
       allow delete: if isAuthenticated() && (request.auth.uid == resource.data.get('ownerId', '') || isAdmin());
 
-      // ── Step Outline (sequences) ── PREVIOUSLY MISSING — was denied by default
+      // ── Step Outline (sequences)
       match /sequences/{sequenceId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidSequence(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidSequence(request.resource.data);
         allow update: if isProjectMember(projectId) && isValidSequence(request.resource.data);
         allow delete: if isProjectMember(projectId);
       }
@@ -136,7 +142,7 @@ service cloud.firestore {
       // ── Human-curated Character Bible
       match /characters/{characterId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidCharacter(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidCharacter(request.resource.data);
         allow update: if isProjectMember(projectId) && isValidCharacter(request.resource.data);
         allow delete: if isProjectMember(projectId);
       }
@@ -144,145 +150,142 @@ service cloud.firestore {
       // ── Human-curated Location Bible
       match /locations/{locationId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidLocation(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidLocation(request.resource.data);
         allow update: if isProjectMember(projectId) && isValidLocation(request.resource.data);
         allow delete: if isProjectMember(projectId);
       }
 
       // ── AI-managed stage subcollections ──────────────────────────────────────
-      // All use the relaxed isValidPrimitive validator so Script Doctor tools
-      // can write arbitrary AI-generated content without field validation issues.
-
+      
       match /brief_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /bible_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /treatment_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /sequencer_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /dialogue_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /screenplay_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /pitch_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if (isProjectMember(projectId) || (isAuthenticated() && request.resource.data.get('ownerId', '') == request.auth.uid)) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /logline_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /structure_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /synopsis_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /treatment_sequences/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /script_scenes/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
-
       match /beat_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /doctoring_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /breakdown_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /asset_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /previs_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /export_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
 
       match /storyboard_frames/{primitiveId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId) && isValidPrimitive(request.resource.data);
+        allow create: if canCreatePrimitive(projectId, request.resource.data) && isValidPrimitive(request.resource.data);
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }

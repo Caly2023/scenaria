@@ -112,10 +112,10 @@ export function normalizeHistory(messages: ScriptDoctorMessage[]): Array<{ role:
           if ("toolResponse" in p) {
              toolResultParts.push(p as GeminiPart);
           } else if ("functionResponse" in p) {
-             const fr = (p as any).functionResponse;
+             const fr = (p as { functionResponse: { name: string, response: unknown } }).functionResponse;
              toolResultParts.push(buildFunctionResponsePart(fr.name, fr.response));
           }
-        } else if ("text" in p && (p as any).text !== undefined) {
+        } else if ("text" in p && (p as { text?: string }).text !== undefined) {
           modelParts.push(p as GeminiPart);
         }
       }

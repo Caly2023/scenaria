@@ -22,8 +22,9 @@ export async function testConnection() {
   try {
     // Attempt to fetch a non-existent doc to test connectivity and permissions
     await getDocFromServer(doc(db, 'system', 'connectivity'));
-  } catch (error: any) {
-    if (error?.code === 'failed-precondition' || error?.code === 'permission-denied') {
+  } catch (error: unknown) {
+    const err = error as { code?: string };
+    if (err.code === 'failed-precondition' || err.code === 'permission-denied') {
       // These are "expected" if the doc is truly restricted, 
       // but they still mean we can talk to the server.
       return;

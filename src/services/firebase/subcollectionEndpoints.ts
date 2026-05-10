@@ -65,7 +65,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
         projectId: string;
         collectionName: string;
         docId: string;
-        data: any;
+        data: Record<string, unknown>;
         orderByField?: string;
       }
     >({
@@ -95,7 +95,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             "getSubcollection",
             { projectId, collectionName, orderByField },
             (draft) => {
-              const index = draft.findIndex((item: any) => item.id === docId);
+              const index = draft.findIndex(item => item.id === docId);
               if (index !== -1) {
                 draft[index] = { ...draft[index], ...data };
               }
@@ -112,7 +112,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
 
     addSubcollectionDoc: builder.mutation<
       string,
-      { projectId: string; collectionName: string; data: any; orderByField?: string }
+      { projectId: string; collectionName: string; data: Record<string, unknown>; orderByField?: string }
     >({
       async queryFn({ projectId, collectionName, data }) {
         try {
@@ -146,7 +146,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
                 createdAt: Date.now() 
               });
               if (orderByField) {
-                draft.sort((a: any, b: any) => (a[orderByField] > b[orderByField] ? 1 : -1));
+                draft.sort((a: Record<string, unknown>, b: Record<string, unknown>) => ((a[orderByField] as string | number) > (b[orderByField] as string | number) ? 1 : -1));
               }
             },
           ),
@@ -158,7 +158,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
               "getSubcollection",
               { projectId, collectionName, orderByField },
               (draft) => {
-                const index = draft.findIndex((item: any) => item.id === tempId);
+                const index = draft.findIndex(item => item.id === tempId);
                 if (index !== -1) {
                   draft[index].id = realId;
                   delete draft[index].isOptimistic;
@@ -203,7 +203,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             "getSubcollection",
             { projectId, collectionName, orderByField },
             (draft) => {
-              const index = draft.findIndex((item: any) => item.id === docId);
+              const index = draft.findIndex(item => item.id === docId);
               if (index !== -1) {
                 draft.splice(index, 1);
               }
@@ -249,7 +249,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
         projectId: string;
         collectionName: string;
         docId: string;
-        data: any;
+        data: Record<string, unknown>;
         orderByField?: string;
       }
     >({
@@ -280,13 +280,13 @@ export const subcollectionApi = baseApi.injectEndpoints({
             "getSubcollection",
             { projectId, collectionName, orderByField },
             (draft) => {
-              const index = draft.findIndex((item: any) => item.id === docId);
+              const index = draft.findIndex(item => item.id === docId);
               if (index !== -1) {
                 draft[index] = { ...draft[index], ...data };
               } else {
                 draft.push({ id: docId, ...data });
                 if (orderByField) {
-                  draft.sort((a: any, b: any) => (a[orderByField] > b[orderByField] ? 1 : -1));
+                  draft.sort((a: Record<string, unknown>, b: Record<string, unknown>) => ((a[orderByField] as string | number) > (b[orderByField] as string | number) ? 1 : -1));
                 }
               }
             },

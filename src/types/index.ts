@@ -3,6 +3,13 @@ export type ProjectFormat = 'Short Film' | 'Feature' | 'Series';
 // Re-export from stageContract for convenience
 export type { ContentPrimitive } from './stageContract';
 
+export interface ExtractedData {
+  metadata?: ProjectMetadata;
+  logline?: string;
+  synopsis?: string;
+  productionNotes?: string;
+}
+
 export type WorkflowStage = 
   | 'Project Brief'
   | 'Story Bible'

@@ -35,7 +35,7 @@ export interface ContentPrimitive {
   agentGenerated?: boolean;
   agentVersion?: string;
   visualPrompt?: string;
-  metadata?: Record<string, any>;  // Stage-specific extra fields
+  metadata?: Record<string, unknown>;  // Stage-specific extra fields
 }
 
 // ─── Agent Output (Strict Schema) ─────────────────────────────────────────────
@@ -44,7 +44,7 @@ export interface AgentOutput {
   analysis: StageAnalysis;
   content: ContentPrimitive[];
   state: StageState;
-  metadataUpdates?: Record<string, any>;
+  metadataUpdates?: Record<string, unknown>;
 }
 
 // ─── Project Context passed to every agent ────────────────────────────────────

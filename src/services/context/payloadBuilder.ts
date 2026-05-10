@@ -3,23 +3,23 @@ import { firebaseService } from "../firebaseService";
 import { telemetryService } from "../telemetryService";
 import { stageRegistry } from "../../config/stageRegistry";
 import { PromptPayload } from "../../types/context";
-import { Character, Location, Sequence, WorkflowStage } from "../../types";
+import { WorkflowStage, ContentPrimitive, Project, Sequence, Character, Location } from '../../types';
 import { buildCascadingContext } from "./cascadingContext";
 import { getStageStructure } from "./stageStructure";
 
-function formatBibleContext(stage: 'Character Bible' | 'Location Bible', items: any[]): string {
+function formatBibleContext(stage: 'Character Bible' | 'Location Bible', items: ContentPrimitive[]): string {
   if (stage === 'Character Bible') {
     return `[CHARACTER BIBLE]\n${JSON.stringify(items.map(c => ({
-      name: c.name || c.title,
-      role: c.role,
-      description: c.description || c.content,
-      wantsNeeds: c.deepDevelopment?.nowStory?.wantsNeeds || ""
+      name: (c as unknown as Record<string, unknown>).name as string || c.title,
+      role: (c as unknown as Record<string, unknown>).role as string,
+      description: (c as unknown as Record<string, unknown>).description as string || c.content,
+      wantsNeeds: (c as unknown as Record<string, unknown>).deepDevelopment ? ((c as unknown as Record<string, unknown>).deepDevelopment as Record<string, Record<string, string>>).nowStory?.wantsNeeds || "" : ""
     })), null, 2)}\n\n`;
   } else {
     return `[LOCATION BIBLE]\n${JSON.stringify(items.map(l => ({
-      name: l.name || l.title,
-      atmosphere: l.atmosphere,
-      description: l.description || l.content
+      name: (l as unknown as Record<string, unknown>).name as string || l.title,
+      atmosphere: (l as unknown as Record<string, unknown>).atmosphere as string,
+      description: (l as unknown as Record<string, unknown>).description as string || l.content
     })), null, 2)}\n\n`;
   }
 }
@@ -27,8 +27,8 @@ function formatBibleContext(stage: 'Character Bible' | 'Location Bible', items: 
 async function getStageTextInternal(
   projectId: string, 
   stageName: string, 
-  allCharacters: any[], 
-  allLocations: any[]
+  allCharacters: ContentPrimitive[], 
+  allLocations: ContentPrimitive[]
 ): Promise<string> {
   if (stageName === "__characterBible__") return formatBibleContext('Character Bible', allCharacters);
   if (stageName === "__locationBible__") return formatBibleContext('Location Bible', allLocations);
@@ -48,7 +48,7 @@ export async function buildPromptPayload(
 
   // Get Story Bible primitives (which now contains both characters and locations)
   const bibleResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "bible_primitives" }));
-  const biblePrimitives = (bibleResult.data || []) as any[];
+  const biblePrimitives = (bibleResult.data || []) as ContentPrimitive[];
   
   const allCharacters = biblePrimitives.filter(p => p.primitiveType === 'character');
   const allLocations = biblePrimitives.filter(p => p.primitiveType === 'location');
@@ -65,17 +65,17 @@ export async function buildPromptPayload(
     },
     characters: allCharacters.map(c => ({
       id: c.id,
-      name: c.name || c.title,
-      role: c.role || '',
-      description: c.description || c.content || '',
+      name: (c as unknown as Record<string, unknown>).name as string || c.title,
+      role: (c as unknown as Record<string, unknown>).role as string || '',
+      description: (c as unknown as Record<string, unknown>).description as string || c.content || '',
       order: c.order || 0,
-      deepDevelopment: c.deepDevelopment
+      deepDevelopment: (c as unknown as Record<string, unknown>).deepDevelopment as Character["deepDevelopment"]
     })),
     locations: allLocations.map(l => ({
       id: l.id,
-      name: l.name || l.title,
-      atmosphere: l.atmosphere || '',
-      description: l.description || l.content || '',
+      name: (l as unknown as Record<string, unknown>).name as string || l.title,
+      atmosphere: (l as unknown as Record<string, unknown>).atmosphere as string || '',
+      description: (l as unknown as Record<string, unknown>).description as string || l.content || '',
       order: l.order || 0
     }))
   };
@@ -104,10 +104,27 @@ export async function buildPromptPayload(
       payload.currentSequence = { title: currentSeq.title, content: currentSeq.content };
 
       if (currentSeq.characterIds && currentSeq.characterIds.length > 0) {
-        payload.characters = allCharacters.filter(c => currentSeq.characterIds?.includes(c.id));
+        payload.characters = allCharacters
+          .filter(c => currentSeq.characterIds?.includes(c.id))
+          .map(c => ({
+            id: c.id,
+            name: (c as unknown as Record<string, unknown>).name as string || c.title,
+            role: (c as unknown as Record<string, unknown>).role as string || '',
+            description: (c as unknown as Record<string, unknown>).description as string || c.content || '',
+            order: c.order || 0,
+            deepDevelopment: (c as unknown as Record<string, unknown>).deepDevelopment as Character["deepDevelopment"]
+          }));
       }
       if (currentSeq.locationIds && currentSeq.locationIds.length > 0) {
-        payload.locations = allLocations.filter(l => currentSeq.locationIds?.includes(l.id));
+        payload.locations = allLocations
+          .filter(l => currentSeq.locationIds?.includes(l.id))
+          .map(l => ({
+            id: l.id,
+            name: (l as unknown as Record<string, unknown>).name as string || l.title,
+            atmosphere: (l as unknown as Record<string, unknown>).atmosphere as string || '',
+            description: (l as unknown as Record<string, unknown>).description as string || l.content || '',
+            order: l.order || 0
+          }));
       }
 
       if (currentSeqIndex > 0) {
@@ -125,7 +142,11 @@ export async function buildPromptPayload(
 }
 
 export async function buildPayloadFromProjectContext(
-  context: any, 
+  context: {
+    metadata: Project["metadata"];
+    stageContents: Record<string, ContentPrimitive[]>;
+    stageAnalyses: Record<string, unknown>;
+  }, 
   currentStage: WorkflowStage
 ): Promise<PromptPayload> {
   const { metadata, stageContents } = context;
@@ -141,14 +162,14 @@ export async function buildPayloadFromProjectContext(
       logline: metadata.logline || "",
       targetDuration: metadata.targetDuration
     },
-    characters: storyBiblePrims.filter((p: any) => p.primitiveType === 'character').map((c: any) => ({
-      id: c.id, name: c.title || c.name, role: c.role || '',
-      description: c.content || c.description || '', order: c.order || 0,
-      deepDevelopment: c.deepDevelopment
+    characters: storyBiblePrims.filter((p: ContentPrimitive) => p.primitiveType === 'character').map((c: ContentPrimitive) => ({
+      id: c.id, name: (c as unknown as Record<string, unknown>).name as string || c.title, role: (c as unknown as Record<string, unknown>).role as string || '',
+      description: c.content || (c as unknown as Record<string, unknown>).description as string || '', order: c.order || 0,
+      deepDevelopment: (c as unknown as Record<string, unknown>).deepDevelopment as Character["deepDevelopment"]
     })),
-    locations: storyBiblePrims.filter((p: any) => p.primitiveType === 'location').map((l: any) => ({
-      id: l.id, name: l.title || l.name, atmosphere: l.atmosphere || '', 
-      description: l.content || l.description || '', order: l.order || 0
+    locations: storyBiblePrims.filter((p: ContentPrimitive) => p.primitiveType === 'location').map((l: ContentPrimitive) => ({
+      id: l.id, name: (l as unknown as Record<string, unknown>).name as string || l.title, atmosphere: (l as unknown as Record<string, unknown>).atmosphere as string || '', 
+      description: l.content || (l as unknown as Record<string, unknown>).description as string || '', order: l.order || 0
     })),
   };
 
@@ -158,7 +179,7 @@ export async function buildPayloadFromProjectContext(
       const locs = payload.locations;
       return `[CHARACTERS]\n${JSON.stringify(chars, null, 2)}\n\n[LOCATIONS]\n${JSON.stringify(locs, null, 2)}`;
     }
-    return (stageContents[sName] || []).map((p: any) => p.content).join("\n\n");
+    return (stageContents[sName] || []).map((p: ContentPrimitive) => p.content).join("\n\n");
   };
 
   const cascadingContext = await buildCascadingContext(

@@ -16,30 +16,39 @@ export class StoryBibleAgent extends BaseStageAgent {
       Locations should have: name, atmosphere, description, visualPrompt.
       Context: ${unifiedCtx}`;
       
-      const raw: any = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
+      const raw: unknown = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
+      const res = raw as Record<string, unknown>;
+      const rawChars = this.normalizeToJsonArray(res.characters);
+      const rawLocs = this.normalizeToJsonArray(res.locations);
       
       const content: ContentPrimitive[] = [];
-      const rawChars = raw.characters || raw.chars || [];
-      const rawLocs = raw.locations || raw.locs || [];
-
-      rawChars.forEach((c: any, i: number) => {
-        content.push(this.buildPrimitive(`char_${i}`, c.name, c.description, 'character', i, {
-          role: c.role,
-          visualPrompt: c.visualPrompt
-        }));
+      
+      rawChars.forEach((c, i) => {
+        content.push(this.buildPrimitive(
+          `char_${i}`, 
+          (c.name as string) || (c.title as string) || `Character ${i+1}`,
+          (c.description as string) || (c.content as string) || "",
+          'character',
+          i,
+          { tier: c.tier, visualPrompt: c.visualPrompt } as Record<string, unknown>
+        ));
       });
       
-      rawLocs.forEach((l: any, i: number) => {
-        content.push(this.buildPrimitive(`loc_${i}`, l.name, l.description, 'location', 100 + i, {
-          atmosphere: l.atmosphere,
-          visualPrompt: l.visualPrompt
-        }));
+      rawLocs.forEach((l, i) => {
+        content.push(this.buildPrimitive(
+          `loc_${i}`, 
+          (l.name as string) || (l.title as string) || `Location ${i+1}`,
+          (l.description as string) || (l.content as string) || (l.atmosphere as string) || "",
+          'location',
+          rawChars.length + i,
+          { visualPrompt: l.visualPrompt } as Record<string, unknown>
+        ));
       });
 
       const evalResult = await this.evaluate(content, context);
       return { ...evalResult, content };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message);
+    } catch (e: unknown) {
+      return this.handleError(e);
     }
   }
 
@@ -64,8 +73,8 @@ export class StoryBibleAgent extends BaseStageAgent {
       
       const evalResult = await this.evaluate(updated, context);
       return { ...evalResult, content: updated };
-    } catch (e: any) {
-      return this.buildFallbackOutput(e.message, currentContent);
+    } catch (e: unknown) {
+      return this.handleError(e, currentContent);
     }
   }
 

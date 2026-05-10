@@ -8,8 +8,8 @@ export const geminiService = {
   ...characterService,
   ...scriptService,
 
-  async scriptDoctorAgent(messages: any[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
-    return callGenkitFlow<any>('scriptDoctor', {
+  async scriptDoctorAgent(messages: unknown[], context: string, activeStage: string, complexity: 'simple' | 'moderate' | 'complex' = 'moderate', idMapContext: string = '') {
+    return callGenkitFlow<unknown>('scriptDoctor', {
       messages,
       context,
       activeStage,
@@ -27,8 +27,8 @@ export const geminiService = {
     });
   },
 
-  async deepDevelopLocation(location: any, masterStory: string): Promise<any> {
-    return callGenericGemini<any>({
+  async deepDevelopLocation(location: { name: string }, masterStory: string): Promise<unknown> {
+    return callGenericGemini<unknown>({
       prompt: `Deeply develop location ${location.name} based on the master story: ${masterStory}.`
     });
   },
@@ -64,16 +64,16 @@ export const geminiService = {
     });
   },
 
-  async initializeProjectAgent(storyDraft: string, format?: string): Promise<any> {
-    return callGenericGemini<any>({
+  async initializeProjectAgent(storyDraft: string, format?: string): Promise<unknown> {
+    return callGenericGemini<unknown>({
       prompt: `INITIAL STORY IDEA: ${storyDraft}${format ? `\nSELECTED FORMAT: ${format}` : ''}\n\nAnalyze this idea and generate the core project metadata and initial critique. Evaluate if GOOD TO GO or NEEDS WORK.`,
       jsonMode: true,
       structuredOutput: 'initialProject',
     });
   },
 
-  async brainstormDual(userInput: string, currentStory: string, currentMetadata: any): Promise<any> {
-    return callGenericGemini<any>({
+  async brainstormDual(userInput: string, currentStory: string, currentMetadata: Record<string, unknown>): Promise<unknown> {
+    return callGenericGemini<unknown>({
       prompt: `User Input: ${userInput}\n\nCurrent Story: ${currentStory}\n\nCurrent Metadata: ${JSON.stringify(currentMetadata)}`,
       systemPrompt: 'You are a professional screenwriting consultant and pitch doctor. Provide critique and final pitch.',
       jsonMode: true,

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, KeyboardEvent } from '
 import { useTranslation } from 'react-i18next';
 import { Bot, User, Check, ArrowUp, ChevronDown, MessageSquare, Plus, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ProjectMetadata } from '../../types';
+import { ProjectMetadata, ExtractedData } from '../../types';
 import { cn } from '@/lib/utils';
 import { DictationButton } from '../ui/DictationButton';
 
@@ -12,12 +12,7 @@ interface Message {
   content: string;
 }
 
-interface ExtractedData {
-  metadata?: ProjectMetadata;
-  logline?: string;
-  synopsis?: string;
-  productionNotes?: string;
-}
+// Removed local ExtractedData
 
 interface DiscoveryFlowProps {
   initialIdea: string;

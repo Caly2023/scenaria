@@ -120,7 +120,7 @@ export const projectApi = baseApi.injectEndpoints({
 
     updateProjectField: builder.mutation<
       void,
-      { id: string; field: string; content: any }
+      { id: string; field: string; content: unknown }
     >({
       async queryFn({ id, field, content }) {
         if (!id || !field) return { error: { message: "Missing id or field", status: 400 } };
@@ -143,14 +143,14 @@ export const projectApi = baseApi.injectEndpoints({
             if (draft) {
               if (field.includes(".")) {
                 const parts = field.split(".");
-                let current = draft as any;
+                let current = draft as Record<string, unknown>;
                 for (let i = 0; i < parts.length - 1; i++) {
                   if (!current[parts[i]]) current[parts[i]] = {};
-                  current = current[parts[i]];
+                  current = current[parts[i]] as Record<string, unknown>;
                 }
                 current[parts[parts.length - 1]] = content;
               } else {
-                (draft as any)[field] = content;
+                (draft as Record<string, unknown>)[field] = content;
               }
             }
           }),
@@ -165,7 +165,7 @@ export const projectApi = baseApi.injectEndpoints({
 
     updateProjectMetadata: builder.mutation<
       void,
-      { id: string; metadata: any }
+      { id: string; metadata: Record<string, unknown> }
     >({
       async queryFn({ id, metadata }) {
         if (!id) return { error: { message: "Missing id", status: 400 } };
@@ -183,7 +183,7 @@ export const projectApi = baseApi.injectEndpoints({
         const patchResult = dispatch(
           projectApi.util.updateQueryData("getProjectById", id, (draft) => {
             if (draft) {
-              draft.metadata = metadata;
+              draft.metadata = metadata as unknown as Project["metadata"];
             }
           }),
         );
@@ -197,7 +197,7 @@ export const projectApi = baseApi.injectEndpoints({
 
     updateProjectFields: builder.mutation<
       void,
-      { id: string; updates: Record<string, any> }
+      { id: string; updates: Record<string, unknown> }
     >({
       async queryFn({ id, updates }) {
         if (!id) return { error: { message: "Missing id", status: 400 } };
@@ -218,14 +218,14 @@ export const projectApi = baseApi.injectEndpoints({
               Object.entries(updates).forEach(([field, content]) => {
                 if (field.includes(".")) {
                   const parts = field.split(".");
-                  let current = draft as any;
+                  let current = draft as Record<string, unknown>;
                   for (let i = 0; i < parts.length - 1; i++) {
                     if (!current[parts[i]]) current[parts[i]] = {};
-                    current = current[parts[i]];
+                    current = current[parts[i]] as Record<string, unknown>;
                   }
                   current[parts[parts.length - 1]] = content;
                 } else {
-                  (draft as any)[field] = content;
+                  (draft as Record<string, unknown>)[field] = content;
                 }
               });
             }
@@ -277,7 +277,7 @@ export const projectApi = baseApi.injectEndpoints({
 
     initializeProjectWithPrimitives: builder.mutation<
       string,
-      { projectId?: string; projectData: any; primitives: any[] }
+      { projectId?: string; projectData: Partial<Project>; primitives: { subcollection?: string; [key: string]: unknown }[] }
     >({
       async queryFn({ projectId, projectData, primitives }) {
         try {

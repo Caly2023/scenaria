@@ -14,7 +14,7 @@ const actionHistoryStack: Map<string, Array<{
   type: string;
   collectionName?: string;
   docId?: string;
-  previousData?: Record<string, any>;
+  previousData?: Record<string, unknown>;
   projectId: string;
   timestamp: number;
 }>> = new Map();
@@ -29,7 +29,7 @@ export function registerUndoableAction(
   payload: {
     collectionName?: string;
     docId?: string;
-    previousData?: Record<string, any>;
+    previousData?: Record<string, unknown>;
   }
 ) {
   if (!actionHistoryStack.has(projectId)) {
@@ -79,7 +79,7 @@ export const undoLastAction: ToolHandler = async (args, context) => {
 
     } else if (lastAction.type === "delete" && lastAction.collectionName && lastAction.docId && lastAction.previousData) {
       await store.dispatch(
-        (firebaseService.endpoints as any).setSubcollectionDoc.initiate({
+        firebaseService.endpoints.setSubcollectionDoc.initiate({
           projectId: lastAction.projectId,
           collectionName: lastAction.collectionName,
           docId: lastAction.docId,

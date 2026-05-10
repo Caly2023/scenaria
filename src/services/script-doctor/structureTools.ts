@@ -16,7 +16,7 @@ export const getStageStructure: ToolHandler = async (args, context) => {
     data: {
       stage_id,
       total_count: structure.length,
-      primitives: structure.map((p: any) => ({
+      primitives: structure.map((p: { id?: string, primitive_id?: string, title?: string, name?: string, order?: number, content?: string, description?: string }) => ({
         primitive_id: p.id,
         title: p.title || p.name,
         content: p.content || p.description,
@@ -31,17 +31,17 @@ export const researchContext: ToolHandler = async (args, context) => {
   const stageName = getArgString(args, "stageName") ?? "";
   telemetryService.setStatus("research_context", "🔍", `Context search: ${stageName}...`);
   
-  let items: any[] = [];
+  let items: { id?: string, title?: string, name?: string, content?: string, description?: string, order?: number, primitive_id?: string }[] = [];
   
   try {
     const sDef = stageRegistry.get(stageName);
     
     if (sDef.collectionName === "characters") {
-        items = characters;
+        items = characters as typeof items;
     } else if (sDef.collectionName === "locations") {
-        items = locations;
+        items = locations as typeof items;
     } else if (stageContents[stageName] && stageContents[stageName].length > 0) {
-        items = stageContents[stageName];
+        items = (stageContents[stageName] || []) as typeof items;
     } else {
       items = await contextAssembler.getStageStructure(currentProject.id, stageName);
     }
@@ -52,7 +52,7 @@ export const researchContext: ToolHandler = async (args, context) => {
 
   return {
     success: true,
-    data: items.map((item: any) => ({
+    data: items.map((item: { id?: string, title?: string, name?: string, content?: string, description?: string, order?: number }) => ({
       primitive_id: item.id || "",
       title: item.title || item.name || "",
       content: item.content || item.description || "",
@@ -76,7 +76,10 @@ export const restructureStage: ToolHandler = async (args, context) => {
 
   try {
     const existingItems = stageContents[stage] || [];
-    const newIds = new Set(primitives.map((p: any) => (p && (p.id || p.primitive_id))).filter(Boolean));
+    const newIds = new Set(primitives.map((p: unknown) => {
+      const pObj = p as { id?: string, primitive_id?: string };
+      return pObj ? (pObj.id || pObj.primitive_id) : undefined;
+    }).filter(Boolean));
 
     for (const item of existingItems) {
       if (!newIds.has(item.id)) {
@@ -91,7 +94,7 @@ export const restructureStage: ToolHandler = async (args, context) => {
     }
 
     for (let i = 0; i < primitives.length; i++) {
-      const p = primitives[i] as any;
+      const p = primitives[i] as { title?: string, name?: string, content?: string, description?: string, order?: number, id?: string, primitive_id?: string };
       const id = p.id || p.primitive_id;
       
       const safe = mapPrimitiveToDb(stage, {

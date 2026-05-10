@@ -82,7 +82,7 @@ export function useProjectSync(
     }, 500);
   }, []);
 
-  const handleSubcollectionUpdate = useCallback((collName: string, id: string, dataOrContent: string | Record<string, any>) => {
+  const handleSubcollectionUpdate = useCallback((collName: string, id: string, dataOrContent: string | Record<string, unknown>) => {
     let data = typeof dataOrContent === 'string' ? { content: dataOrContent } : dataOrContent;
     
     // Apply mapping for bible stages (Character/Location)

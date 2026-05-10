@@ -1,4 +1,5 @@
 import { stageRegistry } from "../../config/stageRegistry";
+import { WorkflowStage } from "../../types";
 
 /**
  * Builds the cascading context string from already-resolved stage text.
@@ -29,7 +30,7 @@ export async function buildCascadingContext(
   }
 
   // 3. IMMEDIATE HISTORY (The stage directly preceding the current one)
-  const prevDef = stageRegistry.getPrevious(currentStage as any);
+  const prevDef = stageRegistry.getPrevious(currentStage as WorkflowStage);
   if (prevDef) {
     const prevText = await Promise.resolve(getStageText(prevDef.id));
     if (prevText) {

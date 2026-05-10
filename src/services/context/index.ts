@@ -8,7 +8,7 @@ export * from './promptFormatter';
 export * from './stageStructure';
 
 import type { PromptPayload } from '../../types/context';
-import type { WorkflowStage } from '../../types';
+import { Project, WorkflowStage, ContentPrimitive } from "../../types";
 import { getStageStructure, hydrateFullIdMap } from './stageStructure';
 import { buildPromptPayload, buildPayloadFromProjectContext } from './payloadBuilder';
 import { formatPrompt } from './promptFormatter';
@@ -34,7 +34,11 @@ export const contextAssembler = {
     return buildPromptPayload(projectId, currentStage, activePrimitiveId);
   },
 
-  buildPayloadFromProjectContext(context: any, currentStage: WorkflowStage): Promise<PromptPayload> {
+  buildPayloadFromProjectContext(context: {
+    metadata: Project["metadata"];
+    stageContents: Record<string, ContentPrimitive[]>;
+    stageAnalyses: Record<string, unknown>;
+  }, currentStage: WorkflowStage): Promise<PromptPayload> {
     return buildPayloadFromProjectContext(context, currentStage);
   },
 

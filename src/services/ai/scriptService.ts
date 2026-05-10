@@ -8,7 +8,7 @@ export const scriptService = {
     });
   },
 
-  async generateInitialSequences(storyDump: string, format: string, availableCharacters: any[], availableLocations: any[]): Promise<any> {
+  async generateInitialSequences(storyDump: string, format: string, availableCharacters: { id: string; name: string }[], availableLocations: { id: string; name: string }[]): Promise<unknown> {
     const prompt = `You are a professional screenwriter. Based on this story dump, generate 3-5 initial sequences for a ${format}. 
     Ensure the content follows professional screenwriting standards (sluglines, action, dialogue).
     
@@ -32,25 +32,25 @@ export const scriptService = {
     });
   },
 
-  async generateSynopsis(context: string): Promise<any> {
+  async generateSynopsis(context: string): Promise<unknown> {
     if (!context || typeof context !== 'string' || context.trim().length < 50) return "Once the story is more developed, I will generate a full synopsis here.";
-    return callGenkitFlow<any>('generateSynopsis', { context });
+    return callGenkitFlow<unknown>('generateSynopsis', { context });
   },
 
-  async generate3ActStructure(context: string): Promise<any> {
-    return callGenkitFlow<any>('generate3ActStructure', { context });
+  async generate3ActStructure(context: string): Promise<unknown> {
+    return callGenkitFlow<unknown>('generate3ActStructure', { context });
   },
 
-  async refine3ActStructure(currentStructure: string, feedback: string): Promise<any> {
-    return callGenericGemini<any>({
+  async refine3ActStructure(currentStructure: string, feedback: string): Promise<unknown> {
+    return callGenericGemini<unknown>({
       prompt: `Refine the following 8-beat 3-Act Structure based on this feedback: "${feedback}". Maintain the 8-beat framework. Output in JSON format.\n\nCurrent Structure:\n${currentStructure}`,
       jsonMode: true,
       structuredOutput: 'threeActStructure',
     });
   },
 
-  async generateTreatment(context: string): Promise<any> {
-    return callGenericGemini<any>({ 
+  async generateTreatment(context: string): Promise<unknown> {
+    return callGenericGemini<unknown>({ 
       prompt: Prompts.TREATMENT_PROMPT(context),
       jsonMode: true,
       structuredOutput: 'sequenceArray',
@@ -58,6 +58,6 @@ export const scriptService = {
   },
 
   async generateFullScript(scriptCtx: Prompts.ScriptGenerationContext) {
-    return callGenkitFlow<any>('generateFullScript', scriptCtx);
+    return callGenkitFlow<unknown>('generateFullScript', scriptCtx);
   },
 };

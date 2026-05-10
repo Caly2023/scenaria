@@ -112,7 +112,7 @@ export abstract class BaseStageAgent implements IStageAgent {
         const result = await fn();
         telemetryService.trackAiOperation(this.stageId, Date.now() - startTime, true);
         return result;
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (attempt === maxRetries) {
           telemetryService.trackAiOperation(this.stageId, Date.now() - startTime, false);
           throw e;
@@ -168,10 +168,10 @@ export abstract class BaseStageAgent implements IStageAgent {
   protected buildPrimitive(
     id: string,
     title: string,
-    content: any,
+    content: unknown,
     primitiveType: string,
     order: number,
-    extra?: Record<string, any>
+    extra?: Record<string, unknown>
   ): ContentPrimitive {
     const safeContent = typeof content === 'string' 
       ? content 
@@ -193,7 +193,11 @@ export abstract class BaseStageAgent implements IStageAgent {
    * Helper to get the unified, formatted context string for the current stage.
    */
   protected async getUnifiedContext(context: ProjectContext): Promise<string> {
-    const payload = await contextAssembler.buildPayloadFromProjectContext(context, this.stageId as any);
+      const payload = await contextAssembler.buildPayloadFromProjectContext(context as unknown as {
+        metadata: import('../types').ProjectMetadata;
+        stageContents: Record<string, ContentPrimitive[]>;
+        stageAnalyses: Record<string, unknown>;
+      }, this.stageId as WorkflowStage);
     return contextAssembler.formatPrompt(payload, "");
   }
 

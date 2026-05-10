@@ -12,6 +12,7 @@ import { ttsService } from '@/services/ttsService';
 import { useProject } from '@/contexts/ProjectContext';
 import { ScriptDoctorTypingIndicator } from './ScriptDoctorTypingIndicator';
 import { ScriptDoctorMessageItem } from './ScriptDoctorMessageItem';
+import { ScriptDoctorMessage } from '@/types/scriptDoctor';
 
 export function ScriptDoctorContent() {
   const project = useProject();
@@ -102,7 +103,7 @@ export function ScriptDoctorContent() {
     let scrollTimeout: number | undefined;
 
     if (messages.length > lastMessageCount.current) {
-      const lastMsg = messages[messages.length - 1];
+      const lastMsg = messages[messages.length - 1] as ScriptDoctorMessage;
       scrollTimeout = window.setTimeout(() => {
         if (!scrollContainerRef.current) return;
         const container = scrollContainerRef.current;
@@ -183,21 +184,21 @@ export function ScriptDoctorContent() {
           </div>
         )}
 
-        {messages.map((msg) => (
+        {(messages as ScriptDoctorMessage[]).map((msg) => (
           <ScriptDoctorMessageItem
             key={msg.id}
             msg={msg}
             isApplied={appliedSuggestions.has(msg.id)}
             isApplyingThis={isApplying === msg.id}
-            isPendingForThis={pendingToolCall?.botMsgId === msg.id}
-            pendingToolCall={pendingToolCall}
+            isPendingForThis={(pendingToolCall as Record<string, unknown>)?.botMsgId === msg.id}
+            pendingToolCall={pendingToolCall as Record<string, unknown>}
             isSpeaking={isSpeaking}
             onConfirmTool={onConfirmTool!}
             onCancelTool={onCancelTool!}
             handleApply={handleApply}
             handleTts={handleTts}
             onSendMessage={onSendMessage}
-            messages={messages}
+            messages={messages as ScriptDoctorMessage[]}
           />
         ))}
 

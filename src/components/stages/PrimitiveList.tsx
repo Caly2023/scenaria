@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnimatePresence } from 'motion/react';
 import { useTranslation } from 'react-i18next';
-import { Primitive } from '../primitive/Primitive';
+import { Primitive, PrimitiveType } from '../primitive/Primitive';
 import { ContentPrimitive, WorkflowStage } from '../../types';
 import { StageDefinition } from '../../config/stageRegistry';
 
@@ -10,7 +10,7 @@ interface PrimitiveListProps {
   stage: WorkflowStage;
   definition: StageDefinition;
   isGenerating: boolean;
-  onUpdate: (stage: WorkflowStage, id: string, updates: any) => Promise<void>;
+  onUpdate: (stage: WorkflowStage, id: string, updates: Record<string, unknown>) => Promise<void>;
   onDelete: (stage: WorkflowStage, id: string) => Promise<void>;
   onAiMagic?: (id: string) => Promise<void>;
   onDeepDevelop?: (id: string) => void;
@@ -46,7 +46,7 @@ export const PrimitiveList: React.FC<PrimitiveListProps> = ({
             key={prim.id}
             title={isCanvas ? `${t('common.sequence')} ${index + 1}: ${prim.title || t('common.untitled')}` : prim.title}
             content={prim.content}
-            type={isGallery ? 'gallery' : (prim.primitiveType || definition.primitiveTypes[0]) as any}
+            type={isGallery ? 'gallery' : (prim.primitiveType || definition.primitiveTypes[0]) as PrimitiveType}
             onContentChange={(c) => onUpdate(stage, prim.id, { content: c })}
             onTitleChange={(t) => onUpdate(stage, prim.id, { title: t })}
             onDelete={isGallery ? () => onDelete(stage, prim.id) : undefined}
@@ -55,7 +55,7 @@ export const PrimitiveList: React.FC<PrimitiveListProps> = ({
             onFocus={onFocus ? () => onFocus(prim.id) : undefined}
             onRegenerate={onRegenerate}
             onImageClick={onImageClick}
-            images={prim.metadata?.views ? Object.values(prim.metadata.views) as string[] : (prim.metadata?.images || [])}
+            images={prim.metadata?.views ? Object.values(prim.metadata.views as Record<string, string>) : ((prim.metadata?.images as string[]) || [])}
             isGenerating={isGenerating}
             mode={isGallery ? "split" : (primitives.length > 1 ? "stacked" : "single")}
             visualPrompt={prim.visualPrompt}

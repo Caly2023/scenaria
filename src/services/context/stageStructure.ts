@@ -1,4 +1,5 @@
 import { store } from "../../store";
+import { WorkflowStage, ContentPrimitive } from "../../types";
 import { firebaseService } from "../firebaseService";
 import { telemetryService } from "../telemetryService";
 import { stageRegistry } from "../../config/stageRegistry";
@@ -6,7 +7,7 @@ import { stageRegistry } from "../../config/stageRegistry";
 export async function getStageStructure(
   projectId: string,
   stageName: string
-): Promise<Array<{ id: string; title: string; content: string; order: number; [key: string]: any }>> {
+): Promise<Array<ContentPrimitive & Record<string, unknown>>> {
   try {
     telemetryService.setStatus("Fetching stage", "🧠", `Mapping Primitive IDs for ${stageName}...`);
 
@@ -26,15 +27,18 @@ export async function getStageStructure(
       }));
       
       const docs = snap.data || [];
-      const primitives = docs.map((d: any) => ({
-        ...d,
-        title: d.title || d.name || "",
-        content: d.content || d.description || "",
-        order: d.order ?? 0,
-      }));
+      const primitives = docs.map((d: unknown) => {
+        const obj = d as Record<string, unknown>;
+        return {
+          ...obj,
+          title: (obj.title as string) || (obj.name as string) || "",
+          content: (obj.content as string) || (obj.description as string) || "",
+          order: (obj.order as number) ?? 0,
+        };
+      });
 
-      telemetryService.hydrateStage(stageName, subcollection, primitives as any);
-      return primitives;
+      telemetryService.hydrateStage(stageName, subcollection, primitives as ContentPrimitive[]);
+      return primitives as (ContentPrimitive & Record<string, unknown>)[];
     }
   } catch (error) {
     console.error(`[ContextAssembler] Error fetching stage ${stageName}:`, error);

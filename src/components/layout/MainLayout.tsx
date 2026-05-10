@@ -22,6 +22,8 @@ import { ProjectHistorySidebar } from '../header/ProjectHistorySidebar';
 
 // Sub-components
 import { ScriptDoctorFAB } from './ScriptDoctorFAB';
+import { MobileUnifiedNavigation } from './MobileUnifiedNavigation';
+import { stageRegistry } from '../../config/stageRegistry';
 
 type AccessibilitySettings = {
   highContrast: boolean;
@@ -79,6 +81,22 @@ const MainLayoutComponent = ({
   const [showDoctorBubble, setShowDoctorBubble] = useState(true);
   const lastScrollY = useRef(0);
   const currentProjectId = currentProject?.id || "";
+  const stages = stageRegistry.getAll();
+
+  const isStageUnlocked = (index: number) => {
+    if (index === 0) return true;
+    const previousStageId = stages[index - 1].id;
+    const validatedStages = currentProject?.validatedStages || [];
+    
+    // Check legacy field
+    const isValidated = validatedStages.includes(previousStageId);
+    
+    // Check modern field (StageStates)
+    const stageState = currentProject?.stageStates?.[previousStageId] || 'empty';
+    const isReady = stageState === 'good' || stageState === 'excellent';
+    
+    return isValidated || isReady;
+  };
 
   useEffect(() => {
     if (!isMobile) return;
@@ -195,14 +213,30 @@ const MainLayoutComponent = ({
       <GlobalOverlay isTyping={isTyping} isHydrating={hydrationState.isHydrating} hydratingLabel={hydrationState.hydratingLabel} isHeavyThinking={isHeavyThinking} activeStage={activeStage} refiningBlockId={refiningBlockId} />
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
-      <ScriptDoctorFAB 
-        isOpen={isDoctorOpen}
-        isVisible={showDoctorBubble && !!currentProject}
-        isMobile={isMobile}
-        isTyping={isTyping}
-        isHeavyThinking={isHeavyThinking}
-        onOpen={handleOpenDoctor}
-      />
+      {isMobile ? (
+        currentProject && (
+          <MobileUnifiedNavigation 
+            stages={stages}
+            activeStage={activeStage}
+            onStageChange={project.handleStageChange}
+            isStageUnlocked={isStageUnlocked}
+            isDoctorOpen={isDoctorOpen}
+            onOpenDoctor={handleOpenDoctor}
+            isTyping={isTyping}
+            isHeavyThinking={isHeavyThinking}
+            isVisible={showDoctorBubble && !isDoctorOpen}
+          />
+        )
+      ) : (
+        <ScriptDoctorFAB 
+          isOpen={isDoctorOpen}
+          isVisible={showDoctorBubble && !!currentProject}
+          isMobile={isMobile}
+          isTyping={isTyping}
+          isHeavyThinking={isHeavyThinking}
+          onOpen={handleOpenDoctor}
+        />
+      )}
 
       <AnimatePresence>
         {isFirstTime && <OnboardingWizard onComplete={() => { setIsFirstTime(false); localStorage.setItem("scenaria_onboarded", "true"); }} />}

@@ -114,6 +114,76 @@ export function useCharacterActions({
     );
   }, [currentProject, stageContents, setIsTyping, addToast, t, updateSubcol]);
 
+  const onGenerateCinematicImage = useCallback(async (primitiveId: string, prompt: string, referenceImages: string[]) => {
+    // Generate an image via genkit flow, uploading to Cloudinary
+    const { cloudinaryService } = await import('../../services/cloudinaryService');
+    const views = await geminiService.generateCharacterViews({ 
+      prompt: `${prompt} cinematic lighting, movie still, 35mm anamorphic lens, ultra realistic, dramatic composition, depth of field, film grain, same character, same face, same outfit, same cinematic identity`,
+      referenceImageUrl: referenceImages.length > 0 ? referenceImages[referenceImages.length - 1] : undefined
+    });
+    
+    if (!views || views.length === 0) throw new Error("Génération échouée.");
+    
+    // Upload immediately to cloudinary (pending validation by user)
+    const res = await cloudinaryService.uploadImage(views[0]);
+    return res.secure_url;
+  }, []);
+
+  const onValidateCinematicImage = useCallback(async (primitiveId: string, imageUrl: string, index: number) => {
+    if (!currentProject) return;
+    const bible = stageContents['Story Bible'] || [];
+    const prim = bible.find(c => c.id === primitiveId);
+    if (!prim) return;
+
+    const collectionName = stageRegistry.getCollectionName('Story Bible');
+    const existingImages = (prim.metadata?.images as string[]) || [];
+    
+    // Clone and place at specific index
+    const newImages = [...existingImages];
+    newImages[index] = imageUrl;
+
+    await updateSubcol({ 
+      projectId: currentProject.id, 
+      collectionName, 
+      docId: primitiveId, 
+      data: {
+        metadata: {
+          ...(prim.metadata || {}),
+          images: newImages
+        }
+      }
+    }).unwrap();
+    addToast('Image validée et enregistrée !', 'success');
+  }, [currentProject, stageContents, updateSubcol, addToast]);
+
+  const onDeleteCinematicImage = useCallback(async (primitiveId: string, index: number) => {
+    if (!currentProject) return;
+    const bible = stageContents['Story Bible'] || [];
+    const prim = bible.find(c => c.id === primitiveId);
+    if (!prim) return;
+
+    const collectionName = stageRegistry.getCollectionName('Story Bible');
+    const existingImages = (prim.metadata?.images as string[]) || [];
+    
+    // Remove the image at index (set to undefined/null or slice)
+    // Actually, setting it to null or filtering? If it's a sparse array, we should keep the length or just slice it
+    // Cinematic N needs N-1. If we delete N, what happens to N+1? The user should probably only delete the last one, or we just remove it and compact.
+    const newImages = existingImages.filter((_, i) => i !== index);
+
+    await updateSubcol({ 
+      projectId: currentProject.id, 
+      collectionName, 
+      docId: primitiveId, 
+      data: {
+        metadata: {
+          ...(prim.metadata || {}),
+          images: newImages
+        }
+      }
+    }).unwrap();
+    addToast('Image supprimée', 'info');
+  }, [currentProject, stageContents, updateSubcol, addToast]);
+
   const handleCharacterDeepDevelop = useCallback(async (id: string) => {
     if (!currentProject) return;
     const bible = stageContents['Story Bible'] || [];
@@ -182,6 +252,9 @@ ${deepData.relationshipMap}
 
   return useMemo(() => ({
     handleGenerateViews,
-    handleCharacterDeepDevelop
-  }), [handleGenerateViews, handleCharacterDeepDevelop]);
+    handleCharacterDeepDevelop,
+    onGenerateCinematicImage,
+    onValidateCinematicImage,
+    onDeleteCinematicImage
+  }), [handleGenerateViews, handleCharacterDeepDevelop, onGenerateCinematicImage, onValidateCinematicImage, onDeleteCinematicImage]);
 }

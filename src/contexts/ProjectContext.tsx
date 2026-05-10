@@ -58,6 +58,10 @@ interface ProjectContextType {
   handleCharacterDeepDevelop: (id: string) => Promise<void>;
   handleLocationDeepDevelop: (id: string) => Promise<void>;
   
+  onGenerateCinematicImage: (primitiveId: string, prompt: string, referenceImages: string[]) => Promise<string>;
+  onValidateCinematicImage: (primitiveId: string, imageUrl: string, index: number) => Promise<void>;
+  onDeleteCinematicImage: (primitiveId: string, index: number) => Promise<void>;
+
   // App Callbacks (Standardized)
 
   onLoglineChange: (c: string) => void;
@@ -208,7 +212,10 @@ export const ProjectProvider: React.FC<{ user: User | null; addToast: (msg: stri
     handleCloseFocus,
     handleDeleteCurrentProject,
     handleCancelDelete,
-    onApplyFix: doctor.handleDoctorMessage
+    onApplyFix: doctor.handleDoctorMessage,
+    onGenerateCinematicImage: projectHook.onGenerateCinematicImage,
+    onValidateCinematicImage: projectHook.onValidateCinematicImage,
+    onDeleteCinematicImage: projectHook.onDeleteCinematicImage
   }), [
     projectHook,
     doctor,

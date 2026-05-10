@@ -384,31 +384,7 @@ const genericGeminiFlow = ai.defineFlow(
   }
 );
 
-// 8. Image Generation Flow (Nano Banana Pro)
-// Define a custom model to fulfill the 'nano-banana-pro' requests since it's not a native Google model
-ai.defineModel(
-  { name: 'nano-banana-pro' },
-  async (request) => {
-    // Extract the prompt from the request messages
-    const lastMessage = request.messages[request.messages.length - 1];
-    const prompt = lastMessage?.content.map(c => c.text).join(' ') || 'concept art';
-    
-    // Use Pollinations AI for free, on-the-fly image generation without an API key
-    // Appending specific keywords to ensure high quality concept art
-    const encodedPrompt = encodeURIComponent(`${prompt} highly detailed, character concept art, masterpiece, 8k resolution`);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true`;
-    
-    return {
-      message: {
-        role: 'model',
-        content: [
-          { media: { url: imageUrl, contentType: 'image/jpeg' } }
-        ]
-      }
-    };
-  }
-);
-
+// 8. Image Generation Flow (Cinematic Genkit Engine)
 const generateCharacterImageFlow = ai.defineFlow(
   {
     name: 'generateCharacterImageFlow',
@@ -421,15 +397,16 @@ const generateCharacterImageFlow = ai.defineFlow(
         {
           role: 'user',
           content: [
-            { text: `Generate a high quality concept art: ${input.prompt}` },
+            { text: `Generate a high quality cinematic image: ${input.prompt}` },
             ...(input.referenceImageUrl ? [{ media: { url: input.referenceImageUrl, contentType: 'image/jpeg' } }] : [])
           ]
         }
       ];
       
       const response = await ai.generate({
-        model: 'nano-banana-pro' as any, // using our newly defined custom model
+        model: 'googleai/gemini-2.5-flash',
         messages,
+        config: { output: { format: 'media' } }
       });
       // Extract media URLs from response
       const parts = response.message?.content || [];
@@ -437,7 +414,7 @@ const generateCharacterImageFlow = ai.defineFlow(
       return images;
     } catch (e) {
       console.error('Image generation failed:', e);
-      throw new Error(`Failed to generate image via nano banana pro: ${e instanceof Error ? e.message : String(e)}`);
+      throw new Error(`Failed to generate cinematic image: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 );

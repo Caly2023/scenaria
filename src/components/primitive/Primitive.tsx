@@ -14,6 +14,7 @@ import { MarkdownDisplay } from '@/components/ui/MarkdownDisplay';
 import { ttsService } from '@/services/ttsService';
 import { PrimitiveHeader } from './PrimitiveHeader';
 import { PrimitiveEmptyState } from './PrimitiveEmptyState';
+import { ContentPrimitive } from '@/types';
 
 export type PrimitiveType =
   | 'text'
@@ -46,6 +47,7 @@ interface PrimitiveProps {
   visualPrompt?: string;
   referencePrompts?: { prompt: string; description: string }[];
   isUpdated?: boolean;
+  onOpenCinematicModal?: () => void;
 }
 
 export const Primitive = memo(function Primitive({ 
@@ -68,7 +70,8 @@ export const Primitive = memo(function Primitive({
   mode = 'single',
   visualPrompt,
   referencePrompts,
-  isUpdated = false
+  isUpdated = false,
+  onOpenCinematicModal
 }: PrimitiveProps) {
   const { t } = useTranslation();
   const [showGlow, setShowGlow] = useState(false);
@@ -315,12 +318,12 @@ export const Primitive = memo(function Primitive({
                     </div>
                   ) : (
                     <div 
-                      onClick={onGenerateImage}
+                      onClick={onOpenCinematicModal}
                       className="aspect-video rounded-3xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center gap-4 opacity-40 cursor-pointer hover:bg-white/5 transition-all"
                     >
                       <Sparkles className="w-10 h-10" />
                       <div className="space-y-3">
-                        <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/60">{t('common.visualDescriptionReady')}</span>
+                        <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/60">Open Cinematic Continuity Engine</span>
                         {visualPrompt && (
                           <p className="text-xs text-secondary italic max-w-xs mx-auto leading-relaxed">"{visualPrompt}"</p>
                         )}

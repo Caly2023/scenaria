@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { MessageData } from 'genkit';
-import { ai, gemini31Pro, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite, geminiImageGen } from '../../lib/genkit';
+import { ai, gemini31Pro, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite, geminiImageGen, geminiImageGen2, geminiImageGenPro } from '../../lib/genkit';
 import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
 import { 
@@ -384,7 +384,41 @@ const genericGeminiFlow = ai.defineFlow(
   }
 );
 
+// ── Image generation helpers ─────────────────────────────────────────────────
+
+/** Extract API-suggested retry delay (ms) from a RESOURCE_EXHAUSTED message */
+function extractRetryDelayMs(message: string): number {
+  const match = message.match(/please retry in\s+([\d.]+)s/i);
+  return match ? Math.ceil(parseFloat(match[1]) * 1000) + 500 : 8000;
+}
+
+/** Returns true when the error is a quota / rate-limit error (429). */
+function isQuotaErr(e: unknown): boolean {
+  const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();
+  return msg.includes('resource_exhausted') || msg.includes('429') || msg.includes('quota') || msg.includes('too many requests');
+}
+
+/**
+ * Attempt image generation with a specific Nano Banana model.
+ * Throws on any error — caller handles fallback.
+ */
+async function tryImageModel(model: string, messages: MessageData[]): Promise<string[]> {
+  const response = await ai.generate({
+    model: model as Parameters<typeof ai.generate>[0]['model'],
+    messages,
+    config: { responseModalities: ['TEXT', 'IMAGE'] },
+    output: { format: 'media' },
+  });
+  const parts = response.message?.content || [];
+  const images = parts
+    .filter((p) => p.media)
+    .map((p) => p.media?.url)
+    .filter(Boolean) as string[];
+  return images;
+}
+
 // 8. Image Generation Flow (Cinematic Genkit Engine)
+// Fallback chain: Nano Banana → Nano Banana 2 → Nano Banana Pro
 const generateCharacterImageFlow = ai.defineFlow(
   {
     name: 'generateCharacterImageFlow',
@@ -392,34 +426,60 @@ const generateCharacterImageFlow = ai.defineFlow(
     outputSchema: z.array(z.string()),
   },
   async (input) => {
-    try {
-      const messages: MessageData[] = [
-        {
-          role: 'user',
-          content: [
-            { text: `Generate a high quality cinematic image: ${input.prompt}` },
-            ...(input.referenceImageUrl ? [{ media: { url: input.referenceImageUrl, contentType: 'image/jpeg' } }] : [])
-          ]
+    const messages: MessageData[] = [
+      {
+        role: 'user',
+        content: [
+          { text: `Generate a high quality cinematic image: ${input.prompt}` },
+          ...(input.referenceImageUrl
+            ? [{ media: { url: input.referenceImageUrl, contentType: 'image/jpeg' } }]
+            : []),
+        ],
+      },
+    ];
+
+    // Ordered fallback chain — from fastest/cheapest to most capable
+    const modelChain = [
+      { id: geminiImageGen,    label: 'Nano Banana (gemini-2.5-flash-image)' },
+      { id: geminiImageGen2,   label: 'Nano Banana 2 (gemini-3.1-flash-image-preview)' },
+      { id: geminiImageGenPro, label: 'Nano Banana Pro (gemini-3-pro-image-preview)' },
+    ];
+
+    let lastError: unknown;
+
+    for (const { id, label } of modelChain) {
+      try {
+        console.log(`[ImageGen] Trying model: ${label}`);
+        const images = await tryImageModel(id, messages);
+        if (images.length === 0) {
+          throw new Error(`[ImageGen] ${label} returned no images — skipping to next model.`);
         }
-      ];
-      
-      const response = await ai.generate({
-        model: geminiImageGen,
-        messages,
-        // responseModalities must be in config, NOT output (output is a Genkit-level field)
-        config: {
-          responseModalities: ['TEXT', 'IMAGE'],
-        },
-        output: { format: 'media' },
-      });
-      // Extract media URLs from response
-      const parts = response.message?.content || [];
-      const images = parts.filter(p => p.media).map(p => p.media?.url).filter(Boolean) as string[];
-      return images;
-    } catch (e) {
-      console.error('Image generation failed:', e);
-      throw new Error(`Failed to generate cinematic image: ${e instanceof Error ? e.message : String(e)}`);
+        console.log(`[ImageGen] ✅ Success with ${label} (${images.length} image(s))`);
+        return images;
+      } catch (e: unknown) {
+        lastError = e;
+        const msg = e instanceof Error ? e.message : String(e);
+
+        if (isQuotaErr(e)) {
+          const waitMs = extractRetryDelayMs(msg);
+          console.warn(
+            `[ImageGen] ⚠️ Quota exceeded on ${label}. ` +
+            `Waiting ${waitMs}ms then trying next model...`
+          );
+          await new Promise((r) => setTimeout(r, waitMs));
+          // continue to next model in chain
+        } else {
+          // Non-quota error — log and still try next model
+          console.error(`[ImageGen] ❌ Non-quota error on ${label}:`, msg);
+          // Don't wait — try next model immediately
+        }
+      }
     }
+
+    // All models exhausted
+    const rootMsg = lastError instanceof Error ? lastError.message : String(lastError);
+    console.error('[ImageGen] All Nano Banana models failed. Last error:', rootMsg);
+    throw new Error(`Failed to generate cinematic image: ${rootMsg}`);
   }
 );
 

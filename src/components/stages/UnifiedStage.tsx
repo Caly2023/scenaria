@@ -33,7 +33,8 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
     handleAiMagic,
     handleCharacterDeepDevelop,
     handleLocationDeepDevelop,
-    handleFocusMode
+    handleFocusMode,
+    handleGenerateViews
   } = project;
 
   if (!currentProject) return null;
@@ -82,6 +83,7 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
             else if (prim?.primitiveType === 'location') handleLocationDeepDevelop(id);
           } : undefined}
           onFocus={isCanvas ? handleFocusMode : undefined}
+          onGenerateImage={isGallery ? handleGenerateViews : undefined}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
         />
 

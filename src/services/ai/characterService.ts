@@ -5,8 +5,8 @@ export const characterService = {
     return callGenkitFlow<unknown>('extractCharacters', { brainstorming: context });
   },
 
-  async generateCharacterViews(description: string): Promise<string[]> {
-    return callGenkitFlow<string[]>('generateCharacterImage', { prompt: description });
+  async generateCharacterViews(options: { prompt: string; referenceImageUrl?: string }): Promise<string[]> {
+    return callGenkitFlow<string[]>('generateCharacterImage', options);
   },
 
   async deepDevelopCharacter(character: { name: string }, masterStory: string, otherCharacters: { name: string }[]): Promise<unknown> {

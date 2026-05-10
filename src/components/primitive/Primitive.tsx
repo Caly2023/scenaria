@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Maximize2, 
   Plus,
-  Sparkles
+  Sparkles,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -42,6 +44,7 @@ interface PrimitiveProps {
   tier?: 1 | 2 | 3;
   mode?: 'single' | 'stacked' | 'split';
   visualPrompt?: string;
+  referencePrompts?: { prompt: string; description: string }[];
   isUpdated?: boolean;
 }
 
@@ -64,12 +67,14 @@ export const Primitive = memo(function Primitive({
   placeholder = "Start writing...",
   mode = 'single',
   visualPrompt,
+  referencePrompts,
   isUpdated = false
 }: PrimitiveProps) {
   const { t } = useTranslation();
   const [showGlow, setShowGlow] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Trigger glow effect when isUpdated changes to true
   useEffect(() => {
@@ -117,6 +122,12 @@ export const Primitive = memo(function Primitive({
   }, [content]);
 
   const handleToggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
+
+  const handleCopyPrompt = useCallback((prompt: string, index: number) => {
+    navigator.clipboard.writeText(prompt);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
+  }, []);
 
   return (
     <motion.div
@@ -255,18 +266,67 @@ export const Primitive = memo(function Primitive({
                   "px-5 pb-6 md:px-10 md:pb-10",
                   "max-md:px-0"
                 )}>
-                  <div 
-                    onClick={onGenerateImage}
-                    className="aspect-video rounded-3xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center gap-4 opacity-40 cursor-pointer hover:bg-white/5 transition-all"
-                  >
-                    <Sparkles className="w-10 h-10" />
-                    <div className="space-y-3">
-                      <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/60">{t('common.visualDescriptionReady')}</span>
-                      {visualPrompt && (
-                        <p className="text-xs text-secondary italic max-w-xs mx-auto leading-relaxed">"{visualPrompt}"</p>
-                      )}
+                  {referencePrompts && referencePrompts.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold uppercase tracking-[0.2em] text-white/60">
+                          {t('common.referencePrompts', { defaultValue: 'Images de Référence' })}
+                        </span>
+                        {onGenerateImage && (
+                          <button
+                            onClick={onGenerateImage}
+                            disabled={isGenerating}
+                            className="px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white/70 text-xs uppercase font-bold tracking-wider transition-all disabled:opacity-50 flex items-center gap-2"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            Générer tout
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {referencePrompts.map((rp, idx) => (
+                          <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3 relative group/prompt">
+                            <h4 className="text-sm font-semibold text-white/90">{rp.description}</h4>
+                            <p className="text-xs text-white/50 leading-relaxed italic line-clamp-3">
+                              "{rp.prompt}"
+                            </p>
+                            <div className="flex gap-2 justify-end pt-2">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleCopyPrompt(rp.prompt, idx); }}
+                                className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/70 transition-all flex items-center gap-2"
+                                title="Copier le prompt"
+                              >
+                                {copiedIndex === idx ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                              </button>
+                              {onGenerateImage && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); onGenerateImage(); }}
+                                  disabled={isGenerating}
+                                  className="px-4 py-2 rounded-full bg-[#2a2a2a] hover:bg-[#333333] border border-white/5 text-white/70 text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-2"
+                                >
+                                  <Sparkles className="w-3 h-3" />
+                                  Générer
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div 
+                      onClick={onGenerateImage}
+                      className="aspect-video rounded-3xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center p-8 text-center gap-4 opacity-40 cursor-pointer hover:bg-white/5 transition-all"
+                    >
+                      <Sparkles className="w-10 h-10" />
+                      <div className="space-y-3">
+                        <span className="text-sm font-bold uppercase tracking-[0.2em] block text-white/60">{t('common.visualDescriptionReady')}</span>
+                        {visualPrompt && (
+                          <p className="text-xs text-secondary italic max-w-xs mx-auto leading-relaxed">"{visualPrompt}"</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

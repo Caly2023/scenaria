@@ -388,14 +388,24 @@ const genericGeminiFlow = ai.defineFlow(
 const generateCharacterImageFlow = ai.defineFlow(
   {
     name: 'generateCharacterImageFlow',
-    inputSchema: z.object({ prompt: z.string() }),
+    inputSchema: z.object({ prompt: z.string(), referenceImageUrl: z.string().optional() }),
     outputSchema: z.array(z.string()),
   },
   async (input) => {
     try {
+      const messages: MessageData[] = [
+        {
+          role: 'user',
+          content: [
+            { text: `Generate a high quality concept art: ${input.prompt}` },
+            ...(input.referenceImageUrl ? [{ media: { url: input.referenceImageUrl, contentType: 'image/jpeg' } }] : [])
+          ]
+        }
+      ];
+      
       const response = await ai.generate({
         model: 'nano-banana-pro' as any, // using requested model via Genkit
-        prompt: `Generate a high quality character concept art: ${input.prompt}`,
+        messages,
       });
       // Extract media URLs from response
       const parts = response.message?.content || [];

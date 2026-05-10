@@ -27,42 +27,81 @@ export function useCharacterActions({
   const handleGenerateViews = useCallback(async (id: string) => {
     if (!currentProject) return;
     const bible = stageContents['Story Bible'] || [];
-    const char = bible.find(c => c.id === id && c.primitiveType === 'character');
-    if (!char) return;
+    const prim = bible.find(c => c.id === id);
+    if (!prim) return;
 
     await runAsyncAction(
       async () => {
-        const views = await geminiService.generateCharacterViews(char.content);
-        
-        const isConfirmed = window.confirm(
-          "Images successfully generated via nano banana pro!\n\n" +
-          "Do you validate these images? Click OK to store them on Cloudinary and save to your character, or Cancel to discard."
-        );
-
-        if (!isConfirmed) {
-          return;
+        const promptsToUse = prim.referencePrompts || (prim.visualPrompt ? [{ prompt: prim.visualPrompt, description: "Main reference" }] : []);
+        if (promptsToUse.length === 0) {
+          throw new Error("Aucun prompt visuel disponible pour cet élément.");
         }
 
-        const { cloudinaryService } = await import('../../services/cloudinaryService');
-        
-        const uploadedUrls = await Promise.all(
-          (views as string[]).map(async (base64OrUrl) => {
-             const res = await cloudinaryService.uploadImage(base64OrUrl);
-             return res.secure_url;
-          })
+        const isSequential = window.confirm(
+          "Voulez-vous générer les images en série (l'une après l'autre, en utilisant la précédente comme référence) ?\n\nCliquez sur OK pour Séquentiel, ou Annuler pour Parallèle."
         );
 
+        const { cloudinaryService } = await import('../../services/cloudinaryService');
+        let uploadedUrls: string[] = [];
+
+        if (isSequential) {
+          let lastImageUrl: string | undefined = undefined;
+          for (let i = 0; i < promptsToUse.length; i++) {
+            const rp = promptsToUse[i];
+            const views = await geminiService.generateCharacterViews({ prompt: rp.prompt, referenceImageUrl: lastImageUrl });
+            
+            if (!views || views.length === 0) throw new Error("La génération d'image a échoué.");
+            
+            const isConfirmed = window.confirm(
+              `Image ${i+1}/${promptsToUse.length} générée !\n\nVoulez-vous valider cette image pour l'utiliser comme référence pour la suite ?\n\nOK pour Valider, Annuler pour Arrêter ici.`
+            );
+
+            if (!isConfirmed) break;
+
+            const res = await cloudinaryService.uploadImage(views[0]);
+            lastImageUrl = res.secure_url;
+            uploadedUrls.push(lastImageUrl);
+          }
+        } else {
+          const results = await Promise.all(
+            promptsToUse.map(async (rp) => {
+              const views = await geminiService.generateCharacterViews({ prompt: rp.prompt });
+              if (!views || views.length === 0) return null;
+              const res = await cloudinaryService.uploadImage(views[0]);
+              return res.secure_url;
+            })
+          );
+          
+          const isConfirmed = window.confirm(
+            "Images générées avec succès en parallèle !\n\nVoulez-vous les sauvegarder ?"
+          );
+
+          if (!isConfirmed) return;
+          uploadedUrls = results.filter(Boolean) as string[];
+        }
+
+        if (uploadedUrls.length === 0) return;
+
         const collectionName = stageRegistry.getCollectionName('Story Bible');
+        const existingImages = (prim.metadata?.images as string[]) || [];
+        const newImages = [...existingImages, ...uploadedUrls];
+
         await updateSubcol({ 
           projectId: currentProject.id, 
           collectionName, 
           docId: id, 
           data: {
-            views: {
-              front: uploadedUrls[0] || '',
-              profile: uploadedUrls[1] || '',
-              back: uploadedUrls[2] || '',
-              full: uploadedUrls[3] || '',
+            ...(prim.primitiveType === 'character' ? {
+              views: {
+                front: uploadedUrls[0] || (prim.metadata?.views as any)?.front || '',
+                profile: uploadedUrls[1] || (prim.metadata?.views as any)?.profile || '',
+                back: uploadedUrls[2] || (prim.metadata?.views as any)?.back || '',
+                full: uploadedUrls[3] || (prim.metadata?.views as any)?.full || '',
+              }
+            } : {}),
+            metadata: {
+              ...(prim.metadata || {}),
+              images: newImages
             }
           }
         }).unwrap();
@@ -70,7 +109,7 @@ export function useCharacterActions({
       {
         setIsTyping,
         addToast,
-        successMessage: t('common.viewsGenerated', { defaultValue: 'Character views generated!' })
+        successMessage: t('common.viewsGenerated', { defaultValue: 'Images générées avec succès !' })
       }
     );
   }, [currentProject, stageContents, setIsTyping, addToast, t, updateSubcol]);

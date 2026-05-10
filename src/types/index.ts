@@ -32,6 +32,7 @@ export interface Character {
   description: string;
   tier?: 1 | 2 | 3;
   visualPrompt?: string;
+  referencePrompts?: { prompt: string; description: string }[];
   views?: {
     front: string;
     profile: string;
@@ -58,6 +59,7 @@ export interface Location {
   atmosphere: string;
   description: string;
   visualPrompt?: string;
+  referencePrompts?: { prompt: string; description: string }[];
   order: number;
   primitiveType?: string;
 }

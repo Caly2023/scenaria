@@ -35,6 +35,7 @@ export interface ContentPrimitive {
   agentGenerated?: boolean;
   agentVersion?: string;
   visualPrompt?: string;
+  referencePrompts?: { prompt: string; description: string }[];
   metadata?: Record<string, unknown>;  // Stage-specific extra fields
 }
 

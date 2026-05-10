@@ -60,6 +60,7 @@ export async function persistAgentOutput(
             projectId,
             updatedAt: serverTimestamp(),
             visualPrompt: prim.visualPrompt,
+            referencePrompts: prim.referencePrompts,
             ...(prim.metadata || {})
           }));
           

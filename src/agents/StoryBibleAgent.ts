@@ -32,7 +32,9 @@ For EACH main and secondary character, provide ALL of the following fields:
 - arc: Their transformation arc from story start to end (or confirmation of worldview if flat arc)
 - voice: How they speak — vocabulary, rhythm, verbal tics, what they avoid saying
 - relationships: Key relationships to other characters and how those relationships drive the plot
-- visualPrompt: A concise, evocative image-generation prompt describing their visual appearance for AI art generation
+- referencePrompts: An array of 3 to 4 objects for image generation references. Each object MUST have:
+  - "prompt": A highly detailed image generation prompt using best practices (subject, medium, style, lighting, camera, environment). MUST explicitly specify "white background".
+  - "description": A brief description of what this image shows (e.g., "Full body shot, neutral pose").
 - tier: "main" | "secondary" | "minor"
 
 ### LOCATIONS ARRAY
@@ -44,7 +46,9 @@ For EACH key location, provide ALL of the following fields:
 - symbolism: What this location represents thematically in the story
 - narrativeRole: The narrative function this location serves (inciting incident, climax, refuge, trap, etc.)
 - timeOfDay: Typical time of day or lighting conditions when it appears
-- visualPrompt: A concise, evocative image-generation prompt for AI art generation
+- referencePrompts: An array of 3 to 4 objects for image generation references. Each object MUST have:
+  - "prompt": A highly detailed image generation prompt using best practices (subject, medium, style, lighting, camera, environment). MUST explicitly specify "16:9 landscape aspect ratio, almost panoramic".
+  - "description": A brief description of what this image shows (e.g., "Wide establishing shot from the east").
 
 ## ALIGNMENT RULES (CRITICAL)
 1. Every character's desire, flaw, and arc MUST connect to the story's central conflict from the logline.
@@ -86,7 +90,7 @@ ${unifiedCtx}`;
           i,
           {
             tier:          c.tier,
-            visualPrompt:  c.visualPrompt,
+            referencePrompts: c.referencePrompts,
             age:           c.age,
             role:          c.role,
             backstory:     c.backstory,
@@ -117,7 +121,7 @@ ${unifiedCtx}`;
           'location',
           rawChars.length + i,
           {
-            visualPrompt:  l.visualPrompt,
+            referencePrompts: l.referencePrompts,
             type:          l.type,
             atmosphere:    l.atmosphere,
             symbolism:     l.symbolism,

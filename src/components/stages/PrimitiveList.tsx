@@ -17,6 +17,7 @@ interface PrimitiveListProps {
   onFocus?: (id: string) => void;
   onRegenerate: () => Promise<void>;
   onImageClick?: (url: string) => void;
+  onGenerateImage?: (id: string) => Promise<void>;
   lastUpdatedPrimitiveId?: string | null;
 }
 
@@ -32,6 +33,7 @@ export const PrimitiveList: React.FC<PrimitiveListProps> = ({
   onFocus,
   onRegenerate,
   onImageClick,
+  onGenerateImage,
   lastUpdatedPrimitiveId
 }) => {
   const { t } = useTranslation();
@@ -55,10 +57,12 @@ export const PrimitiveList: React.FC<PrimitiveListProps> = ({
             onFocus={onFocus ? () => onFocus(prim.id) : undefined}
             onRegenerate={onRegenerate}
             onImageClick={onImageClick}
+            onGenerateImage={onGenerateImage ? () => onGenerateImage(prim.id) : undefined}
             images={prim.metadata?.views ? Object.values(prim.metadata.views as Record<string, string>) : ((prim.metadata?.images as string[]) || [])}
             isGenerating={isGenerating}
             mode={isGallery ? "split" : (primitives.length > 1 ? "stacked" : "single")}
             visualPrompt={prim.visualPrompt}
+            referencePrompts={prim.referencePrompts}
             isUpdated={lastUpdatedPrimitiveId === prim.id}
           />
         ))}

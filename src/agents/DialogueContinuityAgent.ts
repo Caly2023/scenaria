@@ -1,6 +1,7 @@
 import { BaseStageAgent } from './BaseStageAgent';
 import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageContract';
 import { geminiService } from '../services/geminiService';
+import * as Prompts from '../services/ai/prompts';
 
 export class DialogueContinuityAgent extends BaseStageAgent {
   readonly stageId = 'Dialogue Continuity';
@@ -8,20 +9,57 @@ export class DialogueContinuityAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = `Convert the Sequencer into a full Dialogue Continuity (Scénario avec dialogues). 
-      Format with professional sluglines, action lines, and character dialogues.
-      Return a JSON array of script scenes.
-      Context: ${unifiedCtx}`;
+      const treatmentContent = context.stageContents['Treatment'] || [];
+      const sequencerContent = context.stageContents['Sequencer'] || [];
       
-      const raw: unknown = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
-      const items = this.normalizeToJsonArray(raw);
-      
-      const content: ContentPrimitive[] = items.map((s, i) => 
-        this.buildPrimitive(`scene_${i}`, (s.title as string) || `Scene ${i+1}`, (s.content as string) || (s.text as string) || '', 'script_scene', i)
-      );
+      if (!treatmentContent.length || !sequencerContent.length) {
+        return {
+          analysis: this.buildAnalysis('Treatment or Sequencer stage is empty. Please generate them first.', ['Missing dependencies']),
+          content: [],
+          state: 'empty'
+        };
+      }
 
-      const evalResult = await this.evaluate(content, context);
-      return { ...evalResult, content };
+      const allScenes: ContentPrimitive[] = [];
+      let globalIndex = 0;
+
+      for (const treatmentNode of treatmentContent) {
+        const relatedSequences = sequencerContent.filter(s => s.metadata?.treatmentNodeId === treatmentNode.id);
+        if (relatedSequences.length === 0) continue;
+
+        const nodeText = `[${treatmentNode.title}]\n${treatmentNode.content}`;
+        const sequencesText = relatedSequences.map(s => `[${s.title}]\n${s.content}`).join('\n\n');
+        
+        const prompt = Prompts.DIALOGUE_CONTINUITY_PROMPT(nodeText, sequencesText, unifiedCtx);
+        
+        const raw: unknown = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true, 'sequenceArray'));
+        const items = this.normalizeToJsonArray(raw);
+        
+        for (const s of items) {
+          const prim = this.buildPrimitive(
+            `scene_${globalIndex}`, 
+            (s.title as string) || `Scene ${globalIndex+1}`, 
+            (s.content as string) || (s.description as string) || '', 
+            'script_scene', 
+            globalIndex,
+            {
+              metadata: {
+                treatmentNodeId: treatmentNode.id,
+                emotionalShift: s.emotionalShift,
+                conflict: s.conflict,
+                visualFocus: s.visualFocus,
+                characterIds: s.characterIds,
+                locationIds: s.locationIds
+              }
+            }
+          );
+          allScenes.push(prim);
+          globalIndex++;
+        }
+      }
+
+      const evalResult = await this.evaluate(allScenes, context);
+      return { ...evalResult, content: allScenes };
     } catch (e: unknown) {
       return this.handleError(e);
     }
@@ -62,7 +100,8 @@ export class DialogueContinuityAgent extends BaseStageAgent {
     }
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Dialogue Continuity', content[0].content, unifiedCtx));
+      const fullText = content.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Dialogue Continuity', fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
         raw.evaluation || raw.content || '', 
         raw.issues || [], 

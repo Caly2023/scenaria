@@ -128,3 +128,37 @@ ${context}
 
 Treatment Node to break down into scenes:
 ${treatmentNode}`;
+
+export const DIALOGUE_CONTINUITY_PROMPT = (treatmentNode: string, sequencerBlock: string, context: string) => `
+You are an Elite Screenwriter. Your task is to write the Dialogue Continuity (Scénario détaillé) for the following Sequence Block, based on its parent Treatment Node.
+IMPORTANT: The screenplay MUST be written in the project's primary language or the user's language. If in doubt, write in French.
+
+${SHORT_FILM_QUALITY_FRAMEWORK}
+${STORY_DEVELOPMENT_BLUEPRINT}
+
+CINEMATIC SCRIPT STANDARDS:
+1. ACTION & VISUALS (Didascalies): Write visceral, present-tense action. Show, don't tell. Focus on subtext, behavior, and visual storytelling rather than over-explaining.
+2. DIALOGUE: Keep dialogue sparse, sharp, and loaded with subtext. Less is more. Humor, emotion, and character specific voices are essential.
+3. PACING: Every scene must justify its existence. Build tension and emotional stakes.
+4. FORMATTING: Use professional screenplay formatting (Sluglines, Action, Character names centered, Parentheticals, Dialogue).
+
+OUTPUT FORMAT:
+Return a JSON array of objects, where each object represents ONE (1) scripted scene.
+Each primitive MUST have:
+- 'title': The slugline (e.g., "INT. KITCHEN - DAY").
+- 'content': The actual screenplay text in Markdown format.
+- 'emotionalShift': A brief description of the emotional change.
+- 'conflict': The core conflict of the scene.
+- 'visualFocus': Key visual metaphors, lighting, or camera directions.
+- 'characterIds': Array of character names or IDs involved.
+- 'locationIds': Array of location names or IDs involved.
+
+Context of the overall project (Metadata, Bibles, etc.):
+${context}
+
+Parent Treatment Node (For narrative grounding):
+${treatmentNode}
+
+Sequences to script:
+${sequencerBlock}`;
+

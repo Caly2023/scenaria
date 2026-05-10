@@ -61,9 +61,8 @@ service cloud.firestore {
 
     function isValidProject(data) {
       // Relaxed for creation: ensure owner and collaborators are set correctly
-      return (data.get('ownerId', '') == request.auth.uid || isAdmin()) &&
-             (data.get('collaborators', []) is list) &&
-             (request.auth.uid in data.get('collaborators', []) || isAdmin());
+      return isAuthenticated() && 
+             (data.get('ownerId', '') == request.auth.uid || isAdmin());
     }
 
     // ── Generic validator for AI-written stage primitives ─────────────────────
@@ -75,8 +74,8 @@ service cloud.firestore {
       // Allow creation if project member OR if the document being created identifies the project and user
       // This helps with atomic creation where the project document doesn't exist yet
       return isAuthenticated() && (
-        isProjectMember(projectId) || 
-        (data.get('projectId', '') == projectId)
+        (data.get('projectId', '') == projectId) ||
+        isProjectMember(projectId)
       );
     }
 
@@ -101,22 +100,17 @@ service cloud.firestore {
 
     match /projects/{projectId} {
       allow read: if isAuthenticated() && (
-        request.auth.uid == resource.data.get('ownerId', '') || 
-        request.auth.uid in resource.data.get('collaborators', []) ||
-        isAdmin()
+        isAdmin() ||
+        (resource.data.get('ownerId', '') == request.auth.uid) || 
+        (request.auth.uid in resource.data.get('collaborators', []))
       );
       
       allow create: if isAuthenticated() && isValidProject(request.resource.data);
       
       allow update: if isAuthenticated() && (
-        request.auth.uid == resource.data.get('ownerId', '') || 
-        request.auth.uid in resource.data.get('collaborators', []) ||
-        isAdmin()
-      ) && (
-        isAdmin() || (
-          request.resource.data.get('ownerId', '') == resource.data.get('ownerId', '') &&
-          request.resource.data.get('createdAt', resource.data.createdAt) == resource.data.createdAt
-        )
+        isAdmin() || 
+        (resource.data.get('ownerId', '') == request.auth.uid) || 
+        (request.auth.uid in resource.data.get('collaborators', []))
       );
       
       allow delete: if isAuthenticated() && (request.auth.uid == resource.data.get('ownerId', '') || isAdmin());

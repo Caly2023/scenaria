@@ -406,8 +406,10 @@ async function tryImageModel(model: string, messages: MessageData[]): Promise<st
   const response = await ai.generate({
     model: model as Parameters<typeof ai.generate>[0]['model'],
     messages,
-    config: { responseModalities: ['TEXT', 'IMAGE'] },
-    output: { format: 'media' },
+    config: { 
+      responseModalities: ['TEXT', 'IMAGE'],
+      temperature: 0.8,
+    },
   });
   const parts = response.message?.content || [];
   const images = parts

@@ -98,4 +98,33 @@ Each primitive MUST have:
 - 'locationIds': Array of location names or IDs involved.
 
 Context:
-\${context}`;
+${context}`;
+export const SEQUENCER_PROMPT = (treatmentNode: string, context: string) => `
+You are an Elite Screenwriter and Sequence Architect. Your task is to break down the following "Treatment Node" into a detailed Cinematic Sequence Outline (Séquencier).
+IMPORTANT: The sequence outline MUST be written in the project's primary language or the user's language. If in doubt, write in French.
+
+${SHORT_FILM_QUALITY_FRAMEWORK}
+${STORY_DEVELOPMENT_BLUEPRINT}
+
+CINEMATIC SEQUENCE STANDARDS:
+1. SCENE-BY-SCENE BREAKDOWN: Break the provided treatment node into discrete, actionable scenes (or sequences). 
+2. VISCERAL ACTION: Describe the physical action, visual beats, and core conflicts for each scene.
+3. SLUGLINES & PACING: Give each scene a clear title or slugline (e.g., "INT. LOCATION - DAY").
+4. CONTINUITY: Ensure emotional and narrative continuity from one scene to the next.
+
+OUTPUT FORMAT:
+Return a JSON array of objects, where each object represents ONE (1) scene/sequence primitive within this treatment node.
+Each primitive MUST have:
+- 'title': A clear slugline or scene title.
+- 'content': The scene's narrative action and beat description in Markdown (focusing on action, not dialogue).
+- 'emotionalShift': A brief description of the emotional change.
+- 'conflict': The core conflict of the scene.
+- 'visualFocus': Key visual metaphors, lighting, or camera directions.
+- 'characterIds': Array of character names or IDs involved.
+- 'locationIds': Array of location names or IDs involved.
+
+Context of the overall project:
+${context}
+
+Treatment Node to break down into scenes:
+${treatmentNode}`;

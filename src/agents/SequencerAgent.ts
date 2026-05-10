@@ -1,6 +1,7 @@
 import { BaseStageAgent } from './BaseStageAgent';
 import { AgentOutput, ContentPrimitive, ProjectContext } from '../types/stageContract';
 import { geminiService } from '../services/geminiService';
+import * as Prompts from '../services/ai/prompts';
 
 export class SequencerAgent extends BaseStageAgent {
   readonly stageId = 'Sequencer';
@@ -8,20 +9,51 @@ export class SequencerAgent extends BaseStageAgent {
   async generate(context: ProjectContext): Promise<AgentOutput> {
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const prompt = `Based on the Treatment and Story Bible, break down the story into a sequence of scenes. 
-      Each scene should have a title and a narrative description.
-      Return a JSON array of scenes.
-      Context: ${unifiedCtx}`;
+      const treatmentContent = context.stageContents['Treatment'] || [];
       
-      const raw: unknown = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true));
-      const items = this.normalizeToJsonArray(raw);
-      
-      const content: ContentPrimitive[] = items.map((s, i) => 
-        this.buildPrimitive(`seq_${i}`, (s.title as string) || `Sequence ${i+1}`, (s.content as string) || (s.description as string) || '', 'sequence', i)
-      );
+      if (!treatmentContent.length) {
+        return {
+          analysis: this.buildAnalysis('Treatment stage is empty. Please generate treatment first.', ['Missing treatment']),
+          content: [],
+          state: 'empty'
+        };
+      }
 
-      const evalResult = await this.evaluate(content, context);
-      return { ...evalResult, content };
+      const allScenes: ContentPrimitive[] = [];
+      let globalIndex = 0;
+
+      for (const treatmentNode of treatmentContent) {
+        const nodeText = `[${treatmentNode.title}]\n${treatmentNode.content}`;
+        const prompt = Prompts.SEQUENCER_PROMPT(nodeText, unifiedCtx);
+        
+        const raw: unknown = await this.retryWithBackoff(() => geminiService.genericGeminiRequest(prompt, true, 'sequenceArray'));
+        const items = this.normalizeToJsonArray(raw);
+        
+        for (const s of items) {
+          const prim = this.buildPrimitive(
+            `seq_${globalIndex}`, 
+            (s.title as string) || `Sequence ${globalIndex+1}`, 
+            (s.content as string) || (s.description as string) || '', 
+            'sequence', 
+            globalIndex,
+            {
+              metadata: {
+                treatmentNodeId: treatmentNode.id,
+                emotionalShift: s.emotionalShift,
+                conflict: s.conflict,
+                visualFocus: s.visualFocus,
+                characterIds: s.characterIds,
+                locationIds: s.locationIds
+              }
+            }
+          );
+          allScenes.push(prim);
+          globalIndex++;
+        }
+      }
+
+      const evalResult = await this.evaluate(allScenes, context);
+      return { ...evalResult, content: allScenes };
     } catch (e: unknown) {
       return this.handleError(e);
     }

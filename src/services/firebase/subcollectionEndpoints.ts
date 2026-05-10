@@ -65,7 +65,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
     }),
 
     updateSubcollectionDoc: builder.mutation<
-      void,
+      null,
       {
         projectId: string;
         collectionName: string;
@@ -83,7 +83,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             doc(db, "projects", projectId, collectionName, docId),
             { ...data, updatedAt: serverTimestamp() },
           );
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -178,7 +178,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
     }),
 
     deleteSubcollectionDoc: builder.mutation<
-      void,
+      null,
       {
         projectId: string;
         collectionName: string;
@@ -192,7 +192,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
         }
         try {
           await deleteDoc(doc(db, "projects", projectId, collectionName, docId));
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -243,7 +243,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
     }),
 
     clearSubcollection: builder.mutation<
-      void,
+      null,
       { projectId: string; collectionName: string }
     >({
       async queryFn({ projectId, collectionName }) {
@@ -252,11 +252,11 @@ export const subcollectionApi = baseApi.injectEndpoints({
         }
         try {
           const snap = await getDocs(collection(db, "projects", projectId, collectionName));
-          if (snap.empty) return { data: undefined };
+          if (snap.empty) return { data: null };
           const batch = writeBatch(db);
           snap.docs.forEach((d) => batch.delete(d.ref));
           await batch.commit();
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -264,7 +264,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
     }),
 
     setSubcollectionDoc: builder.mutation<
-      void,
+      null,
       {
         projectId: string;
         collectionName: string;
@@ -283,7 +283,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
             doc(db, "projects", projectId, collectionName, docId),
             { ...data, updatedAt: serverTimestamp() },
           );
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }

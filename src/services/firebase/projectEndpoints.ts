@@ -119,7 +119,7 @@ export const projectApi = baseApi.injectEndpoints({
     }),
 
     updateProjectField: builder.mutation<
-      void,
+      null,
       { id: string; field: string; content: unknown }
     >({
       async queryFn({ id, field, content }) {
@@ -129,7 +129,7 @@ export const projectApi = baseApi.injectEndpoints({
             [field]: content,
             updatedAt: serverTimestamp(),
           });
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -164,7 +164,7 @@ export const projectApi = baseApi.injectEndpoints({
     }),
 
     updateProjectMetadata: builder.mutation<
-      void,
+      null,
       { id: string; metadata: Record<string, unknown> }
     >({
       async queryFn({ id, metadata }) {
@@ -174,7 +174,7 @@ export const projectApi = baseApi.injectEndpoints({
             metadata,
             updatedAt: serverTimestamp(),
           });
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -196,7 +196,7 @@ export const projectApi = baseApi.injectEndpoints({
     }),
 
     updateProjectFields: builder.mutation<
-      void,
+      null,
       { id: string; updates: Record<string, unknown> }
     >({
       async queryFn({ id, updates }) {
@@ -206,7 +206,7 @@ export const projectApi = baseApi.injectEndpoints({
             ...updates,
             updatedAt: serverTimestamp(),
           });
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -239,7 +239,7 @@ export const projectApi = baseApi.injectEndpoints({
       },
     }),
 
-    deleteProject: builder.mutation<void, string>({
+    deleteProject: builder.mutation<null, string>({
       async queryFn(projectId) {
         if (!projectId) return { error: { message: "Missing projectId", status: 400 } };
         try {
@@ -267,7 +267,7 @@ export const projectApi = baseApi.injectEndpoints({
           // Finally delete the root project document
           await deleteDoc(doc(db, "projects", projectId));
           
-          return { data: undefined };
+          return { data: null };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }

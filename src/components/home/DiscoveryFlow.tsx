@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ProjectMetadata, ExtractedData } from '../../types';
 import { cn } from '@/lib/utils';
 import { DictationButton } from '../ui/DictationButton';
+import { useAppAuth } from '../../hooks/useAppAuth';
 
 interface Message {
   id: string;
@@ -24,6 +25,7 @@ interface DiscoveryFlowProps {
 
 export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClearError }: DiscoveryFlowProps) {
   const { t } = useTranslation();
+  const { user } = useAppAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -237,7 +239,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
       {/* Main Chat Container */}
       <div
         className={cn(
-          "w-full max-w-5xl mx-auto px-6 pt-28 pb-48 space-y-12 transition-all duration-700 ease-out",
+          "w-full max-w-5xl mx-auto px-6 pt-28 pb-[320px] space-y-12 transition-all duration-700 ease-out",
           isHistoryCollapsed ? "opacity-0 translate-y-4 scale-95 pointer-events-none" : "opacity-100 translate-y-0 scale-100"
         )}
       >
@@ -253,14 +255,18 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
             >
               <div
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl",
+                  "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl hidden md:flex",
                   msg.role === 'user'
                     ? 'bg-white/5 border border-white/10'
                     : 'bg-gradient-to-br from-[#D4AF37]/10 to-[#D4AF37]/30 text-[#D4AF37] border border-[#D4AF37]/20'
                 )}
               >
                 {msg.role === 'user' ? (
-                  <User className="w-5 h-5 text-white/60" />
+                  user?.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName || "User"} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <User className="w-5 h-5 text-white/60" />
+                  )
                 ) : (
                   <Bot className="w-5 h-5" />
                 )}
@@ -283,7 +289,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
 
         {isTyping && (
           <div className="flex items-start gap-6">
-            <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] flex items-center justify-center flex-shrink-0 border border-[#D4AF37]/10">
+            <div className="w-10 h-10 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] hidden md:flex items-center justify-center flex-shrink-0 border border-[#D4AF37]/10">
               <Bot className="w-5 h-5" />
             </div>
             <div className="flex items-center gap-2 h-10">

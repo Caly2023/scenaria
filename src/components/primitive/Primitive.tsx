@@ -303,7 +303,14 @@ export const Primitive = memo(function Primitive({
                               </button>
                               {onGenerateImage && (
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); onOpenCinematicModal ? onOpenCinematicModal() : onGenerateImage(); }}
+                                  onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    if (onOpenCinematicModal) {
+                                      onOpenCinematicModal();
+                                    } else if (onGenerateImage) {
+                                      onGenerateImage();
+                                    }
+                                  }}
                                   disabled={isGenerating}
                                   className="px-4 py-2 rounded-full bg-[#2a2a2a] hover:bg-[#333333] border border-white/5 text-white/70 text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-2"
                                 >

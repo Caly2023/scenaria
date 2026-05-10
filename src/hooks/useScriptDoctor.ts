@@ -129,24 +129,48 @@ export function useScriptDoctor({
         }
       );
 
-      // Finalize the message
-      setDoctorMessages((prev) =>
-        (prev || []).map((m) =>
-          m.id === botMsgId
-            ? {
-                ...m,
-                content: result.finalResponse,
-                status: result.iterationsReached ? "⚠️ Max Iterations" : "✅ Done",
-                content_parts: sanitizeFinalParts(result.lastParts),
-              }
-            : m
-        )
-      );
+      // Detect if the loop paused for user approval (empty finalResponse + not maxed out)
+      const isPaused = !result.finalResponse && !result.iterationsReached && result.lastParts.length > 0;
 
-      setIsDoctorTyping(false);
-      setIsHeavyThinking(false);
-      setActiveTool(null);
-      setAiStatus(null);
+      if (isPaused) {
+        // CRITICAL: Preserve the full model parts INCLUDING toolRequest so the
+        // conversation history stays intact when the user approves the tool.
+        // sanitizeFinalParts strips toolRequest — which would break the resume flow.
+        setDoctorMessages((prev) =>
+          (prev || []).map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  status: "⏳ Awaiting Approval...",
+                  content_parts: [
+                    ...(m.content_parts || []),
+                    ...result.lastParts,
+                  ],
+                }
+              : m
+          )
+        );
+        // Don't clear typing/tool state — the pending approval handles that
+      } else {
+        // Finalize the message — strip tool calls from final display parts
+        setDoctorMessages((prev) =>
+          (prev || []).map((m) =>
+            m.id === botMsgId
+              ? {
+                  ...m,
+                  content: result.finalResponse,
+                  status: result.iterationsReached ? "⚠️ Max Iterations" : "✅ Done",
+                  content_parts: sanitizeFinalParts(result.lastParts),
+                }
+              : m
+          )
+        );
+
+        setIsDoctorTyping(false);
+        setIsHeavyThinking(false);
+        setActiveTool(null);
+        setAiStatus(null);
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown ScriptDoctor error";
       console.error("[ScriptDoctor] Agent failed:", error);

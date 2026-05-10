@@ -68,12 +68,16 @@ export function classifyComplexity(content: string): "simple" | "moderate" | "co
  * In the Gemini multi-turn spec, function results are wrapped in role:"user" turns.
  */
 export function buildFunctionResponsePart(name: string, output: unknown, ref?: string): GeminiPart {
-  return {
-    toolResponse: {
-      name,
-      output: (typeof output === "object" && output !== null ? output : { result: output }) as Record<string, unknown>,
-    },
-  } as GeminiPart;
+  const response: Record<string, unknown> = {
+    name,
+    output: (typeof output === "object" && output !== null ? output : { result: output }) as Record<string, unknown>,
+  };
+  // CRITICAL: Genkit requires the ref from the toolRequest to be echoed back
+  // in the toolResponse for the model to match responses to their requests.
+  if (ref) {
+    response.ref = ref;
+  }
+  return { toolResponse: response } as GeminiPart;
 }
 
 /**

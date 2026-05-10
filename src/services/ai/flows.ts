@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { MessageData } from 'genkit';
-import { ai, gemini31Pro, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite } from '../../lib/genkit';
+import { ai, gemini31Pro, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite, geminiImageGen } from '../../lib/genkit';
 import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
 import { 
@@ -404,9 +404,13 @@ const generateCharacterImageFlow = ai.defineFlow(
       ];
       
       const response = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
+        model: geminiImageGen,
         messages,
-        config: { output: { format: 'media' } }
+        // responseModalities must be in config, NOT output (output is a Genkit-level field)
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'],
+        },
+        output: { format: 'media' },
       });
       // Extract media URLs from response
       const parts = response.message?.content || [];

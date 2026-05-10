@@ -10,6 +10,8 @@ export const gemini31FlashLite = 'googleai/gemini-3.1-flash-lite-preview';
 export const gemini3Flash = 'googleai/gemini-3-flash-preview';
 export const gemini25Flash = 'googleai/gemini-2.5-flash';
 export const gemini25FlashLite = 'googleai/gemini-2.5-flash-lite';
+/** Model that supports native image generation (responseModalities: IMAGE) */
+export const geminiImageGen = 'googleai/gemini-2.0-flash-preview-image-generation';
 
 /**
  * GENKIT CONFIGURATION

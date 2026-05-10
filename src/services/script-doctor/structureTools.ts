@@ -2,7 +2,7 @@ import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
 import { contextAssembler } from "../context";
 import { getArgString, getArgArray } from "../../utils/scriptDoctorUtils";
-import { mapPrimitiveToDb } from "../../utils/primitiveUtils";
+import { mapPrimitiveToDb, stripUndefined } from "../../utils/primitiveUtils";
 import { WorkflowStage } from "../../types";
 import { stageRegistry } from "../../config/stageRegistry";
 
@@ -97,12 +97,12 @@ export const restructureStage: ToolHandler = async (args, context) => {
       const p = primitives[i] as { title?: string, name?: string, content?: string, description?: string, order?: number, id?: string, primitive_id?: string };
       const id = p.id || p.primitive_id;
       
-      const safe = mapPrimitiveToDb(stage, {
+      const safe = stripUndefined(mapPrimitiveToDb(stage, {
         title: (p && (p.title || p.name)) || "Untitled",
         content: (p && (p.content || p.description)) || "",
         order: i,
         ...p,
-      });
+      }));
 
       if (id) {
         await store.dispatch(

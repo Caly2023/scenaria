@@ -2,7 +2,7 @@ import { ToolHandler } from "./toolTypes";
 import { telemetryService } from "../telemetryService";
 import { contextAssembler } from "../context";
 import { getArgString, getArgRecord, getArgArray, getArgNumber } from "../../utils/scriptDoctorUtils";
-import { mapPrimitiveToDb } from "../../utils/primitiveUtils";
+import { mapPrimitiveToDb, stripUndefined } from "../../utils/primitiveUtils";
 import { WorkflowStage } from "../../types";
 import { registerUndoableAction } from "./safetyTools";
 
@@ -27,7 +27,7 @@ export const updatePrimitives: ToolHandler = async (args, context) => {
       
       setRefiningBlockId(id);
       const previousItem = (stageContents[stage] || []).find(p => p.id === id);
-      const safeUpdates = mapPrimitiveToDb(stage, fields);
+      const safeUpdates = stripUndefined(mapPrimitiveToDb(stage, fields));
       
       await store.dispatch(
         firebaseService.endpoints.updateSubcollectionDoc.initiate({
@@ -75,7 +75,7 @@ export const executeMultiStageFix: ToolHandler = async (args, context) => {
     for (const fix of fixes as { id: string, stage: string, updates: Record<string, unknown> }[]) {
       const sub = subcollectionMap[fix.stage];
       if (!sub) continue;
-      const safe = mapPrimitiveToDb(fix.stage, fix.updates);
+      const safe = stripUndefined(mapPrimitiveToDb(fix.stage, fix.updates));
       await store.dispatch(
         firebaseService.endpoints.updateSubcollectionDoc.initiate({
           projectId: currentProject.id,
@@ -114,12 +114,12 @@ export const addPrimitives: ToolHandler = async (args, context) => {
   const newDocIds: string[] = [];
   try {
     for (const primitive of primitivesArray as Record<string, unknown>[]) {
-      const safeData = mapPrimitiveToDb(stage, {
+      const safeData = stripUndefined(mapPrimitiveToDb(stage, {
         title: (primitive.title as string) || (primitive.name as string) || "Untitled",
         content: (primitive.content as string) || (primitive.description as string) || "",
         order: (primitive.order as number) ?? 0,
         ...primitive,
-      });
+      }));
       
       const newDocId = await store.dispatch(
         firebaseService.endpoints.addSubcollectionDoc.initiate({

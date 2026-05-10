@@ -3,6 +3,7 @@ import { telemetryService } from "../telemetryService";
 import { WorkflowStage } from "../../types";
 import { getArgRecord, getArgString } from "../../utils/scriptDoctorUtils";
 import { stageRegistry } from "../../config/stageRegistry";
+import { stripUndefined } from "../../utils/primitiveUtils";
 
 export const fetchProjectState: ToolHandler = async (args, context) => {
   const { currentProject, stageContents, characters, locations } = context;
@@ -56,7 +57,7 @@ export const syncMetadata: ToolHandler = async (args, context) => {
     await store.dispatch(
       firebaseService.endpoints.updateProjectMetadata.initiate({
         id: currentProject.id,
-        metadata: { ...currentProject.metadata, ...metadata }
+        metadata: stripUndefined({ ...currentProject.metadata, ...metadata }) as Record<string, unknown>
       })
     ).unwrap();
   } catch (error: unknown) {

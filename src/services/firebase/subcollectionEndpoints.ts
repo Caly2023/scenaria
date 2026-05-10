@@ -4,9 +4,9 @@ import {
   doc,
   getDocs,
   onSnapshot,
-  updateDoc,
   addDoc,
   deleteDoc,
+  setDoc,
   orderBy,
   serverTimestamp,
   writeBatch,
@@ -79,9 +79,12 @@ export const subcollectionApi = baseApi.injectEndpoints({
           return { error: { message: "Missing required fields", status: 400 } };
         }
         try {
-          await updateDoc(
+          // Use setDoc with merge:true so this acts as an upsert — never fails
+          // if the document doesn't exist yet (e.g. stale AI ID references).
+          await setDoc(
             doc(db, "projects", projectId, collectionName, docId),
             { ...data, updatedAt: serverTimestamp() },
+            { merge: true },
           );
           return { data: null };
         } catch (error: unknown) {
@@ -92,24 +95,32 @@ export const subcollectionApi = baseApi.injectEndpoints({
         { projectId, collectionName, docId, data, orderByField },
         { dispatch, queryFulfilled },
       ) {
-        // Patch ALL cache variants for this collection (with or without orderByField)
+        // Patch ALL 3 possible cache variants so no listener can re-add stale data:
+        //  1. With the provided orderByField (or undefined)
+        //  2. Without orderByField (common read path)
+        //  3. With "order" as the sort key (most primitives sort by this)
+        const applyUpdate = (draft: SubcollectionItem[]) => {
+          const index = draft.findIndex((item) => item.id === docId);
+          if (index !== -1) draft[index] = { ...draft[index], ...data };
+        };
+
         const patches = [
           dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
-            (draft: SubcollectionItem[]) => {
-              const index = draft.findIndex((item) => item.id === docId);
-              if (index !== -1) draft[index] = { ...draft[index], ...data };
-            },
+            applyUpdate,
           )),
-          // Also patch the version without orderByField if it differs
+          // Patch WITHOUT orderByField if caller passed one
           ...(orderByField ? [dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName },
-            (draft: SubcollectionItem[]) => {
-              const index = draft.findIndex((item) => item.id === docId);
-              if (index !== -1) draft[index] = { ...draft[index], ...data };
-            },
+            applyUpdate,
+          ))] : []),
+          // Patch WITH the common "order" sort key if not already covered
+          ...(orderByField !== "order" ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName, orderByField: "order" },
+            applyUpdate,
           ))] : []),
         ];
         try {

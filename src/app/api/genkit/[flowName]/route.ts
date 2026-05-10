@@ -4,7 +4,7 @@ import { flows, FlowName } from '@/services/ai/flows';
 // Vercel/Genkit streaming requires Node runtime and a longer max duration.
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /**
  * GENKIT API ROUTE

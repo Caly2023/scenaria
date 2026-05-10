@@ -376,7 +376,7 @@ Contexte actuel (Idée Initiale) : ${context}`;
     });
 
     const response = await ai.generate({
-      model: gemini31Pro,
+      model: gemini25Flash,
       system: systemPrompt,
       messages: messages as MessageData[],
       tools: [extractTool],
@@ -386,8 +386,8 @@ Contexte actuel (Idée Initiale) : ${context}`;
         maxOutputTokens: 8192
       },
       use: [
-        retry({ maxRetries: 1 }),
-        fallback(ai, { models: [gemini3Flash] })
+        retry({ maxRetries: 2 }),
+        fallback(ai, { models: [gemini31Pro, gemini3Flash, gemini31FlashLite] })
       ],
     });
 

@@ -70,22 +70,52 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
 
       const context = `Analyze this initial story idea and start the discovery process: "${initialIdea}"`;
 
-      const res = await fetch('/api/genkit/discoveryChat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: genkitMessages, context }),
-      });
+      let data;
+      let lastError = null;
+      let attempt = 0;
+      const maxRetries = 2; // Mimicking Genkit's retry configuration
+      let success = false;
 
-      const data = await res.json();
+      while (attempt <= maxRetries && !success) {
+        try {
+          const res = await fetch('/api/genkit/discoveryChat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: genkitMessages, context }),
+          });
 
-      if (data.error) {
-        console.error('[DiscoveryChat] API error:', data.error);
+          // Handle non-JSON responses (e.g. Vercel 504 timeouts)
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+
+          data = await res.json();
+
+          if (data.error) {
+            lastError = data.error;
+            throw new Error(data.error);
+          }
+
+          success = true; // Request succeeded
+        } catch (error) {
+          lastError = error;
+          attempt++;
+          if (attempt <= maxRetries) {
+            console.warn(`[DiscoveryChat] Attempt ${attempt} failed, retrying...`, error);
+            // Exponential backoff fallback
+            await new Promise(r => setTimeout(r, 1500 * Math.pow(2, attempt - 1)));
+          }
+        }
+      }
+
+      if (!success) {
+        console.error('[DiscoveryChat] API error after retries:', lastError);
         setMessages((prev) => [
           ...prev,
           {
             id: Date.now().toString(),
             role: 'model',
-            content: 'Une erreur est survenue. Veuillez réessayer.',
+            content: "Une erreur s'est produite. Veuillez réessayer plus tard.",
           },
         ]);
         return;
@@ -123,7 +153,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
         {
           id: Date.now().toString(),
           role: 'model',
-          content: 'Une erreur est survenue. Veuillez réessayer.',
+          content: "Une erreur s'est produite. Veuillez réessayer plus tard.",
         },
       ]);
     } finally {

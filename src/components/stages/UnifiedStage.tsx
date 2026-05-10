@@ -34,7 +34,10 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
     handleCharacterDeepDevelop,
     handleLocationDeepDevelop,
     handleFocusMode,
-    handleGenerateViews
+    handleGenerateViews,
+    onGenerateCinematicImage,
+    onValidateCinematicImage,
+    onDeleteCinematicImage
   } = project;
 
   if (!currentProject) return null;
@@ -84,6 +87,9 @@ export function UnifiedStage({ definition }: UnifiedStageProps) {
           } : undefined}
           onFocus={isCanvas ? handleFocusMode : undefined}
           onGenerateImage={isGallery ? handleGenerateViews : undefined}
+          onGenerateCinematicImage={onGenerateCinematicImage}
+          onValidateCinematicImage={onValidateCinematicImage}
+          onDeleteCinematicImage={onDeleteCinematicImage}
           lastUpdatedPrimitiveId={lastUpdatedPrimitiveId}
         />
 

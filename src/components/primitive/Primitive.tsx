@@ -195,7 +195,7 @@ export const Primitive = memo(function Primitive({
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.1 }}
                       className="relative h-32 aspect-square rounded-2xl overflow-hidden group/img cursor-pointer shrink-0"
-                      onClick={() => onImageClick?.(url)}
+                      onClick={() => onOpenCinematicModal ? onOpenCinematicModal() : onImageClick?.(url)}
                     >
                       <img 
                         src={url} 
@@ -210,7 +210,7 @@ export const Primitive = memo(function Primitive({
                   ))}
                   {onGenerateImage && (
                     <button
-                      onClick={onGenerateImage}
+                      onClick={onOpenCinematicModal || onGenerateImage}
                       disabled={isGenerating}
                       className="h-32 aspect-square rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition-all shrink-0 text-white/20 hover:text-white/40"
                     >
@@ -303,7 +303,7 @@ export const Primitive = memo(function Primitive({
                               </button>
                               {onGenerateImage && (
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); onGenerateImage(); }}
+                                  onClick={(e) => { e.stopPropagation(); onOpenCinematicModal ? onOpenCinematicModal() : onGenerateImage(); }}
                                   disabled={isGenerating}
                                   className="px-4 py-2 rounded-full bg-[#2a2a2a] hover:bg-[#333333] border border-white/5 text-white/70 text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-2"
                                 >

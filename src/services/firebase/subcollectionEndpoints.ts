@@ -152,38 +152,51 @@ export const subcollectionApi = baseApi.injectEndpoints({
       ) {
         const tempId = `temp-${Math.random().toString(36).substring(7)}`;
         const optimisticItem: SubcollectionItem = { id: tempId, ...data, isOptimistic: true, createdAt: Date.now() };
-        const patchResult = dispatch(
-          subcollectionApi.util.updateQueryData(
+        
+        const addToDraft = (draft: SubcollectionItem[]) => {
+          draft.push(optimisticItem);
+          if (orderByField) {
+            draft.sort((a, b) => {
+              const aVal = a[orderByField];
+              const bVal = b[orderByField];
+              return (aVal as string | number) > (bVal as string | number) ? 1 : -1;
+            });
+          }
+        };
+
+        const patches = [
+          dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
-            (draft: SubcollectionItem[]) => {
-              draft.push(optimisticItem);
-              if (orderByField) {
-                draft.sort((a, b) => {
-                  const aVal = a[orderByField];
-                  const bVal = b[orderByField];
-                  return (aVal as string | number) > (bVal as string | number) ? 1 : -1;
-                });
-              }
-            },
-          ),
-        );
+            addToDraft,
+          )),
+          ...(orderByField ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName },
+            addToDraft,
+          ))] : []),
+          ...(orderByField !== "order" ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName, orderByField: "order" },
+            addToDraft,
+          ))] : []),
+        ];
+
         try {
           const { data: realId } = await queryFulfilled;
-          dispatch(
-            subcollectionApi.util.updateQueryData(
-              "getSubcollection",
-              { projectId, collectionName, orderByField },
-              (draft: SubcollectionItem[]) => {
-                const index = draft.findIndex((item) => item.id === tempId);
-                if (index !== -1) {
-                  draft[index] = { ...draft[index], id: realId, isOptimistic: undefined };
-                }
-              },
-            ),
-          );
+          
+          const finalizeInDraft = (draft: SubcollectionItem[]) => {
+            const index = draft.findIndex((item) => item.id === tempId);
+            if (index !== -1) {
+              draft[index] = { ...draft[index], id: realId, isOptimistic: undefined };
+            }
+          };
+
+          dispatch(subcollectionApi.util.updateQueryData("getSubcollection", { projectId, collectionName, orderByField }, finalizeInDraft));
+          if (orderByField) dispatch(subcollectionApi.util.updateQueryData("getSubcollection", { projectId, collectionName }, finalizeInDraft));
+          if (orderByField !== "order") dispatch(subcollectionApi.util.updateQueryData("getSubcollection", { projectId, collectionName, orderByField: "order" }, finalizeInDraft));
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
     }),
@@ -327,6 +340,11 @@ export const subcollectionApi = baseApi.injectEndpoints({
           ...(orderByField ? [dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName },
+            upsertInDraft,
+          ))] : []),
+          ...(orderByField !== "order" ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName, orderByField: "order" },
             upsertInDraft,
           ))] : []),
         ];

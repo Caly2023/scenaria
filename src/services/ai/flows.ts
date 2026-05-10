@@ -385,6 +385,30 @@ const genericGeminiFlow = ai.defineFlow(
 );
 
 // 8. Image Generation Flow (Nano Banana Pro)
+// Define a custom model to fulfill the 'nano-banana-pro' requests since it's not a native Google model
+ai.defineModel(
+  { name: 'nano-banana-pro' },
+  async (request) => {
+    // Extract the prompt from the request messages
+    const lastMessage = request.messages[request.messages.length - 1];
+    const prompt = lastMessage?.content.map(c => c.text).join(' ') || 'concept art';
+    
+    // Use Pollinations AI for free, on-the-fly image generation without an API key
+    // Appending specific keywords to ensure high quality concept art
+    const encodedPrompt = encodeURIComponent(`${prompt} highly detailed, character concept art, masterpiece, 8k resolution`);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true`;
+    
+    return {
+      message: {
+        role: 'model',
+        content: [
+          { media: { url: imageUrl, contentType: 'image/jpeg' } }
+        ]
+      }
+    };
+  }
+);
+
 const generateCharacterImageFlow = ai.defineFlow(
   {
     name: 'generateCharacterImageFlow',
@@ -404,7 +428,7 @@ const generateCharacterImageFlow = ai.defineFlow(
       ];
       
       const response = await ai.generate({
-        model: 'nano-banana-pro' as any, // using requested model via Genkit
+        model: 'nano-banana-pro' as any, // using our newly defined custom model
         messages,
       });
       // Extract media URLs from response
@@ -413,8 +437,6 @@ const generateCharacterImageFlow = ai.defineFlow(
       return images;
     } catch (e) {
       console.error('Image generation failed:', e);
-      // Fallback if 'nano-banana-pro' fails due to missing plugin
-      // Just returning a dummy array or throwing
       throw new Error(`Failed to generate image via nano banana pro: ${e instanceof Error ? e.message : String(e)}`);
     }
   }

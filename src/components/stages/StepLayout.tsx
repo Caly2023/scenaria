@@ -97,8 +97,8 @@ export function StepLayout({
   };
 
   return (
-    <div className="w-full h-auto flex-1 flex flex-col space-y-12 md:space-y-16 pb-48 md:pb-40">
-      <div className="flex-1 flex flex-col space-y-12 md:space-y-16">
+    <div className="w-full h-auto flex-1 flex flex-col space-y-6 md:space-y-8 pb-12 md:pb-20">
+      <div className="flex-1 flex flex-col space-y-8 md:space-y-12">
         <div className="text-center space-y-4">
           <span className="text-sm md:text-xs uppercase tracking-[0.28em] md:tracking-[0.4em] text-white/50 font-bold">
             {t('common.step', { defaultValue: 'Étape' })} {stepIndex}: {t(`stages.${stageName}.label`, { defaultValue: stageName })}
@@ -164,7 +164,7 @@ export function StepLayout({
       </div>
 
       {/* Sentinel for sticky detection */}
-      <div ref={sentinelRef} className="h-px w-full pointer-events-none" />
+      <div ref={sentinelRef} className="absolute h-px w-full pointer-events-none" />
 
       {/* C. Global step status block — Sticky or Relative based on viewport */}
       <motion.div
@@ -172,17 +172,17 @@ export function StepLayout({
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-40",
-          // Mobile: Fixed at bottom
-          "fixed bottom-0 left-0 right-0 w-full rounded-t-[24px] px-6 pt-5 pb-5 border-x-0 border-b-0 border-t bg-surface md:relative md:rounded-[32px] md:px-4 md:py-5 md:border md:mt-12 md:mb-0",
+          // Mobile & Desktop: Relative by default, sticky on desktop if needed
+          "relative w-full rounded-[24px] px-5 py-4 border bg-surface",
           // Desktop: Conditional sticky behavior
-          "md:sticky md:w-full md:mt-20 md:bg-surface/95 md:backdrop-blur-xl md:px-12 transition-all duration-300",
+          "md:sticky md:rounded-[32px] md:px-12 transition-all duration-300",
           isStuck 
             ? "md:bottom-0 md:rounded-b-none md:mb-0" 
-            : "md:bottom-8 md:rounded-[40px] md:mb-12",
+            : "md:bottom-8 md:rounded-[40px] md:mb-8",
           isReady ? "border-green-500/30" : "border-white/10"
         )}
       >
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-6 sm:gap-4">
+        <div className="flex items-center justify-between gap-4">
           {/* Status indicator */}
           <div className="flex items-center gap-3">
             <div className={cn(
@@ -204,7 +204,7 @@ export function StepLayout({
           </div>
 
           {/* Action buttons — stacked on mobile */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Always show Vérifier button */}
             <motion.button
               onClick={async () => {
@@ -214,7 +214,7 @@ export function StepLayout({
               disabled={isValidating || isGenerating || !isOnline}
               aria-label="Vérifier cette étape"
               className={cn(
-                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-2 rounded-xl text-sm sm:text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                "flex items-center justify-center gap-2 p-3 sm:px-4 sm:py-2 rounded-xl text-sm sm:text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
                 isValidating 
                   ? "bg-white/5 text-white/40 border-white/10" 
                   : isReady
@@ -227,7 +227,7 @@ export function StepLayout({
                 : isReady 
                   ? <Check className="w-4 h-4" />
                   : <ShieldCheck className="w-4 h-4" />}
-              <span>{isValidating ? 'Analyse...' : (!isOnline ? 'Hors ligne' : 'Vérifier')}</span>
+              <span className="hidden sm:inline">{isValidating ? 'Analyse...' : (!isOnline ? 'Hors ligne' : 'Vérifier')}</span>
             </motion.button>
 
             {/* Continuer / Étape suivante button — Always enabled and prominent */}
@@ -238,11 +238,11 @@ export function StepLayout({
               }}
               aria-label="Passer à l'étape suivante"
               className={cn(
-                "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-1.5 rounded-xl sm:rounded-lg text-sm sm:text-xs font-semibold border-none transition-all",
+                "flex items-center justify-center gap-2 px-5 py-3 sm:px-4 sm:py-1.5 rounded-xl sm:rounded-lg text-sm sm:text-xs font-semibold border-none transition-all",
                 "bg-white text-black hover:scale-[1.02] sm:hover:scale-105 active:scale-95 shadow-[12px_12px_24px_rgba(0,0,0,0.2)]"
               )}
             >
-              <span>{validateLabel ?? (isReady ? 'Continuer' : 'Étape suivante')}</span>
+              <span className="text-sm sm:text-xs">{validateLabel ?? (isReady ? 'Continuer' : 'Suivant')}</span>
               <ChevronRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>

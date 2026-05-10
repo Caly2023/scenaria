@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useEffect, useRef } from 'react';
+import { User } from 'firebase/auth';
 
 import { AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -30,7 +31,7 @@ type AccessibilitySettings = {
 };
 
 interface MainLayoutProps {
-  user: any;
+  user: User | null;
   isMobile: boolean;
   isProjectDrawerOpen: boolean;
   isSettingsDrawerOpen: boolean;

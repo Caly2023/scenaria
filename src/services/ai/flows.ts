@@ -232,7 +232,7 @@ const genericGeminiFlow = ai.defineFlow(
     }),
     outputSchema: z.unknown(),
   },
-  async (input: any, { sendChunk }) => {
+  async (input: Record<string, unknown>, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt, structuredOutput, model: modelOverride } = input;
 
     const stageInsightSchema = z.object({

@@ -25,7 +25,12 @@ export const exportProjectDocument: ToolHandler = async (args, context) => {
     let filename = "";
 
     if (format === "json") {
-      const exportData: Record<string, any> = {
+      interface ExportData {
+        metadata: typeof metadata;
+        exportedAt: string;
+        stages: Record<string, unknown[]>;
+      }
+      const exportData: ExportData = {
         metadata,
         exportedAt: timestamp,
         stages: {},

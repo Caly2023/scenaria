@@ -3,17 +3,25 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptics';
 import { WorkflowStage } from '@/types';
+import { StageDefinition } from '@/config/stageRegistry';
 import { useState, useRef, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 
 interface DesktopSidebarProps {
-  stages: any[];
+  stages: StageDefinition[];
   activeStage: WorkflowStage;
   onStageChange: (id: WorkflowStage) => void;
   isStageUnlocked: (index: number) => boolean;
 }
 
-const StageItem = memo(({ stage, isActive, isLocked, onClick, t, onHover }: any) => {
+const StageItem = memo(({ stage, isActive, isLocked, onClick, t, onHover }: {
+  stage: StageDefinition;
+  isActive: boolean;
+  isLocked: boolean;
+  onClick: () => void;
+  t: (key: string, options?: Record<string, unknown>) => string;
+  onHover: (data: { label: string; top: number; left: number; visible: boolean } | null) => void;
+}) => {
   const Icon = stage.icon;
   return (
     <div className="relative flex flex-col w-full flex-shrink-0 px-3 py-1">

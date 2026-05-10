@@ -15,14 +15,14 @@ import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ToolConfirmation } from './ToolConfirmation';
-import { ScriptDoctorMessage } from '@/types/scriptDoctor';
+import { ScriptDoctorMessage, ToolCall } from '@/types/scriptDoctor';
 
 interface ScriptDoctorMessageItemProps {
   msg: ScriptDoctorMessage;
   isApplied: boolean;
   isApplyingThis: boolean;
   isPendingForThis: boolean;
-  pendingToolCall: any;
+  pendingToolCall: { call: ToolCall; botMsgId: string } | null;
   isSpeaking: string | null;
   onConfirmTool: () => void;
   onCancelTool: () => void;

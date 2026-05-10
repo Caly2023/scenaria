@@ -89,9 +89,9 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
         return;
       }
 
-      const responseParts: any[] = data.message?.content ?? data.parts ?? [];
+      const responseParts: Record<string, unknown>[] = data.message?.content ?? data.parts ?? [];
       let textContent = '';
-      let toolCall: any = null;
+      let toolCall: Record<string, unknown> | null = null;
 
       for (const part of responseParts) {
         if (part.text) textContent += part.text;

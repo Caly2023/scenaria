@@ -143,14 +143,14 @@ export const projectApi = baseApi.injectEndpoints({
             if (draft) {
               if (field.includes(".")) {
                 const parts = field.split(".");
-                let current = draft as any;
+                let current = draft as unknown as Record<string, Record<string, unknown>>;
                 for (let i = 0; i < parts.length - 1; i++) {
                   if (!current[parts[i]]) current[parts[i]] = {};
-                  current = current[parts[i]];
+                  current = current[parts[i]] as Record<string, Record<string, unknown>>;
                 }
-                current[parts[parts.length - 1]] = content;
+                (current as Record<string, unknown>)[parts[parts.length - 1]] = content;
               } else {
-                (draft as Record<string, unknown>)[field] = content;
+                (draft as unknown as Record<string, unknown>)[field] = content;
               }
             }
           }),
@@ -218,14 +218,14 @@ export const projectApi = baseApi.injectEndpoints({
               Object.entries(updates).forEach(([field, content]) => {
                 if (field.includes(".")) {
                   const parts = field.split(".");
-                  let current = draft as any;
+                  let current = draft as unknown as Record<string, Record<string, unknown>>;
                   for (let i = 0; i < parts.length - 1; i++) {
                     if (!current[parts[i]]) current[parts[i]] = {};
-                    current = current[parts[i]];
+                    current = current[parts[i]] as Record<string, Record<string, unknown>>;
                   }
-                  current[parts[parts.length - 1]] = content;
+                  (current as Record<string, unknown>)[parts[parts.length - 1]] = content;
                 } else {
-                  (draft as Record<string, unknown>)[field] = content;
+                  (draft as unknown as Record<string, unknown>)[field] = content;
                 }
               });
             }
@@ -279,7 +279,7 @@ export const projectApi = baseApi.injectEndpoints({
       string,
       { projectId?: string; projectData: Partial<Project>; primitives: { subcollection?: string; [key: string]: unknown }[] }
     >({
-      async queryFn({ projectId, projectData, primitives }: { projectId?: string; projectData: Partial<Project>; primitives: any[] }): Promise<{ data: string } | { error: ClassifiedError }> {
+      async queryFn({ projectId, projectData, primitives }): Promise<{ data: string } | { error: ClassifiedError }> {
         try {
           console.log("[FirebaseService] Initializing project with primitives:", {
             projectId,
@@ -292,13 +292,13 @@ export const projectApi = baseApi.injectEndpoints({
           const batch = writeBatch(db);
 
           batch.set(projectRef, {
-            ...(projectData as any),
+            ...(projectData as Record<string, unknown>),
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });
 
           primitives.forEach((p) => {
-            const collectionName = p.subcollection || "draft_primitives";
+            const collectionName = (p.subcollection as string | undefined) || "draft_primitives";
             const primRef = doc(
               collection(db, "projects", projectRef.id, collectionName),
             );

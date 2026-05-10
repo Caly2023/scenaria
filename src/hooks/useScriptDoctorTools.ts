@@ -40,8 +40,9 @@ export function useScriptDoctorTools({
   const { t } = useTranslation();
   const subcollectionMap = stageRegistry.getSubcollectionMap();
   
-  const characters = stageContents["Character Bible"] || [];
-  const locations = stageContents["Location Bible"] || [];
+  const storyBiblePrims = stageContents["Story Bible"] || [];
+  const characters = storyBiblePrims.filter(p => p.primitiveType === "character");
+  const locations = storyBiblePrims.filter(p => p.primitiveType === "location");
 
   const executeToolCall = useCallback(async (
     call: ToolCall,

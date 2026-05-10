@@ -7,7 +7,7 @@ import { StageDefinition } from '../../config/stageRegistry';
 interface PrimitiveAddButtonProps {
   stage: WorkflowStage;
   definition: StageDefinition;
-  onAdd: (stage: WorkflowStage, data: any) => Promise<void>;
+  onAdd: (stage: WorkflowStage, data: Record<string, unknown>) => Promise<void>;
   contentCount: number;
 }
 

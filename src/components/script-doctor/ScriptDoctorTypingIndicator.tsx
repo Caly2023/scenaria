@@ -3,12 +3,13 @@ import { Sparkles, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { TelemetryStatus } from '@/services/telemetryService';
 
 interface ScriptDoctorTypingIndicatorProps {
   isHeavyThinking: boolean;
   aiStatus: string | null;
   activeTool: string | null;
-  telemetryStatus: any;
+  telemetryStatus: TelemetryStatus | null;
 }
 
 export function ScriptDoctorTypingIndicator({

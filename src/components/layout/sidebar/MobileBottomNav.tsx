@@ -2,9 +2,10 @@ import { Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { triggerHaptic } from '@/lib/haptics';
 import { WorkflowStage } from '@/types';
+import { StageDefinition } from '@/config/stageRegistry';
 
 interface MobileBottomNavProps {
-  stages: any[];
+  stages: StageDefinition[];
   activeStage: WorkflowStage;
   onStageChange: (id: WorkflowStage) => void;
   isStageUnlocked: (index: number) => boolean;

@@ -17,7 +17,7 @@ export interface StageDefinition {
   /** Description key for i18n */
   description: string;
   /** Lucide icon component */
-  icon: any;
+  icon: React.ElementType;
   /** Estimated time to complete (e.g. '5m', '1h') */
   estTime: string;
   hydrationLabel?: string;

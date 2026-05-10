@@ -404,7 +404,7 @@ function isQuotaErr(e: unknown): boolean {
  */
 async function tryImageModel(model: string, messages: MessageData[]): Promise<string[]> {
   const response = await ai.generate({
-    model: model as Parameters<typeof ai.generate>[0]['model'],
+    model: model as any,
     messages,
     config: { 
       responseModalities: ['TEXT', 'IMAGE'],

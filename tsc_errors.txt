@@ -1,0 +1,1 @@
+src/services/ai/flows.ts(407,55): error TS2339: Property 'model' does not exist on type 'GenerateOptions<ZodTypeAny, ZodTypeAny> | PromiseLike<GenerateOptions<ZodTypeAny, ZodTypeAny>>'.

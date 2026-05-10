@@ -1,5 +1,74 @@
 import { z } from 'zod';
 
+// ── Shot / Plan (Technical Breakdown) ────────────────────────────────────────
+
+export const ShotTypeEnum = z.enum([
+  'GGG', // Grand Grand Grand (drone/extrême large)
+  'GG',  // Grand Grand (très grand angle)
+  'G',   // Grand (plan d'ensemble)
+  'TG',  // Très Grand
+  'MT',  // Moyen Taille (plan de taille)
+  'PA',  // Plan Américain (mi-cuisses)
+  'PM',  // Plan Moyen (plein pied)
+  'PMI', // Plan Moyen Inférieur
+  'PP',  // Plan Poitrine
+  'GPP', // Gros Plan Poitrine
+  'TGP', // Très Gros Plan
+  'DT',  // Détail
+  'INS', // Insert
+]);
+
+export const CameraAngleEnum = z.enum([
+  'Niveau',
+  'Plongée',
+  'Contre-plongée',
+  'Plongée Extrême',
+  'Contre-plongée Extrême',
+  'Dutch',
+  'Zénith',
+  'Nadir',
+]);
+
+export const CameraMovementEnum = z.enum([
+  'Fixe',
+  'Panoramique H',
+  'Panoramique V',
+  'Travelling Avant',
+  'Travelling Arrière',
+  'Travelling Latéral Gauche',
+  'Travelling Latéral Droit',
+  'Dolly In',
+  'Dolly Out',
+  'Steadicam',
+  'Main Levée',
+  'Grue',
+  'Drone',
+  'Zoom In',
+  'Zoom Out',
+  'Arc',
+  'Combiné',
+]);
+
+export const ShotSchema = z.object({
+  title:          z.string().describe('Identifiant du plan (ex: "Plan 1 — Établissement")'),
+  content:        z.string().describe('Description visuelle complète de l\'action dans le plan (markdown)'),
+  shotType:       z.string().describe('Cadrage: GG, G, TG, MT, PA, PM, PMI, PP, GPP, TGP, DT, INS'),
+  angle:          z.string().describe('Axe de prise de vue'),
+  cameraMovement: z.string().describe('Mouvement caméra'),
+  lens:           z.string().optional().describe('Focale (ex: 35mm, 85mm, Zoom 24-70mm)'),
+  frameRate:      z.string().optional().describe('Cadence (ex: 24fps, 120fps slow-motion)'),
+  lighting:       z.string().optional().describe('Description de l\'éclairage'),
+  soundDesign:    z.string().optional().describe('Son, ambiance, musique, bruitage'),
+  duration:       z.string().optional().describe('Durée estimée du plan (ex: "4s", "12s")'),
+  notes:          z.string().optional().describe('Notes réalisation/DP, matériel spécial, VFX'),
+  characterIds:   z.array(z.string()).optional(),
+  locationId:     z.string().optional(),
+  sceneTitle:     z.string().optional().describe('Titre de la scène parente'),
+  parentSceneId:  z.string().optional().describe('ID Firestore de la scène parente dans Dialogue Continuity'),
+});
+
+export const ShotListSchema = z.array(ShotSchema);
+
 export const MetadataSchema = z.object({
   title: z.string().optional(),
   format: z.string().optional(),

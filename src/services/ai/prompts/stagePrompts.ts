@@ -162,3 +162,136 @@ ${treatmentNode}
 Sequences to script:
 ${sequencerBlock}`;
 
+// ── Technical Breakdown / Découpage Technique ─────────────────────────────────
+
+/**
+ * Decomposes a single scripted scene (from Dialogue Continuity)
+ * into an atomic, production-ready SHOT LIST (plans).
+ *
+ * Shot values enforced per plan:
+ *  - shotType    : Cadrage (GGG / GG / G / TG / MT / PA / PM / PMI / PP / GPP / TGP / DT / INS)
+ *  - angle       : Axe (Niveau / Plongée / Contre-plongée / Dutch / Zénith / Nadir...)
+ *  - cameraMovement : Mouvement (Fixe / Pan H / Pan V / Trav. Avant/Arrière / Dolly / Steadicam / Main Levée / Grue / Drone / Zoom...)
+ *  - lens        : Focale (14mm, 24mm, 35mm, 50mm, 85mm, 135mm, Zoom 24-70mm, Zoom 70-200mm)
+ *  - frameRate   : Cadence (24fps normal, 48fps, 120fps slow-motion)
+ *  - lighting    : Description lumière (naturelle, artificielle, contre-jour, latérale...)
+ *  - soundDesign : Son/ambiance/musique/bruitage pour ce plan précis
+ *  - duration    : Durée estimée du plan
+ *  - notes       : Notes DP / réalisateur, matériel spécial, VFX, sécurité
+ */
+export const TECHNICAL_BREAKDOWN_PROMPT = (sceneTitle: string, sceneContent: string, context: string) => `
+Tu es le Directeur de la Photographie (DP) et le Premier Assistant Réalisateur (1er AD) du projet.
+Ta mission est d'effectuer le DÉCOUPAGE TECHNIQUE PROFESSIONNEL de la scène suivante, en la décomposant en PLANS INDIVIDUELS (shots) atomiques, précis et prêts pour la production.
+
+IMPORTANT : Tout le contenu généré DOIT être rédigé en français (ou dans la langue principale du projet).
+
+${SHORT_FILM_QUALITY_FRAMEWORK}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RÈGLES DU DÉCOUPAGE TECHNIQUE PROFESSIONNEL :
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. NARRATION VISUELLE PURE :
+   - Chaque plan doit servir le récit, l'émotion ou le sous-texte.
+   - Pas de plan inutile. Chaque coupe est intentionnelle.
+   - Privilégier le "montrer" plutôt que "dire".
+
+2. VALEURS DE PLAN (CADRAGE) — Choisir parmi :
+   - GGG : Grand Grand Grand (drone altitude, paysage immense)
+   - GG  : Grand Grand (plan d'ensemble très large, contexte spatial)
+   - G   : Grand (plan d'ensemble, personnage entier dans décor)
+   - TG  : Très Grand (personnage visible, décor important)
+   - MT  : Moyen Taille (de la taille aux genoux)
+   - PA  : Plan Américain (de mi-cuisse à la tête — action, western)
+   - PM  : Plan Moyen (ceinture à la tête)
+   - PMI : Plan Moyen Inférieur (poitrine basse à la tête)
+   - PP  : Plan Poitrine (épaules à la tête)
+   - GPP : Gros Plan Poitrine (gorge à la tête)
+   - TGP : Très Gros Plan (yeux, bouche, main, objet)
+   - DT  : Détail (texture, inscription, goutte de sang...)
+   - INS : Insert (objet filmé en dehors de la continuité)
+
+3. AXES DE PRISE DE VUE — Choisir parmi :
+   - Niveau (aucun biais vertical)
+   - Plongée (caméra au-dessus du sujet, diminue)
+   - Contre-plongée (caméra sous le sujet, grandit)
+   - Plongée Extrême (vue du dessus, aérien ou surplomb total)
+   - Contre-plongée Extrême (grenouille, très en dessous)
+   - Dutch (inclinaison latérale — tension, instabilité)
+   - Zénith (vue strictement du dessus, 90°)
+   - Nadir (vue strictement du dessous, 90°)
+
+4. MOUVEMENTS DE CAMÉRA — Choisir parmi :
+   - Fixe (trépied, aucun mouvement)
+   - Panoramique H (rotation horizontale sur axe fixe)
+   - Panoramique V (rotation verticale sur axe fixe)
+   - Travelling Avant (caméra se déplace vers le sujet)
+   - Travelling Arrière (caméra s'éloigne du sujet)
+   - Travelling Latéral Gauche / Droit (translation horizontale)
+   - Dolly In / Dolly Out (travelling sur rail, très fluide)
+   - Steadicam (stabilisé, suit le personnage en mouvement)
+   - Main Levée (épaule ou basculé — urgence, documentaire, tension)
+   - Grue (élévation ou descente avec bras motorisé)
+   - Drone (aérien — survol, élévation, plongée verticale)
+   - Zoom In / Zoom Out (optique, pas de déplacement physique)
+   - Arc (caméra tourne autour du sujet — révélation)
+   - Combiné (plusieurs mouvements simultanés — préciser)
+
+5. FOCALES :
+   - 14mm (fish-eye, grand angle extrême, distorsion)
+   - 24mm (grand angle, architecture, espace)
+   - 35mm (légèrement large, naturel, reportage)
+   - 50mm (focale standard, proche de l'œil humain)
+   - 85mm (portrait, légère compression, intimité)
+   - 100mm (portrait serré, macro possible)
+   - 135mm (compression forte, isolation du sujet)
+   - Zoom 24-70mm (polyvalent, raccords)
+   - Zoom 70-200mm (téléobjectif, compression, surveillance)
+
+6. CADENCES :
+   - 24fps : Standard cinéma
+   - 25fps : Broadcast Europe
+   - 48fps : HFR (High Frame Rate)
+   - 120fps : Slow-motion (à ralentir en post à 24fps → 5x ralenti)
+   - 240fps : Ultra slow-motion
+
+7. CONTINUITÉ & RACCORDS :
+   - Respecter la règle des 180° entre plans dialogués.
+   - Assurer les raccords de regard (eyeline match).
+   - Respecter la direction-écran (screen direction).
+   - Indiquer les plans cutaway ou contrechamps.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORMAT DE SORTIE OBLIGATOIRE :
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Retourne un tableau JSON où chaque objet représente UN (1) PLAN.
+Génère entre 3 et 15 plans selon la complexité dramatique de la scène.
+Chaque plan DOIT avoir :
+
+- "title"          : Identifiant du plan (ex: "Plan 1 — Établissement", "Plan 3B — Insert Mains")
+- "content"        : Description visuelle précise de ce qu'on voit et entend dans ce plan (markdown, 2-6 lignes)
+- "shotType"       : Valeur de cadrage (PA, PM, TGP, etc.)
+- "angle"          : Axe de prise de vue
+- "cameraMovement" : Mouvement de caméra
+- "lens"           : Focale recommandée
+- "frameRate"      : Cadence (ex: "24fps", "120fps slow-motion")
+- "lighting"       : Description de l'éclairage pour CE plan spécifique
+- "soundDesign"    : Son/musique/bruitage pour CE plan (ex: "Silence pesant. Respiration audible.")
+- "duration"       : Durée estimée (ex: "3s", "8s", "12s")
+- "notes"          : Notes DP/Réalisateur, équipement spécial, VFX, raccords à assurer
+- "characterIds"   : Personnages présents dans le plan (tableau de noms ou IDs)
+- "locationId"     : Lieu du plan
+- "sceneTitle"     : Titre de la scène parente (= "${sceneTitle}")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Contexte global du projet :
+${context}
+
+Scène parente à découper : ${sceneTitle}
+
+Contenu de la scène (continuité dialoguée) :
+${sceneContent}
+`;
+

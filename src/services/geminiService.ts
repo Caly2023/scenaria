@@ -94,5 +94,22 @@ export const geminiService = {
       prompt: `Stage: ${stage}\nContext: ${context}\n\nCurrent Content:\n${content}\n\nInstruction: ${instruction}\n\nRewrite the content according to the instruction.`,
     });
   },
+
+  /**
+   * Calls the dedicated generateTechnicalBreakdownFlow to break
+   * a single scripted scene into an atomic, production-ready shot list.
+   * Each returned item maps directly to a `shot` ContentPrimitive.
+   */
+  async generateTechnicalBreakdown(
+    sceneTitle: string,
+    sceneContent: string,
+    context: string
+  ): Promise<import('../types').Shot[]> {
+    return callGenkitFlow<import('../types').Shot[]>('generateTechnicalBreakdown', {
+      sceneTitle,
+      sceneContent,
+      context,
+    });
+  },
 };
 

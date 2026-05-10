@@ -5,7 +5,8 @@ import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
 import { 
   MetadataSchema, 
-  SCRIPT_DOCTOR_FUNCTION_DECLARATIONS 
+  SCRIPT_DOCTOR_FUNCTION_DECLARATIONS,
+  ShotListSchema,
 } from './schemas';
 
 /**
@@ -216,7 +217,47 @@ const generateFullScriptFlow = ai.defineFlow(
   }
 );
 
-// 6. Generic Gemini Flow
+// 6. Technical Breakdown Flow — Découpage Technique par scène
+const generateTechnicalBreakdownFlow = ai.defineFlow(
+  {
+    name: 'generateTechnicalBreakdownFlow',
+    inputSchema: z.object({
+      /** Slugline / title of the parent dialogue scene */
+      sceneTitle:   z.string(),
+      /** Full screenplay content of the scene to break down */
+      sceneContent: z.string(),
+      /** Unified project context string built by contextAssembler */
+      context:      z.string(),
+    }),
+    outputSchema: ShotListSchema,
+  },
+  async (input) => {
+    const { sceneTitle, sceneContent, context } = input;
+
+    const response = await ai.generate({
+      model: gemini25Flash,
+      prompt: Prompts.TECHNICAL_BREAKDOWN_PROMPT(sceneTitle, sceneContent, context),
+      output: { schema: ShotListSchema },
+      config: {
+        temperature: 0.4,          // Lower = more consistent technical values
+        maxOutputTokens: 8192,
+      },
+      use: [
+        retry({ maxRetries: 2 }),
+        fallback(ai, { models: [gemini3Flash, gemini31FlashLite] }),
+      ],
+    });
+
+    // Validate & return — Genkit guarantees schema conformance
+    const shots = response.output;
+    if (!Array.isArray(shots) || shots.length === 0) {
+      throw new Error('[generateTechnicalBreakdownFlow] No shots generated for scene: ' + sceneTitle);
+    }
+    return shots;
+  }
+);
+
+// 7. Generic Gemini Flow
 const genericGeminiFlow = ai.defineFlow(
   {
     name: 'genericGeminiFlow',
@@ -226,7 +267,7 @@ const genericGeminiFlow = ai.defineFlow(
       systemPrompt: z.string().optional(),
       model: z.string().optional(),
       structuredOutput: z.enum([
-        'object', 'array', 'stageInsight', 'sequenceArray', 'metadata',
+        'object', 'array', 'stageInsight', 'sequenceArray', 'shotList', 'metadata',
         'initialProject', 'brainstormDual', 'deepCharacter', 'threeActStructure', 'discoveryExtraction'
       ]).optional(),
     }),
@@ -255,6 +296,25 @@ const genericGeminiFlow = ai.defineFlow(
       type: z.string().optional(),
     });
 
+    // Inline shot schema reuse for genericGeminiFlow structured output
+    const shotItemSchema = z.object({
+      title:          z.string(),
+      content:        z.string(),
+      shotType:       z.string(),
+      angle:          z.string(),
+      cameraMovement: z.string(),
+      lens:           z.string().optional(),
+      frameRate:      z.string().optional(),
+      lighting:       z.string().optional(),
+      soundDesign:    z.string().optional(),
+      duration:       z.string().optional(),
+      notes:          z.string().optional(),
+      characterIds:   z.array(z.string()).optional(),
+      locationId:     z.string().optional(),
+      sceneTitle:     z.string().optional(),
+      parentSceneId:  z.string().optional(),
+    });
+
     const threeActStructureSchema = z.object({
       stage: z.string().optional(),
       blocks: z.array(z.object({
@@ -279,6 +339,7 @@ const genericGeminiFlow = ai.defineFlow(
       array:              z.array(z.unknown()),
       stageInsight:       stageInsightSchema,
       sequenceArray:      z.array(sequenceItemSchema),
+      shotList:           z.array(shotItemSchema),
       metadata:           MetadataSchema,
       initialProject:     z.object({
         metadata:         MetadataSchema,
@@ -330,6 +391,7 @@ export const flows = {
   extractCharacters:   extractCharactersFlow,
   generateFullScript:  generateFullScriptFlow,
   genericGemini:       genericGeminiFlow,
+  generateTechnicalBreakdown: generateTechnicalBreakdownFlow,
   discoveryChat:       ai.defineFlow({
     name: 'discoveryChatFlow',
     inputSchema: z.object({

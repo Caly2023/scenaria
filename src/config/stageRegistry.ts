@@ -155,17 +155,18 @@ const STAGES: StageDefinition[] = [
     order: 5,
     category: 'PRODUCTION',
     collectionName: 'breakdown_primitives',
-    primitiveTypes: ['breakdown'],
-    description: 'Transform scenes into technical shots.',
+    primitiveTypes: ['shot'],
+    description: 'Découpage technique : décomposition en plans individuels (cadrage, axe, mouvement, focale, son, lumière).',
     icon: Cpu,
     estTime: '3h',
-    hydrationLabel: 'Generating Production Breakdown...',
+    hydrationLabel: 'Génération du découpage technique...',
     requires: ['Dialogue Continuity'],
     orderField: 'order',
     prompts: {
-      magic: 'Optimize shot composition and technical feasibility for every scene.',
-      generate: 'Transform the screenplay into a technical shot list for production.'
-    }
+      magic: 'Optimise la composition des plans et la faisabilité technique de chaque scène.',
+      generate: 'Décompose le scénario en plans individuels avec valeurs de cadrage, mouvement caméra, focale, éclairage, son et durée.',
+      refine: 'Raffine les valeurs techniques de ce plan pour maximiser l\'impact visuel et la cohérence de continuité.',
+    },
   },
 ];
 

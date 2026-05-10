@@ -142,7 +142,7 @@ const STAGES: StageDefinition[] = [
     estTime: 'Days',
     hydrationLabel: 'Writing Dialogue Continuity...',
     requires: ['Sequencer'],
-    triggers: 'Final Screenplay',
+    triggers: 'Technical Breakdown',
     orderField: 'order',
     prompts: {
       magic: 'Polish the dialogue, pacing, and subtext to achieve professional standards.',
@@ -150,28 +150,9 @@ const STAGES: StageDefinition[] = [
     }
   },
   {
-    id: 'Final Screenplay',
-    name: 'Final Screenplay',
-    order: 5,
-    category: 'NARRATIVE',
-    collectionName: 'screenplay_primitives',
-    primitiveTypes: ['script_scene'],
-    description: 'The polished, production-ready screenplay.',
-    icon: Film,
-    estTime: '1h',
-    hydrationLabel: 'Polishing Final Screenplay...',
-    requires: ['Dialogue Continuity'],
-    triggers: 'Technical Breakdown',
-    orderField: 'order',
-    prompts: {
-      magic: 'Final polish of the screenplay for production readiness.',
-      generate: 'Perform a comprehensive final polish of the dialogue continuity.'
-    }
-  },
-  {
     id: 'Technical Breakdown',
     name: 'Technical Breakdown',
-    order: 6,
+    order: 5,
     category: 'PRODUCTION',
     collectionName: 'breakdown_primitives',
     primitiveTypes: ['breakdown'],
@@ -179,7 +160,7 @@ const STAGES: StageDefinition[] = [
     icon: Cpu,
     estTime: '3h',
     hydrationLabel: 'Generating Production Breakdown...',
-    requires: ['Final Screenplay'],
+    requires: ['Dialogue Continuity'],
     orderField: 'order',
     prompts: {
       magic: 'Optimize shot composition and technical feasibility for every scene.',
@@ -215,8 +196,7 @@ class StageRegistry {
       else if (normalized.includes('story bible') || normalized.includes('bible') || normalized.includes('character') || normalized.includes('location')) def = this._stages.get('Story Bible');
       else if (normalized.includes('traitement') || normalized.includes('treatment')) def = this._stages.get('Treatment');
       else if (normalized.includes('sequencer') || normalized.includes('séquencier') || normalized.includes('step outline')) def = this._stages.get('Sequencer');
-      else if (normalized.includes('dialogue continuity') || normalized.includes('continuity') || normalized.includes('dialogue') || normalized.includes('scénario') || normalized.includes('script')) def = this._stages.get('Dialogue Continuity');
-      else if (normalized.includes('final screenplay') || normalized.includes('screenplay') || normalized.includes('polissage')) def = this._stages.get('Final Screenplay');
+      else if (normalized.includes('dialogue continuity') || normalized.includes('continuity') || normalized.includes('dialogue') || normalized.includes('scénario') || normalized.includes('script') || normalized.includes('screenplay')) def = this._stages.get('Dialogue Continuity');
       else if (normalized.includes('technical breakdown') || normalized.includes('breakdown') || normalized.includes('découpage')) def = this._stages.get('Technical Breakdown');
       // else if (normalized.includes('brouillon') || normalized.includes('discovery') || normalized.includes('exploration')) def = this._stages.get('Discovery');
     }

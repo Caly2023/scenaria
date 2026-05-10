@@ -150,12 +150,6 @@ export const en = {
         label: 'Dialogue Continuity',
         title: 'Dialogue Continuity',
         subtitle: 'Full first draft of the script with dialogues and actions.',
-        validateLabel: 'Validate & Move to Final Screenplay'
-      },
-      'Final Screenplay': {
-        label: 'Final Screenplay',
-        title: 'Production Script',
-        subtitle: 'Polished, paced, and ready-to-shoot version.',
         validateLabel: 'Validate & Move to Technical Breakdown'
       },
       'Technical Breakdown': {

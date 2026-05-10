@@ -23,9 +23,9 @@ service cloud.firestore {
     //   - updatedAt: number (required)
     //
     // AI-managed subcollections (written by Script Doctor / agents):
-    //   - pitch_primitives, logline_primitives, structure_primitives,
-    //     synopsis_primitives, treatment_sequences, script_scenes,
-    //     storyboard_frames, sequences
+    //   brief_primitives, bible_primitives, treatment_primitives,
+    //   sequencer_primitives, dialogue_primitives, breakdown_primitives
+    //   (screenplay_primitives — DEPRECATED, kept for backwards-compat)
     //
     // User-managed subcollections (stricter validation):
     //   - characters, locations
@@ -173,6 +173,8 @@ service cloud.firestore {
         allow delete: if isProjectMember(projectId);
       }
 
+      // DEPRECATED: screenplay_primitives — kept for backwards-compat only.
+      // Final Screenplay stage was merged into Dialogue Continuity (Phase 6 refactor).
       match /screenplay_primitives/{primitiveId} {
         allow read: if isProjectMember(projectId);
         allow create: if canCreatePrimitive(projectId, request.resource.data);

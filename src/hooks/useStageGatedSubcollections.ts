@@ -22,13 +22,12 @@ export function useStageGatedSubcollections({ projectId, activeStageOrder }: Gat
   const treatmentResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Treatment'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Treatment').order });
   const sequencerResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Sequencer'),       orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Sequencer').order });
   const continuityResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Dialogue Continuity'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Dialogue Continuity').order });
-  const scriptResult    = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Final Screenplay'),   orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Final Screenplay').order });
   const breakdownResult = useGetSubcollectionQuery({ projectId: projectId || '', collectionName: stageRegistry.getCollectionName('Technical Breakdown'), orderByField: 'order' }, { skip: skip || activeStageOrder < stageRegistry.get('Technical Breakdown').order });
 
   const isLoading = 
     briefResult.isLoading || 
     bibleResult.isLoading || treatmentResult.isLoading || sequencerResult.isLoading || 
-    continuityResult.isLoading || scriptResult.isLoading || breakdownResult.isLoading;
+    continuityResult.isLoading || breakdownResult.isLoading;
 
   const data = useMemo<RawCollections>(() => ({
     [stageRegistry.getCollectionName('Project Brief')]:       (briefResult.data || []) as unknown as RawCollections[string],
@@ -36,12 +35,11 @@ export function useStageGatedSubcollections({ projectId, activeStageOrder }: Gat
     [stageRegistry.getCollectionName('Treatment')]:           (treatmentResult.data || []) as unknown as RawCollections[string],
     [stageRegistry.getCollectionName('Sequencer')]:           (sequencerResult.data || []) as unknown as RawCollections[string],
     [stageRegistry.getCollectionName('Dialogue Continuity')]: (continuityResult.data || []) as unknown as RawCollections[string],
-    [stageRegistry.getCollectionName('Final Screenplay')]:    (scriptResult.data || []) as unknown as RawCollections[string],
     [stageRegistry.getCollectionName('Technical Breakdown')]: (breakdownResult.data || []) as unknown as RawCollections[string],
   }), [
     briefResult.data, bibleResult.data,
     treatmentResult.data, sequencerResult.data, continuityResult.data,
-    scriptResult.data, breakdownResult.data
+    breakdownResult.data
   ]);
 
   return { data, isLoading };

@@ -93,7 +93,7 @@ export async function buildPromptPayload(
   payload.sectionalContext = `${cascadingContext}\n[CURRENT STAGE CONTENT: ${currentStage}]\n${sectionalContent}`;
   payload.idMapContext = telemetryService.getIdMapContext();
 
-  if (activePrimitiveId && (currentStage === "Sequencer" || currentStage === "Dialogue Continuity" || currentStage === "Treatment" || currentStage === "Final Screenplay")) {
+  if (activePrimitiveId && (currentStage === "Sequencer" || currentStage === "Dialogue Continuity" || currentStage === "Treatment")) {
     const collName = stageRegistry.getCollectionName(currentStage);
     const seqsResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: collName, orderByField: "order" }));
     const allSeqs = (seqsResult.data || []) as unknown as Sequence[];

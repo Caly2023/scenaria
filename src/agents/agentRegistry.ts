@@ -5,7 +5,6 @@ import { StoryBibleAgent } from './StoryBibleAgent';
 import { TreatmentAgent } from './TreatmentAgent';
 import { SequencerAgent } from './SequencerAgent';
 import { DialogueContinuityAgent } from './DialogueContinuityAgent';
-import { FinalScreenplayAgent } from './FinalScreenplayAgent';
 import { BreakdownAgent } from './BreakdownAgent';
 import { stageRegistry } from '../config/stageRegistry';
 
@@ -23,7 +22,6 @@ class AgentRegistry {
       ['Treatment',           async () => new TreatmentAgent()],
       ['Sequencer',           async () => new SequencerAgent()],
       ['Dialogue Continuity', async () => new DialogueContinuityAgent()],
-      ['Final Screenplay',    async () => new FinalScreenplayAgent()],
       ['Technical Breakdown', async () => new BreakdownAgent()],
     ]);
   }

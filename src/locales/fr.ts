@@ -150,12 +150,6 @@ export const fr = {
         label: 'Continuité Dialoguée',
         title: 'Continuité Dialoguée',
         subtitle: 'Premier jet complet du scénario avec dialogues et actions.',
-        validateLabel: 'Valider et passer au Scénario Final'
-      },
-      'Final Screenplay': {
-        label: 'Scénario Final',
-        title: 'Scénario de Production',
-        subtitle: 'Version polie, rythmée et prête pour le tournage.',
         validateLabel: 'Valider et passer au Découpage Technique'
       },
       'Technical Breakdown': {

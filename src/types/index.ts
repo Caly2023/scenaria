@@ -16,7 +16,6 @@ export type WorkflowStage =
   | 'Treatment' 
   | 'Sequencer' 
   | 'Dialogue Continuity'
-  | 'Final Screenplay'
   | 'Technical Breakdown';
 
 import type { StageAnalysis } from './stageContract';

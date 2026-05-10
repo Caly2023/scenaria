@@ -251,8 +251,8 @@ export const runProjectDiagnostics: ToolHandler = async (args, context) => {
   });
 
   // Specific high-level architectural check
-  if (activeStage === "Final Screenplay" && (stageStates["Sequencer"] || "empty") === "empty") {
-    issues.push("Final Screenplay stage reached without a populated Sequencer.");
+  if (activeStage === "Technical Breakdown" && (stageStates["Sequencer"] || "empty") === "empty") {
+    issues.push("Technical Breakdown stage reached without a populated Sequencer.");
   }
 
   telemetryService.setStatus("run_project_diagnostics", "✅", `Diagnostics complete. Found ${issues.length} structural issues.`);

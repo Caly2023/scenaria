@@ -5,6 +5,7 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * GEMINI MODEL CONSTANTS (2026 Suite)
  */
+export const gemini31Pro = 'googleai/gemini-3.1-pro-preview';
 export const gemini31FlashLite = 'googleai/gemini-3.1-flash-lite-preview';
 export const gemini3Flash = 'googleai/gemini-3-flash-preview';
 export const gemini25Flash = 'googleai/gemini-2.5-flash';

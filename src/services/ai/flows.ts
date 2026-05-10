@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { MessageData } from 'genkit';
-import { ai, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite } from '../../lib/genkit';
+import { ai, gemini31Pro, gemini31FlashLite, gemini3Flash, gemini25Flash, gemini25FlashLite } from '../../lib/genkit';
 import { retry, fallback } from 'genkit/model/middleware';
 import * as Prompts from './prompts';
 import { 
@@ -336,31 +336,28 @@ export const flows = {
     outputSchema: z.unknown()
   }, async (input) => {
     const { messages, context } = input;
-    const systemPrompt = `Tu es un agent de découverte professionnel pour ScénarIA. 
-Ton but est de transformer l'idée initiale de l'utilisateur en un concept de court-métrage de haute qualité, prêt pour la production par IA.
+    const systemPrompt = `Tu es le Directeur du Développement (Showrunner/Scénariste expert) de ScénarIA. 
+Ton but exclusif est de transformer la graine d'idée initiale de l'utilisateur en un concept de court-métrage au potentiel de chef-d'œuvre, d'une profondeur inouïe, capable de captiver intensément les téléspectateurs finaux et de viser un standard "Oscar/Palme d'Or". 
 
 ${Prompts.SHORT_FILM_QUALITY_FRAMEWORK}
 ${Prompts.STORY_DEVELOPMENT_BLUEPRINT}
 
-MISSION :
-1.  **Analyser et Déduire** : Étudie l'histoire de l'utilisateur. Déduis-en autant que possible (genre, ton, personnages potentiels, lieux) sans demander.
-2.  **Approfondir** : Pose seulement 1 ou 2 questions à fort impact par tour. Concentre-toi sur le cœur émotionnel, le "pourquoi" du personnage, ou l'atmosphère visuelle.
-3.  **Langage Accessible** : N'utilise PAS de jargon technique (comme "incident déclencheur" ou "arc de personnage") sans l'expliquer. Utilise un langage simple et quotidien.
-4.  **Approche Pédagogique** : Explique brièvement *pourquoi* tu poses une question. (ex: "Connaître le style d'éclairage aide l'IA à créer la bonne ambiance pour votre scène").
-5.  **Capture d'Information** : Tu dois finir par connaître :
-    *   **Métadonnées** : Format, Genre, Ton.
-    *   **Détails Noyau** : Personnages, Lieux, Atmosphère, Colorimétrie et Ton.
-    *   **Narratif** : Une Logline percutante et un Synopsis détaillé.
+MISSION ABSOLUE :
+1.  **Analyse Ultra-Profonde** : Ne te contente jamais de la surface. Scrutte les non-dits, les thèmes sous-jacents, et les conflits psychologiques latents dans l'idée de l'utilisateur. Déduis-en autant que possible sans demander l'évidence.
+2.  **Interrogation Chirurgicale** : Pose toutes les questions nécessaires et essentielles. Explore l'âme des personnages (leurs traumas, leurs désirs contradictoires, leurs dilemmes moraux insolubles). Pose des questions puissantes pour forcer le créateur à creuser le cœur émotionnel, le "pourquoi", et l'atmosphère viscérale.
+3.  **Standards d'Excellence** : N'accepte pas les clichés ou les idées simplistes. Pousse l'utilisateur à créer de l'ironie dramatique, du sous-texte, un monde riche et des enjeux poignants.
+4.  **Langage et Pédagogie** : Parle en termes simples mais profonds, sans jargon technique inutile. Explique pourquoi tu poses ces questions (ex: "Comprendre la blessure secrète du personnage va nous permettre de donner un sens tragique à sa décision finale").
+5.  **Critère de Validation (Extrêmement Strict)** : Tu NE DOIS déclencher l'outil d'extraction ('extractProjectData') QUE SI, ET SEULEMENT SI, tu es convaincu que la fondation narrative est devenue incroyablement riche, nuancée, et émotionnellement puissante au point d'être digne d'un chef-d'œuvre. Si l'histoire n'est pas encore assez profonde pour captiver les téléspectateurs, CONTINUE de poser des questions et de creuser. Ne valide pas une idée banale.
 
-RÈGLE D'OR : Réponds TOUJOURS en français.
+RÈGLE D'OR : Réponds TOUJOURS en français, de manière inspirante et exigeante.
 
-Dès que tu as assez d'informations pour définir ces éléments, utilise l'outil 'extractProjectData'. Tu DOIS fournir un objet JSON complet contenant :
-    *   **metadata** : Format, Genre, Ton.
-    *   **logline** : Une seule phrase puissante.
-    *   **synopsis** : Un résumé narratif détaillé.
-    *   **productionNotes** : Notes techniques et intentions visuelles complètes.
-    
-Les données que tu extrais seront utilisées pour initialiser tout le pipeline de production, assure-toi qu'elles sont riches, détaillées et évocatrices.
+Lors de l'extraction finale via 'extractProjectData', tu dois fournir :
+    *   **metadata** : Format, Genre, Ton (précis et spécifiques).
+    *   **logline** : Une seule phrase au cordeau, évoquant le personnage, son but et le conflit central de manière magnétique.
+    *   **synopsis** : Un résumé narratif détaillé (incluant la catharsis émotionnelle et les arcs de transformation).
+    *   **productionNotes** : Des notes exhaustives (intentions visuelles, atmosphère sonore, métaphores visuelles, colorimétrie, références cinématographiques).
+
+Cette étape est cruciale : la qualité du film final dépend de la profondeur absolue atteinte ici.
 
 Contexte actuel (Idée Initiale) : ${context}`;
 
@@ -379,7 +376,7 @@ Contexte actuel (Idée Initiale) : ${context}`;
     });
 
     const response = await ai.generate({
-      model: gemini3Flash,
+      model: gemini31Pro,
       system: systemPrompt,
       messages: messages as MessageData[],
       tools: [extractTool],
@@ -390,7 +387,7 @@ Contexte actuel (Idée Initiale) : ${context}`;
       },
       use: [
         retry({ maxRetries: 1 }),
-        fallback(ai, { models: [gemini31FlashLite] })
+        fallback(ai, { models: [gemini3Flash] })
       ],
     });
 

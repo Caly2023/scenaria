@@ -2,17 +2,18 @@
 
 import { StrictMode, useEffect } from 'react';
 import { Provider } from 'react-redux';
-import { store } from '@/store';
+import { store, persistor } from '@/store';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { PersistGate } from 'redux-persist/integration/react';
 import '@/i18n';
 
-// Register PWA Service Worker in production
+// Register PWA Service Worker
 function ServiceWorkerRegistrar() {
   useEffect(() => {
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {
-          // SW registration failed silently — app still works
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.warn('SW registration failed:', err);
         });
       });
     }
@@ -24,10 +25,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <StrictMode>
       <Provider store={store}>
-        <ErrorBoundary>
-          <ServiceWorkerRegistrar />
-          {children}
-        </ErrorBoundary>
+        <PersistGate loading={null} persistor={persistor}>
+          <ErrorBoundary>
+            <ServiceWorkerRegistrar />
+            {children}
+          </ErrorBoundary>
+        </PersistGate>
       </Provider>
     </StrictMode>
   );

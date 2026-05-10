@@ -13,9 +13,12 @@ import { useProject } from '@/contexts/ProjectContext';
 import { ScriptDoctorTypingIndicator } from './ScriptDoctorTypingIndicator';
 import { ScriptDoctorMessageItem } from './ScriptDoctorMessageItem';
 import { ScriptDoctorMessage } from '@/types/scriptDoctor';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { cn } from '@/lib/utils';
 
 export function ScriptDoctorContent() {
   const project = useProject();
+  const isOnline = useOnlineStatus();
   const {
     handleCloseDoctor: onClose,
     handleDoctorMessage: onSendMessage,
@@ -227,18 +230,22 @@ export function ScriptDoctorContent() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('common.askTheDoctor')}
+            placeholder={isOnline ? t('common.askTheDoctor') : "Hors ligne..."}
             rows={1}
             autoFocus
-            className="flex-1 bg-transparent border-none outline-none py-2.5 resize-none text-white placeholder:text-white/30 text-base leading-relaxed max-h-[200px] overflow-y-auto"
+            disabled={!isOnline}
+            className={cn(
+              "flex-1 bg-transparent border-none outline-none py-2.5 resize-none text-white placeholder:text-white/30 text-base leading-relaxed max-h-[200px] overflow-y-auto",
+              !isOnline ? "opacity-50" : ""
+            )}
             style={{ fontSize: '16px' }}
           />
           <button 
             type="submit"
-            disabled={!inputValue.trim() || isTyping}
+            disabled={!inputValue.trim() || isTyping || !isOnline}
             className="flex-shrink-0 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-[#e5e5e5] transition-all active:scale-95 disabled:opacity-30 disabled:scale-100 border-none shadow-lg mb-0.5"
           >
-            <Send className="w-4 h-4" />
+            <Send className={cn("w-4 h-4", !isOnline ? "opacity-20" : "")} />
           </button>
         </div>
       </form>

@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { StageInsight } from '@/types';
 import { StageAnalysis } from '@/types/stageContract';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 interface StepLayoutProps {
   stepIndex: number;
@@ -57,6 +58,7 @@ export function StepLayout({
   children
 }: StepLayoutProps) {
   const { t } = useTranslation();
+  const isOnline = useOnlineStatus();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isStuck, setIsStuck] = useState(false);
@@ -209,7 +211,7 @@ export function StepLayout({
                 triggerHaptic('light');
                 await handleVerifier();
               }}
-              disabled={isValidating || isGenerating}
+              disabled={isValidating || isGenerating || !isOnline}
               aria-label="Vérifier cette étape"
               className={cn(
                 "flex items-center justify-center gap-2 px-6 py-3 sm:px-4 sm:py-2 rounded-xl text-sm sm:text-xs font-bold border transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
@@ -225,7 +227,7 @@ export function StepLayout({
                 : isReady 
                   ? <Check className="w-4 h-4" />
                   : <ShieldCheck className="w-4 h-4" />}
-              <span>{isValidating ? 'Analyse...' : 'Vérifier'}</span>
+              <span>{isValidating ? 'Analyse...' : (!isOnline ? 'Hors ligne' : 'Vérifier')}</span>
             </motion.button>
 
             {/* Continuer / Étape suivante button — Always enabled and prominent */}

@@ -5,6 +5,9 @@ import { ProjectFormat, ExtractedData } from '../../types';
 import { getErrorMessage } from '../../lib/errorClassifier';
 import { ProjectInput } from './ProjectInput';
 import { DiscoveryFlow } from './DiscoveryFlow';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { setCurrentIdea, resetDiscovery } from '../../store/discoverySlice';
 
 interface HomePageProps {
   onProjectCreate: (idea: string, format?: ProjectFormat, extractedData?: ExtractedData) => Promise<void>;
@@ -14,6 +17,8 @@ interface HomePageProps {
 
 export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const currentIdea = useSelector((state: RootState) => state.discovery.currentIdea);
   const [storyIdea, setStoryIdea] = useState('');
   const [selectedFormat] = useState<ProjectFormat | 'Auto'>('Auto');
   const [isFocused, setIsFocused] = useState(false);
@@ -21,15 +26,14 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
   const [creationStatus, setCreationStatus] = useState<'idle' | 'analyzing' | 'initializing'>('idle');
   const [creationError, setCreationError] = useState<string | null>(null);
   
-  // New state for discovery flow
-  const [showDiscovery, setShowDiscovery] = useState(false);
-  const [submittedIdea, setSubmittedIdea] = useState('');
+  // Flag for showDiscovery derived from Redux
+  const showDiscovery = !!currentIdea;
+  const submittedIdea = currentIdea || '';
 
   const handleSubmit = async (customIdea?: string) => {
     const ideaToSubmit = customIdea || storyIdea;
     if (ideaToSubmit.trim() && !isCreating) {
-      setSubmittedIdea(ideaToSubmit);
-      setShowDiscovery(true);
+      dispatch(setCurrentIdea(ideaToSubmit));
       setStoryIdea('');
     }
   };
@@ -40,12 +44,8 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
     try {
       await onProjectCreate(submittedIdea, selectedFormat === 'Auto' ? undefined : selectedFormat, extractedData);
       
-      // Clear all discovery cache to ensure no old messages persist for future projects
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('discovery_')) {
-          localStorage.removeItem(key);
-        }
-      });
+      // Reset discovery state on success
+      dispatch(resetDiscovery());
       
     } catch (error: unknown) {
       console.error('Creation failed:', error);
@@ -140,7 +140,7 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
             key="discovery-chat"
             initialIdea={submittedIdea}
             onValidate={handleDiscoveryValidate}
-            onCancel={() => setShowDiscovery(false)}
+            onCancel={() => dispatch(setCurrentIdea(null))}
             error={creationError}
             onClearError={() => setCreationError(null)}
           />

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { User } from "firebase/auth";
 import { useWindowSize } from "./hooks/useWindowSize";
 import { Toast } from "./types";
@@ -79,7 +79,11 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
     addToast("Déconnexion effectuée", "success");
   }, [addToast]);
 
-
+  useEffect(() => {
+    if (isOffline) {
+      addToast("Mode hors ligne activé. Certaines fonctionnalités sont limitées.", "info");
+    }
+  }, [isOffline, addToast]);
 
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
   const handleTts = useCallback((id: string, text: string) => {
@@ -93,11 +97,11 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
   }, [isTtsPlaying, currentProject]);
 
   if (!isAuthReady) return <LoadingPage />;
-  if (isOffline) return <OfflinePage onRetry={() => window.location.reload()} />;
-  if (connectionError) return <ConnectionErrorPage onRetry={() => window.location.reload()} />;
-  if (!user) return <LoginPage />;
-  if (isProjectLoading) return <LoadingPage />;
-  if (isProjectNotFound) return <NotFoundPage onBackHome={handleProjectExit} />;
+  // Removed full-screen offline block to allow using cached data
+  if (connectionError && !user) return <ConnectionErrorPage onRetry={() => window.location.reload()} />;
+  if (!user && !isOffline) return <LoginPage />;
+  if (isProjectLoading && !isOffline) return <LoadingPage />;
+  if (isProjectNotFound && !isOffline) return <NotFoundPage onBackHome={handleProjectExit} />;
 
   const renderStage = () => {
     if (!currentProject) {
@@ -114,11 +118,15 @@ export function AppContent({ user, isAuthReady, isOffline, connectionError, toas
   return (
     <>
       <MainLayout
-        user={{
+        user={user ? {
           displayName: user.displayName,
           email: user.email,
           photoURL: user.photoURL,
           providerId: user.providerData[0]?.providerId,
+        } : {
+          displayName: "Mode Hors Ligne",
+          email: null,
+          photoURL: null,
         }}
         isMobile={isMobile}
         isProjectDrawerOpen={isProjectDrawerOpen}

@@ -6,6 +6,10 @@ import { ProjectMetadata, ExtractedData } from '../../types';
 import { cn } from '@/lib/utils';
 import { DictationButton } from '../ui/DictationButton';
 import { useAppAuth } from '../../hooks/useAppAuth';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { setSession, clearSession as clearReduxSession } from '../../store/discoverySlice';
 
 interface Message {
   id: string;
@@ -26,14 +30,20 @@ interface DiscoveryFlowProps {
 export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClearError }: DiscoveryFlowProps) {
   const { t } = useTranslation();
   const { user } = useAppAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const isOnline = useOnlineStatus();
+  const dispatch = useDispatch();
+  
+  const sessionKey = initialIdea.substring(0, 50);
+  const persistedSession = useSelector((state: RootState) => state.discovery.sessions[sessionKey]);
+
+  const [messages, setMessages] = useState<Message[]>(persistedSession?.messages || []);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+  const [extractedData, setExtractedData] = useState<ExtractedData | null>(persistedSession?.extractedData || null);
   const [isSaving, setIsSaving] = useState(false);
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
   const [isEditingExtracted, setIsEditingExtracted] = useState(false);
-  const [editableExtractedData, setEditableExtractedData] = useState<ExtractedData | null>(null);
+  const [editableExtractedData, setEditableExtractedData] = useState<ExtractedData | null>(persistedSession?.extractedData || null);
 
   const chatStartedRef = useRef(false);
   const messagesRef = useRef<Message[]>([]);
@@ -169,39 +179,33 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
   }, [inputValue]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(`discovery_${initialIdea.substring(0, 50)}`);
-    if (saved && !chatStartedRef.current) {
-      try {
-        const { messages: savedMsgs, extracted: savedExtracted } = JSON.parse(saved);
-        setMessages(savedMsgs);
-        if (savedExtracted) {
-          setExtractedData(savedExtracted);
-          setEditableExtractedData(savedExtracted);
-        }
-        chatStartedRef.current = true;
-      } catch (e) {
-        console.error('Failed to load saved discovery:', e);
-      }
-    } else if (initialIdea && messages.length === 0 && !chatStartedRef.current) {
+    if (initialIdea && messages.length === 0 && !chatStartedRef.current && !persistedSession) {
       const initialMsgs: Message[] = [{ id: '1', role: 'user', content: initialIdea }];
       setMessages(initialMsgs);
       chatStartedRef.current = true;
       handleSendMessage('', initialMsgs);
+    } else if (persistedSession && !chatStartedRef.current) {
+      // Sync local state if persisted session exists but not yet loaded
+      setMessages(persistedSession.messages);
+      setExtractedData(persistedSession.extractedData);
+      setEditableExtractedData(persistedSession.extractedData);
+      chatStartedRef.current = true;
     }
-  }, [initialIdea, messages.length, handleSendMessage]);
+  }, [initialIdea, messages.length, handleSendMessage, persistedSession]);
 
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem(`discovery_${initialIdea.substring(0, 50)}`, JSON.stringify({
-        messages,
-        extracted: extractedData
+      dispatch(setSession({ 
+        idea: initialIdea, 
+        messages, 
+        extractedData 
       }));
     }
-  }, [messages, extractedData, initialIdea]);
+  }, [messages, extractedData, initialIdea, dispatch]);
 
   const clearSession = useCallback(() => {
-    localStorage.removeItem(`discovery_${initialIdea.substring(0, 50)}`);
-  }, [initialIdea]);
+    dispatch(clearReduxSession(initialIdea));
+  }, [initialIdea, dispatch]);
 
   useEffect(() => {
     if (rootRef.current) {
@@ -446,10 +450,13 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Affinez votre idée..."
+                placeholder={isOnline ? "Affinez votre idée..." : "Hors ligne - En attente de connexion"}
                 rows={1}
-                disabled={!!extractedData || isTyping}
-                className="w-full bg-transparent border-none outline-none resize-none text-white placeholder:text-gray-500 text-[16px] leading-[1.6] max-h-[200px] no-scrollbar"
+                disabled={!!extractedData || isTyping || !isOnline}
+                className={cn(
+                  "w-full bg-transparent border-none outline-none resize-none text-white placeholder:text-gray-500 text-[16px] leading-[1.6] max-h-[200px] no-scrollbar",
+                  !isOnline ? "opacity-50" : ""
+                )}
               />
             </div>
 
@@ -489,10 +496,10 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
                   />
                   <button
                     onClick={() => handleSendMessage(inputValue)}
-                    disabled={!inputValue.trim() || isTyping || !!extractedData}
+                    disabled={!inputValue.trim() || isTyping || !!extractedData || !isOnline}
                     className={cn(
                       "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ml-1",
-                      inputValue.trim() 
+                      inputValue.trim() && isOnline
                         ? "bg-white text-black hover:bg-gray-200" 
                         : "bg-white/5 text-gray-600 cursor-not-allowed"
                     )}
@@ -500,7 +507,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
                     {isTyping ? (
                       <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                     ) : (
-                      <ArrowUp className="w-5 h-5 stroke-[2.5px]" />
+                      <ArrowUp className={cn("w-5 h-5 stroke-[2.5px]", !isOnline ? "opacity-20" : "")} />
                     )}
                   </button>
                 </div>

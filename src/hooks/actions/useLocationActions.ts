@@ -35,7 +35,7 @@ export function useLocationActions({
         const brief = stageContents['Project Brief'] || [];
         const briefText = brief.map(p => p.content).join('\n\n');
         const developed = await geminiService.deepDevelopLocation(
-          { name: loc.title, description: loc.content } as any, 
+          { name: loc.title || "", description: loc.content || "" }, 
           briefText
         );
         const collectionName = stageRegistry.getCollectionName('Story Bible');

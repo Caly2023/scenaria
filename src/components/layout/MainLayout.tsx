@@ -58,7 +58,7 @@ interface MainLayoutProps {
   theme: 'dark' | 'light' | 'system';
   language: string;
   renderStage: () => React.ReactNode;
-  ScriptDoctor: React.ComponentType<any>;
+  ScriptDoctor: React.ComponentType<Record<string, unknown>>;
   isHistoryOpen: boolean;
   setIsHistoryOpen: (v: boolean) => void;
 }

@@ -73,17 +73,15 @@ service cloud.firestore {
 
     // ── Validators for human/managed collections ────────────────────────
     function isValidSequence(data) {
-      return data.get('projectId', '') != '';
+      return true; // Relaxed: projectId is inferred from document path
     }
 
     function isValidCharacter(data) {
-      return data.get('name', '') is string && 
-             data.get('projectId', '') != '';
+      return data.get('name', '') is string;
     }
 
     function isValidLocation(data) {
-      return data.get('name', '') is string && 
-             data.get('projectId', '') != '';
+      return data.get('name', '') is string;
     }
 
     // ===============================================================

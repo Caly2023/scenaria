@@ -23,12 +23,12 @@ const PartSchema = z.object({
   }).optional(),
   toolRequest: z.object({
     name: z.string(),
-    input: z.any().optional(),
+    input: z.unknown().optional(),
     ref: z.string().optional(),
   }).optional(),
   toolResponse: z.object({
     name: z.string(),
-    output: z.any().optional(),
+    output: z.unknown().optional(),
     ref: z.string().optional(),
   }).optional(),
 }).passthrough();
@@ -202,7 +202,7 @@ const extractCharactersFlow = ai.defineFlow(
 const generateFullScriptFlow = ai.defineFlow(
   {
     name: 'generateFullScriptFlow',
-    inputSchema: z.any(),
+    inputSchema: z.unknown(),
     outputSchema: z.unknown(),
   },
   async (ctx) => {
@@ -303,7 +303,7 @@ const genericGeminiFlow = ai.defineFlow(
     const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput as string] : undefined;
 
     const response = await ai.generate({
-      model: (modelOverride as any) || gemini31FlashLite,
+      model: (modelOverride || gemini31FlashLite) as typeof gemini31FlashLite,
       prompt: prompt as string,
       system: systemPrompt as string | undefined,
       output: structuredSchema

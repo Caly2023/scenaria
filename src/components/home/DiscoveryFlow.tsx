@@ -318,7 +318,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
                       <div className="text-[10px] text-white/20 uppercase tracking-[0.2em] mb-2 font-bold">{key}</div>
                       <input 
                         type="text"
-                        value={(editableExtractedData.metadata as any)[key] || ''}
+                        value={String(editableExtractedData.metadata?.[key as keyof typeof editableExtractedData.metadata] || '')}
                         onChange={(e) => setEditableExtractedData({
                           ...editableExtractedData,
                           metadata: { ...editableExtractedData.metadata!, [key]: e.target.value }

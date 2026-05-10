@@ -14,7 +14,7 @@ interface UseSequenceActionsProps {
   currentProject: Project | null;
   setIsTyping: (val: boolean) => void;
   addToast: (msg: string, type: 'error' | 'info' | 'success') => void;
-  handleSubcollectionUpdate: (collName: string, id: string, data: Record<string, any>) => void;
+  handleSubcollectionUpdate: (collName: string, id: string, data: Record<string, unknown>) => void;
   stageContents: Record<string, ContentPrimitive[]>;
 }
 

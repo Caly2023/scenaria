@@ -103,7 +103,7 @@ export function useStageLifecycle({
       const nextStage = allStageIds[currentIndex + 1];
       const newValidatedStages = Array.from(new Set([...(currentProject.validatedStages || []), stage]));
 
-      const updates: Record<string, any> = {
+      const updates: Record<string, unknown> = {
         validatedStages: newValidatedStages
       };
 

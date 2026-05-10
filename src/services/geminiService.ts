@@ -27,9 +27,9 @@ export const geminiService = {
     });
   },
 
-  async deepDevelopLocation(location: { name: string }, masterStory: string): Promise<unknown> {
+  async deepDevelopLocation(location: { name: string; description?: string }, masterStory: string): Promise<unknown> {
     return callGenericGemini<unknown>({
-      prompt: `Deeply develop location ${location.name} based on the master story: ${masterStory}.`
+      prompt: `Deeply develop location ${location.name} (${location.description || ''}) based on the master story: ${masterStory}.`
     });
   },
 

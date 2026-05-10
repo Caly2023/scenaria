@@ -30,7 +30,7 @@ function isStageAnalysis(insight: StageInsight | StageAnalysis): insight is Stag
 }
 
 function getInsightContent(insight: StageInsight | StageAnalysis): string {
-  const evaluation = ('evaluation' in insight) ? insight.evaluation : (insight as any).content;
+  const evaluation = ('evaluation' in insight) ? insight.evaluation : (insight as { content?: string }).content;
   
   if (!isStageAnalysis(insight)) return evaluation || "";
 

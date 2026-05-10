@@ -43,9 +43,9 @@ interface ProjectContextType {
   handleProjectDelete: (id: string) => Promise<void>;
   handleStageChange: (stage: WorkflowStage) => void;
   handleMetadataUpdate: (metadata: Partial<ProjectMetadata>) => Promise<void>;
-  handleFieldsUpdate: (updates: Record<string, any>) => Promise<void>;
+  handleFieldsUpdate: (updates: Record<string, unknown>) => Promise<void>;
   handleContentUpdate: (field: string, content: string) => Promise<void>;
-  handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, any>) => void;
+  handleSubcollectionUpdate: (coll: string, id: string, data: Record<string, unknown>) => void;
   handleRegenerate: (stage: WorkflowStage) => Promise<void>;
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
   handleStageRefine: (stage: WorkflowStage, feedback: string, blockId?: string) => Promise<void>;

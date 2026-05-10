@@ -30,7 +30,7 @@ describe('orchestratorService - interpretIntent', () => {
   });
 
   it('correctly resolves explicit target stage based on registry definitions', () => {
-    (stageRegistry.getAll as any).mockReturnValue([
+    (stageRegistry.getAll as unknown as { mockReturnValue: (arr: unknown[]) => void }).mockReturnValue([
       { id: 'Script', name: 'Script' }
     ]);
     const decision = interpretIntent('Rewrite the Script', 'Project Brief');

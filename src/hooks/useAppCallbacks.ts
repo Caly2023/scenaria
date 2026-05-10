@@ -17,7 +17,7 @@ import { ContentPrimitive } from '../types/stageContract';
 interface UseAppCallbacksProps {
   currentProject: Project | null;
   addToast: (msg: string, type: 'error' | 'info' | 'success') => void;
-  handleSubcollectionUpdate: (collName: string, id: string, data: Record<string, any>) => void;
+  handleSubcollectionUpdate: (collName: string, id: string, data: Record<string, unknown>) => void;
   handleContentUpdate: (field: string, content: string) => void;
   handleStageValidate: (stage: WorkflowStage) => Promise<void>;
   stageContents: Record<string, ContentPrimitive[]>;

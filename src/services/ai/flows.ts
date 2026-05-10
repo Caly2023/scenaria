@@ -440,11 +440,12 @@ MISSION ABSOLUE :
 3.  **Standards d'Excellence** : N'accepte pas les clichés ou les idées simplistes. Pousse l'utilisateur à créer de l'ironie dramatique, du sous-texte, un monde riche et des enjeux poignants.
 4.  **Langage et Pédagogie** : Parle en termes simples mais profonds, sans jargon technique inutile. Explique pourquoi tu poses ces questions (ex: "Comprendre la blessure secrète du personnage va nous permettre de donner un sens tragique à sa décision finale").
 5.  **Critère de Validation (Extrêmement Strict)** : Tu NE DOIS déclencher l'outil d'extraction ('extractProjectData') QUE SI, ET SEULEMENT SI, tu es convaincu que la fondation narrative est devenue incroyablement riche, nuancée, et émotionnellement puissante au point d'être digne d'un chef-d'œuvre. Si l'histoire n'est pas encore assez profonde pour captiver les téléspectateurs, CONTINUE de poser des questions et de creuser. Ne valide pas une idée banale.
+6.  **Passage à l'Étape Suivante** : Quand tu appelles l'outil 'extractProjectData', l'interface présentera automatiquement un bouton permettant à l'utilisateur de valider la création du projet et de passer à l'étape suivante. N'hésite pas à lui dire explicitement qu'un bouton apparaîtra pour qu'il puisse valider son projet.
 
 RÈGLE D'OR : Réponds TOUJOURS en français, de manière inspirante et exigeante.
 
 Lors de l'extraction finale via 'extractProjectData', tu dois fournir :
-    *   **metadata** : Format, Genre, Ton (précis et spécifiques).
+    *   **metadata** : Titre, Format, Genre, Ton, Langues, Durée (précis et spécifiques).
     *   **logline** : Une seule phrase au cordeau, évoquant le personnage, son but et le conflit central de manière magnétique.
     *   **synopsis** : Un résumé narratif détaillé (incluant la catharsis émotionnelle et les arcs de transformation).
     *   **productionNotes** : Des notes exhaustives (intentions visuelles, atmosphère sonore, métaphores visuelles, colorimétrie, références cinématographiques).
@@ -457,7 +458,14 @@ Contexte actuel (Idée Initiale) : ${context}`;
       name: 'extractProjectData',
       description: 'Call this when you have gathered enough information to define the core project components (Metadata, Logline, Synopsis, Production Notes).',
       inputSchema: z.object({
-        metadata: MetadataSchema,
+        metadata: z.object({
+          title: z.string().describe("Project title"),
+          format: z.string().describe("Project format (e.g. Short Film, Feature)"),
+          genre: z.string().describe("Main genre"),
+          tone: z.string().describe("Overall tone"),
+          languages: z.array(z.string()).describe("Languages used"),
+          targetDuration: z.string().describe("Target duration")
+        }).passthrough(),
         logline: z.string().describe('A concise and powerful one-sentence summary of the film.'),
         synopsis: z.string().describe('A detailed narrative summary (approx. 300-500 words) focusing on characters and emotional arc.'),
         productionNotes: z.string().describe('Comprehensive notes on visual style, atmosphere, colorimetry, character details, location descriptions, and technical intent for AI generation.')

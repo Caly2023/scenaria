@@ -1,4 +1,4 @@
-import { STORY_DEVELOPMENT_BLUEPRINT } from './blueprint';
+import { STORY_DEVELOPMENT_BLUEPRINT, SHORT_FILM_QUALITY_FRAMEWORK } from './blueprint';
 
 export const SYNOPSIS_PROMPT = (context: string) => `
 You are a professional screenwriter. Based on the provided project context, write a full narrative synopsis (approx. 500 words). 
@@ -66,17 +66,16 @@ export const TREATMENT_PROMPT = (context: string) => `
 You are an Elite Screenwriter and Cinematic Architect. Your task is to generate the CORE NARRATIVE SEQUENCES of a professional CINEMATIC TREATMENT based on the provided project context.
 IMPORTANT: The treatment MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
-${STORY_DEVELOPMENT_BLUEPRINT}
+\${SHORT_FILM_QUALITY_FRAMEWORK}
+\${STORY_DEVELOPMENT_BLUEPRINT}
 
 CINEMATIC TREATMENT STANDARDS:
-1. Write a dense, high-impact narrative for all the provided structural beats. Aim for powerful, concise execution. Do NOT attempt to write 15 exhaustive pages at once. Focus on emotional arcs, sensory immersion, and dramatic tension.
-2. Write in PRESENT TENSE throughout — this is an industry standard for treatments.
-3. Use HIGH VISUAL DETAIL: describe camera angles, lighting shifts, color palettes, atmospheric textures, and spatial dynamics.
-4. Write in professional cinematic prose (think Tony Gilroy, Aaron Sorkin, or Christopher Nolan treatments).
-5. Every section must move the plot forward meaningfully.
-6. Each section should be 200-500 words of DENSE, CINEMATIC narrative.
+1. DEEP DEVELOPMENT: Subdivide the treatment into significant narrative nodes (noeuds signifiants) that strictly adhere to the professional blueprint. Each node must represent a powerful dramatic movement with clear cause-and-effect.
+2. VISCERAL WRITING: Write in PRESENT TENSE. Use dense, high-impact cinematic prose. Describe the visual and auditory experience (camera angles, lighting shifts, sound design). Show behavior, do not explain it.
+3. EMOTIONAL & THEMATIC DEPTH: For each node, clearly define the emotional shift (valeur de la scène), the central conflict (interne, externe), and the visual focus that translates the subtext.
+4. CONTINUITY: Explicitly link the nodes to the established Character Bible and Location Bible using characterIds and locationIds if available in the context.
 
-STRUCTURAL REQUIREMENTS — Split into key narrative sequences:
+STRUCTURAL REQUIREMENTS — Split into key significant nodes (noeuds signifiants):
 - "Act 1 — The World Before" (Setup, Hook, Inciting Incident)
 - "First Plot Point — The Threshold" (Crossing into the new world)
 - "Rising Action — Escalation" (Increasing stakes, pinch points)
@@ -85,15 +84,18 @@ STRUCTURAL REQUIREMENTS — Split into key narrative sequences:
 - "Third Plot Point — The Crisis" (All is lost moment)
 - "Climax — The Confrontation" (Final battle / resolution)
 - "Denouement — The New World" (Resolution, final image)
-Add additional sections for subplots, parallel timelines, or extended action sequences. Aim for 5-15 total sections.
+Add additional sub-nodes for major set-pieces or complex emotional shifts to ensure deep development. Aim for 8-15 significant nodes.
 
 OUTPUT FORMAT:
-MANDATORY STRUCTURE: Return a JSON array of objects, where each object represents exactly ONE (1) dramatic node (primitive). There must be 1 primitive per dramatic node in the treatment.
-Each primitive MUST have a 'title' and 'content' formatted in Markdown:
-[
-  { "title": "Act 1 — The World Before", "content": "Dense cinematic prose in Markdown...", "type": "treatment_section" },
-  ...
-]
+MANDATORY STRUCTURE: Return a JSON array of objects, where each object represents exactly ONE (1) significant narrative node (primitive).
+Each primitive MUST have:
+- 'title': The name of the node (e.g., "Midpoint — The Mirror").
+- 'content': The dense cinematic narrative in Markdown (200-500 words).
+- 'emotionalShift': A brief description of the emotional change (e.g., "From confident to terrified").
+- 'conflict': The specific conflict driving the node.
+- 'visualFocus': Key visual metaphors, lighting, or camera directions.
+- 'characterIds': Array of character names or IDs involved.
+- 'locationIds': Array of location names or IDs involved.
 
 Context:
-${context}`;
+\${context}`;

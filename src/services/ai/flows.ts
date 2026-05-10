@@ -247,6 +247,9 @@ const genericGeminiFlow = ai.defineFlow(
     const sequenceItemSchema = z.object({
       title: z.string(),
       content: z.string(),
+      emotionalShift: z.string().optional(),
+      conflict: z.string().optional(),
+      visualFocus: z.string().optional(),
       characterIds: z.array(z.string()).optional(),
       locationIds: z.array(z.string()).optional(),
       type: z.string().optional(),

@@ -18,7 +18,16 @@ export class TreatmentAgent extends BaseStageAgent {
               (block.title as string) || `Section ${i + 1}`,
               (block.content as string) || '',
               'treatment_section',
-              i + 1
+              i + 1,
+              {
+                metadata: {
+                  emotionalShift: block.emotionalShift,
+                  conflict: block.conflict,
+                  visualFocus: block.visualFocus,
+                  characterIds: block.characterIds,
+                  locationIds: block.locationIds
+                }
+              }
             )
           )
         : [

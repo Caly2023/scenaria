@@ -94,8 +94,8 @@ export class SequencerAgent extends BaseStageAgent {
     }
     try {
       const unifiedCtx = await this.getUnifiedContext(context);
-      const summary = content.map(p => p.title).join('\n');
-      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Sequencer', summary, unifiedCtx));
+      const fullText = content.map(p => `[${p.title}]\n${p.content}`).join('\n\n');
+      const raw = await this.retryWithBackoff(() => geminiService.generateStageInsight('Sequencer', fullText, unifiedCtx));
       const analysis = this.buildAnalysis(
         raw.evaluation || raw.content || '', 
         raw.issues || [], 

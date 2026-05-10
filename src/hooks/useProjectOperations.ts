@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from 'firebase/auth';
 import { collection, doc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { geminiService } from '../services/geminiService';
 import { classifyError } from '../lib/errorClassifier';
 import { 
@@ -60,6 +60,11 @@ export function useProjectOperations({
     setSyncStatus('syncing');
     setIsTyping(true);
     try {
+      // Force-refresh the Firebase ID token to avoid stale token causing permission-denied
+      if (auth.currentUser) {
+        await auth.currentUser.getIdToken(true);
+      }
+
       const newMetadata = {
         title: (extractedData?.metadata?.title as string) || 'Untitled Project',
         format: (extractedData?.metadata?.format as string) || format || 'Auto',

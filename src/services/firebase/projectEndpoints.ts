@@ -14,14 +14,14 @@ import {
 import { db } from "../../lib/firebase";
 import { stageRegistry } from "../../config/stageRegistry";
 import { Project } from "../../types";
-import { classifyError } from "../../lib/errorClassifier";
+import { classifyError, ClassifiedError } from "../../lib/errorClassifier";
 import { serializeData } from "./utils";
 import { baseApi } from "./baseApi";
 
 export const projectApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProjects: builder.query<Project[], string>({
-      async queryFn(userId) {
+      async queryFn(userId): Promise<{ data: Project[] } | { error: ClassifiedError }> {
         if (!userId) return { data: [] };
         try {
           const q = query(
@@ -35,7 +35,7 @@ export const projectApi = baseApi.injectEndpoints({
             .filter(
               (p) => typeof p.metadata?.title === "string" && p.metadata?.title.trim() !== "",
             );
-          return { data: serializeData(projs) };
+          return { data: serializeData<Project[]>(projs) };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -67,7 +67,7 @@ export const projectApi = baseApi.injectEndpoints({
               .filter(
                 (p) => typeof p.metadata?.title === "string" && p.metadata?.title.trim() !== "",
               );
-            updateCachedData(() => serializeData(projs));
+            updateCachedData(() => serializeData<Project[]>(projs));
           });
         } catch {}
         await cacheEntryRemoved;
@@ -76,7 +76,7 @@ export const projectApi = baseApi.injectEndpoints({
     }),
 
     getProjectById: builder.query<Project | null, string>({
-      async queryFn(projectId) {
+      async queryFn(projectId): Promise<{ data: Project | null } | { error: ClassifiedError | { message: string; status: number } }> {
         if (!projectId) return { data: null };
         try {
           const { getDoc } = await import("firebase/firestore");
@@ -86,7 +86,7 @@ export const projectApi = baseApi.injectEndpoints({
             return { error: { message: "Project not found", status: 404 } };
           }
           const data = { id: snapshot.id, ...snapshot.data() } as Project;
-          return { data: serializeData(data) };
+          return { data: serializeData<Project>(data) };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -105,7 +105,7 @@ export const projectApi = baseApi.injectEndpoints({
             (snapshot) => {
               if (snapshot.exists()) {
                 updateCachedData(
-                  () => serializeData(({ id: snapshot.id, ...snapshot.data() }) as Project),
+                  () => serializeData<Project>(({ id: snapshot.id, ...snapshot.data() }) as Project),
                 );
               } else {
                 updateCachedData(() => null);
@@ -143,10 +143,10 @@ export const projectApi = baseApi.injectEndpoints({
             if (draft) {
               if (field.includes(".")) {
                 const parts = field.split(".");
-                let current = draft as Record<string, unknown>;
+                let current = draft as any;
                 for (let i = 0; i < parts.length - 1; i++) {
                   if (!current[parts[i]]) current[parts[i]] = {};
-                  current = current[parts[i]] as Record<string, unknown>;
+                  current = current[parts[i]];
                 }
                 current[parts[parts.length - 1]] = content;
               } else {
@@ -218,10 +218,10 @@ export const projectApi = baseApi.injectEndpoints({
               Object.entries(updates).forEach(([field, content]) => {
                 if (field.includes(".")) {
                   const parts = field.split(".");
-                  let current = draft as Record<string, unknown>;
+                  let current = draft as any;
                   for (let i = 0; i < parts.length - 1; i++) {
                     if (!current[parts[i]]) current[parts[i]] = {};
-                    current = current[parts[i]] as Record<string, unknown>;
+                    current = current[parts[i]];
                   }
                   current[parts[parts.length - 1]] = content;
                 } else {
@@ -279,7 +279,7 @@ export const projectApi = baseApi.injectEndpoints({
       string,
       { projectId?: string; projectData: Partial<Project>; primitives: { subcollection?: string; [key: string]: unknown }[] }
     >({
-      async queryFn({ projectId, projectData, primitives }) {
+      async queryFn({ projectId, projectData, primitives }: { projectId?: string; projectData: Partial<Project>; primitives: any[] }): Promise<{ data: string } | { error: ClassifiedError }> {
         try {
           console.log("[FirebaseService] Initializing project with primitives:", {
             projectId,
@@ -292,7 +292,7 @@ export const projectApi = baseApi.injectEndpoints({
           const batch = writeBatch(db);
 
           batch.set(projectRef, {
-            ...projectData,
+            ...(projectData as any),
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
           });

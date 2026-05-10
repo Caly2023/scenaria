@@ -1,5 +1,5 @@
-import { withRetry } from "@/utils/retryUtils";
-import { classifyError } from "@/lib/errorClassifier";
+import { withRetry } from "../../utils/retryUtils";
+import { classifyError } from "../../lib/errorClassifier";
 
 class FatalError extends Error {
   isFatal = true;

@@ -13,6 +13,32 @@ import {
  * Server-side AI workflows for ScénarIA.
  */
 
+// ── Types & Schemas ──────────────────────────────────────────────────────────
+
+const PartSchema = z.object({
+  text: z.string().optional(),
+  media: z.object({
+    url: z.string(),
+    contentType: z.string().optional(),
+  }).optional(),
+  toolRequest: z.object({
+    name: z.string(),
+    input: z.any().optional(),
+    ref: z.string().optional(),
+  }).optional(),
+  toolResponse: z.object({
+    name: z.string(),
+    output: z.any().optional(),
+    ref: z.string().optional(),
+  }).optional(),
+}).passthrough();
+
+const MessageSchema = z.object({
+  role: z.enum(['system', 'user', 'model', 'tool']),
+  content: z.array(PartSchema),
+});
+
+
 // ── Flows ─────────────────────────────────────────────────────────────────────
 
 // 1. Script Doctor Flow
@@ -20,7 +46,7 @@ const scriptDoctorFlow = ai.defineFlow(
   {
     name: 'scriptDoctorFlow',
     inputSchema: z.object({
-      messages: z.array(z.unknown()),
+      messages: z.array(MessageSchema),
       context: z.string(),
       activeStage: z.string(),
       complexity: z.enum(['simple', 'moderate', 'complex']).optional(),
@@ -176,7 +202,7 @@ const extractCharactersFlow = ai.defineFlow(
 const generateFullScriptFlow = ai.defineFlow(
   {
     name: 'generateFullScriptFlow',
-    inputSchema: z.unknown(),
+    inputSchema: z.any(),
     outputSchema: z.unknown(),
   },
   async (ctx) => {
@@ -206,7 +232,7 @@ const genericGeminiFlow = ai.defineFlow(
     }),
     outputSchema: z.unknown(),
   },
-  async (input, { sendChunk }) => {
+  async (input: any, { sendChunk }) => {
     const { prompt, jsonMode = false, systemPrompt, structuredOutput, model: modelOverride } = input;
 
     const stageInsightSchema = z.object({
@@ -304,7 +330,7 @@ export const flows = {
   discoveryChat:       ai.defineFlow({
     name: 'discoveryChatFlow',
     inputSchema: z.object({
-      messages: z.array(z.unknown()),
+      messages: z.array(MessageSchema),
       context: z.string()
     }),
     outputSchema: z.unknown()

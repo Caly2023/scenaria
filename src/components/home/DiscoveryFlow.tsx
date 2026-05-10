@@ -303,8 +303,8 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
               </div>
 
               <div className={cn(
-                "flex flex-col gap-1 max-w-[85%]",
-                msg.role === 'user' ? "items-end" : "items-start"
+                "flex flex-col gap-1 w-full",
+                msg.role === 'user' ? "items-end max-w-[85%]" : "items-start"
               )}>
                 {msg.role === 'user' ? (
                   <UserMessageContent content={msg.content} isInitial={idx === 0} />
@@ -433,10 +433,10 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-[120] px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 z-[120] px-0 md:px-6 pb-0 pt-10 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/80 to-transparent pointer-events-none">
         <div className="max-w-4xl mx-auto w-full pointer-events-auto">
           <div className={cn(
-            "flex flex-col bg-[#1e1f20] border-none rounded-[28px] md:rounded-[32px] transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.5)]",
+            "flex flex-col bg-[#1e1f20] border-none rounded-t-[24px] md:rounded-[32px] md:rounded-b-[32px] transition-all duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pb-2 md:pb-0",
             !!extractedData || isTyping ? "opacity-50 pointer-events-none" : ""
           )}>
             {/* Row 1: Textarea */}
@@ -449,7 +449,7 @@ export function DiscoveryFlow({ initialIdea, onValidate, onCancel, error, onClea
                 placeholder="Affinez votre idée..."
                 rows={1}
                 disabled={!!extractedData || isTyping}
-                className="w-full bg-transparent border-none outline-none resize-none text-white placeholder:text-gray-500 text-[17px] leading-[1.6] max-h-[200px] no-scrollbar"
+                className="w-full bg-transparent border-none outline-none resize-none text-white placeholder:text-gray-500 text-[16px] leading-[1.6] max-h-[200px] no-scrollbar"
               />
             </div>
 

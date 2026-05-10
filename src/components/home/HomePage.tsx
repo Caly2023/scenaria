@@ -39,6 +39,14 @@ export function HomePage({ onProjectCreate, userDisplayName }: HomePageProps) {
     setCreationStatus('initializing');
     try {
       await onProjectCreate(submittedIdea, selectedFormat === 'Auto' ? undefined : selectedFormat, extractedData);
+      
+      // Clear all discovery cache to ensure no old messages persist for future projects
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('discovery_')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
     } catch (error: unknown) {
       console.error('Creation failed:', error);
       const msg = getErrorMessage(error);

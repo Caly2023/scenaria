@@ -59,10 +59,16 @@ export function ProjectHistorySidebar({
                 onClick={() => {
                   onClose();
                   onNewStory();
+                  // Clear any aborted discovery sessions
+                  Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('discovery_')) {
+                      localStorage.removeItem(key);
+                    }
+                  });
                 }}
-                className="w-full h-12 rounded-2xl bg-white text-black font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all border-none shadow-[0_10px_30px_rgba(255,255,255,0.1)] flex items-center justify-center gap-2 group"
+                className="w-full h-12 rounded-2xl bg-background text-white border border-white/10 font-bold text-sm hover:bg-white/5 hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2 group"
               >
-                <div className="w-5 h-5 rounded-lg bg-black flex items-center justify-center group-hover:rotate-90 transition-transform">
+                <div className="w-5 h-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:rotate-90 transition-transform">
                   <span className="text-white text-lg leading-none">+</span>
                 </div>
                 {t('common.newStory')}
@@ -84,10 +90,10 @@ export function ProjectHistorySidebar({
                       : 'bg-white/[0.03] border-transparent hover:bg-white/5'
                   )}
                 >
-                  <p className="text-sm font-semibold text-white truncate">
+                  <p className="text-base font-semibold text-white truncate">
                     {item.metadata?.title || 'Projet sans titre'}
                   </p>
-                  <p className="text-xs text-white/50 line-clamp-2 mt-1">
+                  <p className="text-sm text-white/50 line-clamp-2 mt-1">
                     {item.metadata?.logline || 'Aucune logline'}
                   </p>
                 </button>

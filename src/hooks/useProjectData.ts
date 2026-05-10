@@ -95,6 +95,13 @@ export function useProjectData(user: User | null): ProjectDataState {
   const handleProjectExit = () => {
     setCurrentProjectId(null);
     window.location.hash = '';
+    
+    // Clear any aborted discovery sessions to prevent them from showing up for new projects
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('discovery_')) {
+        localStorage.removeItem(key);
+      }
+    });
   };
 
   const handleProjectSelect = (id: string, projectObj?: Project) => {
@@ -114,7 +121,10 @@ export function useProjectData(user: User | null): ProjectDataState {
     }
   };
 
-  const returnedProject = currentProject || (optimisticProject?.id === currentProjectId ? optimisticProject : null);
+  const activeProjectData = currentProject?.id === currentProjectId ? currentProject : null;
+  const returnedProject = currentProjectId 
+    ? (activeProjectData || (optimisticProject?.id === currentProjectId ? optimisticProject : null)) 
+    : null;
   
   // CRITICAL FIX: Only show loading if we don't have ANY project data (neither cached nor optimistic)
   const loading = isProjectLoading && !!currentProjectId && !returnedProject;

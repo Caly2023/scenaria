@@ -72,7 +72,7 @@ export const syncMetadata: ToolHandler = async (args, context) => {
 export const updateStageInsight: ToolHandler = async (args, context) => {
   const { currentProject } = context;
   const stage = getArgString(args, "stage") ?? "";
-  const insight = getArgRecord(args, "insight") as Record<string, any> ?? {};
+  const insight = getArgRecord(args, "insight") ?? {};
   
   if (!stage) return { success: false, error: "Missing stage argument" };
 
@@ -104,8 +104,8 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
     
     // 2. Update Stage State (Atomic)
     let newState: string = "needs_improvement";
-    const issues = insight.issues || [];
-    const recs = insight.recommendations || [];
+    const issues = Array.isArray(insight.issues) ? insight.issues : [];
+    const recs = Array.isArray(insight.recommendations) ? insight.recommendations : [];
     
     if (insight.isReady) {
       if (issues.length === 0 && recs.length === 0) {
@@ -113,7 +113,7 @@ export const updateStageInsight: ToolHandler = async (args, context) => {
       } else {
         newState = "good";
       }
-    } else if (insight.state) {
+    } else if (typeof insight.state === "string") {
       newState = insight.state;
     }
     

@@ -190,11 +190,11 @@ export function ScriptDoctorContent() {
             msg={msg}
             isApplied={appliedSuggestions.has(msg.id)}
             isApplyingThis={isApplying === msg.id}
-            isPendingForThis={(pendingToolCall as Record<string, unknown>)?.botMsgId === msg.id}
-            pendingToolCall={pendingToolCall as Record<string, unknown>}
+            isPendingForThis={pendingToolCall?.botMsgId === msg.id}
+            pendingToolCall={pendingToolCall}
             isSpeaking={isSpeaking}
-            onConfirmTool={onConfirmTool!}
-            onCancelTool={onCancelTool!}
+            onConfirmTool={onConfirmTool}
+            onCancelTool={onCancelTool}
             handleApply={handleApply}
             handleTts={handleTts}
             onSendMessage={onSendMessage}

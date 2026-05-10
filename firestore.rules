@@ -278,6 +278,16 @@ service cloud.firestore {
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectMember(projectId);
       }
+
+      // ── Catch-all: any new subcollection not yet explicitly named ────────────
+      // This prevents silent permission-denied failures when new stage
+      // collections are added without updating the rules file.
+      match /{subcollection}/{primitiveId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if canCreatePrimitive(projectId, request.resource.data);
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectMember(projectId);
+      }
     }
 
     match /users/{userId} {

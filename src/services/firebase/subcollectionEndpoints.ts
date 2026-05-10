@@ -16,13 +16,18 @@ import { classifyError } from "../../lib/errorClassifier";
 import { serializeData } from "./utils";
 import { baseApi } from "./baseApi";
 
+/** Typed shape of every subcollection document returned from Firestore. */
+export interface SubcollectionItem extends Record<string, unknown> {
+  id: string;
+}
+
 export const subcollectionApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSubcollection: builder.query<
-      any[],
+      SubcollectionItem[],
       { projectId: string; collectionName: string; orderByField?: string }
     >({
-      async queryFn({ projectId, collectionName, orderByField }): Promise<{ data: any[] } | { error: any }> {
+      async queryFn({ projectId, collectionName, orderByField }): Promise<{ data: SubcollectionItem[] } | { error: ReturnType<typeof classifyError> }> {
         if (!projectId) return { data: [] };
         try {
           let q = query(collection(db, "projects", projectId, collectionName));
@@ -30,8 +35,8 @@ export const subcollectionApi = baseApi.injectEndpoints({
             q = query(q, orderBy(orderByField));
           }
           const snapshot = await getDocs(q);
-          const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          return { data: serializeData<any[]>(data) };
+          const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+          return { data: serializeData<SubcollectionItem[]>(data) };
         } catch (error: unknown) {
           return { error: classifyError(error) };
         }
@@ -50,10 +55,10 @@ export const subcollectionApi = baseApi.injectEndpoints({
           }
           unsubscribe = onSnapshot(q, (snapshot) => {
             updateCachedData(() =>
-              serializeData<any[]>(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))),
+              serializeData<SubcollectionItem[]>(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))),
             );
           });
-        } catch {}
+        } catch { /* ignore subscribe errors */ }
         await cacheEntryRemoved;
         unsubscribe();
       },
@@ -76,10 +81,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
         try {
           await updateDoc(
             doc(db, "projects", projectId, collectionName, docId),
-            {
-              ...data,
-              updatedAt: serverTimestamp(),
-            },
+            { ...data, updatedAt: serverTimestamp() },
           );
           return { data: undefined };
         } catch (error: unknown) {
@@ -90,22 +92,30 @@ export const subcollectionApi = baseApi.injectEndpoints({
         { projectId, collectionName, docId, data, orderByField },
         { dispatch, queryFulfilled },
       ) {
-        const patchResult = dispatch(
-          subcollectionApi.util.updateQueryData(
+        // Patch ALL cache variants for this collection (with or without orderByField)
+        const patches = [
+          dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
-            (draft: any[]) => {
-              const index = draft.findIndex((item: any) => item.id === docId);
-              if (index !== -1) {
-                draft[index] = { ...draft[index], ...data };
-              }
+            (draft: SubcollectionItem[]) => {
+              const index = draft.findIndex((item) => item.id === docId);
+              if (index !== -1) draft[index] = { ...draft[index], ...data };
             },
-          ),
-        );
+          )),
+          // Also patch the version without orderByField if it differs
+          ...(orderByField ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName },
+            (draft: SubcollectionItem[]) => {
+              const index = draft.findIndex((item) => item.id === docId);
+              if (index !== -1) draft[index] = { ...draft[index], ...data };
+            },
+          ))] : []),
+        ];
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
     }),
@@ -118,11 +128,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
         try {
           const docRef = await addDoc(
             collection(db, "projects", projectId, collectionName),
-            {
-              ...data,
-              projectId,
-              createdAt: serverTimestamp(),
-            },
+            { ...data, projectId, createdAt: serverTimestamp() },
           );
           return { data: docRef.id };
         } catch (error: unknown) {
@@ -134,19 +140,19 @@ export const subcollectionApi = baseApi.injectEndpoints({
         { dispatch, queryFulfilled },
       ) {
         const tempId = `temp-${Math.random().toString(36).substring(7)}`;
+        const optimisticItem: SubcollectionItem = { id: tempId, ...data, isOptimistic: true, createdAt: Date.now() };
         const patchResult = dispatch(
           subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
-            (draft: any[]) => {
-              draft.push({ 
-                id: tempId, 
-                ...data, 
-                isOptimistic: true,
-                createdAt: Date.now() 
-              });
+            (draft: SubcollectionItem[]) => {
+              draft.push(optimisticItem);
               if (orderByField) {
-                draft.sort((a: any, b: any) => ((a[orderByField] as string | number) > (b[orderByField] as string | number) ? 1 : -1));
+                draft.sort((a, b) => {
+                  const aVal = a[orderByField];
+                  const bVal = b[orderByField];
+                  return (aVal as string | number) > (bVal as string | number) ? 1 : -1;
+                });
               }
             },
           ),
@@ -157,11 +163,10 @@ export const subcollectionApi = baseApi.injectEndpoints({
             subcollectionApi.util.updateQueryData(
               "getSubcollection",
               { projectId, collectionName, orderByField },
-              (draft: any[]) => {
-                const index = draft.findIndex((item: any) => item.id === tempId);
+              (draft: SubcollectionItem[]) => {
+                const index = draft.findIndex((item) => item.id === tempId);
                 if (index !== -1) {
-                  draft[index].id = realId;
-                  delete draft[index].isOptimistic;
+                  draft[index] = { ...draft[index], id: realId, isOptimistic: undefined };
                 }
               },
             ),
@@ -186,9 +191,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
           return { error: { message: "Missing required fields", status: 400 } };
         }
         try {
-          await deleteDoc(
-            doc(db, "projects", projectId, collectionName, docId),
-          );
+          await deleteDoc(doc(db, "projects", projectId, collectionName, docId));
           return { data: undefined };
         } catch (error: unknown) {
           return { error: classifyError(error) };
@@ -198,22 +201,43 @@ export const subcollectionApi = baseApi.injectEndpoints({
         { projectId, collectionName, docId, orderByField },
         { dispatch, queryFulfilled },
       ) {
-        const patchResult = dispatch(
-          subcollectionApi.util.updateQueryData(
+        /**
+         * BUGFIX: The cache can be keyed with or without `orderByField`.
+         * We must patch ALL variants so the item disappears from the UI
+         * regardless of which query key the component subscribed to.
+         * If we only patch one variant, the Firestore snapshot listener on
+         * the *other* variant will re-add the item — making the delete look
+         * like it failed and prompting the AI to ask for permission again.
+         */
+        const removeFromDraft = (draft: SubcollectionItem[]) => {
+          const index = draft.findIndex((item) => item.id === docId);
+          if (index !== -1) draft.splice(index, 1);
+        };
+
+        const patches = [
+          dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
-            (draft: any[]) => {
-              const index = draft.findIndex((item: any) => item.id === docId);
-              if (index !== -1) {
-                draft.splice(index, 1);
-              }
-            },
-          ),
-        );
+            removeFromDraft,
+          )),
+          // Patch the variant WITHOUT orderByField too (common read path)
+          ...(orderByField ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName },
+            removeFromDraft,
+          ))] : []),
+          // Patch the variant WITH the common "order" sort key
+          ...(orderByField !== "order" ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName, orderByField: "order" },
+            removeFromDraft,
+          ))] : []),
+        ];
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          // Firestore rejected — restore all patches
+          patches.forEach((p) => p.undo());
         }
       },
     }),
@@ -227,15 +251,11 @@ export const subcollectionApi = baseApi.injectEndpoints({
           return { error: { message: "Missing projectId or collectionName", status: 400 } };
         }
         try {
-          const snap = await getDocs(
-            collection(db, "projects", projectId, collectionName),
-          );
+          const snap = await getDocs(collection(db, "projects", projectId, collectionName));
           if (snap.empty) return { data: undefined };
-          
           const batch = writeBatch(db);
           snap.docs.forEach((d) => batch.delete(d.ref));
           await batch.commit();
-          
           return { data: undefined };
         } catch (error: unknown) {
           return { error: classifyError(error) };
@@ -261,10 +281,7 @@ export const subcollectionApi = baseApi.injectEndpoints({
           const { setDoc } = await import("firebase/firestore");
           await setDoc(
             doc(db, "projects", projectId, collectionName, docId),
-            {
-              ...data,
-              updatedAt: serverTimestamp(),
-            },
+            { ...data, updatedAt: serverTimestamp() },
           );
           return { data: undefined };
         } catch (error: unknown) {
@@ -275,27 +292,37 @@ export const subcollectionApi = baseApi.injectEndpoints({
         { projectId, collectionName, docId, data, orderByField },
         { dispatch, queryFulfilled },
       ) {
-        const patchResult = dispatch(
-          subcollectionApi.util.updateQueryData(
+        const upsertInDraft = (draft: SubcollectionItem[]) => {
+          const index = draft.findIndex((item) => item.id === docId);
+          if (index !== -1) {
+            draft[index] = { ...draft[index], ...data };
+          } else {
+            draft.push({ id: docId, ...data });
+            if (orderByField) {
+              draft.sort((a, b) => {
+                const aVal = a[orderByField];
+                const bVal = b[orderByField];
+                return (aVal as string | number) > (bVal as string | number) ? 1 : -1;
+              });
+            }
+          }
+        };
+        const patches = [
+          dispatch(subcollectionApi.util.updateQueryData(
             "getSubcollection",
             { projectId, collectionName, orderByField },
-            (draft: any[]) => {
-              const index = draft.findIndex((item: any) => item.id === docId);
-              if (index !== -1) {
-                draft[index] = { ...draft[index], ...data };
-              } else {
-                draft.push({ id: docId, ...data });
-                if (orderByField) {
-                  draft.sort((a: any, b: any) => ((a[orderByField] as string | number) > (b[orderByField] as string | number) ? 1 : -1));
-                }
-              }
-            },
-          ),
-        );
+            upsertInDraft,
+          )),
+          ...(orderByField ? [dispatch(subcollectionApi.util.updateQueryData(
+            "getSubcollection",
+            { projectId, collectionName },
+            upsertInDraft,
+          ))] : []),
+        ];
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
     }),

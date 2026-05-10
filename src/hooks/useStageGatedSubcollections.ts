@@ -31,13 +31,13 @@ export function useStageGatedSubcollections({ projectId, activeStageOrder }: Gat
     continuityResult.isLoading || scriptResult.isLoading || breakdownResult.isLoading;
 
   const data = useMemo<RawCollections>(() => ({
-    [stageRegistry.getCollectionName('Project Brief')]:       briefResult.data || [],
-    [stageRegistry.getCollectionName('Story Bible')]:         bibleResult.data || [],
-    [stageRegistry.getCollectionName('Treatment')]:           treatmentResult.data || [],
-    [stageRegistry.getCollectionName('Sequencer')]:           sequencerResult.data || [],
-    [stageRegistry.getCollectionName('Dialogue Continuity')]: continuityResult.data || [],
-    [stageRegistry.getCollectionName('Final Screenplay')]:    scriptResult.data || [],
-    [stageRegistry.getCollectionName('Technical Breakdown')]: breakdownResult.data || [],
+    [stageRegistry.getCollectionName('Project Brief')]:       (briefResult.data || []) as unknown as RawCollections[string],
+    [stageRegistry.getCollectionName('Story Bible')]:         (bibleResult.data || []) as unknown as RawCollections[string],
+    [stageRegistry.getCollectionName('Treatment')]:           (treatmentResult.data || []) as unknown as RawCollections[string],
+    [stageRegistry.getCollectionName('Sequencer')]:           (sequencerResult.data || []) as unknown as RawCollections[string],
+    [stageRegistry.getCollectionName('Dialogue Continuity')]: (continuityResult.data || []) as unknown as RawCollections[string],
+    [stageRegistry.getCollectionName('Final Screenplay')]:    (scriptResult.data || []) as unknown as RawCollections[string],
+    [stageRegistry.getCollectionName('Technical Breakdown')]: (breakdownResult.data || []) as unknown as RawCollections[string],
   }), [
     briefResult.data, bibleResult.data,
     treatmentResult.data, sequencerResult.data, continuityResult.data,

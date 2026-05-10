@@ -9,6 +9,7 @@ import {
   ProjectFormat,
   ExtractedData
 } from '../types';
+import { ToolCall } from '../types/scriptDoctor';
 import { useProjects } from '../hooks/useProjects';
 import { useAutoHydration } from '../hooks/useAutoHydration';
 import { useAppCallbacks } from '../hooks/useAppCallbacks';
@@ -73,7 +74,7 @@ interface ProjectContextType {
   activeTool: string | null;
   aiStatus: string | null;
   handleDoctorMessage: (content: string) => Promise<void>;
-  pendingToolCall: unknown;
+  pendingToolCall: { call: ToolCall; botMsgId: string } | null;
   handleConfirmTool: () => Promise<void>;
   handleCancelTool: () => void;
   handleToggleDoctor: () => void;

@@ -48,7 +48,7 @@ export async function buildPromptPayload(
 
   // Get Story Bible primitives (which now contains both characters and locations)
   const bibleResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: "bible_primitives" }));
-  const biblePrimitives = (bibleResult.data || []) as ContentPrimitive[];
+  const biblePrimitives = (bibleResult.data || []) as unknown as ContentPrimitive[];
   
   const allCharacters = biblePrimitives.filter(p => p.primitiveType === 'character');
   const allLocations = biblePrimitives.filter(p => p.primitiveType === 'location');
@@ -96,7 +96,7 @@ export async function buildPromptPayload(
   if (activePrimitiveId && (currentStage === "Sequencer" || currentStage === "Dialogue Continuity" || currentStage === "Treatment" || currentStage === "Final Screenplay")) {
     const collName = stageRegistry.getCollectionName(currentStage);
     const seqsResult = await store.dispatch(firebaseService.endpoints.getSubcollection.initiate({ projectId, collectionName: collName, orderByField: "order" }));
-    const allSeqs = (seqsResult.data || []) as Sequence[];
+    const allSeqs = (seqsResult.data || []) as unknown as Sequence[];
     const currentSeqIndex = allSeqs.findIndex(s => s.id === activePrimitiveId);
     
     if (currentSeqIndex !== -1) {

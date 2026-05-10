@@ -4,7 +4,7 @@ import { ScriptDoctorMessage, ToolResult } from "../../types/scriptDoctor";
 import { ContentPrimitive } from "../../types/stageContract";
 import { Project } from "../../types";
 
-interface ScriptDoctorToolContext {
+export interface ScriptDoctorToolContext {
   currentProject: Project;
   stageContents: Record<string, ContentPrimitive[]>;
   characters: ContentPrimitive[];
@@ -22,4 +22,8 @@ interface ScriptDoctorToolContext {
   triggerStageGeneration?: (stage: WorkflowStage) => Promise<void>;
 }
 
-export type ToolHandler = (args: Record<string, any>, context: ScriptDoctorToolContext) => Promise<ToolResult>;
+/** All tool handlers receive strongly-typed args — no `any` allowed. */
+export type ToolHandler = (
+  args: Record<string, unknown>,
+  context: ScriptDoctorToolContext
+) => Promise<ToolResult>;

@@ -300,12 +300,12 @@ const genericGeminiFlow = ai.defineFlow(
       discoveryExtraction: discoveryExtractionSchema,
     };
 
-    const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput] : undefined;
+    const structuredSchema = structuredOutput ? structuredSchemaMap[structuredOutput as string] : undefined;
 
     const response = await ai.generate({
-      model: modelOverride || gemini31FlashLite,
-      prompt,
-      system: systemPrompt,
+      model: (modelOverride as any) || gemini31FlashLite,
+      prompt: prompt as string,
+      system: systemPrompt as string | undefined,
       output: structuredSchema
         ? { schema: structuredSchema }
         : jsonMode ? { format: 'json' } : undefined,
@@ -313,7 +313,7 @@ const genericGeminiFlow = ai.defineFlow(
         retry({ maxRetries: 2 }), 
         fallback(ai, { models: [gemini3Flash, gemini31FlashLite, gemini25Flash, gemini25FlashLite] })
       ],
-      onChunk: (chunk) => { if (sendChunk && chunk.text && !jsonMode) sendChunk(chunk.text); },
+      onChunk: (chunk: { text?: string }) => { if (sendChunk && chunk.text && !jsonMode) sendChunk(chunk.text); },
     });
 
     return jsonMode || structuredSchema ? response.output : response.text;

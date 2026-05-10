@@ -8,18 +8,13 @@ interface SidebarProps {
   variant?: 'sidebar' | 'bottom-nav';
 }
 
-const stages = stageRegistry.getAll().map(s => ({
-  id: s.id,
-  step: s.order + 1,
-  icon: s.icon,
-  estTime: s.estTime
-}));
+const stages = stageRegistry.getAll();
 
 export function Sidebar({ variant = 'sidebar' }: SidebarProps) {
   const { activeStage, handleStageChange, currentProject } = useProject();
   const validatedStages = currentProject?.validatedStages || [];
   
-  const isStageUnlocked = (index: number) => {
+    const isStageUnlocked = (index: number) => {
     if (index === 0) return true;
     const previousStageId = stages[index - 1].id;
     

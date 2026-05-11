@@ -35,11 +35,12 @@ class ScriptDoctorAgent {
     const payload = await contextAssembler.buildPromptPayload(projectId, activeStage);
     const context = contextAssembler.formatPrompt(payload, "");
 
-    const MAX_ITERATIONS = 10;
+    const MAX_ITERATIONS = 4;
     let conversationHistory = [...history];
     let finalResponse = "";
     let lastParts: GeminiPart[] = [];
     let iterationsReached = false;
+    const executedTools = new Set<string>();
 
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
       if (!conversationHistory || conversationHistory.length === 0) {
@@ -104,12 +105,35 @@ class ScriptDoctorAgent {
               ref: toolRequest?.ref,
             };
 
+        const mutationTools = ["add_primitives", "update_primitives", "delete_primitives", "execute_multi_stage_fix", "restructure_stage"];
+        
+        // Loop protection: Prevent calling the same mutation tool twice in the same turn
+        if (mutationTools.includes(call.name) && executedTools.has(call.name)) {
+          toolResponseParts.push(buildFunctionResponsePart(call.name, { 
+            success: false, 
+            error: "SYSTEM: Loop detected. You already called this tool. DO NOT call any more tools. Provide your final confirmation text." 
+          }, call.ref));
+          continue;
+        }
+
         const { result: toolResult, paused } = await callbacks.onToolCall(call);
+        executedTools.add(call.name);
+
         if (paused) {
           pausedAtAny = true;
           break;
         }
-        toolResponseParts.push(buildFunctionResponsePart(call.name, toolResult, call.ref));
+
+        // Inject explicit STOP signal for successful mutations
+        let finalToolResult = toolResult;
+        if (mutationTools.includes(call.name) && (toolResult as any)?.success !== false) {
+           finalToolResult = {
+               ...(typeof toolResult === "object" && toolResult !== null ? toolResult : { result: toolResult }),
+               _SYSTEM_DIRECTIVE_: "ACTION SUCCESSFUL. DO NOT CALL ANY MORE TOOLS. Provide your final markdown response to the user and stop."
+           };
+        }
+
+        toolResponseParts.push(buildFunctionResponsePart(call.name, finalToolResult, call.ref));
       }
 
       if (pausedAtAny) {

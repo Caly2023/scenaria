@@ -172,6 +172,7 @@ export function StepLayout({
         animate={{ opacity: 1, y: 0 }}
         className={cn(
           "transition-all duration-500 shadow-[0_-20px_50px_rgba(0,0,0,0.4)] z-40",
+          "max-md:hidden", // Add this line
           // Mobile & Desktop: Relative by default, sticky on desktop if needed
           "relative w-full rounded-[24px] px-5 py-4 border bg-surface",
           // Desktop: Conditional sticky behavior

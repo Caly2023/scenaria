@@ -22,6 +22,7 @@ interface ScriptDoctorMessageItemProps {
   isApplied: boolean;
   isApplyingThis: boolean;
   isPendingForThis: boolean;
+  isTypingThis?: boolean;
   pendingToolCall: { call: ToolCall; botMsgId: string } | null;
   isSpeaking: string | null;
   onConfirmTool: () => void;
@@ -37,6 +38,7 @@ export function ScriptDoctorMessageItem({
   isApplied,
   isApplyingThis,
   isPendingForThis,
+  isTypingThis,
   pendingToolCall,
   isSpeaking,
   onConfirmTool,
@@ -63,7 +65,7 @@ export function ScriptDoctorMessageItem({
           ? "p-3.5 px-4 rounded-2xl rounded-tr-sm bg-gradient-to-br from-white to-[#f0f0f0] text-black font-medium shadow-[0_4px_15px_rgba(255,255,255,0.05)] w-fit max-w-[85%]" 
           : "text-white/90 w-fit max-w-full"
       )}>
-        {msg.role === 'assistant' && (msg.reasoning || msg.thinking) && (
+        {msg.role === 'assistant' && !isTypingThis && (msg.reasoning || msg.thinking) && (
           <details className="mb-5 group/thinking bg-white/5 rounded-xl border border-white/10 overflow-hidden">
             <summary className="flex items-center gap-2 p-3 text-[10px] font-bold uppercase tracking-widest text-white/50 cursor-pointer hover:bg-white/5 transition-all list-none select-none">
               <div className="w-5 h-5 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center">

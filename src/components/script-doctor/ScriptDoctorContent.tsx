@@ -187,13 +187,14 @@ export function ScriptDoctorContent() {
           </div>
         )}
 
-        {(messages as ScriptDoctorMessage[]).map((msg) => (
+        {(messages as ScriptDoctorMessage[]).map((msg, idx) => (
           <ScriptDoctorMessageItem
             key={msg.id}
             msg={msg}
             isApplied={appliedSuggestions.has(msg.id)}
             isApplyingThis={isApplying === msg.id}
             isPendingForThis={pendingToolCall?.botMsgId === msg.id}
+            isTypingThis={isTyping && idx === messages.length - 1}
             pendingToolCall={pendingToolCall}
             isSpeaking={isSpeaking}
             onConfirmTool={onConfirmTool}
@@ -212,6 +213,7 @@ export function ScriptDoctorContent() {
             aiStatus={aiStatus}
             activeTool={activeTool}
             telemetryStatus={telemetryStatus}
+            reasoning={(messages[messages.length - 1] as ScriptDoctorMessage)?.reasoning || (messages[messages.length - 1] as ScriptDoctorMessage)?.thinking}
           />
         )}
 

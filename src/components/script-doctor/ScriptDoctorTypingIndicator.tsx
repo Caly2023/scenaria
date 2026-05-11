@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, RefreshCw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { TelemetryStatus } from '@/services/telemetryService';
 
@@ -10,13 +11,15 @@ interface ScriptDoctorTypingIndicatorProps {
   aiStatus: string | null;
   activeTool: string | null;
   telemetryStatus: TelemetryStatus | null;
+  reasoning?: string;
 }
 
 export function ScriptDoctorTypingIndicator({
   isHeavyThinking,
   aiStatus,
   activeTool,
-  telemetryStatus
+  telemetryStatus,
+  reasoning
 }: ScriptDoctorTypingIndicatorProps) {
   const { t } = useTranslation();
 
@@ -26,20 +29,26 @@ export function ScriptDoctorTypingIndicator({
         {/* Animated Background Pulse */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 animate-pulse" />
         
-        {/* Live Status Indicator */}
-        <div className="flex items-center gap-4 text-white relative z-10">
-          <div className="relative w-10 h-10 flex items-center justify-center">
+        {/* Live Status Indicator / Chain of Thought */}
+        <div className="flex items-start gap-4 text-white relative z-10">
+          <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
             <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping opacity-20" />
             <div className="absolute inset-0 border-2 border-white/20 rounded-full animate-spin [animation-duration:3s]" />
             <Sparkles className="w-5 h-5 text-blue-400 animate-pulse" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80">
-              {activeTool ? "Executing Tool" : "Thinking"}
+          <div className="flex flex-col flex-1 min-w-0">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400/80 mb-1">
+              {activeTool ? "Executing Tool" : "Thinking Process"}
             </span>
-            <span className="text-sm font-bold text-white/90 truncate max-w-[150px]">
-              {aiStatus || (isHeavyThinking ? "Deep structural analysis..." : t('common.thinking'))}
-            </span>
+            {reasoning ? (
+              <div className="text-xs text-white/70 italic leading-relaxed font-mono max-h-[150px] overflow-y-auto pr-2 custom-scrollbar break-words whitespace-pre-wrap">
+                <ReactMarkdown>{reasoning}</ReactMarkdown>
+              </div>
+            ) : (
+              <span className="text-sm font-bold text-white/90 truncate max-w-full">
+                {aiStatus || (isHeavyThinking ? "Deep structural analysis..." : t('common.thinking'))}
+              </span>
+            )}
           </div>
         </div>
         

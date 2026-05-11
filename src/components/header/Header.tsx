@@ -6,16 +6,21 @@ import {
   Accessibility,
   Search,
   Users,
-  Sparkles
+  Sparkles,
+  Check,
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
-import { AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useProject } from '@/contexts/ProjectContext';
+import { triggerHaptic } from '@/lib/haptics';
 
 // Sub-components
 import { AccessibilityMenu } from './AccessibilityMenu';
 import { ProjectHistorySidebar } from './ProjectHistorySidebar';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 interface HeaderProps {
   isCompact?: boolean;
@@ -59,6 +64,38 @@ export function Header({
   const { t } = useTranslation();
   
   const [isAccessOpen, setIsAccessOpen] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const {
+    activeStage,
+    handleStageValidate,
+    handleStageAnalyze,
+    isTyping,
+    hydrationState
+  } = project;
+
+  const insight = currentProject?.stageAnalyses?.[activeStage];
+  const isReady = insight
+    ? ('isReady' in insight ? (insight as any).isReady : (('issues' in insight && (insight as any).issues) ? (insight as any).issues.length === 0 : false))
+    : false;
+
+  const isGenerating = isTyping || (hydrationState.isHydrating && hydrationState.hydratingStage === activeStage);
+
+  const handleVerifier = async () => {
+    setIsValidating(true);
+    triggerHaptic('light');
+    try {
+      await handleStageAnalyze(activeStage);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleNext = () => {
+    triggerHaptic('medium');
+    setShowConfirmModal(true);
+  };
 
   const toggleAccess = useCallback((key: keyof typeof accessibilitySettings) => {
     onAccessibilityChange({
@@ -106,7 +143,7 @@ export function Header({
                 <div className="flex items-center gap-4 min-w-0">
                   <button onClick={onTitleClick} className="flex items-center gap-2 hover:opacity-80 transition-opacity border-none bg-transparent p-0 text-left group/title">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-sm font-bold tracking-tight text-white truncate max-w-[200px]">{projectName}</span>
+                      <span className="text-sm font-bold tracking-tight text-white truncate max-w-[120px] md:max-w-[200px]">{projectName}</span>
                       <ChevronRight className={cn("w-3.5 h-3.5 text-white/30 flex-shrink-0 transition-transform duration-300", isTitleOpen && "rotate-90 text-white")} />
                     </div>
                   </button>
@@ -133,8 +170,39 @@ export function Header({
               </div>
             )}
 
+            {/* Mobile Actions */}
+            {currentProject && (
+              <div className="flex md:hidden items-center gap-2">
+                <button
+                  onClick={handleVerifier}
+                  disabled={isValidating || isGenerating}
+                  className={cn(
+                    "w-9 h-9 rounded-full flex items-center justify-center border transition-all active:scale-95 disabled:opacity-50",
+                    isReady 
+                      ? "bg-green-500/10 text-green-400 border-green-500/20" 
+                      : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  )}
+                >
+                  {isValidating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isReady ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4" />
+                  )}
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={isGenerating}
+                  className="px-4 py-1.5 rounded-full bg-white text-black text-sm font-bold active:scale-95 disabled:opacity-50"
+                >
+                  {t('common.next', { defaultValue: 'Next' })}
+                </button>
+              </div>
+            )}
+
             <button 
-              className="w-10 h-10 rounded-full hover:bg-white/5 flex items-center justify-center transition-all border-none text-white/70"
+              className="hidden md:flex w-10 h-10 rounded-full hover:bg-white/5 items-center justify-center transition-all border-none text-white/70"
             >
               <div className="grid grid-cols-2 gap-0.5 opacity-60">
                 <div className="w-1.5 h-1.5 rounded-[1px] border border-current" />
@@ -146,7 +214,7 @@ export function Header({
 
             <button 
               onClick={onSettingsClick}
-              className="w-8 h-8 rounded-full border-none flex items-center justify-center hover:opacity-90 transition-all overflow-hidden"
+              className="hidden md:flex w-8 h-8 rounded-full border-none items-center justify-center hover:opacity-90 transition-all overflow-hidden"
             >
               {user?.photoURL ? (
                 <img src={user.photoURL} alt={user.displayName || 'Profile'} className="w-full h-full object-cover" />
@@ -161,6 +229,27 @@ export function Header({
           </div>
         </div>
       </header>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={() => {
+          handleStageValidate(activeStage);
+          setShowConfirmModal(false);
+        }}
+        title={isReady ? t('common.continuePrompt', { defaultValue: 'Continuer ?' }) : t('common.nextStepPrompt', { defaultValue: 'Passer à l\'étape suivante ?' })}
+        description={
+          <>
+            {!isReady && <span className="text-amber-500/80 block mb-2">{t('common.notValidatedYet', { defaultValue: "Note : Cette étape n'a pas encore été validée." })}</span>}
+            {t('common.lockStageDescription', { 
+              defaultValue: "Cette action verrouille l'étape {{stage}} et génère la prochaine.",
+              stage: t(`stages.${activeStage}.label`, { defaultValue: activeStage })
+            })}
+          </>
+        }
+        confirmLabel={isReady ? t('common.continue', { defaultValue: 'Continuer' }) : t('common.continueAnyway', { defaultValue: 'Continuer quand même' })}
+      />
     </>
   );
 }

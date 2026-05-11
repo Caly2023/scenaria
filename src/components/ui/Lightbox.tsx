@@ -16,11 +16,18 @@ export function Lightbox({ image, onClose, alt }: LightboxProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-12"
+          className="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center"
+          style={{
+            padding: 'max(2rem, env(safe-area-inset-top)) max(2rem, env(safe-area-inset-right)) max(2rem, env(safe-area-inset-bottom)) max(2rem, env(safe-area-inset-left))'
+          }}
           onClick={onClose}
         >
           <button 
-            className="absolute top-12 right-12 p-4 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all"
+            className="absolute p-4 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all border-none"
+            style={{
+              top: 'max(1rem, env(safe-area-inset-top))',
+              right: 'max(1rem, env(safe-area-inset-right))'
+            }}
             onClick={(e) => {
               e.stopPropagation();
               onClose();

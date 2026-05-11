@@ -52,10 +52,15 @@ export function MobileUnifiedNavigation({
   const ActiveIcon = activeStageDef?.icon || LayoutGrid;
 
   return (
-    <div className={cn(
-      "fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]",
-      isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-24 opacity-0 scale-90 pointer-events-none"
-    )}>
+    <div 
+      className={cn(
+        "fixed left-1/2 -translate-x-1/2 z-[100] transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]",
+        isVisible ? "opacity-100 scale-100" : "translate-y-24 opacity-0 scale-90 pointer-events-none"
+      )}
+      style={{ 
+        bottom: isVisible ? 'calc(2rem + env(safe-area-inset-bottom, 0px))' : '-6rem'
+      }}
+    >
       {/* Stages Menu Popover */}
       <AnimatePresence>
         {isMenuOpen && (

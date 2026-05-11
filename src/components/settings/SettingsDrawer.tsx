@@ -233,7 +233,10 @@ export function SettingsDrawer({
               </AnimatePresence>
 
               {isMobile && (
-                <section className="pb-2">
+                <section 
+                  className="pb-2"
+                  style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+                >
                   <button
                     onClick={() => {
                       triggerHaptic('light');

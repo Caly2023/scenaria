@@ -175,7 +175,7 @@ export function ProjectDrawer({ isOpen, onClose, onDelete }: ProjectDrawerProps)
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className={cn('fixed z-[5010] bg-background shadow-2xl flex flex-col border-white/10', isMobile ? 'top-0 right-0 bottom-0 w-screen max-w-none border-l' : 'top-0 right-0 bottom-0 w-[34%] min-w-[360px] max-w-[520px] border-l')}
           >
-            <div className={cn('h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0', isMobile && 'h-20')} style={isMobile ? { paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' } : undefined}>
+            <div className={cn('h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0', isMobile && 'h-20')} style={{ paddingTop: 'var(--header-top-padding)' }}>
               <div className="flex items-center gap-2 min-w-0">
                 {activeSection !== 'menu' && (
                   <button onClick={() => { triggerHaptic('light'); setActiveSection('menu'); }} className={cn('rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-white/80 border-none', isMobile ? 'w-11 h-11' : 'w-9 h-9')}>
@@ -198,7 +198,10 @@ export function ProjectDrawer({ isOpen, onClose, onDelete }: ProjectDrawerProps)
                 </motion.div>
               </AnimatePresence>
             </div>
-            <div className={cn('p-4 md:p-5 border-t border-white/10 bg-[#171717] flex-shrink-0 space-y-3', isMobile && 'p-5 space-y-3.5')}>
+            <div 
+              className={cn('p-4 md:p-5 border-t border-white/10 bg-[#171717] flex-shrink-0 space-y-3', isMobile && 'p-5 space-y-3.5')}
+              style={isMobile ? { paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.25rem)' } : undefined}
+            >
               <button onClick={() => { triggerHaptic('success'); handleSave(); }} disabled={isSaving || errors.length > 0 || !hasChanges} className={cn('yt-btn-primary w-full h-12 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-base font-bold', isMobile && 'h-14 text-lg')}>
                 {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 {isSaving ? 'Saving...' : t('common.saveChanges')}

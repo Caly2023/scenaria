@@ -18,7 +18,7 @@ export function SettingsHeader({
   return (
     <div
       className={cn("h-16 flex items-center justify-between px-5 border-b border-white/10 bg-[#171717] flex-shrink-0", isMobile && "h-20")}
-      style={isMobile ? { paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' } : undefined}
+      style={{ paddingTop: 'var(--header-top-padding)' }}
     >
       <div className="flex items-center gap-2 min-w-0">
         {activeSection !== 'menu' && (

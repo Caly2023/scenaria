@@ -38,16 +38,23 @@ export function FocusMode({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-[#0f0f0f] flex flex-col items-center justify-center p-12"
+          className="fixed inset-0 z-[100] bg-background flex flex-col items-center"
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 2rem)',
+            paddingBottom: 'env(safe-area-inset-bottom, 2rem)',
+            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            height: '100dvh'
+          }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-            className="w-full max-w-4xl flex flex-col h-full"
+            className="w-full max-w-4xl flex flex-col h-full p-6 md:p-12"
           >
-            <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center justify-between mb-8 md:mb-12">
               <div className="flex items-center gap-4">
                 <Target className="w-6 h-6 text-white/40" />
                 <h2 className="text-2xl font-bold tracking-tighter text-white/80">{title}</h2>

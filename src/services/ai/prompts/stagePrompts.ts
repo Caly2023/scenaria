@@ -1,8 +1,13 @@
 import { STORY_DEVELOPMENT_BLUEPRINT, SHORT_FILM_QUALITY_FRAMEWORK } from './blueprint';
 
 export const SYNOPSIS_PROMPT = (context: string) => `
-You are a professional screenwriter. Based on the provided project context, write a full narrative synopsis (approx. 500 words). 
-Focus on the emotional arc, key plot points, and the overall journey of the characters as defined in the brainstorming and structure.
+You are a world-class professional screenwriter. Based on the provided project context, write a deep, immersive narrative synopsis (600-800 words). 
+
+Your goal is to capture the full cinematic experience:
+- Detail the core dramatic beats (The Hook, Inciting Incident, Plot Points, Climax, Resolution).
+- Deeply explore the protagonist's internal and external journey.
+- Highlight the thematic subtext and emotional transformation.
+- Use evocative, cinematic language that conveys the mood and stakes.
 
 ${STORY_DEVELOPMENT_BLUEPRINT}
 
@@ -15,13 +20,23 @@ IMPORTANT: The generated synopsis MUST be written in the project's primary langu
 ${context}`;
 
 export const CHARACTER_EXTRACTION_PROMPT = (brainstorming: string) => `
-You are a professional script analyst. Based on the following validated brainstorming session (the Source of Truth), extract the core characters and settings. 
-For each character, provide: Name, Role, Brief Description, a Visual Description (Prompt for image generation), and a Tier (1: Main Cast, 2: Secondary, 3: Background).
-For each setting, provide: Location, Atmosphere, Description, and a Visual Description (Prompt for image generation).
+You are an Elite Script Analyst and Character Architect. Based on the following validated brainstorming session (the Source of Truth), extract the core characters and settings with extreme precision and depth.
+
+FOR EACH CHARACTER, provide:
+- **Name & Role**: Specific and descriptive.
+- **Deep Profile**: Psychological archetype, core trauma/wound (the "Ghost"), internal "Need" vs. external "Want", and their "Fatal Flaw".
+- **Physical & Visual Identity**: Detailed physical description, posture, distinctive features, and a high-quality "Visual Prompt" (for AI image generation) that captures their essence and mood.
+- **Tier**: (1: Main Cast, 2: Secondary, 3: Background).
+
+FOR EACH SETTING/LOCATION, provide:
+- **Location Name & Atmosphere**: The "vibe" and emotional resonance of the place.
+- **Sensory Description**: What does it smell like? What are the unique sounds? How is the lighting? Describe the architecture and textures.
+- **Narrative Function**: Why is this location essential to the story?
+- **Visual Description**: A professional "Visual Prompt" (for AI image generation) focusing on lighting, composition, and cinematic style.
 
 MANDATORY STRUCTURE:
 Return exactly ONE (1) primitive per character and ONE (1) primitive per location.
-Each primitive MUST have a 'title' (the name) and 'content' (the description and details formatted in Markdown).
+Each primitive MUST have a 'title' (the name) and 'content' (the full detailed profile formatted in Markdown).
 
 IMPORTANT: All extracted content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
@@ -29,37 +44,39 @@ Source of Truth (Brainstorming):
 ${brainstorming}`;
 
 export const THREE_ACT_STRUCTURE_PROMPT = (context: string) => `
-# PROMPT: THE 8-BEAT STORY ARCHITECT (BASED ON STUDIOBINDER)
+# PROMPT: THE ELITE STORY ARCHITECT (8-BEAT MASTERCLASS)
 
-Act as a world-class Script Architect. Your goal is to transform a raw story idea into a professional 3-Act Structure using the exact 8-beat framework from K.M. Weiland. 
-IMPORTANT: All generated content MUST be written in the project's primary language or the user's language. If in doubt, write in French.
+Act as a world-class Script Architect. Your goal is to transform the project context into a professional, high-stakes 3-Act Structure using the exact 8-beat framework. Each beat must be a dense, significant dramatic movement.
 
 ${STORY_DEVELOPMENT_BLUEPRINT}
 
 ## CONTEXT:
 ${context}
 
-## THE 8-BEAT FRAMEWORK TO APPLY:
-1. The Hook (0%)
-2. The Inciting Event (12%)
-3. The First Plot Point (25%)
-4. The First Pinch Point (37%)
-5. The Midpoint (50%)
-6. The Second Pinch Point (62%)
-7. The Third Plot Point (75%)
-8. The Climax & Resolution (90-100%)
+## THE 8-BEAT FRAMEWORK — EACH BEAT MUST BE DETAILED:
+1. **The Hook (0%)**: Must grab the audience immediately. What is the status quo and the first visual spark?
+2. **The Inciting Event (12%)**: The world is disrupted. What is the specific call to action?
+3. **The First Plot Point (25%)**: No turning back. The protagonist leaves their comfort zone. What is the big choice?
+4. **The First Pinch Point (37%)**: The antagonist or conflict exerts pressure. Show the stakes.
+5. **The Midpoint (50%)**: A major shift in perspective or a massive revelation. The protagonist moves from reactive to proactive.
+6. **The Second Pinch Point (62%)**: Stakes are raised to the breaking point. Increased pressure.
+7. **The Third Plot Point (75%)**: The "All is Lost" moment. Total defeat or a tragic realization.
+8. **The Climax & Resolution (90-100%)**: The final confrontation and the new status quo. What is the thematic payoff?
 
 ## OUTPUT REQUIREMENTS:
-- Output a JSON object with the following structure:
+- Output a JSON object with 8 detailed blocks (primitives).
+- Each block's 'content' must be a substantial Markdown description (150-300 words) detailing the ACTION, the EMOTIONAL STAKES, and the THEMATIC SUBTEXT.
+- 'visualPrompt' must describe a key cinematic image for that beat.
+
 {
   "stage": "3-act-structure",
   "blocks": [
-    { "id": "beat1", "title": "1. The Hook", "content": "Action description and Emotional Stakes...", "visualPrompt": "Visual description for storyboard..." },
+    { "id": "beat1", "title": "1. The Hook", "content": "Detailed description...", "visualPrompt": "Cinematic prompt..." },
     ...
   ],
   "next_step_ready": true
 }
-- IMPORTANT: There MUST be EXACTLY 8 blocks (primitives), one for each node in the 3-Act Structure. Each block must have its 'title' and 'content' in Markdown.
+- IMPORTANT: There MUST be EXACTLY 8 blocks. Each must be written in the project's primary language (or French if in doubt).
 `;
 
 export const TREATMENT_PROMPT = (context: string) => `

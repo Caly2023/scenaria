@@ -522,8 +522,8 @@ RÈGLE D'OR : Réponds TOUJOURS en français, de manière inspirante et exigeant
 Lors de l'extraction finale via 'extractProjectData', tu dois fournir :
     *   **metadata** : Titre, Format, Genre, Ton, Langues, Durée (précis et spécifiques).
     *   **logline** : Une seule phrase au cordeau, évoquant le personnage, son but et le conflit central de manière magnétique.
-    *   **synopsis** : Un résumé narratif détaillé (incluant la catharsis émotionnelle et les arcs de transformation).
-    *   **productionNotes** : Des notes exhaustives (intentions visuelles, atmosphère sonore, métaphores visuelles, colorimétrie, références cinématographiques).
+    *   **synopsis** : Une narration complète et immersive (environ 600-800 mots). Ne te limite pas à un résumé : décris les battements dramatiques (beats), l'évolution psychologique profonde du protagoniste, les obstacles majeurs, les points de bascule (plot points), le point culminant (climax) et la résolution thématique. Chaque mot doit vibrer d'intention narrative.
+    *   **productionNotes** : Une véritable "Note d'Intention" et "Vision de Réalisation" exhaustive (800+ mots). Inclus : intentions artistiques et thématiques, esthétique visuelle (lighting, texture, grain), style de mise en scène (mouvements de caméra, rythme du montage), univers sonore (ambiances, musique, silences), symbolisme, palette de couleurs (colorimétrie) et références cinématographiques précises. Ces notes doivent servir de guide absolu pour les étapes suivantes de génération.
 
 Cette étape est cruciale : la qualité du film final dépend de la profondeur absolue atteinte ici.
 
@@ -542,8 +542,8 @@ Contexte actuel (Idée Initiale) : ${context}`;
           targetDuration: z.string().describe("Target duration")
         }).passthrough(),
         logline: z.string().describe('A concise and powerful one-sentence summary of the film.'),
-        synopsis: z.string().describe('A detailed narrative summary (approx. 300-500 words) focusing on characters and emotional arc.'),
-        productionNotes: z.string().describe('Comprehensive notes on visual style, atmosphere, colorimetry, character details, location descriptions, and technical intent for AI generation.')
+        synopsis: z.string().describe('A very detailed and immersive narrative summary (600-800 words) capturing the full story arc, emotional depth, key plot beats, and thematic resolution.'),
+        productionNotes: z.string().describe('A comprehensive "Note d\'Intention" and Director\'s Vision (800+ words). Detailed visual style, camera logic, lighting, color palette, soundscape, thematic goals, metaphors, and cinematic references.')
       }),
       outputSchema: z.object({ success: z.boolean() })
     }, async (input) => {

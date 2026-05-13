@@ -138,8 +138,9 @@ Contenu à analyser (Etape: ${stage}) :
 ${content}
 
 1. Ton évaluation narrative (evaluation) doit être constructive, professionnelle et rédigée en Markdown.
-2. Identifie les problèmes ou faiblesses (issues) selon les standards du blueprint.
-3. Propose des recommandations concrètes d'amélioration (recommendations).
-4. Détermine si l'étape est prête (isReady: true/false). Pour être "Ready", elle doit passer la "Quality Gate" de son niveau.
-5. Suggère un prompt (suggestedPrompt) que l'utilisateur pourrait utiliser pour améliorer ce contenu via l'agent.
+2. EXIGENCE DE DÉTAIL : Sois extrêmement exigeant sur le niveau de profondeur. Si le contenu (synopsis, note d'intention, profils de personnages, descriptions de lieux) manque de nuances psychologiques, de détails sensoriels ou de précisions techniques, marque l'étape comme non prête (isReady: false).
+3. Identifie les problèmes ou faiblesses (issues) selon les standards du blueprint.
+4. Propose des recommandations concrètes d'amélioration (recommendations).
+5. Détermine si l'étape est prête (isReady: true/false). Pour être "Ready", elle doit impérativement passer la "Quality Gate" de profondeur et de précision.
+6. Suggère un prompt (suggestedPrompt) que l'utilisateur pourrait utiliser pour enrichir ce contenu via l'agent.
 `;

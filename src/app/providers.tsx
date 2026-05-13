@@ -10,25 +10,25 @@ import '@/i18n';
 // Register PWA Service Worker
 function ServiceWorkerRegistrar() {
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then((registration) => {
-          // Check for updates
-          registration.update();
-        }).catch((err) => {
-          console.warn('SW registration failed:', err);
-        });
-      });
+    if (!('serviceWorker' in navigator)) return;
 
-      // Handle reconnection
-      const handleOnline = () => {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'REFRESH_CACHE' });
-        }
-      };
-      window.addEventListener('online', handleOnline);
-      return () => window.removeEventListener('online', handleOnline);
-    }
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then((registration) => {
+        // Check for updates
+        registration.update();
+      }).catch((err) => {
+        console.warn('SW registration failed:', err);
+      });
+    });
+
+    // Handle reconnection
+    const handleOnline = () => {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'REFRESH_CACHE' });
+      }
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
   return null;
 }

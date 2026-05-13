@@ -83,8 +83,8 @@ export const TREATMENT_PROMPT = (context: string) => `
 You are an Elite Screenwriter and Cinematic Architect. Your task is to generate the CORE NARRATIVE SEQUENCES of a professional CINEMATIC TREATMENT based on the provided project context.
 IMPORTANT: The treatment MUST be written in the project's primary language or the user's language. If in doubt, write in French.
 
-\${SHORT_FILM_QUALITY_FRAMEWORK}
-\${STORY_DEVELOPMENT_BLUEPRINT}
+${SHORT_FILM_QUALITY_FRAMEWORK}
+${STORY_DEVELOPMENT_BLUEPRINT}
 
 CINEMATIC TREATMENT STANDARDS:
 1. DEEP DEVELOPMENT: Subdivide the treatment into significant narrative nodes (noeuds signifiants) that strictly adhere to the professional blueprint. Each node must represent a powerful dramatic movement with clear cause-and-effect.

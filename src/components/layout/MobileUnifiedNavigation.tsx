@@ -58,7 +58,7 @@ export function MobileUnifiedNavigation({
         isVisible ? "opacity-100 scale-100" : "translate-y-24 opacity-0 scale-90 pointer-events-none"
       )}
       style={{ 
-        bottom: isVisible ? 'calc(2rem + env(safe-area-inset-bottom, 0px))' : '-6rem'
+        bottom: isVisible ? 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' : '-6rem'
       }}
     >
       {/* Stages Menu Popover */}
@@ -147,7 +147,7 @@ export function MobileUnifiedNavigation({
         {/* Glow effect */}
         <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-white/5 to-blue-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
-        <div className="relative flex items-center bg-[#111111]/85 backdrop-blur-3xl border border-white/10 rounded-full p-1.5 shadow-[0_15px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/5">
+        <div className="relative flex items-center bg-[#111111]/85 backdrop-blur-3xl border border-white/10 rounded-[32px] p-2 shadow-[0_15px_40px_rgba(0,0,0,0.5)] ring-1 ring-white/5">
           {/* Steps Button */}
           <button
             onClick={() => {
@@ -155,7 +155,7 @@ export function MobileUnifiedNavigation({
               setIsMenuOpen(!isMenuOpen);
             }}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2.5 px-5 py-3 rounded-full transition-all border-none relative overflow-hidden",
+              "flex-1 flex flex-col items-center justify-center gap-1 px-5 py-4 rounded-[24px] transition-all border-none relative overflow-hidden min-w-[110px]",
               isMenuOpen ? "bg-white/10 text-white" : "text-white/70 hover:text-white"
             )}
           >
@@ -163,15 +163,13 @@ export function MobileUnifiedNavigation({
               "w-5 h-5 transition-transform duration-500",
               isMenuOpen ? "scale-110 rotate-12" : "group-active:scale-90"
             )} />
-            <span className="text-sm font-black tracking-tight uppercase">Étapes</span>
-            <div className={cn(
-              "w-1.5 h-1.5 rounded-full bg-white/20 transition-all duration-500",
-              isMenuOpen ? "scale-150 bg-white" : "scale-100"
-            )} />
+            <span className="text-[10px] font-bold tracking-tight uppercase truncate max-w-[90px]">
+              {t(`stages.${activeStageDef?.id}.label`, { defaultValue: activeStageDef?.id || 'Étapes' })}
+            </span>
           </button>
 
           {/* Divider */}
-          <div className="w-[1px] h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent mx-1" />
+          <div className="w-[1px] h-10 bg-gradient-to-b from-transparent via-white/10 to-transparent mx-1" />
 
           {/* Script Doctor Button */}
           <button
@@ -180,7 +178,7 @@ export function MobileUnifiedNavigation({
               onOpenDoctor();
             }}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2.5 px-5 py-3 rounded-full transition-all border-none relative overflow-hidden group/btn",
+              "flex-1 flex flex-col items-center justify-center gap-1 px-5 py-4 rounded-[24px] transition-all border-none relative overflow-hidden group/btn min-w-[110px]",
               isDoctorOpen ? "text-white" : "text-white/70 hover:text-white",
               (isTyping || isHeavyThinking) && "text-white"
             )}
@@ -191,10 +189,10 @@ export function MobileUnifiedNavigation({
                 isTyping && "animate-bounce"
               )} />
               {(isTyping || isHeavyThinking) && (
-                <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-purple-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(168,85,247,1)]" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(168,85,247,1)]" />
               )}
             </div>
-            <span className="text-sm font-black tracking-tight uppercase">Doctor</span>
+            <span className="text-[10px] font-bold tracking-tight uppercase">Script Docteur</span>
             
             {isHeavyThinking && (
               <motion.div 
